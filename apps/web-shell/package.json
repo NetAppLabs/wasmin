@@ -1,0 +1,23 @@
+{
+  "name": "@wasm-env/web-shell",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.3",
+    "vite": "^2.9.9"
+  },
+  "dependencies": {
+    "@wasm-env/fs-js": "*",
+    "@wasm-env/wasi-js": "*",
+    "local-echo": "wavesoft/local-echo",
+    "xterm": "^4.19.0",
+    "xterm-addon-fit": "^0.5.0",
+    "xterm-addon-serialize": "^0.7.0",
+    "xterm-addon-web-links": "^0.6.0",
+    "xterm-addon-webgl": "^0.12.0"
+  }
+}
