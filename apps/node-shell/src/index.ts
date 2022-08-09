@@ -91,7 +91,7 @@ const DEBUG_MODE = false;
   // if environment variable NODE_ROOT_DIR is set it will use it as root path
   // else current directory
   let nodePath = process.env.NODE_ROOT_DIR;
-  if ( nodePath == "" ){
+  if ( !nodePath || nodePath == "" ){
     nodePath = process.cwd();
   }
   const rootfs = await getOriginPrivateDirectory(node, nodePath);
@@ -145,7 +145,7 @@ const DEBUG_MODE = false;
       stderr: stderr,
       args: args,
       env: {
-        //RUST_BACKTRACE: "1",
+        RUST_BACKTRACE: "full",
         //RUST_LOG: "wasi=trace",
         PWD: init_pwd,
         TERM: "xterm-256color",
