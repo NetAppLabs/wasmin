@@ -1,0 +1,45 @@
+{
+  "name": "@wasm-env/bun-console-ffi",
+  "version": "0.1.2",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "description": "Readline Implementation in Rust for Bun.",
+  "scripts": {
+    "build": "tsup",
+    "build:rust": "./build.sh",
+    "release": "bumpp --commit --push --tag && npm publish",
+    "prepublishOnly": "bun run build"
+  },
+  "files": [
+    "dist",
+    "target/x86_64-unknown-linux-gnu/release/libbun-console-ffi.so",
+    "target/x86_64-apple-darwin/release/libbun-console-ffi.dylib",
+    "target/aarch64-apple-darwin/release/libbun-console-ffi.dylib"
+  ],
+  "keywords": [
+    "bun",
+    "readline"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/wobsoriano/bun-console-ffi#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wobsoriano/bun-console-ffi.git"
+  },
+  "bugs": "https://github.com/wobsoriano/bun-console-ffi/issues",
+  "author": "Robert Soriano <sorianorobertc@gmail.com>",
+  "devDependencies": {
+    "bun-types": "^0.1.4",
+    "bumpp": "^8.2.1",
+    "typescript": "^4.7.4",
+    "tsup": "^6.1.3"
+  }
+}
