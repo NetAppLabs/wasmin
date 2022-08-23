@@ -152,7 +152,7 @@ console.log(`isChrome: ${isChrome}`);
     term.loadAddon(new WebglAddon());
   }
   fitAddon.fit();
-  onresize = () => fitAddon.fit();
+
 
   const ANSI_GRAY = "\x1B[38;5;251m";
   const ANSI_BLUE = "\x1B[34;1m";
@@ -204,7 +204,9 @@ console.log(`isChrome: ${isChrome}`);
 
   const stdin = {
     async read(num: number) {
-      console.log(`read: num: ${num}`);
+      if (DEBUG_MODE) {
+        console.log(`read: num: ${num}`);
+      }
       let charOrLine = "";
       const isRawMode = tty.rawMode;
       let onData: IDisposable | undefined;
@@ -213,7 +215,7 @@ console.log(`isChrome: ${isChrome}`);
         const readPromise = new Promise<void>((resolve, _reject) => {
           onData = term.onData((s) => {
             if (DEBUG_MODE) {
-              console.debug("stdin::read: ", s);
+              console.debug("rawMode: stdin::read: ", s);
             }
             charOrLine = s;
             return resolve();
@@ -330,7 +332,16 @@ console.log(`isChrome: ${isChrome}`);
   const rows = term.rows;
   const rawMode = false;
   const tty = new TTY(cols, rows, rawMode, modeListener);
-
+  onresize = async () => {
+    console.log("onresize before fit");
+    fitAddon.fit();
+    const cols = term.cols;
+    const rows = term.rows;
+    console.log(`onresize after fit cols: ${cols} , rows: ${rows}`);
+    tty.columns = cols;
+    tty.rows = rows;
+    await tty.reload();
+  }
   try {
     const statusCode = await new WASI({
       abortSignal: abortController.signal,
