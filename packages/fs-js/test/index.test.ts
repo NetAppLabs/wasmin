@@ -24,7 +24,7 @@ const testOnlyMemory = (name: string) => (name === "memory" ? test : test.skip);
 
 describe.each([
   { name: "memory", adapter: memory },
-  { name: "node", adapter: node },
+  //{ name: "node", adapter: node },
 ])("$name", ({ name, adapter }) => {
   beforeAll(async () => {
     if (name === "node") {

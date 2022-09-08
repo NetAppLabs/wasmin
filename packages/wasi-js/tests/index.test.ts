@@ -6,7 +6,14 @@ import { WASI, stringOut, OpenFiles, bufferIn } from "../src";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 //import { node } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/fs-js-node";
-import { memory } from "@wasm-env/fs-js";
+// { memory } from "@wasm-env/fs-js";
+import { File, Blob } from "web-file-polyfill";
+
+import { JsNfsDirectoryHandle } from "../../../../nfs-js";
+
+export function getRootHandle(nfsURL: string): JsNfsDirectoryHandle {
+    return new JsNfsDirectoryHandle(nfsURL);
+  }
 
 /*
 // require is here needed to get node export
@@ -16,6 +23,8 @@ const memory = wasm_env_fs.getOriginPrivateDirectory;
 const node = wasm_env_fs.node;
 */
 
+globalThis.File = File;
+globalThis.Blob = Blob;
 /*
 declare let globalThis: any;
 globalThis.WASI_DEBUG = true;
@@ -23,7 +32,7 @@ globalThis.WASI_FD_DEBUG = false;
 globalThis.WASI_FS_DEBUG = true;
 */
 //TODO: look into why File global is not polyfilled by web-file-polyfill
-const testMemory = false;
+const testMemory = true;
 
 const EOL = "\n";
 
@@ -33,14 +42,21 @@ type Test = Partial<{
     stdout: string;
 }>;
 
-/*
+
 const tests: (Test & { test: string })[] = [
     //{ test: "link" },
     // ---
-    { test: "ftruncate" },
-    //{ test: "stat" , stdout: `---500${EOL}` },
+    //{ test: "ftruncate" },
+    { test: "stat" , stdout: `---500${EOL}` },
+    { test: "freopen", stdout: `hello from input2.txt${EOL}` },
+    { test: "read_file", stdout: `hello from input.txt${EOL}` },
+    {
+        test: "read_file_twice",
+        stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
+    },
 ];
-*/
+
+/*
 const tests: (Test & { test: string })[] = [
     //{ test: "link" },
     // ---
@@ -70,12 +86,12 @@ const tests: (Test & { test: string })[] = [
     { test: "stdout_with_flush", stdout: `12${EOL}34` },
     { test: "stdout_with_setbuf", stdout: `42` },
     { test: "async-export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
-];
+];*/
 
 const textEncoder = new TextEncoder();
 describe("all", () => {
     test.each(tests)("$test", async ({ test, stdin, stdout = "", exitCode = 0 }) => {
-        const wasmPath = path.resolve(path.join("tests", "wasm", `${test}.wasm`));
+        const wasmPath = path.resolve(path.join("tests", "async-wasm", `${test}.wasm`));
         const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 
         let rootHandle: FileSystemDirectoryHandle;
@@ -83,7 +99,9 @@ describe("all", () => {
         if (testMemory) {
             console.log("test: memory");
 
-            const memRootHandle = await getOriginPrivateDirectory(memory);
+            //const memRootHandle = await getOriginPrivateDirectory(memory);
+            const nfsUrl = "nfs://127.0.0.1/Users/Shared/nfs/";
+            const memRootHandle = await getRootHandle(nfsUrl);
             const dirs = ["sandbox", "tmp"];
             for (const dir of dirs) {
                 console.log("dir: ", dir);

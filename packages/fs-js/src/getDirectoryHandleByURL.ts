@@ -40,13 +40,18 @@ export async function getDirectoryHandleByURLOld(
 type providerFunc = (url: string, ...optionalParams: any[]) => Promise<FileSystemDirectoryHandle>;
 const providersRegistry: Record<string, providerFunc> = {};
 
+
+export async function registerProvider(prefix: string, provFunc: providerFunc){
+  providersRegistry[prefix] = provFunc;
+}
+
 export async function getDirectoryHandleByURL(
   url: string,
   secretStore?: any
 ): Promise<NFileSystemDirectoryHandle> {
   
   //@ts-ignore
-  providersRegistry["s3"] = s3;
+  registerProvider("s3", s3);
   //@ts-ignore
   providersRegistry["github"] = github;
   //@ts-ignore
