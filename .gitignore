@@ -33,6 +33,6 @@ yarn-error.log*
 .turbo
 
 # submodules
-packages/wasi-js
-packages/fs-js
+#packages/wasi-js
+#packages/fs-js
 packages/nfs-js

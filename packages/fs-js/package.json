@@ -1,0 +1,102 @@
+{
+  "name": "@wasm-env/fs-js",
+  "version": "0.0.4",
+  "description": "File System Standard Implementation",
+  "private": false,
+  "type": "module",
+  "main": "./dist/fs-js.umd.cjs",
+  "module": "./dist/fs-js.js",
+  "exports": {
+    ".": {
+      "import": "./dist/fs-js.js",
+      "require": "./dist/fs-js.umd.cjs"
+    }
+  },
+  "types": "./types/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "build-esbuild": "esbuild --bundle src/index.node.ts --platform=node --format=esm --outfile=dist/fs-js.umd.cjs && esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/fs-js.js --external:node:* ",
+    "dev": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/fs-js.js --watch",
+    "build": "vite build && yarn tsc",
+    "test": "jest --silent=false --verbose false",
+    "lint:eslint": "eslint \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --fix",
+    "lint:prettier": "prettier \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --write",
+    "prepublishOnly": "yarn lint && yarn test && yarn build"
+  },
+  "repository": "ssh://git@github.com/tryggvil/fs-js.git",
+  "keywords": [
+    "filesystem",
+    "file",
+    "blob",
+    "stream",
+    "fs",
+    "read",
+    "write",
+    "delete",
+    "file system access",
+    "spec"
+  ],
+  "author": "Jimmy Wärting",
+  "license": "MIT",
+  "homepage": "https://github.com/tryggvil/fs-js#readme",
+  "bugs": {
+    "url": "https://github.com/tryggvil/fs-js/issues"
+  },
+  "contributors": [
+    {
+      "name": "jimmywarting"
+    },
+    {
+      "name": "Alexandru Ciuca"
+    },
+    {
+      "name": "kobakazu0429"
+    },
+    {
+      "name": "tryggvil"
+    }
+  ],
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/filesystem": "^0.0.32",
+    "@types/jest": "^29.0.0",
+    "@types/js-yaml": "^4.0.5",
+    "@types/url-parse": "^1.4.8",
+    "esbuild": "^0.14.39",
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "jest": "^29.0.2",
+    "rollup-plugin-polyfill-node": "^0.9.0",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.8.2",
+    "vite": "^3.1.0",
+    "web-file-polyfill": "^1.0.4"
+  },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/jimmywarting"
+    },
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/jimmywarting"
+    }
+  ],
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.100.0",
+    "@aws-sdk/signature-v4-crt": "^3.88.0",
+    "@types/wicg-file-system-access": "2020.9.5",
+    "buffer": "^6.0.3",
+    "js-yaml": "^4.1.0",
+    "parse-url": "^5.0.7",
+    "url": "^0.11.0",
+    "url-parse": "^1.5.10",
+    "web-streams-polyfill": "^3.2.0"
+  }
+}

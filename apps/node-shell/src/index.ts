@@ -6,6 +6,9 @@ import { promises } from "node:fs";
 import { File, Blob } from "web-file-polyfill";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
+import { getOriginPrivateDirectory} from "@wasm-env/fs-js";
+import { node} from "@wasm-env/fs-js-node";
+
 // polyfill for node
 globalThis.File = File;
 globalThis.Blob = Blob;
@@ -21,8 +24,6 @@ const DEBUG_MODE = false;
 
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
-
-  //const nodeTTy = require('node:tty');
 
   const modeListener = function(rawMode: boolean): void {
     if (rawMode ) {
@@ -82,11 +83,6 @@ const DEBUG_MODE = false;
   }
 
   const preOpens: Record<string, FileSystemDirectoryHandle> = {};
-
-  // require is here needed to get node export
-  const wasm_env_fs = require("@wasm-env/fs-js");
-  const getOriginPrivateDirectory = wasm_env_fs.getOriginPrivateDirectory;
-  const node = wasm_env_fs.node;
 
   // if environment variable NODE_ROOT_DIR is set it will use it as root path
   // else current directory

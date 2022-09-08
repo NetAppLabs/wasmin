@@ -9,11 +9,11 @@
   },
   "devDependencies": {
     "esbuild": "^0.14.39",
-    "typescript": "^4.7.3",
-    "vite": "^2.5.1"
+    "typescript": "^4.8.2"
   },
   "dependencies": {
     "@wasm-env/fs-js": "*",
+    "@wasm-env/fs-js-node": "*",
     "@wasm-env/wasi-js": "*",
     "get-random-values": "^1.2.2",
     "web-file-polyfill": "^1.0.4",

@@ -264,7 +264,9 @@ console.log(`isChrome: ${isChrome}`);
   }
 
   const modeListener = function(rawMode: boolean): void {
-    console.debug(`debug: setting rawMode: ${rawMode}`);
+    if (DEBUG_MODE) {
+      console.debug(`debug: setting rawMode: ${rawMode}`);
+    }
   }
 
   let useOPFS = false;

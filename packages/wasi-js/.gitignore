@@ -1,0 +1,11 @@
+/dist
+/node_modules
+/tests/*.wasm
+/demo/public/*.wasm
+.vscode
+.yalc
+.turbo
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

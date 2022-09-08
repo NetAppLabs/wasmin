@@ -1,0 +1,75 @@
+{
+  "name": "@wasm-env/wasi-js",
+  "version": "0.0.2",
+  "private": false,
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "test": "vitest run --globals",
+    "test-no-esm": "jest -i --silent=false --verbose false",
+    "test-jest": "export NODE_OPTIONS=\"--experimental-vm-modules --trace-warnings\" && jest -i --silent=false --verbose=false",
+    "build": "tsc -p .",
+    "dev": "tsc -p . --watch",
+    "build:esbuild": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/index.js",
+    "dev:esbuild": "esbuild --bundle src/index.ts --format=esm --outfile=dist/index.js --watch",
+    "lint:eslint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
+    "lint:prettier": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
+    "yalc": "yarn build && yalc publish",
+    "yalc-link": "yalc link @wasm-env/fs-js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tryggvil/wasi-js.git"
+  },
+  "keywords": [],
+  "author": "Ingvar Stepanyan <rreverser@google.com>",
+  "contributors": [
+    {
+      "name": "Ingvar Stepanyan",
+      "email": "rreverser@google.com"
+    },
+    {
+      "name": "kobakazu0429",
+      "email": "kobakazu10@gmail.com"
+    },
+    {
+      "name": "tryggvil",
+      "email": "tryggvi@netapp.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/tryggvil/wasi-js/issues"
+  },
+  "homepage": "https://github.com/tryggvil/wasi-js#readme",
+  "dependencies": {
+    "@types/wicg-file-system-access": "^2020.9.5",
+    "@wasm-env/fs-js": "*",
+    "@wasm-env/fs-js-node": "*",
+    "proxymise": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@vitest/coverage-c8": "^0.23.1",
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "jest": "^29.0.2",
+    "jest-extended": "^2.0.0",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.8.2",
+    "vite": "^3.1.0",
+    "vitest": "^0.23.1",
+    "web-file-polyfill": "^1.0.4",
+    "web-streams-polyfill": "^3.1.1",
+    "yalc": "^1.0.0-pre.53"
+  }
+}
