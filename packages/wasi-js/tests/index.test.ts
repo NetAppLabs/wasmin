@@ -1,4 +1,5 @@
 //import { describe, test, expect } from 'vitest'
+import "jest-extended";
 
 import path from "path";
 import { readFile } from "fs/promises";
@@ -6,14 +7,9 @@ import { WASI, stringOut, OpenFiles, bufferIn } from "../src";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 //import { node } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/fs-js-node";
-// { memory } from "@wasm-env/fs-js";
+import { memory } from "@wasm-env/fs-js";
+import { NfsDirectoryHandle } from "../../../../nfs-js";
 import { File, Blob } from "web-file-polyfill";
-
-import { JsNfsDirectoryHandle } from "../../../../nfs-js";
-
-export function getRootHandle(nfsURL: string): JsNfsDirectoryHandle {
-    return new JsNfsDirectoryHandle(nfsURL);
-  }
 
 /*
 // require is here needed to get node export
@@ -31,8 +27,23 @@ globalThis.WASI_DEBUG = true;
 globalThis.WASI_FD_DEBUG = false;
 globalThis.WASI_FS_DEBUG = true;
 */
-//TODO: look into why File global is not polyfilled by web-file-polyfill
-const testMemory = true;
+
+type backendType = "fs-js" | "nfs-js" | "memory";
+let backend: backendType;
+switch (process.env.TEST_WASI_USING_BACKEND) {
+    case "memory": backend = "memory"; break;
+    case "nfs-js": backend = "nfs-js"; break;
+    default: backend = "fs-js"; break;
+}
+
+async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle> {
+    const nfsUrl = "nfs://127.0.0.1/Users/Shared/fixtures/";
+    switch (backend) {
+        case "memory": return getOriginPrivateDirectory(memory);
+        case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
+        default: return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
+    }
+}
 
 const EOL = "\n";
 
@@ -42,32 +53,29 @@ type Test = Partial<{
     stdout: string;
 }>;
 
-
-const tests: (Test & { test: string })[] = [
-    //{ test: "link" },
-    // ---
-    //{ test: "ftruncate" },
-    { test: "stat" , stdout: `---500${EOL}` },
-    { test: "freopen", stdout: `hello from input2.txt${EOL}` },
-    { test: "read_file", stdout: `hello from input.txt${EOL}` },
-    {
-        test: "read_file_twice",
-        stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
-    },
-];
-
 /*
 const tests: (Test & { test: string })[] = [
     //{ test: "link" },
     // ---
+    // { test: "ftruncate" },
+    // { test: "stat" , stdout: `---500${EOL}` },
+    { test: "freopen", stdout: `hello from input2.txt${EOL}` },
+    { test: "read_file", stdout: `hello from input.txt${EOL}` },
+    { test: "read_file_twice", stdout: `hello from input.txt${EOL}hello from input.txt${EOL}` },
+    { test: "stdin", stdin: "hello world", stdout: "hello world" },
+];
+/*/
+const tests: (Test & { test: string })[] = [
+    //{ test: "link" },
+    // ---
     { test: "getentropy" },
-    { test: "stat", stdout: `---500${EOL}` },
+    // { test: "stat", stdout: `---500${EOL}` },
     { test: "cant_dotdot" },
     { test: "clock_getres" },
     { test: "exitcode", exitCode: 120 },
     { test: "fd_prestat_get_refresh" },
     { test: "freopen", stdout: `hello from input2.txt${EOL}` },
-    //{ test: "ftruncate" },
+    // { test: "ftruncate" },
     { test: "getrusage" },
     { test: "gettimeofday" },
     { test: "main_args" },
@@ -75,18 +83,16 @@ const tests: (Test & { test: string })[] = [
     { test: "poll" },
     { test: "preopen_populates" },
     { test: "read_file", stdout: `hello from input.txt${EOL}` },
-    {
-        test: "read_file_twice",
-        stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
-    },
-    { test: "readdir" },
+    { test: "read_file_twice", stdout: `hello from input.txt${EOL}hello from input.txt${EOL}` },
+    // { test: "readdir" },
     { test: "write_file" },
     { test: "stdin", stdin: "hello world", stdout: "hello world" },
     { test: "stdout", stdout: "42" },
     { test: "stdout_with_flush", stdout: `12${EOL}34` },
     { test: "stdout_with_setbuf", stdout: `42` },
     { test: "async-export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
-];*/
+];
+//*/
 
 const textEncoder = new TextEncoder();
 describe("all", () => {
@@ -94,46 +100,39 @@ describe("all", () => {
         const wasmPath = path.resolve(path.join("tests", "async-wasm", `${test}.wasm`));
         const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 
-        let rootHandle: FileSystemDirectoryHandle;
-        const nodeRootHandle = await getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
-        if (testMemory) {
-            console.log("test: memory");
-
-            //const memRootHandle = await getOriginPrivateDirectory(memory);
-            const nfsUrl = "nfs://127.0.0.1/Users/Shared/nfs/";
-            const memRootHandle = await getRootHandle(nfsUrl);
+        const rootHandle = await getRootHandle(backend);
+        if (backend == "memory") {
+            const nodeRootHandle = await getRootHandle("fs-js");
             const dirs = ["sandbox", "tmp"];
             for (const dir of dirs) {
-                console.log("dir: ", dir);
-                const memDirHandle = await memRootHandle.getDirectoryHandle(dir, { create: true });
+                // console.log("dir: ", dir);
+                const memDirHandle = await rootHandle.getDirectoryHandle(dir, { create: true });
                 const nodeDirHandle = await nodeRootHandle.getDirectoryHandle(dir);
                 for await (const [name, entry] of nodeDirHandle) {
                     if (entry.kind == "file") {
-                        console.log("copying: ", name);
+                        // console.log("copying: ", name);
                         const esfh = entry as FileSystemFileHandle;
-                        console.log("copying2 : ", name);
+                        // console.log("copying2 : ", name);
 
                         const esf = await esfh.getFile();
-                        console.log("esf : ", esf);
+                        // console.log("esf : ", esf);
 
                         const sf = await memDirHandle.getFileHandle(name, { create: true });
-                        console.log("sf : ", sf);
+                        // console.log("sf : ", sf);
 
                         const sfc = await sf.createWritable({ keepExistingData: false });
-                        console.log("sfc : ", sfc);
+                        // console.log("sfc : ", sfc);
 
                         const sfw = await sfc.getWriter();
-                        console.log("sfw : ", sfw);
+                        // console.log("sfw : ", sfw);
 
-                        sfw.write(await esf.arrayBuffer());
-                        sfw.close();
+                        await sfw.write(await esf.arrayBuffer());
+                        await sfw.close();
                     }
                 }
             }
-            rootHandle = memRootHandle;
-        } else {
-            rootHandle = nodeRootHandle;
         }
+
         const [sandbox, tmp] = await Promise.all([
             rootHandle.getDirectoryHandle("sandbox"),
             rootHandle.getDirectoryHandle("tmp"),
@@ -167,5 +166,5 @@ describe("all", () => {
         expect(actualExitCode).toBe(exitCode);
         expect(actualStdout).toBe(stdout);
         expect(actualStderr).toBe("");
-    });
+    }, 10000);
 });
