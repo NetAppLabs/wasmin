@@ -75,7 +75,7 @@ const tests: (Test & { test: string })[] = [
     { test: "exitcode", exitCode: 120 },
     { test: "fd_prestat_get_refresh" },
     { test: "freopen", stdout: `hello from input2.txt${EOL}` },
-    // { test: "ftruncate" },
+    { test: "ftruncate" },
     { test: "getrusage" },
     { test: "gettimeofday" },
     { test: "main_args" },

@@ -275,9 +275,9 @@ export class OpenFile {
 
     async setSize(size: number) {
         await this.close();
-        console.log(`[setSize] size: ${size}`);
+        // console.log(`[setSize] size: ${size}`);
         const writer = await this._getWriter(false);
-        console.log("[setSize] writer:", writer);
+        // console.log("[setSize] writer:", writer);
         await writer.truncate(size);
         await this.close();
     }

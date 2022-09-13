@@ -274,7 +274,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdFilestatSetSize(fd: Fd, size: Filesize): Promise<Errno> {
         wasiDebug(`[fd_filestat_set_size] fd: ${fd} , size: ${size}`);
-        this.openFiles.get(fd).asFile().setSize(Number(size));
+        await this.openFiles.get(fd).asFile().setSize(Number(size));
         return ErrnoN.SUCCESS;
     }
     async fdFilestatSetTimes(fd: Fd, atim: Timestamp, mtim: Timestamp, fst_flags: Fstflags): Promise<Errno> {
