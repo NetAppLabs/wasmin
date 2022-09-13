@@ -84,7 +84,7 @@ const tests: (Test & { test: string })[] = [
     { test: "preopen_populates" },
     { test: "read_file", stdout: `hello from input.txt${EOL}` },
     { test: "read_file_twice", stdout: `hello from input.txt${EOL}hello from input.txt${EOL}` },
-    // { test: "readdir" },
+    { test: "readdir" },
     { test: "write_file" },
     { test: "stdin", stdin: "hello world", stdout: "hello world" },
     { test: "stdout", stdout: "42" },
@@ -128,6 +128,8 @@ describe("all", () => {
 
                         await sfw.write(await esf.arrayBuffer());
                         await sfw.close();
+                    } else {
+                        await memDirHandle.getDirectoryHandle(name, { create: true });
                     }
                 }
             }
