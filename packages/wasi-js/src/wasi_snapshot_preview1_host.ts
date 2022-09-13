@@ -591,7 +591,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     async pathUnlinkFile(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
         wasiDebug(`[path_unlink_file] dirfd: ${fd} path: ${path}`);
-        this.openFiles.getPreOpen(fd).delete(path);
+        await this.openFiles.getPreOpen(fd).delete(path);
         return ErrnoN.SUCCESS;
     }
     async pollOneoff(

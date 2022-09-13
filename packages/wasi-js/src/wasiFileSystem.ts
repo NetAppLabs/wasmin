@@ -300,6 +300,7 @@ export class OpenFile {
             this.position = f.size;
         }
         await writer.write({ type: "write", position: this.position, data });
+        await this.flush();
         this.position += data.length;
     }
 

@@ -53,23 +53,11 @@ type Test = Partial<{
     stdout: string;
 }>;
 
-/*
-const tests: (Test & { test: string })[] = [
-    //{ test: "link" },
-    // ---
-    // { test: "ftruncate" },
-    // { test: "stat" , stdout: `---500${EOL}` },
-    { test: "freopen", stdout: `hello from input2.txt${EOL}` },
-    { test: "read_file", stdout: `hello from input.txt${EOL}` },
-    { test: "read_file_twice", stdout: `hello from input.txt${EOL}hello from input.txt${EOL}` },
-    { test: "stdin", stdin: "hello world", stdout: "hello world" },
-];
-/*/
 const tests: (Test & { test: string })[] = [
     //{ test: "link" },
     // ---
     { test: "getentropy" },
-    // { test: "stat", stdout: `---500${EOL}` },
+    { test: "stat", stdout: `---500${EOL}` },
     { test: "cant_dotdot" },
     { test: "clock_getres" },
     { test: "exitcode", exitCode: 120 },
@@ -92,7 +80,6 @@ const tests: (Test & { test: string })[] = [
     { test: "stdout_with_setbuf", stdout: `42` },
     { test: "async-export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
 ];
-//*/
 
 const textEncoder = new TextEncoder();
 describe("all", () => {
