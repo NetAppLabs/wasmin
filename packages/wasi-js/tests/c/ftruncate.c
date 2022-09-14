@@ -35,5 +35,12 @@ int main(void) {
   assert(0 == lseek(fd, 0, SEEK_CUR));
 
   assert(0 == close(fd));
+
+  assert(0 == unlink(PATH));
+  assert(-1 == stat(PATH, &st));
+
+  assert(0 == rmdir(OUTPUT_DIR));
+  assert(-1 == stat(OUTPUT_DIR, &st));
+
   return 0;
 }
