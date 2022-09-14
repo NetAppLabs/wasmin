@@ -92,27 +92,15 @@ describe("all", () => {
             const nodeRootHandle = await getRootHandle("fs-js");
             const dirs = ["sandbox", "tmp"];
             for (const dir of dirs) {
-                // console.log("dir: ", dir);
                 const memDirHandle = await rootHandle.getDirectoryHandle(dir, { create: true });
                 const nodeDirHandle = await nodeRootHandle.getDirectoryHandle(dir);
                 for await (const [name, entry] of nodeDirHandle) {
                     if (entry.kind == "file") {
-                        // console.log("copying: ", name);
                         const esfh = entry as FileSystemFileHandle;
-                        // console.log("copying2 : ", name);
-
                         const esf = await esfh.getFile();
-                        // console.log("esf : ", esf);
-
                         const sf = await memDirHandle.getFileHandle(name, { create: true });
-                        // console.log("sf : ", sf);
-
                         const sfc = await sf.createWritable({ keepExistingData: false });
-                        // console.log("sfc : ", sfc);
-
                         const sfw = await sfc.getWriter();
-                        // console.log("sfw : ", sfw);
-
                         await sfw.write(await esf.arrayBuffer());
                         await sfw.close();
                     } else {
