@@ -37,7 +37,7 @@ switch (process.env.TEST_WASI_USING_BACKEND) {
 }
 
 async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle> {
-    const nfsUrl = "nfs://127.0.0.1/Users/Shared/fixtures/";
+    const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     switch (backend) {
         case "memory": return getOriginPrivateDirectory(memory);
         case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
