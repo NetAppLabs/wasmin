@@ -110,8 +110,10 @@ describe("all", () => {
             }
         }
 
-        const sandbox = await rootHandle.getDirectoryHandle("sandbox");
-        const tmp = await rootHandle.getDirectoryHandle("tmp");
+        const [sandbox, tmp] = await Promise.all([
+            rootHandle.getDirectoryHandle("sandbox"),
+            rootHandle.getDirectoryHandle("tmp"),
+        ]);
 
         let actualStdout = "";
         let actualStderr = "";
