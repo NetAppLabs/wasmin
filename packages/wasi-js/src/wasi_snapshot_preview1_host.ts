@@ -41,6 +41,7 @@ import {
     Advice,
     Exitcode,
     addWasiSnapshotPreview1ToImports,
+    RightsN,
 } from "./wasi_snapshot_preview1_bindings";
 import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./wasi_snapshot_preview1_bindings";
 import {
@@ -74,7 +75,19 @@ export function initializeWasiSnapshotPreview1AsyncToImports(
     };
     //const errorHandler = new ErrorHandlerTranslator();
     wHost._get_exports_func = get_export;
-    addWasiSnapshotPreview1ToImports(imports, wHost, errorHandler, get_export);
+    const checkAbort: () => void = function () {
+        if (wasiEnv.abortSignal) {
+            if (wasiEnv.abortSignal?.aborted) {
+                throw new SystemError(ErrnoN.CANCELED);
+            }
+        }
+    };
+    const handler = {
+        getExport: get_export,
+        checkAbort: checkAbort,
+        handleError: errorHandler,
+    }
+    addWasiSnapshotPreview1ToImports(imports, wHost, handler);
 }
 
 export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async {
@@ -208,14 +221,18 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         if (fd < FIRST_PREOPEN_FD) {
             // TODO: look into why rightsBase is not working here
             // stdin
-            /*if (fd == 0) {
+            if (fd == 0) {
                 rightsBase = RIGHTS_STDIN_BASE;
             } else {
                 rightsBase = RIGHTS_STDOUT_BASE;
-            }*/
+            }
+
+            //rightsInheriting empty for std(in/out/err)
+            rightsInheriting = BigInt(0);
             filetype = FiletypeN.CHARACTER_DEVICE;
         } else if (this.openFiles.get(fd).isFile) {
             rightsBase = RIGHTS_FILE_BASE;
+            rightsInheriting = BigInt(0);
             filetype = FiletypeN.REGULAR_FILE;
         } else {
             rightsBase = RIGHTS_DIRECTORY_BASE;
@@ -400,7 +417,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             // TODO look into how best to handle this error as character devices do not support seek
             wasiDebug(`[fd_seek fd: ${fd} offset: ${offset} whence: ${whence}]`);
             throw new SystemError(ErrnoN.NOTCAPABLE);
-            //uint64_t.set(this._getBuffer(), filesizePtr, BigInt(offset));
+            //uint64_t.set(this.buffer, filesizePtr, BigInt(offset));
+            //Filesize.set(this.buffer, result_ptr, BigInt(offset));
         } else {
             const openFile = this.openFiles.get(fd).asFile();
             let base: number;

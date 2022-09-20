@@ -14,9 +14,9 @@
   ],
   "scripts": {
     "lint": "npm run lint:eslint && npm run lint:prettier",
-    "test": "vitest run --globals",
+    "test-vitest": "vitest run --globals",
     "test-no-esm": "jest -i --silent=false --verbose false",
-    "test-jest": "export NODE_OPTIONS=\"--experimental-vm-modules --trace-warnings\" && jest -i --silent=false --verbose=false",
+    "test": "export NODE_OPTIONS=\"--experimental-vm-modules --trace-warnings\" && jest -i --silent=false --verbose=false",
     "build": "tsc -p .",
     "dev": "tsc -p . --watch",
     "build:esbuild": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/index.js",

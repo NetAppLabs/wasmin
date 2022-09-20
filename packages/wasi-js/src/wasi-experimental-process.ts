@@ -149,6 +149,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         this._wasiEnv.stderr = devNull;
         this._wasiEnv.stdout = devNull;
         if (this._wasiEnv.tty) {
+            // resetting rawMode false for the new process
             this._wasiEnv.tty.rawMode = false;
         }
 
@@ -174,7 +175,8 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 })
                 .catch((err: any) => {
                     wasiDebug(`exec:run:catch exitCode: ${exitCode} err: ${err}`);
-                    resolve(exitCode);
+                    console.log("wasi-experimental-process:exec error: ", err);
+                    resolve(translateErrorToErrorno(err));
                 })
                 .finally(() => {
                     wasiDebug(`exec:run:finally exitCode: ${exitCode}`);

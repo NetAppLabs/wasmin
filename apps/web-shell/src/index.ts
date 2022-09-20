@@ -23,6 +23,11 @@ if (isChrome && isSafari) {
   isSafari = false;
 }
 
+function isHttps() {
+  return (document.location.protocol == 'https:');
+}
+
+
 console.log(navigator.userAgent);
 console.log(`isSafari: ${isSafari}`);
 console.log(`isChrome: ${isChrome}`);
@@ -274,8 +279,11 @@ console.log(`isChrome: ${isChrome}`);
     // Safari has not support for FileSystemFileHandle.createWritable , so disabling it for now
     useOPFS = false;
   } else {
-    if (navigator.storage.getDirectory !== undefined) {
-      useOPFS = false;
+    if (isHttps()) {
+      //OPFS getDirectory is only available in secure contexts
+      if (navigator.storage.getDirectory !== undefined) {
+        useOPFS = true;
+      }
     }
   }
 
