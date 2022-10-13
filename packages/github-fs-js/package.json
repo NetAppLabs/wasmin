@@ -1,21 +1,21 @@
 {
-  "name": "@wasm-env/fs-js-node",
+  "name": "@wasm-env/github-fs-js",
   "version": "0.1.0",
   "description": "",
   "private": false,
-  "main": "./dist/fs-js-node.umd.js",
-  "module": "./dist/fs-js-node.mjs",
+  "main": "./dist/github-fs-js.umd.js",
+  "module": "./dist/github-fs-js.mjs",
   "exports": {
     ".": {
-      "import": "./dist/fs-js-node.mjs",
-      "require": "./dist/fs-js-node.umd.js"
+      "import": "./dist/github-fs-js.mjs",
+      "require": "./dist/github-fs-js.umd.js"
     }
   },
   "types": "./types/index.d.ts",
   "scripts": {
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "build": "vite build && yarn tsc",
-    "test": "echo no test case yet for fs-js-node",
+    "test": "echo no test case yet for github-fs-js",
     "dev": "vite",
     "dev-esbuild": "esbuild --bundle src/index.ts --platform=node --format=esm --outfile=dist/index.js --watch",
     "test-jest": "jest --silent=false --verbose false",

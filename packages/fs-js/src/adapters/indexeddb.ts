@@ -329,28 +329,33 @@ export class FolderHandle
           }
         );
         if (!handeRetrieved) throw new NotFoundError();
-        let extHandleDirectoryHandle = await handeRetrieved;
+        try{
+          let extHandleDirectoryHandle = await handeRetrieved;
 
-        // @ts-ignore
-        if (extHandleDirectoryHandle.adapter) {
           // @ts-ignore
-          extHandleDirectoryHandle = extHandleDirectoryHandle.adapter;
-        }
-        // @ts-ignore
-        if (extHandleDirectoryHandle.url) {
-          const secStore = await this.loadSecurityStore();
+          if (extHandleDirectoryHandle.adapter) {
+            // @ts-ignore
+            extHandleDirectoryHandle = extHandleDirectoryHandle.adapter;
+          }
           // @ts-ignore
-          const url = extHandleDirectoryHandle.url;
-          const extHandleDirectoryHandleFSDir = await getDirectoryHandleByURL(
-            url,
-            secStore
-          );
-          extHandleDirectoryHandle = extHandleDirectoryHandleFSDir;
+          if (extHandleDirectoryHandle.url) {
+            const secStore = await this.loadSecurityStore();
+            // @ts-ignore
+            const url = extHandleDirectoryHandle.url;
+            const extHandleDirectoryHandleFSDir = await getDirectoryHandleByURL(
+              url,
+              secStore
+            );
+            extHandleDirectoryHandle = extHandleDirectoryHandleFSDir;
+          }
+          const extHandle = extHandleDirectoryHandle as unknown as FolderHandle;
+          this.verifyPermission(extHandleDirectoryHandle, true);
+          ret = extHandle;
+        } catch (error: any){
+          console.log("indexeddb.getExternalFolderHandle error: ", error);
         }
-        const extHandle = extHandleDirectoryHandle as unknown as FolderHandle;
-        this.verifyPermission(extHandleDirectoryHandle, true);
-        ret = extHandle;
-      } else {
+      }
+      if (!ret) {
         ret = new FolderHandle(this._db, id, name);
         ret._rootFolderHandle = this._rootFolderHandle;
       }

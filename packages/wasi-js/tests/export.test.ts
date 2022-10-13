@@ -5,7 +5,7 @@ import { readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles } from "../src";
 
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/fs-js-node";
+import { node } from "@wasm-env/node-fs-js";
 
 describe("export", () => {
     test("main", async () => {

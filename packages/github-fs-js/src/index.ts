@@ -5,9 +5,9 @@ import {
   NotFoundError,
   SyntaxError,
   TypeMismatchError,
-} from "../errors";
-import { join, substituteSecretValue } from "./util";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements";
+} from "@wasm-env/fs-js";
+import { join, substituteSecretValue } from "@wasm-env/fs-js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 import { default as urlparse } from "url-parse";
 
 const GITHUB_DEBUG = false;

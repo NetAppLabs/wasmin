@@ -5,14 +5,14 @@ import {
   NotFoundError,
   SyntaxError,
   TypeMismatchError,
-} from "../errors";
+} from "@wasm-env/fs-js";
 import {
   join,
   streamToBuffer,
   streamToBufferNode,
   substituteSecretValue,
-} from "./util";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements";
+} from "@wasm-env/fs-js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 import * as AWS from "@aws-sdk/client-s3";
 import { default as urlparse } from "url-parse";
 

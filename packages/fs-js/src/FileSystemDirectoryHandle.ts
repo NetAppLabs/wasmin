@@ -2,6 +2,8 @@ import { NFileSystemHandle } from "./FileSystemHandle";
 import { NFileSystemFileHandle } from "./FileSystemFileHandle";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL";
 import { TypeMismatchError } from "./errors";
+import { memory } from "./index.node";
+import { FolderHandle } from "./adapters/memory";
 
 export class NFileSystemDirectoryHandle
   extends NFileSystemHandle
@@ -269,8 +271,12 @@ export class NFileSystemDirectoryHandle
       const file = await newFh.getFile();
       const ab = await file.arrayBuffer();
       const str = new TextDecoder().decode(ab);
-      const obj = JSON.parse(str);
-      returnFh = obj as FileSystemDirectoryHandle | FileSystemFileHandle;
+      try {
+        const obj = JSON.parse(str);
+        returnFh = obj as FileSystemDirectoryHandle | FileSystemFileHandle;
+      } catch (error: any){
+        console.log("error on JSON.parse for getExternalHandle: ",error);
+      }
       let returnFhAny = returnFh as any;
       if (returnFhAny.adapter) {
         returnFh = returnFhAny.adapter;
@@ -278,7 +284,14 @@ export class NFileSystemDirectoryHandle
       }
       if (returnFhAny.url) {
         const secretStore = this.secretStore;
-        returnFh = await getDirectoryHandleByURL(returnFhAny.url, secretStore);
+        try {
+          returnFh = await getDirectoryHandleByURL(returnFhAny.url, secretStore);
+        } catch (error: any){
+          console.log("error on getDirectoryHandleByURL: ",error);
+        }
+      }
+      if (returnFh == null) {
+        returnFh = newFh;
       }
       this._externalHandleCache[fileName] = returnFh;
       if (returnFh.kind === "file") {

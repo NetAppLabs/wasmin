@@ -1,0 +1,1 @@
+{"adapter":{"kind":"directory","path":"","name":"github-tryggvil","url":"github://tryggvil?username=${github.username}&token=${github.token}","config":{"owner":"tryggvil","repoName":""},"deleted":false,"writable":false,"readable":true,"_entries":{}},"kind":"directory","name":"github-tryggvil","isDirectory":true,"isFile":false,"_externalHandleCache":{}}

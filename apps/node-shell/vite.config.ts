@@ -5,10 +5,10 @@ export default defineConfig({
     target: "esnext",
     lib: {
       entry: "src/index.ts",
-      name: "@wasm-env/fs-js-node",
+      name: "@wasm-env/node-shell",
     },
     rollupOptions: {
-      external: ["node:fs", "node:path", "node", "node:fs:promises"],
+      external: ["node:fs", "node:path", "node", "node:fs:promises", "node:crypto"],
       output: {
         globals: {
           fs: "fs",

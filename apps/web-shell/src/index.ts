@@ -5,6 +5,9 @@ import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
+import { default as s3} from "@wasm-env/s3-fs-js";
+import { default as github} from "@wasm-env/github-fs-js";
+
 // @ts-ignore
 import LocalEchoController from 'local-echo';
 
@@ -12,9 +15,12 @@ import {
   getOriginPrivateDirectory,
   indexeddb,
   NFileSystemDirectoryHandle,
+  RegisterProvider,
 } from "@wasm-env/fs-js";
 
 const DEBUG_MODE = false;
+const REGISTER_GITHUB = true;
+const REGISTER_S3 = true;
 
 let isSafari = navigator.userAgent.indexOf("Safari") > -1;
 const isChrome = navigator.userAgent.indexOf("Chrome") > -1;
@@ -31,6 +37,15 @@ function isHttps() {
 console.log(navigator.userAgent);
 console.log(`isSafari: ${isSafari}`);
 console.log(`isChrome: ${isChrome}`);
+
+if (REGISTER_S3) {
+  // @ts-ignore
+  RegisterProvider("s3", s3);
+}
+if (REGISTER_GITHUB) {
+  // @ts-ignore
+  RegisterProvider("github", github);
+}
 
 (async () => {
   const options: ITerminalOptions = {

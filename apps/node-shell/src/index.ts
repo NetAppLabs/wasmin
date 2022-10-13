@@ -1,24 +1,80 @@
 
+
+//import 'get-random-values';
+//let getRandomValues = require('get-random-values');
+//import getRandomValues from 'get-random-values-esm'
+
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
 import { promises } from "node:fs";
 
 
-import { File, Blob } from "web-file-polyfill";
+//import { File, Blob } from "web-file-polyfill";
+//import { File, Blob } from "fetch-blob";
+import File from 'fetch-blob/file.js'
+import {Blob} from 'fetch-blob'
+
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
-import { getOriginPrivateDirectory} from "@wasm-env/fs-js";
-import { node} from "@wasm-env/fs-js-node";
+import { getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
+import { node} from "@wasm-env/node-fs-js";
+import { default as s3} from "@wasm-env/s3-fs-js";
+import { default as github} from "@wasm-env/github-fs-js";
+
 
 // polyfill for node
 globalThis.File = File;
 globalThis.Blob = Blob;
+  // @ts-ignore
 globalThis.WritableStream = WritableStream;
 globalThis.ReadableStream = ReadableStream;
 Object.setPrototypeOf(globalThis.WritableStream, WritableStream.prototype);
 
+
+import { webcrypto } from "node:crypto";
+
+// Workaround for aws-sdk-s3 library that depends on crypto.getRandomValues()
+class Crypto {
+  constructor(){
+    console.debug("Crypto constructed");
+  }
+
+  getRandomValues<T extends ArrayBufferView>(array: T): T{
+    //console.log("getRandomValues got in: ", array);
+    if (!array) {
+      // @ts-ignore
+      array = new Uint8Array(16);
+    } 
+    // @ts-ignore
+    return webcrypto.getRandomValues(array);
+  }
+  /** Available only in secure contexts. */
+  //randomUUID(): string;
+
+}
+const crypto = new Crypto();
+
+// @ts-ignore
+globalThis.crypto = crypto;
+// @ts-ignore
+//globalThis.crypto.getRandomValues = webcrypto.getRandomValues;
+
+//var getRandomValues = require('get-random-values');
+// @ts-ignore
+//globalThis.crypto = {};
+//globalThis.crypto.getRandomValues = getRandomValues;
+
+//window = globalThis;
+
+
 const DEBUG_MODE = false;
 
 (async () => {
+
+  // @ts-ignore
+  RegisterProvider("s3", s3);
+  // @ts-ignore
+  RegisterProvider("github", github);
+
   const textEncoder = new TextEncoder();
   const textDecoder = new TextDecoder();
 

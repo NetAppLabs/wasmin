@@ -54,7 +54,7 @@
   "dependencies": {
     "@types/wicg-file-system-access": "^2020.9.5",
     "@wasm-env/fs-js": "*",
-    "@wasm-env/fs-js-node": "*",
+    "@wasm-env/node-fs-js": "*",
     "proxymise": "^1.0.2"
   },
   "devDependencies": {

@@ -6,9 +6,9 @@ import { readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn } from "../src";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 //import { node } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/fs-js-node";
+import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
-import { NfsDirectoryHandle } from "../../../../nfs-js";
+//import { NfsDirectoryHandle } from "../../../../nfs-js";
 import { File, Blob } from "web-file-polyfill";
 
 /*
@@ -40,7 +40,7 @@ async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle
     const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     switch (backend) {
         case "memory": return getOriginPrivateDirectory(memory);
-        case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
+        //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default: return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
     }
 }

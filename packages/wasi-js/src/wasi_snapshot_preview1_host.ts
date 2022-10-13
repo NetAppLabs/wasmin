@@ -746,6 +746,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     async randomGet(buf: mutptr<u8>, buf_len: Size): Promise<Errno> {
         wasiDebug("[random_get]");
         const uBuf = new Uint8Array(this.buffer, buf, buf_len);
+        //if (false) {
         if (this.isNode) {
             // node version
             /*
@@ -753,6 +754,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             crypto = webcrypto as unknown as Crypto;
             crypto.getRandomValues(uBuf);
             */
+            
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const webcrypto = require("crypto").webcrypto;
             webcrypto.getRandomValues(new Uint8Array(this.buffer, buf, buf_len));
