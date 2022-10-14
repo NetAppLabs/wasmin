@@ -3,25 +3,20 @@ const termSetRawMode = bun_console.termSetRawMode;
 
 //import { exec } from 'bun-utilities/spawn'
 
-//import { WASI, OpenFiles, TTY } from "../../../packages/wasi-js";
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
 import { memory, getOriginPrivateDirectory } from "@wasm-env/fs-js";
 //import { termSetRawMode, termGetRawMode } from "@wasm-env/bun-console";
 
-import { promises } from "node:fs";
-import { default as fs } from "node:fs";
-
-
+//import { promises } from "node:fs";
+//import { default as fs } from "node:fs";
+//import { default as fs } from "fs";
+import { readFileSync, writeFileSync, appendFile, appendFileSync } from 'fs';
 
 import "./std-polyfill.js";
 //import {Bun} from 'bun';
 
-
-
 //import { exec } from 'bun-utilities/spawn'
 //import { exec } from "bun-utilities";
-
-
 
 //import * as process from "node:process";
 //import {stdin,stdout,stderr} from "bun";
@@ -47,6 +42,7 @@ const runFunc = async () => {
   //process.stdin.setEncoding("utf8");
 
   //const nodeTTy = require('node:tty');
+
   console.log(Bun.stdin.stream(), Bun.stdout.stream(), Bun.stderr.stream());
 
   /*fs.write(1, "output", 0, "utf8", (err, written) => {
@@ -59,17 +55,23 @@ const runFunc = async () => {
 
 
   const modeListener = function(rawMode: boolean): void {
-    console.log('modeListener');
+    if (DEBUG_MODE){
+      console.log('modeListener');
+    }
     if (rawMode ) {
       //stdin.stream().setRawMode(rawMode);
-      console.log(`modeListener::rawMode ${rawMode}`);
+      if (DEBUG_MODE){
+        console.log(`modeListener::rawMode ${rawMode}`);
+      }
       //Bun.stdin.setRawMode(rawMode);
       //.stdin.setRawMode(rawMode);
       //exec(["stty", "raw"]);
       //exec(["stty", "raw"]);
       termSetRawMode(1);
     } else {
-      console.log(`modeListener::rawMode ${rawMode}`);
+      if (DEBUG_MODE){
+        console.log(`modeListener::rawMode ${rawMode}`);
+      }
       //Bun.stdin.setRawMode(rawMode);
       //stdin.stream().setRawMode(rawMode);
       //process.stdin.setRawMode(rawMode);
@@ -117,12 +119,20 @@ const runFunc = async () => {
           return resolve();
           */
           process.stdin.once("data", function (chunk) {
-            const s: string = chunk as unknown as string;
-            if (DEBUG_MODE) {
+            let s = "";
+            //const s: string = chunk as unknown as string;
+            //if (DEBUG_MODE) {
               //console.debug("read from stdin: ", s);
-              console.debug(`read from stdin: "${s}" `);
-            }
-            console.debug(`read from stdin: "${s}" `, s);
+              //console.debug(`read from stdin: "${s}" `);
+              //console.debug(`read from stdin: "${chunk}" `, chunk);
+              if (chunk) {
+                if (chunk.value) {
+                  const val = chunk.value;
+                  s = textDecoder.decode(val);
+                }
+              }
+              //console.debug(`read from stdin: "${s}" `, s);
+            //}
 
             mychar = s;
             return resolve();
@@ -144,26 +154,42 @@ const runFunc = async () => {
 
   const stdout = {
     write(data: Uint8Array) {
-      console.log("stdout:write:", data);
+      if (DEBUG_MODE){
+        console.log("stdout:write:", data);
+      }
       //stdout.stream().write(data);
       //Bun.stdout.stream().write(data);
-      fs.writeFileSync(1, data, "utf-8");
+      //writeFileSync(1, "testerson");
+
+      //const dec = textDecoder.decode(data);
+      //writeFileSync(1, dec, "utf-8");
+      //const adata = new DataView(data);
+      //writeFileSync(1, adatabuf, "utf-8");
+      //const cb = () => undefined;
+      appendFileSync(1, data, "utf-8");
+      //process.stdout.write(data);
+      //console.log(dec);
     },
   };
 
   let stderr = {
     write(data: Uint8Array) {
-      console.log("stderr:write:", data);
+      if (DEBUG_MODE){
+        console.log("stderr:write:", data);
+      }
       //stderr.stream().write(data);
       //Bun.stderr.stream().write(data);
-      fs.writeFileSync(2, data, "utf-8");
+      //writeFileSync(2, "testerson");
+
+      const dec = textDecoder.decode(data);
+      writeFileSync(2, dec);
     },
   };
 
   if (DEBUG_MODE) {
     stderr = {
       write(data: Uint8Array) {
-        console.error(textDecoder.decode(data, { stream: true }));
+        console.error(textDecoder.decode(data));
       },
     };
   }
@@ -222,7 +248,7 @@ const runFunc = async () => {
   //const mod = WebAssembly.compile(await promises.readFile(shellBinary));
   //const mod = await WebAssembly.compile(buf);
 
-  const buf = fs.readFileSync(shellBinary);
+  const buf = readFileSync(shellBinary);
   //const mod = new WebAssembly.Module(buf);
   const mod = await WebAssembly.compile(buf);
 

@@ -1,5 +1,7 @@
 import EventEmitter from "node:events";
 
+const DEBUG_MODE = false;
+
 class Readable extends EventEmitter {
   fromWeb(rs) {
     this.rs = rs;
@@ -7,7 +9,7 @@ class Readable extends EventEmitter {
     this.td = new TextDecoder("utf-8");
   }
 
-  isRaw = true;
+  //isRaw = true;
 
   async begin() {
     const reader = this.rs.getReader();
@@ -16,7 +18,9 @@ class Readable extends EventEmitter {
     do {
       const res = await reader.read();
       done = res.done;
-      console.log("EventEmitter::begin ", res);
+      if (DEBUG_MODE) {
+        console.log("EventEmitter::begin ", res);
+      }
       //result = res.value;
       //console.log("EventEmitter::begin result ", result);
 
@@ -54,12 +58,16 @@ process.stdin = await webRSToNodeRS(Bun.stdin.stream());
 class Writable {
   fromWeb(ws) {
     // console.log(ws);
-    // this.writer = ws.getReader();
+    this.writer = ws.getReader();
   }
 
   async write(data) {
     if (this.ongoing) {
-      await thiss.ongoing;
+      await this.ongoing;
+    } else {
+      if (data) {
+        this.writer.write(data);
+      }
     }
     delete this.ongoing;
   }
