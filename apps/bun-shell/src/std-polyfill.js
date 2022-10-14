@@ -21,24 +21,6 @@ class Readable extends EventEmitter {
       if (DEBUG_MODE) {
         console.log("EventEmitter::begin ", res);
       }
-      //result = res.value;
-      //console.log("EventEmitter::begin result ", result);
-
-      //s = this.td.decode(res, { stream: false });
-      //console.log("EventEmitter::begin dec ", s);
-      
-      /*let result = new Uint8Array(0);
-      const { done, value } = await reader.read();
-      console.log("EventEmitter::begin ", done, value);
-      if (done) {
-          break;
-      }
-      const newResult = new Uint8Array(result.length + value.length);
-      newResult.set(result);
-      newResult.set(value, result.length);
-      //const value = res.value;
-      console.log("EventEmitter::begin ", newResult);
-      */
       this.emit("data", res);
     } while (!done);
 
@@ -53,8 +35,10 @@ const webRSToNodeRS = async (rs) => {
   return nodeStream;
 };
 
+//process.stdin = Bun.stdin;
 process.stdin = await webRSToNodeRS(Bun.stdin.stream());
 
+/*
 class Writable {
   fromWeb(ws) {
     // console.log(ws);
@@ -88,3 +72,4 @@ const webWSToNodeWS = async (ws) => {
 };
 
 process.stdout = await webWSToNodeWS(Bun.stdout.stream());
+*/

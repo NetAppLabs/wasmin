@@ -15,7 +15,7 @@ import {Blob} from 'fetch-blob'
 
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
-import { getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
+import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node} from "@wasm-env/node-fs-js";
 import { default as s3} from "@wasm-env/s3-fs-js";
 import { default as github} from "@wasm-env/github-fs-js";
@@ -146,7 +146,13 @@ const DEBUG_MODE = false;
   if ( !nodePath || nodePath == "" ){
     nodePath = process.cwd();
   }
-  const rootfs = await getOriginPrivateDirectory(node, nodePath);
+  const USE_MEMORY = true;
+  let rootfs: NFileSystemDirectoryHandle;
+  if (USE_MEMORY) {
+    rootfs = await getOriginPrivateDirectory(memory, nodePath);
+  } else {
+    rootfs = await getOriginPrivateDirectory(node, nodePath);
+  }
 
   const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
   const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
