@@ -218,7 +218,9 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { termSetRawMode, termGetRawMode } = nativeBinding
+const { termSetRawMode, termGetRawMode, termGetColumns, termGetRows } = nativeBinding
 
 module.exports.termSetRawMode = termSetRawMode
 module.exports.termGetRawMode = termGetRawMode
+module.exports.termGetColumns = termGetColumns
+module.exports.termGetRows = termGetRows

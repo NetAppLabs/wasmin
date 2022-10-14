@@ -32,3 +32,29 @@ fn term_get_raw_mode() -> u32{
   }
   return ret
 }
+
+#[napi]
+fn term_get_columns() -> u16{
+  let mut ret = 0;
+  let rsize = terminal::size();
+  match rsize{
+      Ok(size) => {
+          ret = size.0;
+      },
+      Err(_) => {},
+  }
+  return ret
+}
+
+#[napi]
+fn term_get_rows() -> u16{
+  let mut ret = 0;
+  let rsize = terminal::size();
+  match rsize{
+      Ok(size) => {
+          ret = size.1;
+      },
+      Err(_) => {},
+  }
+  return ret
+}
