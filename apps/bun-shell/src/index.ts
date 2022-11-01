@@ -1,15 +1,33 @@
+
+// require needed for now:
 const bun_console = require("@wasm-env/bun-console");
 const termSetRawMode = bun_console.termSetRawMode;
 const termGetColumns = bun_console.termGetColumns;
 const termGetRows = bun_console.termGetRows;
 
+// TODO figure out ESM import
+//import { termSetRawMode, termGetRawMode, termGetRows } from "@wasm-env/bun-console";
+
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
-import { memory, getOriginPrivateDirectory } from "@wasm-env/fs-js";
-//import { termSetRawMode, termGetRawMode } from "@wasm-env/bun-console";
+import { memory, getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
 
-import { readFile, readFileSync, writeFileSync, appendFile, appendFileSync } from 'fs';
+import { readFileSync } from 'fs';
 
+//polyfill needed for process.stdin/stdout/stderr
 import "./std-polyfill.js";
+
+import { default as bunFs } from "./bun-fs-js";
+
+import { default as s3} from "@wasm-env/s3-fs-js";
+import { default as github} from "@wasm-env/github-fs-js";
+
+
+import { MyFile } from "./fetch-blob/file";
+
+// polyfill for bun
+if (!globalThis.File) {
+  globalThis.File = MyFile;
+}
 
 const DEBUG_MODE = false;
 
@@ -99,6 +117,9 @@ const runFunc = async () => {
     };
   }
 
+  RegisterProvider("s3", s3);
+  RegisterProvider("github", github);
+
   const preOpens: Record<string, FileSystemDirectoryHandle> = {};
 
   let nodePath = process.env.NODE_ROOT_DIR;
@@ -106,7 +127,8 @@ const runFunc = async () => {
     nodePath = process.cwd();
   }
   //const rootfs = await getOriginPrivateDirectory(node, nodePath);
-  const rootfs = await getOriginPrivateDirectory(memory);
+  //const rootfs = await getOriginPrivateDirectory(memory);
+  const rootfs = await getOriginPrivateDirectory(bunFs, nodePath);
 
   const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
   const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
@@ -124,6 +146,7 @@ const runFunc = async () => {
       username: GITHUB_USERNAME,
     },
   };
+  console.log("secretStore: ", secretStore);
   // @ts-ignore
   rootfs.secretStore = secretStore;
   const rootDir = "/";
@@ -140,9 +163,6 @@ const runFunc = async () => {
   if ( binaryFromEnv && binaryFromEnv != " "){
     shellBinary = binaryFromEnv;
   }
-
-  //const mod = WebAssembly.compile(await promises.readFile(shellBinary));
-  //const mod = await WebAssembly.compile(buf);
 
   const buf = readFileSync(shellBinary);
   const mod = await WebAssembly.compile(buf);

@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 export default defineConfig({
   build: {
@@ -8,7 +9,10 @@ export default defineConfig({
       name: "@wasm-env/s3-fs-js",
     },
     rollupOptions: {
-      external: ["node:fs", "node:path", "node", "node:fs:promises"],
+      external: ["node:fs", "node:path", "node", "node:fs:promises", "stream", "http", "https", "http2"],
+      plugins: [
+        nodePolyfills( /* options */ )
+      ],
       output: {
         globals: {
           fs: "fs",

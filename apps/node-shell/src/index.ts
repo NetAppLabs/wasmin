@@ -10,25 +10,59 @@ import { promises } from "node:fs";
 
 //import { File, Blob } from "web-file-polyfill";
 //import { File, Blob } from "fetch-blob";
-import File from 'fetch-blob/file.js'
-import {Blob} from 'fetch-blob'
+//import File from 'fetch-blob/file.js'
+//import {Blob} from 'fetch-blob'
 
-import { ReadableStream, WritableStream } from "web-streams-polyfill";
+//import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node} from "@wasm-env/node-fs-js";
+
 import { default as s3} from "@wasm-env/s3-fs-js";
 import { default as github} from "@wasm-env/github-fs-js";
 
+/*
+const s3Fs = require('@wasm-env/s3-fs-js');
+console.log("s3Fs: ",s3Fs);
+const s3 = s3Fs.default;
+console.log("s3: ",s3);
+const githubFs = require('@wasm-env/github-fs-js');
+console.log("githubFs: ",githubFs);
+const github = githubFs.default;
+console.log("github: ",github);
+*/
+
+import fetch, {
+  Blob,
+  //blobFrom,
+  //blobFromSync,
+  File,
+  //fileFrom,
+  //fileFromSync,
+  //FormData,
+  //Headers,
+  Request,
+  //Response,
+} from 'node-fetch'
+
+
+if (!globalThis.fetch) {
+  // @ts-ignore
+  globalThis.Request = Request
+  // @ts-ignore
+  globalThis.fetch = fetch
+  //globalThis.Headers = Headers
+  //globalThis.Response = Response
+}
 
 // polyfill for node
 globalThis.File = File;
 globalThis.Blob = Blob;
   // @ts-ignore
-globalThis.WritableStream = WritableStream;
-globalThis.ReadableStream = ReadableStream;
-Object.setPrototypeOf(globalThis.WritableStream, WritableStream.prototype);
-
+//globalThis.WritableStream = WritableStream;
+//globalThis.ReadableStream = ReadableStream;
+//Object.setPrototypeOf(globalThis.ReadableStream, ReadableStream.prototype);
+//Object.setPrototypeOf(globalThis.WritableStream, WritableStream.prototype);
 
 import { webcrypto } from "node:crypto";
 
@@ -146,7 +180,7 @@ const DEBUG_MODE = false;
   if ( !nodePath || nodePath == "" ){
     nodePath = process.cwd();
   }
-  const USE_MEMORY = true;
+  const USE_MEMORY = false;
   let rootfs: NFileSystemDirectoryHandle;
   if (USE_MEMORY) {
     rootfs = await getOriginPrivateDirectory(memory, nodePath);

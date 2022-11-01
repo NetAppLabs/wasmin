@@ -27,9 +27,12 @@ export class NFileSystemFileHandle
   ): Promise<FileSystemWritableFileStream> {
     const thisAdapter = this.getAdapterFileSystemFileHandle();
     if (thisAdapter.createWritable) {
-      return new FileSystemWritableFileStream(
+      // TODO look into if FileSystemWritableFileStream is needed
+      /*return new FileSystemWritableFileStream(
         await thisAdapter.createWritable(options)
-      );
+      );*/
+      // @ts-ignore
+      return await thisAdapter.createWritable(options);
       // @ts-ignore
     } else if (thisAdapter.createAccessHandle) {
       // Specifically for Safari

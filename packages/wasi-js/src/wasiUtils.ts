@@ -31,6 +31,13 @@ export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
 export function wasiError(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
         console.error(msg, optionalParams);
+        if (msg instanceof Error) {
+            const e = msg as Error;
+            console.error(e.name);
+            console.error(e.message);
+            console.error(e.cause);
+            console.error(e.stack);
+        }
     }
 }
 
@@ -191,6 +198,8 @@ export class ErrorHandlerTranslator implements ErrorHandler {
 }
 
 export function translateErrorToErrorno(err: any): Errno {
+    wasiError(`translateErrorToErrorno: error: `, err);
+
     if (err instanceof ExitStatus) {
         wasiError(`translateErrorToErrorno: ExitStatus: `, err);
         // forward throw ExitStatus because we want to exit out of the program loop

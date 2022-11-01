@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
+	"moduleResolution": "node",
     "lib": ["ESNext"],
     "module": "esnext",
     "target": "esnext",
     // "bun-types" is the important part
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "paths": {
+      "@wasm-env/fs-js": ["../../../packages/fs-js"]
+    },
+    "baseUrl": "./src"
   }
 }

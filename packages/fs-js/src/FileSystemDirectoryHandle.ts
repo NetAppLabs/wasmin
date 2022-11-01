@@ -2,9 +2,15 @@ import { NFileSystemHandle } from "./FileSystemHandle";
 import { NFileSystemFileHandle } from "./FileSystemFileHandle";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL";
 import { TypeMismatchError } from "./errors";
-import { memory } from "./index.node";
-import { FolderHandle } from "./adapters/memory";
 
+
+const FILESYSTEM_DEBUG = false;
+
+export function fileSystemDebug(msg?: any, ...optionalParams: any[]): void {
+  if (FILESYSTEM_DEBUG){
+    console.log(...msg);
+  }
+}
 export class NFileSystemDirectoryHandle
   extends NFileSystemHandle
   implements FileSystemDirectoryHandle
@@ -160,6 +166,7 @@ export class NFileSystemDirectoryHandle
       );
       return f;
     } catch (error: any) {
+      fileSystemDebug("getFileHandle: err: ", error);
       const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
       try {
         const f = await this.getExternalHandle(newName);
@@ -275,7 +282,7 @@ export class NFileSystemDirectoryHandle
         const obj = JSON.parse(str);
         returnFh = obj as FileSystemDirectoryHandle | FileSystemFileHandle;
       } catch (error: any){
-        console.log("error on JSON.parse for getExternalHandle: ",error);
+        fileSystemDebug("error on JSON.parse for getExternalHandle: ",error);
       }
       let returnFhAny = returnFh as any;
       if (returnFhAny.adapter) {
@@ -287,7 +294,7 @@ export class NFileSystemDirectoryHandle
         try {
           returnFh = await getDirectoryHandleByURL(returnFhAny.url, secretStore);
         } catch (error: any){
-          console.log("error on getDirectoryHandleByURL: ",error);
+          fileSystemDebug("error on getDirectoryHandleByURL: ",error);
         }
       }
       if (returnFh == null) {

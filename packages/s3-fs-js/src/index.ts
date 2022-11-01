@@ -13,8 +13,16 @@ import {
   substituteSecretValue,
 } from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
-import * as AWS from "@aws-sdk/client-s3";
+
 import { default as urlparse } from "url-parse";
+
+import * as AWS from "@aws-sdk/client-s3";
+//import { Endpoint } from "@aws-sdk/types";
+
+//import { NodeHttpHandler } from "@aws-sdk/node-http-handler"
+//import { FetchHttpHandler } from "@aws-sdk/fetch-http-handler"
+
+import { DeleteObjectCommand, GetObjectCommand, ListBucketsCommand, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const S3_DEBUG = false;
 
@@ -119,12 +127,14 @@ export class Sink extends DefaultSink<S3FileHandle> {
     const path = this.fileHandle.path;
     const body = await blob.arrayBuffer();
     const abody = new Uint8Array(body);
-    const _s3obj = await s3client.putObject({
+    //const _s3obj = await s3client.putObject({
+    const params = {
       Bucket: bucketName,
       Key: path,
       Body: abody,
-    });
-
+    };
+    const command = new PutObjectCommand(params);
+    const _s3obj = await s3client.send(command);
     this.file = blob;
   }
 
@@ -190,12 +200,15 @@ export class S3File implements File {
     const range = `bytes=${start}-${end}`;
     s3Debug(`s3client.getObject Range: ${range}`);
     try {
-      const s3obj = await s3client.getObject({
+      const params = {
         Bucket: bucketName,
         Key: path,
         Range: range,
         ChecksumMode: AWS.ChecksumMode.ENABLED,
-      });
+      };
+      const command = new GetObjectCommand(params);
+      const s3obj = await s3client.send(command);
+      //const s3obj = await s3client.getObject();
       s3Debug(`s3obj.Body ${s3obj.Body}`);
       if (s3obj.Body) {
         if (s3obj.Body instanceof ReadableStream) {
@@ -306,34 +319,36 @@ export class S3FileHandle implements ImpleFileHandle<Sink, File> {
     return this === other;
   }
 
-  public destroy() {
+  public async destroy() {
     const bucketName = this.config.bucketName;
     const s3client = this.config.getS3Client();
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    s3client
-      .deleteObject({
-        Bucket: bucketName,
-        Key: this.path,
-      })
-      .then((_s3obj) => {
-        this.deleted = true;
-        // @ts-ignore
-        this.file = null;
-      });
+    const params = {
+      Bucket: bucketName,
+      Key: this.path,
+    };
+    const command = new DeleteObjectCommand(params);
+    try{
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _res = await s3client.send(command);
+      this.deleted = true;
+      // @ts-ignore
+      this.file = null;
+    } catch (error) {
+      console.error("destroy catched error: ", error);
+    }
   }
 }
 
 export class S3Config {
-  constructor(clientConfig: any, bucketName: string) {
+  constructor(clientConfig: AWS.S3ClientConfig, bucketName: string) {
     this.config = clientConfig;
     this.bucketName = bucketName;
   }
   bucketName: string;
-  config: any;
+  config: AWS.S3ClientConfig;
 
-  getS3Client(): AWS.S3 {
-    const cl = new AWS.S3(this.config);
+  getS3Client(): AWS.S3Client {
+    const cl = new AWS.S3Client(this.config);
     /* TODO find way to figure out region becore CORS
     console.log("s3: trying to set region");
     cl.getBucketLocation({Bucket: this.bucketName}).then((resp) => {
@@ -383,13 +398,16 @@ function parseS3Url(
   s3Debug(`config region: ${region}`);
   s3Debug(`config awsAccessKeyId: ${awsAccessKeyId}`);
   s3Debug(`config awsSecretAccessKey: ${awsSecretAccessKey}`);
+  // TODO look into why NodeHttpHandler is not working correctly in node.js
+  //const requestHandler = new NodeHttpHandler();
+  //const requestHandler = new FetchHttpHandler();
 
   if (pathName == "") {
     s3Debug("config using aws");
     // Assuming an AWS bucket:
     const bucketName = hostname;
     s3Debug(`config bucketName: ${bucketName}`);
-    const s3clientConfig = {
+    const s3clientConfig: AWS.S3ClientConfig = {
       region: region,
       //forcePathStyle: forcePathStyle,
       credentials: {
@@ -397,6 +415,7 @@ function parseS3Url(
         secretAccessKey: awsSecretAccessKey,
       },
       tls: !insecure,
+      //requestHandler: requestHandler,
     };
     const sConfig = new S3Config(s3clientConfig, bucketName);
     return { s3config: sConfig, newUrl: newUrl };
@@ -416,24 +435,28 @@ function parseS3Url(
       hostname = `${hostname}:${port}`;
     }
     s3Debug(`config hostname: ${hostname}`);
-
-    const s3clientConfig = {
+    /*const endpoint: Endpoint = {
+      protocol: protocol,
+      hostname: hostname,
+      path: "",
+      port: undefined,
+      query: undefined,
+    };*/
+    const endpoint = `${protocol}://${hostname}`;
+    const s3clientConfig: AWS.S3ClientConfig = {
       region: region,
       // Issue with @aws-sdk not including port in host header
       // See: https://github.com/christophgysin/aws-sdk-js-v3/issues/24
       // and https://github.com/aws/aws-sdk-js-v3/issues/1941
       // and https://github.com/aws/aws-sdk-js-v3/issues/1930
-      endpoint: {
-        protocol: protocol,
-        hostname: hostname,
-        path: "",
-      },
+      endpoint: endpoint,
       tls: !insecure,
       forcePathStyle: forcePathStyle,
       credentials: {
         accessKeyId: awsAccessKeyId,
         secretAccessKey: awsSecretAccessKey,
       },
+      //requestHandler: requestHandler,
     };
     const sConfig = new S3Config(s3clientConfig, bucketName);
     return { s3config: sConfig, newUrl: newUrl };
@@ -473,12 +496,15 @@ export class S3FolderHandle
         s3Debug(
           `before s3.listObjectsV2: bucketName: ${bucketName} Prefix: ${prefix} delimeter: ${delimeter}`
         );
-        // TODO support more than 1000 entries
-        const objectsresponse = await s3client.listObjectsV2({
+        const params = {
           Bucket: bucketName,
           Prefix: prefix,
           Delimiter: delimeter,
-        });
+        };
+        const command = new ListObjectsV2Command(params);
+        // TODO support more than 1000 entries
+        //const objectsresponse = await s3client.listObjectsV2({
+        const objectsresponse = await s3client.send(command);
         const contents = objectsresponse.Contents;
         if (contents != undefined) {
           for (const cont of contents) {
@@ -584,11 +610,14 @@ export class S3FolderHandle
     //const hiddenFile = join(dirPath, ".dir");
     const hiddenFile = join(dirPath, "");
     const f = new S3FolderHandle(this.config, dirPath, name);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _s3obj = await s3client.putObject({
+    const params = {
       Bucket: bucketName,
       Key: hiddenFile,
-    });
+    }
+    const command = new PutObjectCommand(params);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _s3obj = await s3client.send(command);
+    //const _s3obj = await s3client.putObject();
     return f;
   }
 
@@ -597,11 +626,16 @@ export class S3FolderHandle
     const s3client = this.config.getS3Client();
     const path = join(this.path, name);
     const f = new S3FileHandle(this.config, path, name);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _s3obj = await s3client.putObject({
+    const abody = new Uint8Array();
+    const params = {
       Bucket: bucketName,
       Key: path,
-    });
+      Body: abody,
+    };
+    const command = new PutObjectCommand(params);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _s3obj = await s3client.send(command);
+    //const _s3obj = await s3client.putObject();
     return f;
   }
 
@@ -638,14 +672,14 @@ export class S3FolderHandle
   ): Promise<void> {
     const entry = this._entries[name];
     if (!entry) throw new NotFoundError();
-    entry.destroy(opts.recursive);
+    await entry.destroy(opts.recursive);
     delete this._entries[name];
   }
 
-  public destroy(recursive?: boolean) {
+  public async destroy(recursive?: boolean) {
     for (const x of Object.values(this._entries)) {
       if (!recursive) throw new InvalidModificationError();
-      x.destroy(recursive);
+      await x.destroy(recursive);
     }
     this._entries = {};
     this.deleted = true;
@@ -694,7 +728,10 @@ export class S3BucketListHandle
   async populateEntries() {
     try {
       const s3client = this.config.getS3Client();
-      const bucketsresponse = await s3client.listBuckets({});
+      const params = {};
+      const command = new ListBucketsCommand(params);
+      const bucketsresponse = await s3client.send(command);
+      //const bucketsresponse = await s3client.listBuckets({});
       const contents = bucketsresponse.Buckets;
       if (contents != undefined) {
         for (const cont of contents) {
@@ -767,7 +804,7 @@ export class S3BucketListHandle
     throw new Error("remove not supported");
   }
 
-  public destroy(recursive?: boolean) {
+  public async destroy(recursive?: boolean) {
     throw new Error("destroy not supported");
   }
 }

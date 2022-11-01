@@ -1,1 +1,0 @@
-{"adapter":{"kind":"directory","path":"","name":"s3","url":"s3://?accessKeyId=${aws.accessKeyId}&secretAccessKey=${aws.secretAccessKey}","config":{"config":{"region":"us-east-1","credentials":{},"tls":true},"bucketName":""},"deleted":false,"writable":false,"readable":true,"_entries":{}},"kind":"directory","name":"s3","isDirectory":true,"isFile":false,"_externalHandleCache":{}}
