@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
-    "build": "bun bun src/index.ts",
+    "build": "echo build",
+    "bun-build": "bun bun src/index.ts",
     "esbuild": "esbuild --bundle src/index.ts --format=esm --platform=node --outfile=dist/out.js --main-fields=main,module",
     "clean": "rm -rf node_modules",
-    "run": "bun src/index.ts"
+    "run": "bun src/index.ts",
+	"test": "bun wiptest",
+	"dev": "echo dev"
   },
   "devDependencies": {
     "bun-types": "^0.2.2",

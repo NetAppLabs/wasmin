@@ -213,14 +213,14 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     async fdFdstatGet(fd: Fd, fdstat_ptr: mutptr<Fdstat>): Promise<Errno> {
         wasiDebug("[fd_fdstat_get]", fd, fdstat_ptr);
         let filetype;
-        const fdflags = 0;
+        let fsflags = 0;
         let rightsBase: Rights = -1n; /* anything */
         let rightsInheriting: Rights = ~(1n << 24n); /* anything but symlink */
         //let rightsInheriting = 0n as Rights;
         //let rightsBase = RightsN.FD_READ;
         if (fd < FIRST_PREOPEN_FD) {
-            // TODO: look into why rightsBase is not working here
             // stdin
+            fsflags = FdflagsN.APPEND;
             if (fd == 0) {
                 rightsBase = RIGHTS_STDIN_BASE;
             } else {
@@ -241,7 +241,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         }
         const newFdstat: Fdstat = {
             fs_filetype: filetype,
-            fs_flags: fdflags,
+            fs_flags: fsflags,
             fs_rights_base: rightsBase,
             fs_rights_inheriting: rightsInheriting,
         };

@@ -5,7 +5,7 @@ globalThis.FSJS_UTIL_DEBUG = false;
 
 function utilDebug(message?: any, ...optionalParams: any[]) {
   if (globalThis.FSJS_UTIL_DEBUG) {
-    console.debug(message, optionalParams);
+    console.debug(message, ...optionalParams);
   }
 }
 

@@ -36,9 +36,9 @@ const runFunc = async () => {
   const textDecoder = new TextDecoder();
 
   const Bun = globalThis["Bun"];
-  if (DEBUG_MODE) {
+  //if (DEBUG_MODE) {
     console.log(Bun.stdin.stream(), Bun.stdout.stream(), Bun.stderr.stream());
-  }
+  //}
 
   const modeListener = function(rawMode: boolean): void {
     if (DEBUG_MODE){
@@ -146,7 +146,7 @@ const runFunc = async () => {
       username: GITHUB_USERNAME,
     },
   };
-  console.log("secretStore: ", secretStore);
+  //console.log("secretStore: ", secretStore);
   // @ts-ignore
   rootfs.secretStore = secretStore;
   const rootDir = "/";

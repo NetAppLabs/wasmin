@@ -2,7 +2,7 @@ const TTY_DEBUG = false;
 
 function ttyDebug(msg?: any, ...optionalParams: any[]): void {
     if (TTY_DEBUG) {
-        console.debug(msg, optionalParams);
+        console.debug(msg, ...optionalParams);
     }
 }
 export class TTY {

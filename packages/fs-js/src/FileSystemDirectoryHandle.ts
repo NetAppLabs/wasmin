@@ -8,7 +8,7 @@ const FILESYSTEM_DEBUG = false;
 
 export function fileSystemDebug(msg?: any, ...optionalParams: any[]): void {
   if (FILESYSTEM_DEBUG){
-    console.log(...msg);
+    console.debug(msg,  ...optionalParams);
   }
 }
 export class NFileSystemDirectoryHandle

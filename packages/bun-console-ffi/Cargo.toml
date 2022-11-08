@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 crossterm = "0.24.0"
 nanoserde = "0.1.30"
-rustyline = "10.0.0"
 
 [lib]
 path = "src/lib.rs"

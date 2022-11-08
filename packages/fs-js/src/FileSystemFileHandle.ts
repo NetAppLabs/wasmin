@@ -1,6 +1,16 @@
 import { NFileSystemHandle } from "./FileSystemHandle";
 import { FileSystemWritableFileStream } from "./FileSystemWritableFileStream";
 
+export function detectBun() {
+  // only bun has global Bun
+  try {
+      // @ts-ignore
+      return globalThis.Bun != null;
+  } catch (e) {
+      return false;
+  }
+}
+
 export class NFileSystemFileHandle
   extends NFileSystemHandle
   implements FileSystemFileHandle
@@ -27,12 +37,19 @@ export class NFileSystemFileHandle
   ): Promise<FileSystemWritableFileStream> {
     const thisAdapter = this.getAdapterFileSystemFileHandle();
     if (thisAdapter.createWritable) {
-      // TODO look into if FileSystemWritableFileStream is needed
-      /*return new FileSystemWritableFileStream(
-        await thisAdapter.createWritable(options)
-      );*/
-      // @ts-ignore
-      return await thisAdapter.createWritable(options);
+      const isBun = detectBun();
+      if (isBun) {
+        // Temporary hack for Bun as FileSystemWritableFileStream does not work
+        // TODO: remove this once FileSystemWritableFileStream becomes usable in bun
+        const wr = await thisAdapter.createWritable(options);
+        // @ts-ignore
+        return wr;  
+      } else {
+        return new FileSystemWritableFileStream(
+          await thisAdapter.createWritable(options)
+        );
+      }
+
       // @ts-ignore
     } else if (thisAdapter.createAccessHandle) {
       // Specifically for Safari

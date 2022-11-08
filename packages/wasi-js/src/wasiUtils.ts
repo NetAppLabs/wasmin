@@ -18,19 +18,19 @@ globalThis.WASI_FD_DEBUG = false;
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
-        console.debug(msg, optionalParams);
+        console.debug(msg, ...optionalParams);
     }
 }
 
 export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
-        console.debug(msg, optionalParams);
+        console.debug(msg, ...optionalParams);
     }
 }
 
 export function wasiError(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
-        console.error(msg, optionalParams);
+        console.error(msg, ...optionalParams);
         if (msg instanceof Error) {
             const e = msg as Error;
             console.error(e.name);
@@ -43,7 +43,7 @@ export function wasiError(msg?: any, ...optionalParams: any[]): void {
 
 export function wasiFdDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_FD_DEBUG) {
-        console.debug(msg, optionalParams);
+        console.debug(msg, ...optionalParams);
     }
 }
 
@@ -322,7 +322,35 @@ export const RIGHTS_DIRECTORY_INHERITING = RIGHTS_DIRECTORY_BASE | RIGHTS_FILE_B
 
 export const RIGHTS_STDIN_BASE = RightsN.FD_READ | RightsN.FD_FILESTAT_GET | RightsN.POLL_FD_READWRITE;
 
+/*
 export const RIGHTS_STDOUT_BASE =
     RightsN.FD_FDSTAT_SET_FLAGS | RightsN.FD_WRITE | RightsN.FD_FILESTAT_GET | RightsN.POLL_FD_READWRITE;
+*/
+/*
+export const RIGHTS_STDOUT_BASE =
+    RightsN.FD_DATASYNC | RightsN.FD_READ | RightsN.FD_FDSTAT_SET_FLAGS | RightsN.FD_SYNC | RightsN.FD_WRITE | RightsN.FD_ADVISE | RightsN.FD_ALLOCATE | RightsN.FD_FILESTAT_GET | RightsN.FD_FILESTAT_SET_SIZE | RightsN.FD_FILESTAT_SET_TIMES | RightsN.POLL_FD_READWRITE;
+*/
+
+//
+// TODO: FD_SEEK should not really be here
+// but some tests fail when it is missing
+//
+export const RIGHTS_STDOUT_BASE =
+    RightsN.FD_ADVISE |
+    RightsN.FD_ALLOCATE |
+    RightsN.FD_DATASYNC |
+    RightsN.FD_FDSTAT_SET_FLAGS |
+    RightsN.FD_FILESTAT_GET |
+    RightsN.FD_FILESTAT_SET_SIZE |
+    RightsN.FD_FILESTAT_SET_TIMES |
+    RightsN.FD_READ |
+    RightsN.FD_READDIR |
+    RightsN.FD_SEEK |
+    RightsN.FD_SYNC |
+    RightsN.FD_WRITE |
+    RightsN.POLL_FD_READWRITE;
 
 export const RIGHTS_CHARACTER_DEVICE_BASE = RIGHTS_STDIN_BASE | RIGHTS_STDOUT_BASE;
+
+
+

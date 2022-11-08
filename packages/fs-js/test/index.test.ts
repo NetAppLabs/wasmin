@@ -983,11 +983,11 @@ describe.each([
   test("commands are queued", async () => {
     const handle = await createEmptyFile("contents", root);
     const wfs = await handle.createWritable();
-    wfs.write("abc");
-    wfs.write("def");
-    wfs.truncate(9);
-    wfs.seek(0);
-    wfs.write("xyz");
+    await wfs.write("abc");
+    await wfs.write("def");
+    await wfs.truncate(9);
+    await wfs.seek(0);
+    await wfs.write("xyz");
     await wfs.close();
     expect(await getFileContents(handle)).toBe("xyzdef\0\0\0");
     expect(await getFileSize(handle)).toBe(9);

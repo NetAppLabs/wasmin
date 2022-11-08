@@ -23,7 +23,7 @@ globalThis.WASI_FS_DEBUG = false;
 
 function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_FS_DEBUG) {
-        console.debug(msg, optionalParams);
+        console.debug(msg, ...optionalParams);
     }
 }
 
