@@ -207,7 +207,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdDatasync(fd: Fd): Promise<Errno> {
         wasiDebug("[fd_datasync]");
-        this.openFiles.get(fd).asFile().flush();
+        this.openFiles.getAsFile(fd).flush();
         return ErrnoN.SUCCESS;
     }
     async fdFdstatGet(fd: Fd, fdstat_ptr: mutptr<Fdstat>): Promise<Errno> {
@@ -234,10 +234,12 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             rightsBase = RIGHTS_FILE_BASE;
             rightsInheriting = BigInt(0);
             filetype = FiletypeN.REGULAR_FILE;
-        } else {
+        } else if (this.openFiles.get(fd).isDirectory) {
             rightsBase = RIGHTS_DIRECTORY_BASE;
             rightsInheriting = RIGHTS_DIRECTORY_INHERITING;
             filetype = FiletypeN.DIRECTORY;
+        } else {
+            return ErrnoN.BADF;
         }
         const newFdstat: Fdstat = {
             fs_filetype: filetype,
@@ -256,8 +258,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         } else if (flags & FdflagsN.SYNC) {
             unimplemented("fd_fdstat_set_flags FdFlags.Sync");
         }
-        const openFileOrDir = this.openFiles.get(fd);
-        const openFile = openFileOrDir.asFile();
+        const openFile = this.openFiles.getAsFile(fd);
         openFile.setFdFlags(flags);
         return ErrnoN.SUCCESS;
     }
@@ -291,7 +292,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdFilestatSetSize(fd: Fd, size: Filesize): Promise<Errno> {
         wasiDebug(`[fd_filestat_set_size] fd: ${fd} , size: ${size}`);
-        await this.openFiles.get(fd).asFile().setSize(Number(size));
+        await this.openFiles.getAsFile(fd).setSize(Number(size));
         return ErrnoN.SUCCESS;
     }
     async fdFilestatSetTimes(fd: Fd, atim: Timestamp, mtim: Timestamp, fst_flags: Fstflags): Promise<Errno> {
@@ -373,7 +374,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     ): Promise<Errno> {
         wasiDebug("[fd_readdir]");
         const initialBufPtr = buf;
-        const openDir = this.openFiles.get(fd).asDir();
+        const openDir = this.openFiles.getAsDir(fd);
         const pos = Number(cookie);
         const entries = openDir.getEntries(pos);
         // type conversion because buf is ptr<u8> but expects ptr<Dirent>
@@ -420,7 +421,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             //uint64_t.set(this.buffer, filesizePtr, BigInt(offset));
             //Filesize.set(this.buffer, result_ptr, BigInt(offset));
         } else {
-            const openFile = this.openFiles.get(fd).asFile();
+            const openFile = this.openFiles.getAsFile(fd);
             let base: number;
             switch (whence) {
                 case WhenceN.SET:
@@ -448,7 +449,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdTell(fd: Fd, result_ptr: mutptr<Filesize>): Promise<Errno> {
         wasiDebug(`[fd_tell fd: ${fd}]`);
-        const filePos = this.openFiles.get(fd).asFile().position;
+        const filePos = this.openFiles.getAsFile(fd).position;
         u64.set(this.buffer, result_ptr, BigInt(filePos));
         return ErrnoN.SUCCESS;
     }
@@ -465,7 +466,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 break;
             }
             default: {
-                out = this.openFiles.get(fd).asFile();
+                out = this.openFiles.get(fd).asWritable();
                 break;
             }
         }

@@ -27,7 +27,18 @@ function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
+export interface Readable {
+    read(len: number): Promise<Uint8Array>;
+}
+
+export interface Writable {
+    write(data: Uint8Array): Promise<void>;
+}
+
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
+
+export type OpenResource = OpenFile | OpenDirectory| Writable | Readable;
+
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
 
@@ -215,7 +226,7 @@ export class OpenDirectory {
         }
     }
 
-    async delete(path: string) {
+    async delete(path: string): Promise<void> {
         filesystemDebug("[delete]");
         const { parent, name } = await this._resolve(path);
         if (!name) {
@@ -254,7 +265,7 @@ export class OpenDirectory {
     }
 }
 
-export class OpenFile {
+export class OpenFile implements Readable, Writable {
     constructor(
         public readonly path: string,
         private readonly _handle: FileSystemFileHandle,
@@ -265,7 +276,7 @@ export class OpenFile {
     public position = 0;
     private _writer: FileSystemWritableFileStream | undefined = undefined;
 
-    async getFile() {
+    async getFile(): Promise<File> {
         filesystemDebug("[getfile]");
         // TODO: do we really have to?
         //await this.flush();
@@ -273,7 +284,7 @@ export class OpenFile {
         return f;
     }
 
-    async setSize(size: number) {
+    async setSize(size: number): Promise<void>{
         await this.close();
         const writer = await this._getWriter(false);
         await writer.truncate(size);
@@ -302,14 +313,14 @@ export class OpenFile {
         this.position += data.length;
     }
 
-    async flush() {
+    async flush(): Promise<void> {
         filesystemDebug("[flush]");
         if (!this._writer) return;
         await this._writer.close();
         this._writer = undefined;
     }
 
-    asFile() {
+    asFile(): OpenFile{
         return this;
     }
 
@@ -317,11 +328,19 @@ export class OpenFile {
         throw new SystemError(ErrnoN.NOTDIR);
     }
 
-    close() {
-        return this.flush();
+    asWritable(): Writable {
+        return this;
     }
 
-    public setFdFlags(fdFlags: Fdflags) {
+    asReadable(): Readable {
+        return this;
+    }
+
+    async close(): Promise<void> {
+        await this.flush();
+    }
+
+    public setFdFlags(fdFlags: Fdflags): void {
         this._fsFlags = fdFlags;
     }
 
@@ -352,7 +371,7 @@ export class OpenFiles {
         this._firstNonPreopenFd = this._nextFd;
     }
 
-    private _files = new Map<Fd, OpenFile | OpenDirectory>();
+    private _files = new Map<Fd, OpenResource>();
     private _nextFd = FIRST_PREOPEN_FD;
     private _firstNonPreopenFd: Fd;
 
@@ -366,7 +385,7 @@ export class OpenFiles {
         }
     }
 
-    async open(preOpen: OpenDirectory, path: string, openFlags?: Oflags, fdFlags?: Fdflags) {
+    async open(preOpen: OpenDirectory, path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
         filesystemDebug(`[open] path: ${path} openFlags: ${openFlags} fsFlags: ${fdFlags}`);
         let prefix = "";
         if (preOpen.path != "/") {
@@ -375,7 +394,7 @@ export class OpenFiles {
         return this._add(`${prefix}/${path}`, await preOpen.getFileOrDir(path, FileOrDir.Any, openFlags), fdFlags);
     }
 
-    get(fd: Fd) {
+    get(fd: Fd): OpenResource {
         filesystemDebug(`[get] fd: ${fd}`);
         const openFile = this._files.get(fd);
         if (!openFile) {
@@ -384,7 +403,40 @@ export class OpenFiles {
         return openFile;
     }
 
-    async renumber(from: Fd, to: Fd) {
+    getAsFile(fd: Fd): OpenFile {
+        const h = this.get(fd);
+        if (h instanceof OpenFile ){
+            return h as OpenFile;
+        } else if (h instanceof OpenDirectory ){
+            throw new SystemError(ErrnoN.ISDIR);
+        } else {
+            throw new SystemError(ErrnoN.NOTSUP);
+        }
+    }
+
+    getAsDir(fd: Fd): OpenDirectory {
+        const h = this.get(fd);
+        if (h instanceof OpenDirectory ){
+            return h as OpenDirectory;
+        } else if (h instanceof OpenFile ){
+            throw new SystemError(ErrnoN.NOTDIR);
+        } else {
+            throw new SystemError(ErrnoN.NOTDIR);
+        }
+    }
+
+    getAsFileOrDir(fd: Fd): OpenDirectory | OpenFile {
+        const h = this.get(fd);
+        if (h instanceof OpenDirectory ){
+            return h as OpenDirectory;
+        } else if (h instanceof OpenFile ){
+            return h as OpenFile;
+        } else {
+            throw new SystemError(ErrnoN.NOTSUP);
+        }
+    }
+
+    async renumber(from: Fd, to: Fd): Promise<void> {
         filesystemDebug("[renumber]");
         await this.close(to);
         this._files.set(to, this._take(from));
