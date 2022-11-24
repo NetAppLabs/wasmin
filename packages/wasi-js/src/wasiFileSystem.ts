@@ -35,9 +35,20 @@ export interface Writable {
     write(data: Uint8Array): Promise<void>;
 }
 
+export class Socket implements Writable, Readable {
+    
+    async read(len: number): Promise<Uint8Array> {
+        throw new SystemError(ErrnoN.NOTSUP);
+    }
+
+    async write(data: Uint8Array): Promise<void>{
+        throw new SystemError(ErrnoN.NOTSUP);
+    }
+}
+
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory| Writable | Readable;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -125,9 +136,9 @@ export class OpenDirectory {
         };
     }
 
-    getFileOrDir(path: string, mode: FileOrDir.File, openFlags?: Oflags): Promise<FileSystemFileHandle>;
-    getFileOrDir(path: string, mode: FileOrDir.Dir, openFlags?: Oflags): Promise<FileSystemDirectoryHandle>;
-    getFileOrDir(path: string, mode: FileOrDir, openFlags?: Oflags): Promise<Handle>;
+    async getFileOrDir(path: string, mode: FileOrDir.File, openFlags?: Oflags): Promise<FileSystemFileHandle>;
+    async getFileOrDir(path: string, mode: FileOrDir.Dir, openFlags?: Oflags): Promise<FileSystemDirectoryHandle>;
+    async getFileOrDir(path: string, mode: FileOrDir, openFlags?: Oflags): Promise<Handle>;
     async getFileOrDir(path: string, mode: FileOrDir, openFlags: Oflags = 0) {
         filesystemDebug(`[getFileOrDir] path: ${path} mode: ${mode} openFlags: ${openFlags}`);
         const { parent, name: maybeName } = await this._resolve(path);
@@ -403,6 +414,30 @@ export class OpenFiles {
         return openFile;
     }
 
+    set(fd: Fd, res: OpenResource) {
+        filesystemDebug(`[set] fd: ${fd}`);
+        this._files.set(fd, res);
+    }
+
+    add(res: OpenResource) : Fd {
+        filesystemDebug("[add]", res);
+        this._files.set(
+            this._nextFd,
+            res,
+        );
+        return this._nextFd++ as Fd;
+    }
+
+    isFile(fd: Fd): boolean {
+        const h = this.get(fd);
+        if (h instanceof OpenFile ){
+            const f = h as OpenFile;
+            return f.isFile;
+        } else {
+            return false;
+        }
+    }
+
     getAsFile(fd: Fd): OpenFile {
         const h = this.get(fd);
         if (h instanceof OpenFile ){
@@ -425,12 +460,43 @@ export class OpenFiles {
         }
     }
 
+    isDirectory(fd: Fd): boolean {
+        const h = this.get(fd);
+        if (h instanceof OpenDirectory ){
+            const d = h as OpenDirectory;
+            const isFile = d.isFile;
+            return !isFile;
+        } else {
+            return false;
+        }
+    }
+
     getAsFileOrDir(fd: Fd): OpenDirectory | OpenFile {
         const h = this.get(fd);
         if (h instanceof OpenDirectory ){
             return h as OpenDirectory;
         } else if (h instanceof OpenFile ){
             return h as OpenFile;
+        } else {
+            throw new SystemError(ErrnoN.NOTSUP);
+        }
+    }
+
+    getAsWritable(fd: Fd): Writable {
+        const h = this.get(fd);
+        const obj = h as any;
+        if (obj.write) {
+            return obj as Writable;
+        } else {
+            throw new SystemError(ErrnoN.NOTSUP);
+        }
+    }
+
+    getAsReadable(fd: Fd): Readable {
+        const h = this.get(fd);
+        const obj = h as any;
+        if (obj.read) {
+            return obj as Readable;
         } else {
             throw new SystemError(ErrnoN.NOTSUP);
         }
@@ -444,7 +510,11 @@ export class OpenFiles {
 
     async close(fd: Fd) {
         filesystemDebug("[close]");
-        await this._take(fd).close();
+        const res = this._take(fd);
+        const fdhandle = res as any;
+        if (fdhandle.close) {
+            await fdhandle.close();
+        }
     }
 
     addPreopenedDir(path: string, handle: Handle) {
@@ -462,22 +532,16 @@ export class OpenFiles {
             handle.name = subDir;
         }
         const rootFd = FIRST_PREOPEN_FD;
-        const rootDirOpenFile = this._files.get(rootFd);
-        filesystemDebug(`mountHandleOnPath destPath: ${destPath} rootDirOpenFile: `, rootDirOpenFile);
-
-        const rootDir = rootDirOpenFile?.asDir();
+        const rootDir = this.getAsDir(rootFd);
         filesystemDebug(`mountHandleOnPath destPath: ${destPath} rootDirOpenFile: `, rootDir);
-
         if (rootDir) {
             const rootDirHandle = rootDir._handle;
             filesystemDebug("mountHandleOnPath rootDirDirHandle: ", rootDirHandle);
-            let dirHandleToMountOn = rootDirHandle;
+            let dirHandleToMountOn = rootDirHandle as any;
             if (destPath != "/") {
                 dirHandleToMountOn = await openDirectoryHandle(rootDirHandle, destPath);
             }
-            // @ts-ignore
             if (dirHandleToMountOn.insertHandle) {
-                // @ts-ignore
                 dirHandleToMountOn.insertHandle(handle);
             } else {
                 console.warn("Could not mount subdirectory on root: ", handle);

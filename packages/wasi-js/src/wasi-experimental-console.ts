@@ -1,5 +1,6 @@
 import { clamp_host } from "./intrinsics";
 import { TTY } from "./tty";
+import { WasiEnv } from "./wasi";
 import { wasiDebug } from "./wasiUtils";
 
 export function addWasiExperimentalConsoleToImports(imports: any, obj: WasiExperimentalConsole) {

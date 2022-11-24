@@ -66,10 +66,14 @@ globalThis.Blob = Blob;
 
 import { webcrypto } from "node:crypto";
 
+const DEBUG_MODE = false;
+
 // Workaround for aws-sdk-s3 library that depends on crypto.getRandomValues()
 class Crypto {
   constructor(){
-    console.debug("Crypto constructed");
+    if (DEBUG_MODE) {
+      console.debug("Crypto constructed");
+    }
   }
 
   getRandomValues<T extends ArrayBufferView>(array: T): T{
@@ -99,8 +103,6 @@ globalThis.crypto = crypto;
 
 //window = globalThis;
 
-
-const DEBUG_MODE = false;
 
 (async () => {
 
@@ -256,7 +258,9 @@ const DEBUG_MODE = false;
   } catch (err: any) {
     console.log(err.message);
   } finally {
-    console.log("finally");
+    if (DEBUG_MODE) {
+      console.log("finally");
+    }
     process.exit(0);
   }
 })();

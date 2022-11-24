@@ -9,9 +9,10 @@ import { TTY } from "./tty";
 import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console";
 import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems";
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process";
-import { OpenFiles } from "./wasiFileSystem";
+import { OpenFiles, Readable, Writable } from "./wasiFileSystem";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1_host";
 import { CStringArray, ExitStatus, In, lineOut, Out, wasiDebug, wasiError } from "./wasiUtils";
+import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets_host";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -38,18 +39,28 @@ export class WasiEnv {
             openFiles = new OpenFiles({});
         }
         this._openFiles = openFiles;
+        
         if (!stdin) {
             stdin = { read: () => new Uint8Array() };
         }
         this._stdin = stdin;
+        const rstdin = stdin as Readable;
+        this._openFiles.set(0, rstdin);
+
         if (!stdout) {
             stdout = lineOut(console.log);
         }
         this._stdout = stdout;
+        const wstdout = stdout as Writable;
+        this._openFiles.set(1, wstdout);
+
         if (!stderr) {
             stderr = lineOut(console.error);
         }
         this._stderr = stderr;
+        const wstderr = stderr as Writable;
+        this._openFiles.set(2, wstderr);
+
         if (!args) {
             this._args = [];
         } else {
@@ -213,11 +224,12 @@ export class WASI {
         if (this.wasiEnv.tty) {
             initializeWasiExperimentalConsoleToImports(wasmImports, this.wasiEnv.tty);
         }
+        initializeWasiExperimentalSocketsToImports(wasmImports, get_export_func, this.wasiEnv);
         return wasmImports;
     }
 
     private initializeInstanceMemory(exports: WebAssembly.Exports): void {
-        const { memory } = exports;
+        //const { memory } = exports;
         if (this.wasiEnv.tty) {
             wasiDebug("tty.setModuleInstanceExports");
             this.wasiEnv.tty.setModuleInstanceExports(exports);

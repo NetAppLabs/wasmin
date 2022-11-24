@@ -128,6 +128,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     get openFiles() {
         return this.wasiEnv.openFiles;
     }
+    /*
     get stdin() {
         return this.wasiEnv.stdin;
     }
@@ -137,6 +138,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     get stderr() {
         return this.wasiEnv.stderr;
     }
+    */
     get abortSignal() {
         return this.wasiEnv.abortSignal;
     }
@@ -230,11 +232,11 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             //rightsInheriting empty for std(in/out/err)
             rightsInheriting = BigInt(0);
             filetype = FiletypeN.CHARACTER_DEVICE;
-        } else if (this.openFiles.get(fd).isFile) {
+        } else if (this.openFiles.isFile(fd)) {
             rightsBase = RIGHTS_FILE_BASE;
             rightsInheriting = BigInt(0);
             filetype = FiletypeN.REGULAR_FILE;
-        } else if (this.openFiles.get(fd).isDirectory) {
+        } else if (this.openFiles.isDirectory(fd)) {
             rightsBase = RIGHTS_DIRECTORY_BASE;
             rightsInheriting = RIGHTS_DIRECTORY_INHERITING;
             filetype = FiletypeN.DIRECTORY;
@@ -284,7 +286,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         } else {
             const openFile = this.openFiles.get(fd);
             wasiDebug(`[fd_filestat_get fd: ${fd}] openFile: `, openFile);
-            const f = openFile.isFile ? await (openFile as OpenFile).getFile() : undefined;
+            const f = this.openFiles.isFile(fd) ? await (openFile as OpenFile).getFile() : undefined;
             wasiDebug(`[fd_filestat_get fd: ${fd}] f: `, f);
             populateFileStat(this.buffer, f, filestat_ptr);
         }
@@ -306,6 +308,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         offset: Filesize,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
+        console.log("fdPread");
         unimplemented("fd_pread");
         return ErrnoN.NOSYS;
     }
@@ -340,9 +343,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.NOSYS;
     }
     async fdRead(fd: Fd, iovs_ptr: ptr<Iovec>, iovs_len: usize, result_ptr: mutptr<Size>): Promise<Errno> {
-        wasiFdDebug(`[fd_read] fd: ${fd} iovsLen: ${iovs_len}`);
-        // TODO improve this by moving stdin etc. into this._openFiles
-        const input = fd === 0 ? this.stdin : this.openFiles.get(fd).asFile();
+        wasiDebug(`[fd_read] fd: ${fd} iovsLen: ${iovs_len}`);
+        const input = this.openFiles.getAsReadable(fd);
         await forEachIoVec(
             this.buffer,
             iovs_ptr,
@@ -356,6 +358,14 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 const sbuf = new TextDecoder().decode(chunk);
                 wasiFdDebug(`sbuf: ${sbuf}`);
                 */
+               /*
+                if (chunk) {
+                    buf.set(chunk);
+                    return chunk.length;
+                } else {
+                    return 0;
+                }
+                */
                 buf.set(chunk);
                 return chunk.length;
             },
@@ -363,6 +373,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 this._checkAbort();
             }
         );
+        console.log("[fd_read] returning");
         return ErrnoN.SUCCESS;
     }
     async fdReaddir(
@@ -441,9 +452,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdSync(fd: Fd): Promise<Errno> {
         wasiDebug("[fd_sync]");
-        const openFile = this.openFiles.get(fd);
-        if (openFile.isFile) {
-            await (openFile as OpenFile).flush();
+        if (this.openFiles.isFile(fd)) {
+            const openFile = this.openFiles.getAsFile(fd);
+            await openFile.flush();
         }
         return ErrnoN.SUCCESS;
     }
@@ -455,21 +466,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async fdWrite(fd: Fd, iovs_ptr: ptr<Ciovec>, iovs_len: usize, result_ptr: mutptr<Size>): Promise<Errno> {
         wasiFdDebug("[fd_write]", fd, iovs_ptr, iovs_len, result_ptr);
-        let out: Out;
-        switch (fd) {
-            case 1: {
-                out = this.stdout;
-                break;
-            }
-            case 2: {
-                out = this.stderr;
-                break;
-            }
-            default: {
-                out = this.openFiles.get(fd).asWritable();
-                break;
-            }
-        }
+        const out = this.openFiles.getAsWritable(fd);
         await forEachIoVec(
             this.buffer,
             iovs_ptr,
