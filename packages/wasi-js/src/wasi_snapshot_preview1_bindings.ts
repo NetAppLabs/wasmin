@@ -2157,7 +2157,6 @@ export function addWasiSnapshotPreview1ToImports(imports: any, obj: WasiSnapshot
                         handler.checkAbort();
                         return ret;
             } catch(err: any) {
-                        console.log("fdRead error: ", err);
                         return errorHandler2(err);
             }
 

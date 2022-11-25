@@ -308,7 +308,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         offset: Filesize,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        console.log("fdPread");
+        wasiDebug("[fdPread]");
         unimplemented("fd_pread");
         return ErrnoN.NOSYS;
     }
@@ -373,7 +373,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 this._checkAbort();
             }
         );
-        console.log("[fd_read] returning");
+        wasiFdDebug("[fd_read] returning");
         return ErrnoN.SUCCESS;
     }
     async fdReaddir(

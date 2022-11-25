@@ -1,6 +1,6 @@
 import { WasiEnv } from "./wasi";
 import { detectNode, translateErrorToErrorno } from "./wasiUtils";
-import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, ErrnoN, Fd, i32, IpPort, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./wasi_experimental_sockets_bindings";
+import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, Errno, ErrnoN, Fd, i32, IpPort, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./wasi_experimental_sockets_bindings";
 
 import { Socket } from "./wasiFileSystem";
 import { SystemError } from "./errors";
@@ -21,6 +21,22 @@ function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function createPromiseWithTimeout(
+    promise: Promise<any>,
+    ms: number,
+    timeoutError = new Error('Promise timed out')
+  ) {
+    // create a promise that rejects in milliseconds
+    const timeout = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(timeoutError);
+      }, ms);
+    });
+  
+    // returns a race between timeout and the passed promise
+    return Promise.race([promise, timeout]);
+  }
+
 function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
 	const newArray = new Uint8Array(arr.length + data.length);
 	newArray.set(arr);              // copy old data
@@ -29,7 +45,7 @@ function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
 }
 
 declare let globalThis: any;
-globalThis.WASI_SOCKETS_DEBUG = true;
+globalThis.WASI_SOCKETS_DEBUG = false;
 
 export function wasiSocketsDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_SOCKETS_DEBUG) {
@@ -54,25 +70,62 @@ class NodeTcpSocket extends Socket{
         this._ready = false;
         this._closed = false;
         this._dataBuffer = new Uint8Array();
+        this._error = 0;
     }
     _dataBuffer: Uint8Array;
     _connected: boolean;
     _ready: boolean;
     _closed: boolean;
+    _error: number;
     bindAddress?: AddressInfo
     // @ts-ignore
     private _nodeSocket: net.Socket
     async waitForConnect(): Promise<void> {
         while (!this._connected && !this._ready) {
-            console.log("waiting for connect");
+            if ( this._error != 0 ) {
+                throw new SystemError(ErrnoN.CONNREFUSED, false);
+            }
+            wasiSocketsDebug("waiting for connect");
             await delay(1);
         }
     }
 
     async read(len: number): Promise<Uint8Array> {
-        console.log("socket:read len:", len);
+        wasiSocketsDebug("socket:read len:", len);
+        await this.waitForConnect();
         if (this._closed) {
-            console.log("socket:read returning empty as closed");
+            // assuming the sender closed
+            return new Uint8Array(0);
+        }
+        if (this._dataBuffer.length == 0) {
+            await delay(1);
+            // assuming connected and empty buffer, no data available, telling client to try again
+            throw new SystemError(ErrnoN.AGAIN, true)
+        }
+
+        let retChunks = this._dataBuffer;
+        const databufferLen = this._dataBuffer.length;
+        wasiSocketsDebug("socket:read databufferLen: ", databufferLen);
+        if (databufferLen > len) {
+            retChunks = this._dataBuffer.subarray(0,len);
+            this._dataBuffer = this._dataBuffer.slice(len);
+        } else {
+            this._dataBuffer = new Uint8Array(0);
+        }
+
+        wasiSocketsDebug("socket:read returning retChunks.length: ", retChunks.length);
+        return retChunks;
+
+    }
+
+    async readWithTimeout(len: number): Promise<Uint8Array> {
+        return createPromiseWithTimeout(this.readPull2(len),1000, new SystemError(ErrnoN.AGAIN, true));
+    }
+
+    async readPull(len: number): Promise<Uint8Array> {
+        wasiSocketsDebug("socket:read len:", len);
+        if (this._closed) {
+            wasiSocketsDebug("socket:read returning empty as closed");
             return new Uint8Array(0);
         }
         await this.waitForConnect();
@@ -88,18 +141,18 @@ class NodeTcpSocket extends Socket{
                 }
             });
             socket.on('close', () => {
-                console.log("socket:read rejected promise as closed");
+                wasiSocketsDebug("socket:read rejected promise as closed");
                 resolve(new Uint8Array(0));
             });
             socket.on('end', () => {
-                console.log("socket:read rejected promise as end");
+                wasiSocketsDebug("socket:read rejected promise as end");
                 resolve(new Uint8Array(0));
             });
         });
     }
 
-    async readOld(len: number): Promise<Uint8Array> {
-        console.log("socket:read len:", len);
+    async readPull2(len: number): Promise<Uint8Array> {
+        wasiSocketsDebug("socket:read len:", len);
         if (this._closed) {
             return new Uint8Array(0);
         }
@@ -116,7 +169,7 @@ class NodeTcpSocket extends Socket{
              delay(1);
            }
         });
-        console.log("socket:read returning chunks: ", chunks);
+        wasiSocketsDebug("socket:read returning chunks: ", chunks);
         //return res;
         */
         /*
@@ -143,13 +196,13 @@ class NodeTcpSocket extends Socket{
 
         let retChunks = this._dataBuffer;
         const databufferLen = this._dataBuffer.length;
-        console.log("socket:read databufferLen: ", databufferLen);
+        wasiSocketsDebug("socket:read databufferLen: ", databufferLen);
         if (databufferLen > len) {
             retChunks = this._dataBuffer.slice(0,len);
-            this._dataBuffer = this._dataBuffer.slice(len+1);
+            this._dataBuffer = this._dataBuffer.slice(len);
         }
 
-        console.log("socket:read returning");
+        wasiSocketsDebug("socket:read returning retChunks.length: ", retChunks.length);
         return retChunks;
     }
 
@@ -162,7 +215,7 @@ class NodeTcpSocket extends Socket{
     async address(): Promise<AddressInfo> {
         await this.waitForConnect();
         const addr = this._nodeSocket.address() as AddressInfo;
-        console.log("address: returning addr:", addr);
+        wasiSocketsDebug("address: returning addr:", addr);
         return addr;
     }
     async remoteAddress(): Promise<AddressInfo> {
@@ -177,17 +230,17 @@ class NodeTcpSocket extends Socket{
                 port: remotePort,
                 family: remoteFamily,
             }
-            console.log("remoteAddress: returning addr:", addr);
+            wasiSocketsDebug("remoteAddress: returning addr:", addr);
             return addr;
         }
         throw new Error("remoteAddress invalid address");
     }
     close(): void {
-        console.log("socket:close");
+        wasiSocketsDebug("socket:close");
         this._nodeSocket.destroy();
     }
     shutdown(): void {
-        console.log("socket:shutdown");
+        wasiSocketsDebug("socket:shutdown");
         this._nodeSocket.destroy();
     }
     async bind(addrInfo: AddressInfo) {
@@ -205,39 +258,77 @@ class NodeTcpSocket extends Socket{
     async connect(host: string, port: number): Promise<void> {
         wasiSocketsDebug("connect: starting");
         const socket = this._nodeSocket;
-        socket.connect(port, host);
-        /*, function() {
-            wasiSocketsDebug("connect: connected on socket");
-            socket.write("Test Message");
-        });*/
-        //await socket.connect(port, host);
-        wasiSocketsDebug("connect: connected");
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const superThis = this;
 
+        socket.connect(port, host);
+
+        /*socket.connect(port, host, function() {
+            wasiSocketsDebug("connect: connected on socket");
+            socket.on('data', (buf) => {
+                wasiSocketsDebug('connect: data: buf.length:', buf.length);
+                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
+            });
+        });*/
+        
+        //await socket.connect(port, host);
+        wasiSocketsDebug("connect: connected");
+        /*socket.on("data", data => {
+            wasiSocketsDebug("connect: data");
+            received += data
+        })*/
+        socket.on('readable', () => {
+            wasiSocketsDebug('connect: readable');
+            /*let chunk;
+            while ((chunk = socket.read()) != null) {
+                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
+            }*/
+            const chunk = socket.read();
+            if (chunk) {
+                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
+            }
+        });
+
         socket.on('close', () => {
             superThis._closed = true;
-            console.log('connect: Client closed');
+            wasiSocketsDebug('connect: Client: closed');
         });
-        socket.on('connect',function(this: any){
-            console.log('connect: Client: connection established with server');
+        socket.on('connect', async () => {
+            wasiSocketsDebug('connect: Client: connection established with server');
             superThis._connected = true;
+            for await (const chunk of socket) {
+                const newChunks = new Uint8Array(chunk);
+                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, newChunks);
+            }    
         });
-        socket.on('ready',function(this: any){
-            console.log('connect: Client: connection ready with server');
+        socket.on('ready', function(this: any) {
+            wasiSocketsDebug('connect: Client: connection ready with server');
             superThis._ready = true;
         });
-        socket.on('error',function(this: any){
-            console.log('connect: Client: error with server');
+        socket.on('error', function(err: any) {
+            wasiSocketsDebug('connect: Client: error with server: ', err);
+            if ( err.code ) {
+                if (err.code == "ECONNREFUSED") {
+                    superThis._error = ErrnoN.CONNREFUSED;
+                } else if (err.code == "ECONNABORTED") {
+                    superThis._error = ErrnoN.CONNABORTED;
+                } else if (err.code == "ECONNRESET") {
+                    superThis._error = ErrnoN.CONNRESET;
+                } else {
+                    superThis._error = ErrnoN.CONNABORTED;
+                }
+            } else {
+                superThis._error = ErrnoN.CONNABORTED;
+            }
         });
-        socket.on('timeout',function(this: any){
-            console.log('connect: Client: timeout with server');
+        socket.on('timeout', function(this: any){
+            wasiSocketsDebug('connect: Client: timeout with server');
         });
         socket.on('end', () => {
-            console.log('connect: disconnected from server');
+            wasiSocketsDebug('connect: disconnected from server');
             superThis._connected = false;
             superThis._closed = true;
-        });          
+        });
     }
 }
 class NodeUdpSocket extends Socket{
@@ -452,7 +543,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return ErrnoN.SUCCESS;
     }
     async sockOpen(af: AddressFamily, socktype: SockType, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        console.log("sockOpen:");
+        wasiSocketsDebug("sockOpen:");
         wasiSocketsDebug("sockOpen:  af: ", af);
         wasiSocketsDebug("sockOpen:  afn: ", af as number);
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
@@ -463,7 +554,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
             const resultFd = this.openFiles.add(sock);
             wasiSocketsDebug("sockOpen tcp 3 :");
             Fd.set(this.buffer, result_ptr, resultFd);
-            console.log("SOCKET_STREAM: resultFd: ", resultFd);
+            wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
             return ErrnoN.SUCCESS;
         }else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
