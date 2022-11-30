@@ -203,7 +203,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.NOSYS;
     }
     async fdClose(fd: Fd): Promise<Errno> {
-        wasiDebug("[fd_close]", fd);
+        wasiFdDebug("[fd_close]", fd);
         await this.openFiles.close(fd);
         return ErrnoN.SUCCESS;
     }
@@ -343,7 +343,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.NOSYS;
     }
     async fdRead(fd: Fd, iovs_ptr: ptr<Iovec>, iovs_len: usize, result_ptr: mutptr<Size>): Promise<Errno> {
-        wasiDebug(`[fd_read] fd: ${fd} iovsLen: ${iovs_len}`);
+        wasiFdDebug(`[fd_read] fd: ${fd} iovsLen: ${iovs_len}`);
         const input = this.openFiles.getAsReadable(fd);
         await forEachIoVec(
             this.buffer,
@@ -354,18 +354,6 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 const bufLen = buf.length;
                 wasiFdDebug(`[fd_read] forEachIoVec bufLen: ${bufLen} input: `, input);
                 const chunk = await input.read(bufLen);
-                /*
-                const sbuf = new TextDecoder().decode(chunk);
-                wasiFdDebug(`sbuf: ${sbuf}`);
-                */
-               /*
-                if (chunk) {
-                    buf.set(chunk);
-                    return chunk.length;
-                } else {
-                    return 0;
-                }
-                */
                 buf.set(chunk);
                 return chunk.length;
             },

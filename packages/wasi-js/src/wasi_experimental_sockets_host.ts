@@ -5,14 +5,6 @@ import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSock
 import { Socket } from "./wasiFileSystem";
 import { SystemError } from "./errors";
 
-/*
-const net = require("node:net");
-const dgram = require("node:dgram");
-const dns = require("node:dns");
-*/
-
-
-
 import { default as net } from "node:net";
 //import { default as dgram } from "node:dgram";
 //import { default as dns } from "node:dns";
@@ -62,25 +54,33 @@ export interface AddressInfo{
 //const net = require("node:net");
 
 class NodeTcpSocket extends Socket{
-    constructor() {
+    constructor(nodeSocket?: net.Socket) {
         super();
-        const nodeSocket = new net.Socket();
+        if (!nodeSocket) {
+            nodeSocket = new net.Socket();
+        }
         this._nodeSocket = nodeSocket;
         this._connected = false;
         this._ready = false;
         this._closed = false;
         this._dataBuffer = new Uint8Array();
         this._error = 0;
+        this._acceptedSockets = [];
+        this._isServerConnection = false;
     }
     _dataBuffer: Uint8Array;
     _connected: boolean;
     _ready: boolean;
     _closed: boolean;
     _error: number;
-    bindAddress?: AddressInfo
+    _acceptedSockets: Array<NodeTcpSocket>;
+    _isServerConnection: boolean;
+    bindAddress?: AddressInfo;
     // @ts-ignore
     private _nodeSocket: net.Socket
+    private _nodeServer?: net.Server
     async waitForConnect(): Promise<void> {
+
         while (!this._connected && !this._ready) {
             if ( this._error != 0 ) {
                 throw new SystemError(ErrnoN.CONNREFUSED, false);
@@ -92,12 +92,14 @@ class NodeTcpSocket extends Socket{
 
     async read(len: number): Promise<Uint8Array> {
         wasiSocketsDebug("socket:read len:", len);
-        await this.waitForConnect();
         if (this._closed) {
+            wasiSocketsDebug("socket:read returning 0 as closed");
             // assuming the sender closed
             return new Uint8Array(0);
         }
+        await this.waitForConnect();
         if (this._dataBuffer.length == 0) {
+            wasiSocketsDebug("socket:read throwing EAGAIN as no data");
             await delay(1);
             // assuming connected and empty buffer, no data available, telling client to try again
             throw new SystemError(ErrnoN.AGAIN, true)
@@ -213,12 +215,19 @@ class NodeTcpSocket extends Socket{
     }
 
     async address(): Promise<AddressInfo> {
+        wasiSocketsDebug("socket:address");
         await this.waitForConnect();
-        const addr = this._nodeSocket.address() as AddressInfo;
+        let addr: AddressInfo;
+        if (this._nodeServer){
+            addr = this._nodeServer.address() as AddressInfo;
+        } else {
+            addr = this._nodeSocket.address() as AddressInfo;
+        }
         wasiSocketsDebug("address: returning addr:", addr);
         return addr;
     }
     async remoteAddress(): Promise<AddressInfo> {
+        wasiSocketsDebug("socket:remoteAddress");
         await this.waitForConnect();
         const remoteAddr = this._nodeSocket.remoteAddress;
         wasiSocketsDebug("remoteAddress: ", remoteAddr);
@@ -237,29 +246,75 @@ class NodeTcpSocket extends Socket{
     }
     close(): void {
         wasiSocketsDebug("socket:close");
-        this._nodeSocket.destroy();
+        this._nodeSocket.end();
+        //this._nodeSocket.destroy();
     }
     shutdown(): void {
         wasiSocketsDebug("socket:shutdown");
-        this._nodeSocket.destroy();
+        this._nodeSocket.end();
     }
     async bind(addrInfo: AddressInfo) {
+        wasiSocketsDebug("socket:bind");
         this.bindAddress = addrInfo;
     }
     async listen(backlog: number) {
-        const addrInfo = this.bindAddress;
-        if (addrInfo) {
-            const srv = net.createServer();
-            const port = addrInfo.port;
-            const host = addrInfo.address;
-            srv.listen(port, host);
+        wasiSocketsDebug("socket:listen");
+        const bindAddressInfo = this.bindAddress;
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const superThis = this;
+        if (bindAddressInfo) {
+            const server = net.createServer();
+            superThis._nodeServer = server;
+            const port = bindAddressInfo.port;
+            const host = bindAddressInfo.address;
+            server.listen(port, host);
+            server.on('listening', () => {
+                wasiSocketsDebug("server:listening");
+                superThis._connected = true;
+                superThis._ready = true;
+
+            });
+            server.on('error', (err: any) => {
+                wasiSocketsDebug("server:error");
+                wasiSocketsDebug('connect: Client: error with peer: ', err);
+                if ( err.code ) {
+                    if (err.code == "ECONNREFUSED") {
+                        superThis._error = ErrnoN.CONNREFUSED;
+                    } else if (err.code == "ECONNABORTED") {
+                        superThis._error = ErrnoN.CONNABORTED;
+                    } else if (err.code == "ECONNRESET") {
+                        superThis._error = ErrnoN.CONNRESET;
+                    } else if (err.code == "EADDRINUSE") {
+                        superThis._error = ErrnoN.ADDRINUSE;
+                    } else if (err.code == "EADDRNOTAVAIL") {
+                        superThis._error = ErrnoN.ADDRNOTAVAIL;
+                    } else {
+                        superThis._error = ErrnoN.CONNABORTED;
+                    }
+                } else {
+                    superThis._error = ErrnoN.CONNABORTED;
+                }
+            });
+            server.on('close', () => {
+                wasiSocketsDebug("server:close");
+            });
+
+            server.on('connection', (netSocket) => {
+                const newSocket = new NodeTcpSocket(netSocket);
+                newSocket._isServerConnection = true;
+                newSocket.setupListeners();
+                
+                superThis._acceptedSockets.push(newSocket);
+                newSocket._connected = true;
+                newSocket._ready = true;
+
+            });
+
         }
     }
     async connect(host: string, port: number): Promise<void> {
         wasiSocketsDebug("connect: starting");
         const socket = this._nodeSocket;
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const superThis = this;
 
         socket.connect(port, host);
 
@@ -277,24 +332,35 @@ class NodeTcpSocket extends Socket{
             wasiSocketsDebug("connect: data");
             received += data
         })*/
-        socket.on('readable', () => {
-            wasiSocketsDebug('connect: readable');
-            /*let chunk;
-            while ((chunk = socket.read()) != null) {
-                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
-            }*/
-            const chunk = socket.read();
-            if (chunk) {
-                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
-            }
-        });
+        this.setupListeners();
+    }
 
+    setupListeners() {
+        const socket = this._nodeSocket;
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const superThis = this;
+        if (this._isServerConnection) {
+            socket.on('data', (buf: Buffer) => {
+                wasiSocketsDebug('connect: data');
+                if (buf) {
+                    superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
+                }
+            });    
+        } else {
+            socket.on('readable', () => {
+                wasiSocketsDebug('connect: readable');
+                const chunk = socket.read();
+                if (chunk) {
+                    superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
+                }
+            });
+        }
         socket.on('close', () => {
             superThis._closed = true;
             wasiSocketsDebug('connect: Client: closed');
         });
         socket.on('connect', async () => {
-            wasiSocketsDebug('connect: Client: connection established with server');
+            wasiSocketsDebug('connect: Client: connection established with peer');
             superThis._connected = true;
             for await (const chunk of socket) {
                 const newChunks = new Uint8Array(chunk);
@@ -302,11 +368,11 @@ class NodeTcpSocket extends Socket{
             }    
         });
         socket.on('ready', function(this: any) {
-            wasiSocketsDebug('connect: Client: connection ready with server');
+            wasiSocketsDebug('connect: Client: connection ready with peer');
             superThis._ready = true;
         });
         socket.on('error', function(err: any) {
-            wasiSocketsDebug('connect: Client: error with server: ', err);
+            wasiSocketsDebug('connect: Client: error with peer: ', err);
             if ( err.code ) {
                 if (err.code == "ECONNREFUSED") {
                     superThis._error = ErrnoN.CONNREFUSED;
@@ -322,13 +388,29 @@ class NodeTcpSocket extends Socket{
             }
         });
         socket.on('timeout', function(this: any){
-            wasiSocketsDebug('connect: Client: timeout with server');
+            wasiSocketsDebug('connect: Client: timeout with peer');
         });
         socket.on('end', () => {
-            wasiSocketsDebug('connect: disconnected from server');
+            wasiSocketsDebug('connect: disconnected from peer');
             superThis._connected = false;
             superThis._closed = true;
         });
+    }
+
+    async getAcceptedSocket(): Promise<NodeTcpSocket> {
+        let acceptedSocket = this._acceptedSockets.shift();
+        let counter = 0;
+        while (!acceptedSocket) {
+            if (counter > 1000) {
+                // Timing out tellling client to retry
+                // to allow other operation to run rather to hang on accept
+                throw new SystemError(ErrnoN.AGAIN, true);   
+            }
+            await delay(1);
+            acceptedSocket = this._acceptedSockets.shift();
+            counter = counter +1;
+        }
+        return acceptedSocket;
     }
 }
 class NodeUdpSocket extends Socket{
@@ -485,6 +567,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return res as NodeTcpSocket;
     }
     async addrResolve(host_ptr: ptr<string>, host_len: number, port: number, buf: mutptr<number>, buf_len: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
+        // TODO figure out why require is needed here, import does not seem to work
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const dns = require("node:dns");
         // @ts-ignore
@@ -575,9 +658,9 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
     }
     async sockClose(fd: number): Promise<ErrnoN> {
         wasiSocketsDebug("sockClose:");
-        const sock = this.getSocket(fd);
+        //const sock = this.getSocket(fd);
         try {
-            sock.close();
+            this.openFiles.close(fd);
         } catch(err: any) {
             console.error("close() error: ", err);
             return ErrnoN.BUSY;
@@ -625,14 +708,19 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return ErrnoN.SUCCESS;
     }
     async sockListen(fd: number, backlog: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockListen:");
+        wasiSocketsDebug("sockListen: fd: ", fd);
         const sock = this.getSocket(fd);
         await sock.listen(backlog);
         return ErrnoN.SUCCESS;
     }
     async sockAccept(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
         wasiSocketsDebug("sockAccept:");
-        throw new Error("Method not implemented.");
+        const sock = this.getSocket(fd);
+        const clientSock = await sock.getAcceptedSocket();
+        const resultFd = this.openFiles.add(clientSock);
+        Fd.set(this.buffer, result_ptr, resultFd);
+        wasiSocketsDebug("sockAccept: accept: resultFd: ", resultFd);
+        return ErrnoN.SUCCESS;
     }
     async sockConnect(fd: number, addr: mutptr<{ tag: AddrTypeN.IP_4; data: { addr: { n_0: number; n_1: number; h_0: number; h_1: number; }; port: number; }; } | { tag: AddrTypeN.IP_6; data: { addr: { n_0: number; n_1: number; n_2: number; n_3: number; h_0: number; h_1: number; h_2: number; h_3: number; }; port: number; }; }>): Promise<ErrnoN> {
         wasiSocketsDebug("sockConnect:");
@@ -702,7 +790,6 @@ export function initializeWasiExperimentalSocketsToImports(
     get_export: (name: string) => WebAssembly.ExportValue,
     wasiEnv: WasiEnv
 ) {
-    //const memory = get_export("memory") as WebAssembly.Memory;
     const wHost = new WasiExperimentalSocketsAsyncHost(wasiEnv);
     wHost._get_exports_func = get_export;
     const errorHandler: (err: any) => number = function (err: any) {
