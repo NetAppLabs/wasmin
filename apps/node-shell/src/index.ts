@@ -68,6 +68,9 @@ import { webcrypto } from "node:crypto";
 
 const DEBUG_MODE = false;
 
+/*
+Does not seem to be needed in node v19 +
+
 // Workaround for aws-sdk-s3 library that depends on crypto.getRandomValues()
 class Crypto {
   constructor(){
@@ -85,14 +88,12 @@ class Crypto {
     // @ts-ignore
     return webcrypto.getRandomValues(array);
   }
-  /** Available only in secure contexts. */
-  //randomUUID(): string;
 
 }
 const crypto = new Crypto();
-
-// @ts-ignore
 globalThis.crypto = crypto;
+*/
+
 // @ts-ignore
 //globalThis.crypto.getRandomValues = webcrypto.getRandomValues;
 
