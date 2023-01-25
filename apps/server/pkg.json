@@ -1,0 +1,7 @@
+{
+  "pkg": {
+    "assets": "assets/**/*",
+    "targets": [ "node18-macos-x64" ],
+    "outputPath": "exe"
+  }
+}

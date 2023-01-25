@@ -141,6 +141,10 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         // debug
         env["RUST_BACKTRACE"] = "1";
         env["RUST_LOG"] = "wasi=trace";
+        //temp workaround
+        env["USER"] = "none";
+        env["HOME"] = "/";
+
 
         const tty = this._wasiEnv.tty;
 

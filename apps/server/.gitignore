@@ -1,0 +1,6 @@
+dist
+*.bun
+node_modules
+*.wasm
+*.log
+bun.lock*

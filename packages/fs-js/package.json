@@ -63,19 +63,19 @@
     }
   ],
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/filesystem": "^0.0.32",
     "@types/jest": "^29.0.0",
     "@types/js-yaml": "^4.0.5",
     "@types/url-parse": "^1.4.8",
-    "esbuild": "^0.15.12",
-    "eslint": "^7.32.0",
+    "esbuild": "^0.16.6",
+    "eslint": "^8.29.0",
     "eslint-config-custom": "*",
     "jest": "^29.2.2",
-    "rollup-plugin-polyfill-node": "^0.9.0",
+    "rollup-plugin-polyfill-node": "^0.11.0",
     "ts-jest": "^29.0.3",
     "typescript": "^4.8.2",
-    "vite": "^3.1.8",
+    "vite": "^4.0.1",
     "web-file-polyfill": "^1.0.4"
   },
   "funding": [

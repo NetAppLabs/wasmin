@@ -11,7 +11,7 @@ import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimen
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process";
 import { OpenFiles, Readable, Writable } from "./wasiFileSystem";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1_host";
-import { CStringArray, ExitStatus, In, lineOut, Out, wasiDebug, wasiError } from "./wasiUtils";
+import { CStringArray, detectNode, ExitStatus, In, lineOut, Out, wasiDebug, wasiError } from "./wasiUtils";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets_host";
 
 export interface WasiOptions {

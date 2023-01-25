@@ -1,21 +1,20 @@
 // Some older Firefox versions need this polyfill for WriteableStream
 //import { WritableStream } from "web-streams-polyfill";
 
-
 const FILESYSTEM_WRITABLE_DEBUG = false;
 
-export function fileSystemWritableDebug(msg?: any, ...optionalParams: any[]): void {
-  if (FILESYSTEM_WRITABLE_DEBUG){
+export function fileSystemWritableDebug(
+  msg?: any,
+  ...optionalParams: any[]
+): void {
+  if (FILESYSTEM_WRITABLE_DEBUG) {
     console.debug(msg, ...optionalParams);
   }
 }
 
 const awaitTimeout = (delay: number, reason: string) =>
   new Promise<void>((resolve, reject) =>
-    setTimeout(
-      () => (reason === undefined ? resolve() : reject(reason)),
-      delay
-    )
+    setTimeout(() => (reason === undefined ? resolve() : reject(reason)), delay)
   );
 
 const wrapPromise = (promise: Promise<any>, delay: number, reason: string) =>
@@ -24,7 +23,10 @@ const wrapPromise = (promise: Promise<any>, delay: number, reason: string) =>
 export class FileSystemWritableFileStream extends WritableStream {
   constructor(...args: any[]) {
     super(...args);
-    fileSystemWritableDebug("Constructor FileSystemWritableFileStream with args: ", ...args);
+    fileSystemWritableDebug(
+      "Constructor FileSystemWritableFileStream with args: ",
+      ...args
+    );
 
     // Stupid Safari hack to extend native classes
     // https://bugs.webkit.org/show_bug.cgi?id=226201
@@ -41,20 +43,29 @@ export class FileSystemWritableFileStream extends WritableStream {
     const w = this.getWriter();
     fileSystemWritableDebug("FileSystemWritableFileStream: w: ", w);
     // TODO inspect this on bun
-    try{
+    try {
       //console.trace();
       const p = w.close();
       //const closePromise = wrapPromise(p, 1000, "didtimeout");
       const closePromise = p;
-      fileSystemWritableDebug("FileSystemWritableFileStream: closePromise: ", closePromise);
+      fileSystemWritableDebug(
+        "FileSystemWritableFileStream: closePromise: ",
+        closePromise
+      );
       await closePromise;
     } catch (err: any) {
-      if (err instanceof Error){
+      if (err instanceof Error) {
         const eerr = err as Error;
-        fileSystemWritableDebug("FileSystemWritableFileStream close err: ", err);
+        fileSystemWritableDebug(
+          "FileSystemWritableFileStream close err: ",
+          err
+        );
         fileSystemWritableDebug(eerr.stack);
       } else {
-        fileSystemWritableDebug("FileSystemWritableFileStream close unknown err: ", err);
+        fileSystemWritableDebug(
+          "FileSystemWritableFileStream close unknown err: ",
+          err
+        );
       }
       throw err;
     }
@@ -97,7 +108,7 @@ export class FileSystemWritableFileStream extends WritableStream {
     }
     return this.writer;
   }*/
-  
+
   /*getWriter(): WritableStreamDefaultWriter {
     return super.getWriter();
   }*/
@@ -107,13 +118,12 @@ export class FileSystemWritableFileStream extends WritableStream {
   }
 }
 
-
 class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
   constructor(w: WritableStreamDefaultWriter) {
     this.w = w;
-    this._closed=w.closed;
-    this._desiredSize=w.desiredSize;
-    this._ready=w.ready;
+    this._closed = w.closed;
+    this._desiredSize = w.desiredSize;
+    this._ready = w.ready;
   }
   w: WritableStreamDefaultWriter<any>;
   private _closed: Promise<undefined>;
@@ -127,11 +137,15 @@ class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
   }
   private _desiredSize: number | null;
   public get desiredSize(): number | null {
-    fileSystemWritableDebug("CustomWritableStreamDefaultWriter: get desiredSize");
+    fileSystemWritableDebug(
+      "CustomWritableStreamDefaultWriter: get desiredSize"
+    );
     return this._desiredSize;
   }
   public set desiredSize(value: number | null) {
-    fileSystemWritableDebug("CustomWritableStreamDefaultWriter: set desiredSize");
+    fileSystemWritableDebug(
+      "CustomWritableStreamDefaultWriter: set desiredSize"
+    );
     this._desiredSize = value;
   }
   private _ready: Promise<undefined>;
@@ -153,7 +167,7 @@ class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
     try {
       const p = this.w.close();
       await p;
-    } catch(err: any){
+    } catch (err: any) {
       fileSystemWritableDebug("close err: ", err);
       throw err;
     }
@@ -167,5 +181,4 @@ class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
     const p = this.w.write(chunk);
     await p;
   }
-
 }

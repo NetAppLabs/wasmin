@@ -157,11 +157,16 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     _wait(ms: number) {
         return new Promise((resolve, reject) => {
-            const id = setTimeout(resolve, ms);
-            this.abortSignal?.addEventListener("abort", () => {
+            const abortListener = () => {
                 clearTimeout(id);
                 reject(new SystemError(ErrnoN.CANCELED));
-            });
+            };
+            const onResolve = (value: unknown) => {
+                this.abortSignal?.removeEventListener("abort", abortListener);
+                resolve(value);
+            };
+            const id = setTimeout(onResolve, ms);
+            this.abortSignal?.addEventListener("abort", abortListener);
         });
     }
 

@@ -1,0 +1,54 @@
+{
+  "name": "@wasm-env/shell",
+  "version": "0.0.1",
+  "description": "WASI Shell",
+  "private": false,
+  "type": "module",
+  "main": "./dist/shell.umd.cjs",
+  "module": "./dist/shell.js",
+  "exports": {
+    ".": {
+      "import": "./dist/shell.js",
+      "require": "./dist/shell.umd.cjs"
+    }
+  },
+  "types": "./types/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "build-esbuild": "esbuild --bundle src/index.node.ts --platform=node --format=esm --outfile=dist/shell.umd.cjs && esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/shell.js --external:node:* ",
+    "dev": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/shell.js --watch",
+    "build": "vite build && yarn tsc",
+    "test": "jest --silent=false --verbose false",
+    "lint:eslint": "eslint \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --fix",
+    "lint:prettier": "prettier \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --write",
+    "prepublishOnly": "yarn lint && yarn test && yarn build"
+  },
+  "repository": "ssh://git@github.com/tryggvil/shell.git",
+  "author": "Tryggvi Larusson",
+  "license": "MIT",
+  "homepage": "https://github.com/tryggvil/shell#readme",
+  "bugs": {
+    "url": "https://github.com/tryggvil/shell/issues"
+  },
+  "contributors": [
+    {
+      "name": "tryggvil"
+    }
+  ],
+  "devDependencies": {
+    "typescript": "^4.9.4",
+    "vite": "^4.0.1"
+  },
+  "dependencies": {
+    "@wasm-env/wasi-js": "*",
+    "@wasm-env/fs-js": "*",
+    "@wasm-env/node-fs-js": "*",
+    "@wasm-env/github-fs-js": "*",
+    "@wasm-env/s3-fs-js": "*"
+  }
+}

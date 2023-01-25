@@ -2,10 +2,11 @@
 //export { showOpenFilePicker } from "./showOpenFilePicker";
 //export { showSaveFilePicker } from "./showSaveFilePicker";
 
-
-
 export { getOriginPrivateDirectory } from "./getOriginPrivateDirectory";
-export { getDirectoryHandleByURL, RegisterProvider } from "./getDirectoryHandleByURL";
+export {
+  getDirectoryHandleByURL,
+  RegisterProvider,
+} from "./getDirectoryHandleByURL";
 export { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
 export { NFileSystemFileHandle } from "./FileSystemFileHandle";
 export { NFileSystemHandle } from "./FileSystemHandle";
@@ -44,5 +45,9 @@ export {
   TypeMismatchError,
 };
 
-export type {ImpleFileHandle, ImplFolderHandle, ImpleSink } from "./adapters/implements";
+export type {
+  ImpleFileHandle,
+  ImplFolderHandle,
+  ImpleSink,
+} from "./adapters/implements";
 export { DefaultSink } from "./adapters/implements";

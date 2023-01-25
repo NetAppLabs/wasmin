@@ -329,7 +329,7 @@ export class FolderHandle
           }
         );
         if (!handeRetrieved) throw new NotFoundError();
-        try{
+        try {
           let extHandleDirectoryHandle = await handeRetrieved;
 
           // @ts-ignore
@@ -351,7 +351,7 @@ export class FolderHandle
           const extHandle = extHandleDirectoryHandle as unknown as FolderHandle;
           this.verifyPermission(extHandleDirectoryHandle, true);
           ret = extHandle;
-        } catch (error: any){
+        } catch (error: any) {
           console.log("indexeddb.getExternalFolderHandle error: ", error);
         }
       }

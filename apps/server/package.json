@@ -1,0 +1,47 @@
+{
+  "name": "@wasm-env/server",
+  "version": "0.0.0",
+  "scripts": {
+    "build-vite": "vite build --sourcemap && yarn tsc",
+    "build": "esbuild --bundle server/index.ts --sourcemap --format=cjs --platform=node --outfile=dist/server.cjs.js --main-fields=main,module --external:bun-livereload",
+    "start": "node --enable-source-maps --no-warnings dist/server.cjs.js",
+    "start-trace": "node --trace-warnings --enable-source-maps dist/server.cjs.js",
+    "dev": "vite",
+    "node-dev": "ts-node-dev --experimental-specifier-resolution=node --respawn --transpile-only --exit-child ./server/index.ts",
+    "bun-dev": "run-p bun-watch:*",
+    "bun-watch:server": "bun server/bun.ts",
+    "bun-watch:client": "bun dev",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@cmdcode/nostr-emitter": "^1.1.15",
+    "@molt/command": "^0.6.0",
+    "@tanstack/react-query": "^4.10.1",
+    "@trpc/client": "^10.4.0",
+    "@trpc/react": "^10.0.0-proxy-beta.20",
+    "@trpc/server": "^10.4.0",
+    "@types/wicg-file-system-access": "^2020.9.5",
+    "@wasm-env/fs-js": "*",
+    "@wasm-env/node-fs-js": "*",
+    "@wasm-env/shell": "*",
+    "@wasm-env/wasi-js": "*",
+    "bonjour-service": "^1.0.14",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "trpc-openapi": "^1.1.1",
+    "unique-names-generator": "^4.7.1",
+    "zod": "^3.20.2"
+  },
+  "devDependencies": {
+    "@types/filesystem": "^0.0.32",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^3.0.0",
+    "bun-livereload": "^1.0.3",
+    "npm-run-all": "^4.1.5",
+    "react-refresh": "^0.14.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.1"
+  }
+}

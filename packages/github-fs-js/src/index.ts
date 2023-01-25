@@ -124,7 +124,21 @@ export class Sink extends DefaultSink<GithubFileHandle> {
   }
 }
 
-export class GithubFile implements File {
+export interface GithubFile extends File {
+  blobUrl: string;
+  lastModified: number;
+  name: string;
+  path: string;
+  webkitRelativePath: string;
+  type: string;
+  size: number;
+  start: number | undefined;
+  end: number | undefined;
+  contentType: string | undefined;
+}
+
+
+export class GithubFile {
   constructor(
     config: GithubConfig,
     blobUrl: string,

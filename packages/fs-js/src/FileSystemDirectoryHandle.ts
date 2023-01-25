@@ -3,12 +3,11 @@ import { NFileSystemFileHandle } from "./FileSystemFileHandle";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL";
 import { TypeMismatchError } from "./errors";
 
-
 const FILESYSTEM_DEBUG = false;
 
 export function fileSystemDebug(msg?: any, ...optionalParams: any[]): void {
-  if (FILESYSTEM_DEBUG){
-    console.debug(msg,  ...optionalParams);
+  if (FILESYSTEM_DEBUG) {
+    console.debug(msg, ...optionalParams);
   }
 }
 export class NFileSystemDirectoryHandle
@@ -281,8 +280,8 @@ export class NFileSystemDirectoryHandle
       try {
         const obj = JSON.parse(str);
         returnFh = obj as FileSystemDirectoryHandle | FileSystemFileHandle;
-      } catch (error: any){
-        fileSystemDebug("error on JSON.parse for getExternalHandle: ",error);
+      } catch (error: any) {
+        fileSystemDebug("error on JSON.parse for getExternalHandle: ", error);
       }
       let returnFhAny = returnFh as any;
       if (returnFhAny.adapter) {
@@ -292,9 +291,12 @@ export class NFileSystemDirectoryHandle
       if (returnFhAny.url) {
         const secretStore = this.secretStore;
         try {
-          returnFh = await getDirectoryHandleByURL(returnFhAny.url, secretStore);
-        } catch (error: any){
-          fileSystemDebug("error on getDirectoryHandleByURL: ",error);
+          returnFh = await getDirectoryHandleByURL(
+            returnFhAny.url,
+            secretStore
+          );
+        } catch (error: any) {
+          fileSystemDebug("error on getDirectoryHandleByURL: ", error);
         }
       }
       if (returnFh == null) {

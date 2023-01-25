@@ -9,7 +9,7 @@ const termGetRows = bun_console.termGetRows;
 //import { termSetRawMode, termGetRawMode, termGetRows } from "@wasm-env/bun-console";
 
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
-import { memory, getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
 
 import { readFileSync } from 'fs';
 
@@ -21,24 +21,23 @@ import { default as bunFs } from "./bun-fs-js";
 import { default as s3} from "@wasm-env/s3-fs-js";
 import { default as github} from "@wasm-env/github-fs-js";
 
-
+/*
 import { MyFile } from "./fetch-blob/file";
-
 // polyfill for bun
 if (!globalThis.File) {
   globalThis.File = MyFile;
-}
+}*/
 
 const DEBUG_MODE = false;
 
-const runFunc = async () => {
+const startShell = async () => {
   const textEncoder = new TextEncoder();
   const textDecoder = new TextDecoder();
 
   const Bun = globalThis["Bun"];
-  //if (DEBUG_MODE) {
+  if (DEBUG_MODE) {
     console.log(Bun.stdin.stream(), Bun.stdout.stream(), Bun.stderr.stream());
-  //}
+  }
 
   const modeListener = function(rawMode: boolean): void {
     if (DEBUG_MODE){
@@ -146,8 +145,7 @@ const runFunc = async () => {
       username: GITHUB_USERNAME,
     },
   };
-  //console.log("secretStore: ", secretStore);
-  // @ts-ignore
+
   rootfs.secretStore = secretStore;
   const rootDir = "/";
   const init_pwd = "/";
@@ -157,15 +155,15 @@ const runFunc = async () => {
 
   const args: string[] = [];
 
-  let shellBinary = "./nu.async.wasm";
+  let wasmBinary = "./nu.async.wasm";
 
   const binaryFromEnv = process.env.NODE_SHELL_BINARY;
   if ( binaryFromEnv && binaryFromEnv != " "){
-    shellBinary = binaryFromEnv;
+    wasmBinary = binaryFromEnv;
   }
 
-  const buf = readFileSync(shellBinary);
-  const mod = await WebAssembly.compile(buf);
+  const wasmBuf = readFileSync(wasmBinary);
+  const mod = await WebAssembly.compile(wasmBuf);
 
   const cols = termGetColumns();
   const rows = termGetRows();
@@ -206,4 +204,4 @@ const runFunc = async () => {
 };
 
 // @ts-ignore
-await runFunc();
+await startShell();

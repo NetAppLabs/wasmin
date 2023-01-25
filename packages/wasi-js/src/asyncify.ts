@@ -131,7 +131,7 @@ export class Asyncify {
                 try {
                     result = fn();
                 } catch (err: any) {
-                    console.log("asyncify error: ", fn, err);
+                    asyncifyDebug("asyncify error: ", fn, err);
                     throw err;
                 }
             }

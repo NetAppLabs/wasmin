@@ -146,7 +146,20 @@ export class Sink extends DefaultSink<S3FileHandle> {
   }
 }
 
-export class S3File implements File {
+export interface S3File extends File {
+  lastModified: number;
+  name: string;
+  path: string;
+  webkitRelativePath: string;
+  type: string;
+  size: number;
+  start: number | undefined;
+  end: number | undefined;
+  contentType: string | undefined;
+}
+
+//export class S3File extends File {
+export class S3File {
   constructor(
     config: S3Config,
     path: string,
@@ -156,6 +169,7 @@ export class S3File implements File {
     lastModified: number,
     options?: FilePropertyBag
   ) {
+    //super(fileBits, fileName, options)
     this.config = config;
     this.size = size;
     this.type = "File";
