@@ -3,23 +3,30 @@ import { ErrnoN } from "./wasi_experimental_sockets_bindings";
 import { SystemError } from "./errors";
 import { Socket } from "./wasiFileSystem";
 
-import { default as net } from "node:net";
 //import { default as dgram } from "node:dgram";
 //import { default as dns } from "node:dns";
 
 import { AddressInfo, appendToUint8Array, createPromiseWithTimeout, delay, NetSocket, wasiSocketsDebug } from "./wasi_experimental_sockets_common";
+import { NodeNetTcpServer, NodeNetTcpSocket } from './wasi_experimental_sockets_common';
+
+/*
+import { default as net } from "node:net";
+type NodeNetTcpSocket = net.Socket;
+type NodeNetTcpServer = net.Server;
+*/
 
 export class NodeTcpSocket extends Socket implements NetSocket {
-    constructor(nodeSocket?: net.Socket) {
+    constructor(socketCreator: () => NodeNetTcpSocket, serverCreator?: () => NodeNetTcpServer) {
         super();
+        this._socketCreator = socketCreator;
+        this._serverCreator = serverCreator;
+        let nodeSocket: NodeNetTcpSocket | undefined;
         wasiSocketsDebug("creating new NodeTcpSocket");
-        if (!nodeSocket) {
-            try {
-                nodeSocket = new net.Socket();
-            } catch (err: any) {
-                wasiSocketsDebug("NodeTcpSocket: err ", err);
-                throw err;
-            }
+        try {
+            nodeSocket = socketCreator();
+        } catch (err: any) {
+            wasiSocketsDebug("NodeTcpSocket: err ", err);
+            throw err;
         }
         wasiSocketsDebug("NodeTcpSocket: created new net.Socket");
         this._nodeSocket = nodeSocket;
@@ -31,6 +38,8 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         this._acceptedSockets = [];
         this._isServerConnection = false;
     }
+    _socketCreator: () => NodeNetTcpSocket;
+    _serverCreator?: () => NodeNetTcpServer;
     _dataBuffer: Uint8Array;
     _connected: boolean;
     _ready: boolean;
@@ -40,8 +49,8 @@ export class NodeTcpSocket extends Socket implements NetSocket {
     _isServerConnection: boolean;
     bindAddress?: AddressInfo;
     // @ts-ignore
-    private _nodeSocket: net.Socket
-    private _nodeServer?: net.Server
+    private _nodeSocket: NodeNetTcpSocket
+    private _nodeServer?: NodeNetTcpServer
     async waitForConnect(): Promise<void> {
 
         while (!this._connected && !this._ready) {
@@ -226,52 +235,55 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const superThis = this;
         if (bindAddressInfo) {
-            const server = net.createServer();
-            superThis._nodeServer = server;
-            const port = bindAddressInfo.port;
-            const host = bindAddressInfo.address;
-            server.listen(port, host);
-            server.on('listening', () => {
-                wasiSocketsDebug("server:listening");
-                superThis._connected = true;
-                superThis._ready = true;
+            if (this._serverCreator) {
+                const server = this._serverCreator();
+                superThis._nodeServer = server;
+                const port = bindAddressInfo.port;
+                const host = bindAddressInfo.address;
+                server.listen(port, host);
+                server.on('listening', () => {
+                    wasiSocketsDebug("server:listening");
+                    superThis._connected = true;
+                    superThis._ready = true;
 
-            });
-            server.on('error', (err: any) => {
-                wasiSocketsDebug("server:error");
-                wasiSocketsDebug('connect: Client: error with peer: ', err);
-                if ( err.code ) {
-                    if (err.code == "ECONNREFUSED") {
-                        superThis._error = ErrnoN.CONNREFUSED;
-                    } else if (err.code == "ECONNABORTED") {
-                        superThis._error = ErrnoN.CONNABORTED;
-                    } else if (err.code == "ECONNRESET") {
-                        superThis._error = ErrnoN.CONNRESET;
-                    } else if (err.code == "EADDRINUSE") {
-                        superThis._error = ErrnoN.ADDRINUSE;
-                    } else if (err.code == "EADDRNOTAVAIL") {
-                        superThis._error = ErrnoN.ADDRNOTAVAIL;
+                });
+                server.on('error', (err: any) => {
+                    wasiSocketsDebug("server:error");
+                    wasiSocketsDebug('connect: Client: error with peer: ', err);
+                    if ( err.code ) {
+                        if (err.code == "ECONNREFUSED") {
+                            superThis._error = ErrnoN.CONNREFUSED;
+                        } else if (err.code == "ECONNABORTED") {
+                            superThis._error = ErrnoN.CONNABORTED;
+                        } else if (err.code == "ECONNRESET") {
+                            superThis._error = ErrnoN.CONNRESET;
+                        } else if (err.code == "EADDRINUSE") {
+                            superThis._error = ErrnoN.ADDRINUSE;
+                        } else if (err.code == "EADDRNOTAVAIL") {
+                            superThis._error = ErrnoN.ADDRNOTAVAIL;
+                        } else {
+                            superThis._error = ErrnoN.CONNABORTED;
+                        }
                     } else {
                         superThis._error = ErrnoN.CONNABORTED;
                     }
-                } else {
-                    superThis._error = ErrnoN.CONNABORTED;
-                }
-            });
-            server.on('close', () => {
-                wasiSocketsDebug("server:close");
-            });
+                });
+                server.on('close', () => {
+                    wasiSocketsDebug("server:close");
+                });
 
-            server.on('connection', (netSocket) => {
-                const newSocket = new NodeTcpSocket(netSocket);
-                newSocket._isServerConnection = true;
-                newSocket.setupListeners();
-                
-                superThis._acceptedSockets.push(newSocket);
-                newSocket._connected = true;
-                newSocket._ready = true;
+                server.on('connection', (netSocket: NodeNetTcpSocket) => {
+                    const getClientSocket = () => netSocket;
+                    const newSocket = new NodeTcpSocket(getClientSocket, this._serverCreator);
+                    newSocket._isServerConnection = true;
+                    newSocket.setupListeners();
+                    
+                    superThis._acceptedSockets.push(newSocket);
+                    newSocket._connected = true;
+                    newSocket._ready = true;
 
-            });
+                });
+            }
 
         }
     }
@@ -279,7 +291,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         wasiSocketsDebug("connect: starting");
         const socket = this._nodeSocket;
 
-        socket.connect(port, host);
+        await socket.connect(port, host);
 
         /*socket.connect(port, host, function() {
             wasiSocketsDebug("connect: connected on socket");

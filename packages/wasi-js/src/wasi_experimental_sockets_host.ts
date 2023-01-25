@@ -105,11 +105,14 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("sockOpen:  afn: ", af as number);
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
+            const netImpl = await import('./wasi_experimental_sockets_node');
+            const NodeTcpSocket = netImpl.NodeTcpSocket;
             if (detectNode()) {
-                const nodeImpl = await import('./wasi_experimental_sockets_node');
-                const NodeTcpSocket = nodeImpl.NodeTcpSocket;
+                const nodeImpl = await import('./wasi_experimental_sockets_node_impl');
+                const createSocket = nodeImpl.createNodeTcpSocket;
+                const createServer = nodeImpl.createNodeTcpServer;
                 wasiSocketsDebug("sockOpen tcp 1 :");
-                const sock = new NodeTcpSocket();
+                const sock = new NodeTcpSocket(createSocket, createServer);
                 wasiSocketsDebug("sockOpen tcp 2 :");
                 const resultFd = this.openFiles.add(sock);
                 wasiSocketsDebug("sockOpen tcp 3 :");
@@ -117,8 +120,17 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
                 wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
                 return ErrnoN.SUCCESS;
             } else {
-                // Not supported on other platforms than node
-                return ErrnoN.NOSYS;
+                const wsImpl = await import('./wasi_experimental_sockets_wsproxy_impl');
+                const createSocket = wsImpl.createNodeTcpSocket;
+                const createServer = wsImpl.createNodeTcpServer;
+                wasiSocketsDebug("sockOpen tcp 1 :");
+                const sock = new NodeTcpSocket(createSocket, createServer);
+                wasiSocketsDebug("sockOpen tcp 2 :");
+                const resultFd = this.openFiles.add(sock);
+                wasiSocketsDebug("sockOpen tcp 3 :");
+                Fd.set(this.buffer, result_ptr, resultFd);
+                wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
+                return ErrnoN.SUCCESS;
             }
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
