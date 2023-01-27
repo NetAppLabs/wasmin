@@ -1,32 +1,40 @@
-import { Socket } from "./wasiFileSystem";
-import { Addr, AddrTypeN } from "./wasi_experimental_sockets_bindings";
+import { Socket } from "../wasiFileSystem";
+import { Addr, AddrTypeN } from "./bindings";
 
-export interface AddressInfo{
+export type AddressFamily = "IPv4" | "IPv6";
+
+export interface AddressInfo {
     address: string;
-    family: string;
+    family: AddressFamily | string;
     port: number;
 }
 
-export interface NetSocket extends Socket {
+/**
+ * WasiSocket defines the operations on a wasi_experimental_sockets Socket
+ *
+ */
+export interface WasiSocket extends Socket {
     address(): Promise<AddressInfo>;
     remoteAddress(): Promise<AddressInfo>;
     bind(addr: AddressInfo): Promise<void>;
     listen(backlog: number): Promise<void>;
-    getAcceptedSocket(): Promise<NetSocket>;
+    getAcceptedSocket(): Promise<WasiSocket>;
     connect(addr: string, port: number): Promise<void>;
     shutdown(): void;
 }
 
-
+/**
+ * NodeNetTcpSocket defines most basic operations from node:net Socket class
+ *
+ */
 export interface NodeNetTcpSocket {
-    remoteFamily: any;
-    remotePort: any;
-    remoteAddress: any;
+    remoteAddress?: string | undefined;
+    remoteFamily?: string | undefined;
+    remotePort?: number | undefined;
     address(): AddressInfo;
-    connect(port: number, host: string, connectionListener?: () => void): Promise<this>;
+    connect(port: number, host: string, connectionListener?: () => void): this | Promise<this>;
     //end(callback?: () => void): this;
     end(str: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void): this;
-    on(event: string, listener: (...args: any[]) => void): this;
     on(event: 'close', listener: (hadError: boolean) => void): this;
     on(event: 'connect', listener: () => void): this;
     on(event: 'data', listener: (data: Buffer) => void): this;
@@ -34,13 +42,13 @@ export interface NodeNetTcpSocket {
     on(event: 'error', listener: (err: Error) => void): this;
     on(event: 'ready', listener: () => void): this;
     on(event: 'timeout', listener: () => void): this;
-    read(size?: number): any;
-    //write(buffer: Buffer | string, encoding?: string, cb?: (err?: Error) => void): boolean;
-    write(chunk: any, callback?: (error: Error | null | undefined) => void): boolean;
     write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
-    [Symbol.asyncIterator](): AsyncIterableIterator<any>;
 }
 
+/**
+ * NodeNetTcpServer defines most basic operations from node:net Server class
+ *
+ */
 export interface NodeNetTcpServer {
     on(event: 'error', listener: (err: Error) => void): this;
     on(event: 'close', listener: () => void): this;
@@ -50,7 +58,6 @@ export interface NodeNetTcpServer {
     address(): AddressInfo;
 }
 
-
 export function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -59,23 +66,23 @@ export function createPromiseWithTimeout(
     promise: Promise<any>,
     ms: number,
     timeoutError = new Error('Promise timed out')
-  ) {
+) {
     // create a promise that rejects in milliseconds
     const timeout = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(timeoutError);
-      }, ms);
+        setTimeout(() => {
+            reject(timeoutError);
+        }, ms);
     });
-  
+
     // returns a race between timeout and the passed promise
     return Promise.race([promise, timeout]);
-  }
+}
 
 export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
-	const newArray = new Uint8Array(arr.length + data.length);
-	newArray.set(arr);              // copy old data
-	newArray.set(data, arr.length); // copy new data after end of old data
-	return newArray;
+    const newArray = new Uint8Array(arr.length + data.length);
+    newArray.set(arr);              // copy old data
+    newArray.set(data, arr.length); // copy new data after end of old data
+    return newArray;
 }
 
 declare let globalThis: any;
@@ -87,21 +94,19 @@ export function wasiSocketsDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
-function IPv4AddressToArray(addr: string): number[]{
+function IPv4AddressToArray(addr: string): number[] {
     const saddrs = addr.split(".");
     const retAddrs: number[] = [];
-    for(const saddr of saddrs)
-    {
+    for (const saddr of saddrs) {
         retAddrs.push(parseInt(saddr));
     }
     return retAddrs;
 }
 
-function IPv6AddressToArray(addr: string): number[]{
+function IPv6AddressToArray(addr: string): number[] {
     const saddrs = addr.split(":");
     const retAddrs: number[] = [];
-    for(const saddr of saddrs)
-    {
+    for (const saddr of saddrs) {
         retAddrs.push(parseInt(saddr, 16));
     }
     return retAddrs;
@@ -110,10 +115,10 @@ function IPv6AddressToArray(addr: string): number[]{
 export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
     let family: string;
     let hostAddr: string;
-    if (addr.tag == AddrTypeN.IP_4 ){
+    if (addr.tag == AddrTypeN.IP_4) {
         family = "IPv4"
         hostAddr = `${addr.data.addr.n_0}.${addr.data.addr.n_1}.${addr.data.addr.h_0}.${addr.data.addr.h_1}`;
-    } else if (addr.tag == AddrTypeN.IP_6 ){
+    } else if (addr.tag == AddrTypeN.IP_6) {
         family = "IPv6"
         const n0 = addr.data.addr.n_0;
         const n0s = n0.toString(16);
@@ -144,12 +149,12 @@ export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
     return addrinfo;
 }
 
-export function AddressInfoToWasiAddr(addr: AddressInfo): Addr{
-    const address =  addr.address;
+export function AddressInfoToWasiAddr(addr: AddressInfo): Addr {
+    const address = addr.address;
     // family: 'IPv4' or 'IPv6'
-    const family =  addr.family;
-    const port =  addr.port;
-    if (family == "IPv4" ){
+    const family = addr.family;
+    const port = addr.port;
+    if (family == "IPv4") {
         const addrArray = IPv4AddressToArray(address);
         const wasiAddr: Addr = {
             tag: AddrTypeN.IP_4,
@@ -164,7 +169,7 @@ export function AddressInfoToWasiAddr(addr: AddressInfo): Addr{
             },
         };
         return wasiAddr;
-    } else if (family == "IPv6" ){
+    } else if (family == "IPv6") {
         const addrArray = IPv6AddressToArray(address);
         const wasiAddr: Addr = {
             tag: AddrTypeN.IP_6,

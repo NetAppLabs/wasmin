@@ -55,6 +55,7 @@
     "@types/wicg-file-system-access": "^2020.9.5",
     "@wasm-env/fs-js": "*",
     "@wasm-env/node-fs-js": "*",
+    "events": "^3.3.0",
     "proxymise": "^1.0.2"
   },
   "devDependencies": {

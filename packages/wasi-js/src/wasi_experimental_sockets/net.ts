@@ -1,13 +1,10 @@
 
-import { ErrnoN } from "./wasi_experimental_sockets_bindings";
-import { SystemError } from "./errors";
-import { Socket } from "./wasiFileSystem";
+import { SystemError } from "../errors";
+import { Socket } from "../wasiFileSystem";
 
-//import { default as dgram } from "node:dgram";
-//import { default as dns } from "node:dns";
-
-import { AddressInfo, appendToUint8Array, createPromiseWithTimeout, delay, NetSocket, wasiSocketsDebug } from "./wasi_experimental_sockets_common";
-import { NodeNetTcpServer, NodeNetTcpSocket } from './wasi_experimental_sockets_common';
+import { ErrnoN } from "./bindings";
+import { AddressInfo, appendToUint8Array, delay, WasiSocket, wasiSocketsDebug } from "./common";
+import { NodeNetTcpServer, NodeNetTcpSocket } from './common';
 
 /*
 import { default as net } from "node:net";
@@ -15,7 +12,7 @@ type NodeNetTcpSocket = net.Socket;
 type NodeNetTcpServer = net.Server;
 */
 
-export class NodeTcpSocket extends Socket implements NetSocket {
+export class NetTcpSocket extends Socket implements WasiSocket {
     constructor(socketCreator: () => NodeNetTcpSocket, serverCreator?: () => NodeNetTcpServer) {
         super();
         this._socketCreator = socketCreator;
@@ -45,7 +42,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
     _ready: boolean;
     _closed: boolean;
     _error: number;
-    _acceptedSockets: Array<NodeTcpSocket>;
+    _acceptedSockets: Array<NetTcpSocket>;
     _isServerConnection: boolean;
     bindAddress?: AddressInfo;
     // @ts-ignore
@@ -54,7 +51,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
     async waitForConnect(): Promise<void> {
 
         while (!this._connected && !this._ready) {
-            if ( this._error != 0 ) {
+            if (this._error != 0) {
                 throw new SystemError(ErrnoN.CONNREFUSED, false);
             }
             wasiSocketsDebug("waiting for connect");
@@ -81,7 +78,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         const databufferLen = this._dataBuffer.length;
         wasiSocketsDebug("socket:read databufferLen: ", databufferLen);
         if (databufferLen > len) {
-            retChunks = this._dataBuffer.subarray(0,len);
+            retChunks = this._dataBuffer.subarray(0, len);
             this._dataBuffer = this._dataBuffer.slice(len);
         } else {
             this._dataBuffer = new Uint8Array(0);
@@ -92,6 +89,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
 
     }
 
+    /*
     async readWithTimeout(len: number): Promise<Uint8Array> {
         return createPromiseWithTimeout(this.readPull2(len),1000, new SystemError(ErrnoN.AGAIN, true));
     }
@@ -133,35 +131,6 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         await this.waitForConnect();
         const socket = this._nodeSocket;
 
-        //const res = socket.read(len);
-        /*
-        socket.on('data', () => {
-           let chunk;
-           while (null !== (chunk = socket.read(len))) {
-             chunks.set(chunk);
-             hasData = true;
-             delay(1);
-           }
-        });
-        wasiSocketsDebug("socket:read returning chunks: ", chunks);
-        //return res;
-        */
-        /*
-        let chunk: Uint8Array;
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const superThis = this;
-        let hasData = false;
-        socket.on('readable', function() {
-            while ((chunk = socket.read(len)) != null) {
-                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
-                hasData = true;
-            }
-        });
-        while (!hasData){
-            delay(1);
-        }
-        */
-        
         for await (const chunk of socket) {
             const newChunks = new Uint8Array(chunk);
             this._dataBuffer = appendToUint8Array(this._dataBuffer, newChunks);
@@ -178,19 +147,19 @@ export class NodeTcpSocket extends Socket implements NetSocket {
 
         wasiSocketsDebug("socket:read returning retChunks.length: ", retChunks.length);
         return retChunks;
-    }
+    }*/
 
-    async write(data: Uint8Array): Promise<void>{
+    async write(data: Uint8Array): Promise<void> {
         wasiSocketsDebug("socket:write");
         await this.waitForConnect();
-        this._nodeSocket.write(data);
+        this._nodeSocket.write(data, 'utf8');
     }
 
     async address(): Promise<AddressInfo> {
         wasiSocketsDebug("socket:address");
         await this.waitForConnect();
         let addr: AddressInfo;
-        if (this._nodeServer){
+        if (this._nodeServer) {
             addr = this._nodeServer.address() as AddressInfo;
         } else {
             addr = this._nodeSocket.address() as AddressInfo;
@@ -205,7 +174,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         wasiSocketsDebug("remoteAddress: ", remoteAddr);
         const remotePort = this._nodeSocket.remotePort;
         const remoteFamily = this._nodeSocket.remoteFamily;
-        if (remoteAddr && remotePort && remoteFamily ){
+        if (remoteAddr && remotePort && remoteFamily) {
             const addr: AddressInfo = {
                 address: remoteAddr,
                 port: remotePort,
@@ -218,12 +187,12 @@ export class NodeTcpSocket extends Socket implements NetSocket {
     }
     close(): void {
         wasiSocketsDebug("socket:close");
-        this._nodeSocket.end();
+        this._nodeSocket.end('');
         //this._nodeSocket.destroy();
     }
     shutdown(): void {
         wasiSocketsDebug("socket:shutdown");
-        this._nodeSocket.end();
+        this._nodeSocket.end('');
     }
     async bind(addrInfo: AddressInfo) {
         wasiSocketsDebug("socket:bind");
@@ -250,7 +219,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
                 server.on('error', (err: any) => {
                     wasiSocketsDebug("server:error");
                     wasiSocketsDebug('connect: Client: error with peer: ', err);
-                    if ( err.code ) {
+                    if (err.code) {
                         if (err.code == "ECONNREFUSED") {
                             superThis._error = ErrnoN.CONNREFUSED;
                         } else if (err.code == "ECONNABORTED") {
@@ -274,10 +243,10 @@ export class NodeTcpSocket extends Socket implements NetSocket {
 
                 server.on('connection', (netSocket: NodeNetTcpSocket) => {
                     const getClientSocket = () => netSocket;
-                    const newSocket = new NodeTcpSocket(getClientSocket, this._serverCreator);
+                    const newSocket = new NetTcpSocket(getClientSocket, this._serverCreator);
                     newSocket._isServerConnection = true;
                     newSocket.setupListeners();
-                    
+
                     superThis._acceptedSockets.push(newSocket);
                     newSocket._connected = true;
                     newSocket._ready = true;
@@ -291,7 +260,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         wasiSocketsDebug("connect: starting");
         const socket = this._nodeSocket;
 
-        await socket.connect(port, host);
+        socket.connect(port, host);
 
         /*socket.connect(port, host, function() {
             wasiSocketsDebug("connect: connected on socket");
@@ -300,7 +269,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
                 superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
             });
         });*/
-        
+
         //await socket.connect(port, host);
         wasiSocketsDebug("connect: connected");
         /*socket.on("data", data => {
@@ -314,14 +283,14 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         const socket = this._nodeSocket;
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const superThis = this;
-        if (this._isServerConnection) {
-            socket.on('data', (buf: Buffer) => {
-                wasiSocketsDebug('connect: data');
-                if (buf) {
-                    superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
-                }
-            });    
-        } else {
+        //if (this._isServerConnection) {
+        socket.on('data', (buf: Buffer) => {
+            wasiSocketsDebug('connect: data');
+            if (buf) {
+                superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
+            }
+        });
+        /*} else {
             socket.on('readable', () => {
                 wasiSocketsDebug('connect: readable');
                 const chunk = socket.read();
@@ -329,7 +298,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
                     superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, chunk);
                 }
             });
-        }
+        }*/
         socket.on('close', () => {
             superThis._closed = true;
             wasiSocketsDebug('connect: Client: closed');
@@ -337,18 +306,18 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         socket.on('connect', async () => {
             wasiSocketsDebug('connect: Client: connection established with peer');
             superThis._connected = true;
-            for await (const chunk of socket) {
+            /*for await (const chunk of socket) {
                 const newChunks = new Uint8Array(chunk);
                 superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, newChunks);
-            }    
+            }*/
         });
-        socket.on('ready', function(this: any) {
+        socket.on('ready', function (this: any) {
             wasiSocketsDebug('connect: Client: connection ready with peer');
             superThis._ready = true;
         });
-        socket.on('error', function(err: any) {
+        socket.on('error', function (err: any) {
             wasiSocketsDebug('connect: Client: error with peer: ', err);
-            if ( err.code ) {
+            if (err.code) {
                 if (err.code == "ECONNREFUSED") {
                     superThis._error = ErrnoN.CONNREFUSED;
                 } else if (err.code == "ECONNABORTED") {
@@ -362,7 +331,7 @@ export class NodeTcpSocket extends Socket implements NetSocket {
                 superThis._error = ErrnoN.CONNABORTED;
             }
         });
-        socket.on('timeout', function(this: any){
+        socket.on('timeout', function (this: any) {
             wasiSocketsDebug('connect: Client: timeout with peer');
         });
         socket.on('end', () => {
@@ -372,24 +341,24 @@ export class NodeTcpSocket extends Socket implements NetSocket {
         });
     }
 
-    async getAcceptedSocket(): Promise<NodeTcpSocket> {
+    async getAcceptedSocket(): Promise<NetTcpSocket> {
         let acceptedSocket = this._acceptedSockets.shift();
         let counter = 0;
         while (!acceptedSocket) {
             if (counter > 1000) {
                 // Timing out tellling client to retry
                 // to allow other operation to run rather to hang on accept
-                throw new SystemError(ErrnoN.AGAIN, true);   
+                throw new SystemError(ErrnoN.AGAIN, true);
             }
             await delay(1);
             acceptedSocket = this._acceptedSockets.shift();
-            counter = counter +1;
+            counter = counter + 1;
         }
         return acceptedSocket;
     }
 }
 
-export class NodeUdpSocket extends Socket implements NetSocket{
+export class NetUdpSocket extends Socket implements WasiSocket {
     constructor(family: string) {
         super();
         //const nodeSocket = dgram.createSocket(family);
@@ -419,7 +388,7 @@ export class NodeUdpSocket extends Socket implements NetSocket{
     listen(backlog: number): Promise<void> {
         throw new Error("UDP not implemented.");
     }
-    getAcceptedSocket(): Promise<NetSocket> {
+    getAcceptedSocket(): Promise<WasiSocket> {
         throw new Error("UDP not implemented.");
     }
     connect(addr: string, port: number): Promise<void> {

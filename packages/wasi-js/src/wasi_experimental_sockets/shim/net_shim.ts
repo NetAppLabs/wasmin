@@ -12,12 +12,14 @@
  */
 
 import { EventEmitter } from 'events';
-import { NodeNetTcpSocket } from '../wasi_experimental_sockets_common';
+import { AddressInfo, NodeNetTcpSocket } from '../common';
 //import { startTls, TrustedCert, ReadQueue } from 'subtls';
 
 // @ts-ignore - esbuild knows how to deal with this
-import letsEncryptRootCert from './isrgrootx1.pem';
+//import letsEncryptRootCert from './isrgrootx1.pem';
+const letsEncryptRootCert = '';
 
+const debug = false;
 declare global {
   const debug: boolean;  // e.g. --define:debug=false in esbuild command
   interface WebSocket {
@@ -60,7 +62,19 @@ export interface SocketDefaults {
   rootCerts: string;  // ditto
 }
 
-export class Socket extends EventEmitter implements NodeNetTcpSocket{
+export class Socket extends EventEmitter implements NodeNetTcpSocket {
+  remoteFamily?: string;
+  remotePort?: number;
+  remoteAddress?: string;
+  address(): AddressInfo {
+    const addrInfo: AddressInfo = {
+        address: '127.0.0.1',
+        port: 1025,
+        family: 'IPv4'
+    }
+    return addrInfo;
+  }
+
   static addNeonProjectToPassword = false;  // this can only be set globally
 
   static defaults: Record<'neon' | 'other' | 'local', SocketDefaults> = {
@@ -83,9 +97,9 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
       rootCerts: letsEncryptRootCert as string,
     },
     local: {
-        wsProxy: host => '127.0.0.1/v1',
+        wsProxy: '127.0.0.1/v1',
         useSecureWebSocket: false,
-        coalesceWrites: true,
+        coalesceWrites: false,
         disableSNI: false,
         pipelineConnect: false,
         pipelineTLS: false,
@@ -93,7 +107,7 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
     },
   };
 
-  defaultsKey: keyof typeof Socket.defaults = 'local';  // default to using the 'other' defaults
+  defaultsKey: keyof typeof Socket.defaults = 'local';  // default to using the 'local' defaults
 
   static rootCerts: SocketDefaults['rootCerts'];
   private _rootCerts: typeof Socket.rootCerts | undefined;
@@ -168,11 +182,11 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
 
   async connect(port: number | string, host: string, connectListener?: () => void) {
     if (/[.]neon[.](tech|build)(:|$)/.test(host)) this.defaultsKey = 'neon';  // switch to Neon defaults if connecting to a Neon host
-
+    const nPort = typeof port === 'string' ? parseInt(port, 10) : port;
     this.connecting = true;
     if (connectListener) this.once('connect', connectListener);
 
-    const wsAddr = this.wsProxyAddrForHost(host, typeof port === 'string' ? parseInt(port, 10) : port);
+    const wsAddr = this.wsProxyAddrForHost(host, nPort);
     this.ws = await new Promise<WebSocket>(resolve => {
       try {
         // ordinary/browser path
@@ -222,10 +236,21 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
       debug && log('socket received:', msg.data);
       if (this.tlsState === TlsState.None) {
         debug && log('emitting received data');
-        const buffer = Buffer.from(msg.data as ArrayBuffer);
+        //const buffer = Buffer.from(msg.data as ArrayBuffer);
+        const buffer = new Uint8Array(msg.data as ArrayBuffer);
         this.emit('data', buffer);
       }
     });
+
+    this.remoteAddress = host;
+    this.remotePort = nPort;
+    // asssuming IPv4 for now
+    const isIPv4 = true;
+    if (isIPv4) {
+        this.remoteFamily = 'IPv4';
+    } else {
+        this.remoteFamily = 'IPv6';
+    }
 
     debug && log('socket ready');
     this.connecting = false;
@@ -307,7 +332,11 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
     }
   }
 
-  write(data: Buffer | string, encoding = 'utf8', callback = (err?: Error) => { }): boolean {
+  //write(chunk: any, callback?: (error: Error | null | undefined) => void): boolean;
+  //write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
+
+
+  write(data: any, encoding = 'utf8', callback = (error: Error | null | undefined) => { }): boolean {
     //if (data.length === 0) return callback();
     if (data.length === 0) return false;
     if (typeof data === 'string') data = Buffer.from(data, encoding as BufferEncoding) as unknown as Buffer;
@@ -329,7 +358,13 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket{
     return true;
   }
 
-  end(data: Buffer | string = Buffer.alloc(0) as unknown as Buffer, encoding = 'utf8', callback?: (() => void)) {
+  //end(callback?: () => void): this;
+
+  //end(buffer: Uint8Array | string, callback?: () => void): this;
+  //end(data?: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void | undefined): this;
+  
+  end(data: Uint8Array | string = Buffer.alloc(0) as Uint8Array, encoding = 'utf8', callback?: () => void | undefined){
+  //end(data: Uint8Array | string = Buffer.alloc(0) as unknown as Uint8Array, encoding = 'utf8', callback?: (() => void)) {
     debug && log('ending socket');
     this.write(data, encoding, () => {
       this.ws!.close();

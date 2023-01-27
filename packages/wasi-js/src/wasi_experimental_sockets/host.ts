@@ -1,11 +1,11 @@
-import { WasiEnv } from "./wasi";
-import { detectNode, translateErrorToErrorno } from "./wasiUtils";
-import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, ErrnoN, Fd, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./wasi_experimental_sockets_bindings";
+import { WasiEnv } from "../wasi";
+import { detectNode, translateErrorToErrorno } from "../wasiUtils";
+import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, ErrnoN, Fd, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./bindings";
 
-import { SystemError } from "./errors";
-import { AddressInfo, AddressInfoToWasiAddr, NetSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./wasi_experimental_sockets_common";
+import { SystemError } from "../errors";
+import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common";
+import { NetTcpSocket, NetUdpSocket } from "./net";
 
-//import { NodeTcpSocket, NodeUdpSocket } from './wasi_experimental_sockets_node';
 export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSocketsAsync {
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
         this._wasiEnv = wasiEnv;
@@ -35,12 +35,41 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return this._wasiEnv.openFiles;
     }
 
-    getSocket(fd: number): NetSocket {
+    getSocket(fd: number): WasiSocket {
         const res = this.openFiles.get(fd);
-        return res as NetSocket;
+        return res as WasiSocket;
     }
 
     async addrResolve(host_ptr: ptr<string>, host_len: number, port: number, buf: mutptr<number>, buf_len: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
+        let addrResolve: (host: string, port: number) => Promise<AddressInfo[]>;
+        if (detectNode()) {
+            const nodeImpl = await import('./net_node');
+            addrResolve = nodeImpl.addrResolve;
+        } else {
+            const wsImpl = await import('./net_wsproxy');
+            addrResolve = wsImpl.addrResolve;
+        }
+        if (addrResolve) {
+            let offset = 0;
+            const hostname = string.get(this.buffer, host_ptr, host_len);
+            const dnsResponses = await addrResolve(hostname, port);
+            for (const addrInfo of dnsResponses) {
+                const wasiAddr = AddressInfoToWasiAddr(addrInfo);
+                const mptr = (buf + offset) as any as mutptr<Addr>;
+                Addr.set(this.buffer, mptr, wasiAddr);
+                if (addrInfo.family == 'IPv4') {
+                    offset = offset + 8
+                } else if (addrInfo.family == 'IPv6') {
+                    offset = offset + 20
+                }
+            }
+            u32.set(this.buffer, result_ptr, offset);
+            return ErrnoN.SUCCESS;
+        }
+        return ErrnoN.NOSYS;
+    }
+
+    async addrResolveOld(host_ptr: ptr<string>, host_len: number, port: number, buf: mutptr<number>, buf_len: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
         // TODO figure out why require is needed here, import does not seem to work
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const dns = require("node:dns");
@@ -105,14 +134,12 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("sockOpen:  afn: ", af as number);
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
-            const netImpl = await import('./wasi_experimental_sockets_node');
-            const NodeTcpSocket = netImpl.NodeTcpSocket;
             if (detectNode()) {
-                const nodeImpl = await import('./wasi_experimental_sockets_node_impl');
+                const nodeImpl = await import('./net_node');
                 const createSocket = nodeImpl.createNodeTcpSocket;
                 const createServer = nodeImpl.createNodeTcpServer;
                 wasiSocketsDebug("sockOpen tcp 1 :");
-                const sock = new NodeTcpSocket(createSocket, createServer);
+                const sock = new NetTcpSocket(createSocket, createServer);
                 wasiSocketsDebug("sockOpen tcp 2 :");
                 const resultFd = this.openFiles.add(sock);
                 wasiSocketsDebug("sockOpen tcp 3 :");
@@ -120,11 +147,11 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
                 wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
                 return ErrnoN.SUCCESS;
             } else {
-                const wsImpl = await import('./wasi_experimental_sockets_wsproxy_impl');
+                const wsImpl = await import('./net_wsproxy');
                 const createSocket = wsImpl.createNodeTcpSocket;
                 const createServer = wsImpl.createNodeTcpServer;
                 wasiSocketsDebug("sockOpen tcp 1 :");
-                const sock = new NodeTcpSocket(createSocket, createServer);
+                const sock = new NetTcpSocket(createSocket, createServer);
                 wasiSocketsDebug("sockOpen tcp 2 :");
                 const resultFd = this.openFiles.add(sock);
                 wasiSocketsDebug("sockOpen tcp 3 :");
@@ -135,14 +162,12 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
             if (detectNode()) {
-                const nodeImpl = await import('./wasi_experimental_sockets_node');
-                const NodeUdpSocket = nodeImpl.NodeUdpSocket;
-                let sock: NetSocket;
+                let sock: WasiSocket;
                 switch (af) {
                     case AddressFamilyN.INET_4:
-                        sock = new NodeUdpSocket('udp4');
+                        sock = new NetUdpSocket('udp4');
                     case AddressFamilyN.INET_6:
-                        sock = new NodeUdpSocket('udp6');
+                        sock = new NetUdpSocket('udp6');
                 }
                 const resultFd = this.openFiles.add(sock);
                 Fd.set(this.buffer, result_ptr, resultFd);
