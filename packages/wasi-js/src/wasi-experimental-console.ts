@@ -1,7 +1,7 @@
-import { clamp_host } from "./intrinsics";
-import { TTY } from "./tty";
-import { WasiEnv } from "./wasi";
-import { wasiDebug } from "./wasiUtils";
+import { clamp_host } from "./intrinsics.js";
+import { TTY } from "./tty.js";
+import { WasiEnv } from "./wasi.js";
+import { wasiDebug } from "./wasiUtils.js";
 
 export function addWasiExperimentalConsoleToImports(imports: any, obj: WasiExperimentalConsole) {
     if (!("wasi-experimental-console" in imports)) imports["wasi-experimental-console"] = {};

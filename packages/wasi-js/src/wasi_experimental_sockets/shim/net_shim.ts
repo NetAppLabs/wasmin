@@ -12,7 +12,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { AddressInfo, NodeNetTcpSocket } from '../common';
+import { AddressInfo, NodeNetTcpSocket } from '../common.js';
 //import { startTls, TrustedCert, ReadQueue } from 'subtls';
 
 // @ts-ignore - esbuild knows how to deal with this

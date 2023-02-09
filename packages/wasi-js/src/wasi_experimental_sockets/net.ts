@@ -1,10 +1,10 @@
 
-import { SystemError } from "../errors";
-import { Socket } from "../wasiFileSystem";
+import { SystemError } from "../errors.js";
+import { Socket } from "../wasiFileSystem.js";
 
-import { ErrnoN } from "./bindings";
-import { AddressInfo, appendToUint8Array, delay, WasiSocket, wasiSocketsDebug } from "./common";
-import { NodeNetTcpServer, NodeNetTcpSocket } from './common';
+import { ErrnoN } from "./bindings.js";
+import { AddressInfo, appendToUint8Array, delay, WasiSocket, wasiSocketsDebug } from "./common.js";
+import { NodeNetTcpServer, NodeNetTcpSocket } from './common.js';
 
 /*
 import { default as net } from "node:net";

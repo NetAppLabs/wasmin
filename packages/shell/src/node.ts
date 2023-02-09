@@ -141,15 +141,16 @@ async function getWasmModule(): Promise<{module: WebAssembly.Module, path: strin
       wasmBinary = binaryFromEnv;
       wasmBuf = binaryFromEnvBuf;
     } catch (err: any){}
-  }
-  for (const modulePathTry of moduleSearchPaths) {
-    try {
-      const wasmBinaryTry = modulePathTry;
-      const wasmBufTry = await promises.readFile(wasmBinaryTry);
-      wasmBuf = wasmBufTry;
-      wasmBinary = wasmBinaryTry;
-      break;
-    } catch (err: any){}
+  } else {
+    for (const modulePathTry of moduleSearchPaths) {
+      try {
+        const wasmBinaryTry = modulePathTry;
+        const wasmBufTry = await promises.readFile(wasmBinaryTry);
+        wasmBuf = wasmBufTry;
+        wasmBinary = wasmBinaryTry;
+        break;
+      } catch (err: any){}
+    }
   }
 
   // TODO: figure out to make import.meta.url work:
@@ -205,27 +206,61 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
   const wasmBinary = modResponse.path;
   const args: string[] = [wasmBinary];
 
-  try {
-    const wasi = new WASI({
-      abortSignal: abortController.signal,
-      openFiles: openFiles,
-      stdin: stdin,
-      stdout: stdout,
-      stderr: stderr,
-      args: args,
-      env: env,
-      tty: tty,
-    });
-    const statusCode = await wasi.run(mod);
-    if (statusCode !== 0) {
-      console.log(`Exit code: ${statusCode}`);
+  const workerEnv = process.env.NODE_SHELL_WORKER;
+
+  let useWorker = false;
+  if (workerEnv) {
+    useWorker = true;
+  }
+  if (useWorker) {
+    const {WASIWorker} = await import("@wasm-env/wasi-js");
+    try {
+      const wasi = new WASIWorker({
+        abortSignal: abortController.signal,
+        openFiles: openFiles,
+        stdin: stdin,
+        stdout: stdout,
+        stderr: stderr,
+        args: args,
+        env: env,
+        tty: tty,
+      });
+
+      const statusCode = await wasi.run(wasmBinary);
+      if (statusCode !== 0) {
+        console.log(`Exit code: ${statusCode}`);
+      }
+    } catch (err: any) {
+      console.log(err.message);
+    } finally {
+      if (DEBUG_MODE) {
+        console.log("finally");
+      }
+      process.exit(0);
     }
-  } catch (err: any) {
-    console.log(err.message);
-  } finally {
-    if (DEBUG_MODE) {
-      console.log("finally");
+  } else {
+    try {
+      const wasi = new WASI({
+        abortSignal: abortController.signal,
+        openFiles: openFiles,
+        stdin: stdin,
+        stdout: stdout,
+        stderr: stderr,
+        args: args,
+        env: env,
+        tty: tty,
+      });
+      const statusCode = await wasi.run(mod);
+      if (statusCode !== 0) {
+        console.log(`Exit code: ${statusCode}`);
+      }
+    } catch (err: any) {
+      console.log(err.message);
+    } finally {
+      if (DEBUG_MODE) {
+        console.log("finally");
+      }
+      process.exit(0);
     }
-    process.exit(0);
   }
 }

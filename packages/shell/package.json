@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "lint": "npm run lint:eslint && npm run lint:prettier",
-    "build-esbuild": "esbuild --bundle src/index.node.ts --platform=node --format=esm --outfile=dist/shell.umd.cjs && esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/shell.js --external:node:* ",
+    "build-esbuild": "esbuild --bundle src/index.ts --platform=node --format=esm --outfile=dist/shell.umd.cjs && esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/shell.js --external:node:* ",
     "dev": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/shell.js --watch",
     "build": "vite build && yarn tsc",
     "test": "jest --silent=false --verbose false",

@@ -1,10 +1,10 @@
-import { WasiEnv } from "../wasi";
-import { detectNode, translateErrorToErrorno } from "../wasiUtils";
-import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, ErrnoN, Fd, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./bindings";
+import { WasiEnv } from "../wasi.js";
+import { detectNode, translateErrorToErrorno } from "../wasiUtils.js";
+import { Addr, AddressFamily, AddressFamilyN, AddrTypeN, addWasiExperimentalSocketsToImports, ErrnoN, Fd, mutptr, ptr, Size, SockType, SockTypeN, string, u32, WasiExperimentalSocketsAsync } from "./bindings.js";
 
-import { SystemError } from "../errors";
-import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common";
-import { NetTcpSocket, NetUdpSocket } from "./net";
+import { SystemError } from "../errors.js";
+import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common.js";
+import { NetTcpSocket, NetUdpSocket } from "./net.js";
 
 export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSocketsAsync {
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
@@ -43,10 +43,10 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
     async addrResolve(host_ptr: ptr<string>, host_len: number, port: number, buf: mutptr<number>, buf_len: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
         let addrResolve: (host: string, port: number) => Promise<AddressInfo[]>;
         if (detectNode()) {
-            const nodeImpl = await import('./net_node');
+            const nodeImpl = await import('./net_node.js');
             addrResolve = nodeImpl.addrResolve;
         } else {
-            const wsImpl = await import('./net_wsproxy');
+            const wsImpl = await import('./net_wsproxy.js');
             addrResolve = wsImpl.addrResolve;
         }
         if (addrResolve) {
@@ -135,7 +135,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
             if (detectNode()) {
-                const nodeImpl = await import('./net_node');
+                const nodeImpl = await import('./net_node.js');
                 const createSocket = nodeImpl.createNodeTcpSocket;
                 const createServer = nodeImpl.createNodeTcpServer;
                 wasiSocketsDebug("sockOpen tcp 1 :");
@@ -147,7 +147,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
                 wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
                 return ErrnoN.SUCCESS;
             } else {
-                const wsImpl = await import('./net_wsproxy');
+                const wsImpl = await import('./net_wsproxy.js');
                 const createSocket = wsImpl.createNodeTcpSocket;
                 const createServer = wsImpl.createNodeTcpServer;
                 wasiSocketsDebug("sockOpen tcp 1 :");

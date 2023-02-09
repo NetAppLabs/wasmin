@@ -8,7 +8,8 @@ export default defineConfig({
       name: "@wasm-env/node-shell",
     },
     rollupOptions: {
-      external: ["node:fs", 
+      external: [
+        "node:fs", 
         "node:path", 
         "node", 
         "node:fs:promises", 
@@ -19,8 +20,12 @@ export default defineConfig({
         "https", 
         "node:util", 
         "node:buffer",
+        "node:dns",
         "node:net",
-        "node:url"],
+        "node:url",
+		"node:module",
+		"node:worker_threads"
+	  ],
       output: {
         globals: {
           fs: "fs",
@@ -29,6 +34,7 @@ export default defineConfig({
           "node:fs": "fs",
           "node:path": "path",
           "node:stream": "stream",
+          "node:dns": "dns",
           "node:net": "net",
           "node:buffer": "buffer",
           "node:util": "util",

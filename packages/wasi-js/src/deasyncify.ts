@@ -1,11 +1,13 @@
-import { Asyncify, isPromise } from "./asyncify";
+import { Asyncify, isPromise } from "./asyncify.js";
 
 //@ts-ignore
 //import { proxymise } from 'proxymise';
 //const proxymise = require('proxymise');
-
 //import makeSynchronous from 'make-synchronous';
+//import { createSyncFn } from 'synckit'
+
 const makeSynchronous = (fn: any) => {
+    //return createSyncFn(fn);
     return fn;
 };
 //const makeSynchronous = proxymise;
@@ -31,6 +33,13 @@ export async function instantiateWithAsyncDetection(
         state.init(asyncResult, imports);
         return { instance: asyncResult, isAsync: isAsync };
     } else {
+
+        const memory = new WebAssembly.Memory({
+            initial: 10,
+            maximum: 100,
+            shared: true,
+          });
+
         syncResult = await WebAssembly.instantiate(source, wrapAllImportsSync(imports));
         return { instance: syncResult, isAsync: isAsync };
     }
@@ -56,6 +65,7 @@ function wrapImportsSync(imp: WebAssembly.ModuleImports): WebAssembly.ModuleImpo
             console.log(`wrapImportsSync typeOfValue: ${typeOfValue}`);
 
             if (typeof name !== "string" || typeof oldFunc !== "function") {
+                console.log("returning oldFunc directly");
                 return oldFunc;
             }
 
@@ -63,6 +73,7 @@ function wrapImportsSync(imp: WebAssembly.ModuleImports): WebAssembly.ModuleImpo
             const funcIsAsync = true;
 
             if (funcIsAsync) {
+                console.log("before makeSynchronous");
                 const newFunc = makeSynchronous(oldFunc);
                 console.log("newFunc: ", name, newFunc);
                 return newFunc;

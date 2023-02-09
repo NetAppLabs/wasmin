@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { SystemError } from "./errors";
-import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1_bindings";
-import type { Fd } from "./wasi_snapshot_preview1_bindings";
+import { SystemError } from "./errors.js";
+import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
+import type { Fd } from "./wasi_snapshot_preview1/bindings";
 
 import { openDirectoryHandle } from "@wasm-env/fs-js";
 
@@ -36,12 +36,12 @@ export interface Writable {
 }
 
 export class Socket implements Writable, Readable {
-    
-    async read(len: number): Promise<Uint8Array> {
+
+    async read(_len: number): Promise<Uint8Array> {
         throw new SystemError(ErrnoN.NOTSUP);
     }
 
-    async write(data: Uint8Array): Promise<void>{
+    async write(_data: Uint8Array): Promise<void> {
         throw new SystemError(ErrnoN.NOTSUP);
     }
 }
@@ -51,14 +51,14 @@ export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket;
 
 export class OpenDirectory {
-    constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
+    constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) { }
 
     private _currentIter:
         | {
-              pos: number;
-              reverted: FileSystemHandle | undefined;
-              iter: AsyncIterableIterator<FileSystemHandle>;
-          }
+            pos: number;
+            reverted: FileSystemHandle | undefined;
+            iter: AsyncIterableIterator<FileSystemHandle>;
+        }
         | undefined = undefined;
 
     asFile(): never {
@@ -247,7 +247,7 @@ export class OpenDirectory {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    close() {}
+    close() { }
 
     private async _resolve(path: string) {
         filesystemDebug(`[_resolve] path: ${path}`);
@@ -282,7 +282,7 @@ export class OpenFile implements Readable, Writable {
         private readonly _handle: FileSystemFileHandle,
         private _fsFlags: Fdflags = 0,
         public isFile = true
-    ) {}
+    ) { }
 
     public position = 0;
     private _writer: FileSystemWritableFileStream | undefined = undefined;
@@ -295,7 +295,7 @@ export class OpenFile implements Readable, Writable {
         return f;
     }
 
-    async setSize(size: number): Promise<void>{
+    async setSize(size: number): Promise<void> {
         await this.close();
         const writer = await this._getWriter(false);
         await writer.truncate(size);
@@ -311,7 +311,7 @@ export class OpenFile implements Readable, Writable {
         return new Uint8Array(arrayBuffer);
     }
 
-    async write(data: Uint8Array): Promise<void>{
+    async write(data: Uint8Array): Promise<void> {
         filesystemDebug("[write]");
         const writer = await this._getWriter();
         if (this._fsFlags & FdflagsN.APPEND) {
@@ -331,7 +331,7 @@ export class OpenFile implements Readable, Writable {
         this._writer = undefined;
     }
 
-    asFile(): OpenFile{
+    asFile(): OpenFile {
         return this;
     }
 
@@ -419,7 +419,7 @@ export class OpenFiles {
         this._files.set(fd, res);
     }
 
-    add(res: OpenResource) : Fd {
+    add(res: OpenResource): Fd {
         filesystemDebug("[add]", res);
         this._files.set(
             this._nextFd,
@@ -430,7 +430,7 @@ export class OpenFiles {
 
     isFile(fd: Fd): boolean {
         const h = this.get(fd);
-        if (h instanceof OpenFile ){
+        if (h instanceof OpenFile) {
             const f = h as OpenFile;
             return f.isFile;
         } else {
@@ -440,9 +440,9 @@ export class OpenFiles {
 
     getAsFile(fd: Fd): OpenFile {
         const h = this.get(fd);
-        if (h instanceof OpenFile ){
+        if (h instanceof OpenFile) {
             return h as OpenFile;
-        } else if (h instanceof OpenDirectory ){
+        } else if (h instanceof OpenDirectory) {
             throw new SystemError(ErrnoN.ISDIR);
         } else {
             throw new SystemError(ErrnoN.NOTSUP);
@@ -451,9 +451,9 @@ export class OpenFiles {
 
     getAsDir(fd: Fd): OpenDirectory {
         const h = this.get(fd);
-        if (h instanceof OpenDirectory ){
+        if (h instanceof OpenDirectory) {
             return h as OpenDirectory;
-        } else if (h instanceof OpenFile ){
+        } else if (h instanceof OpenFile) {
             throw new SystemError(ErrnoN.NOTDIR);
         } else {
             throw new SystemError(ErrnoN.NOTDIR);
@@ -462,7 +462,7 @@ export class OpenFiles {
 
     isDirectory(fd: Fd): boolean {
         const h = this.get(fd);
-        if (h instanceof OpenDirectory ){
+        if (h instanceof OpenDirectory) {
             const d = h as OpenDirectory;
             const isFile = d.isFile;
             return !isFile;
@@ -473,9 +473,9 @@ export class OpenFiles {
 
     getAsFileOrDir(fd: Fd): OpenDirectory | OpenFile {
         const h = this.get(fd);
-        if (h instanceof OpenDirectory ){
+        if (h instanceof OpenDirectory) {
             return h as OpenDirectory;
-        } else if (h instanceof OpenFile ){
+        } else if (h instanceof OpenFile) {
             return h as OpenFile;
         } else {
             throw new SystemError(ErrnoN.NOTSUP);

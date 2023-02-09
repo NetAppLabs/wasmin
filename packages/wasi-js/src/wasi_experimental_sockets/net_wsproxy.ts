@@ -1,5 +1,5 @@
 
-import { Socket } from './shim/net_shim';
+import { Socket } from './shim/net_shim.js';
 import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common";
 import { AddressFamily } from './bindings';
 
@@ -19,7 +19,8 @@ export async function addrResolve(hostname: string, port: number): Promise<Addre
 
 export async function cloudflareResolve(hostname: string, port: number): Promise<AddressInfo[]> {
     const aInfos: AddressInfo[] = [];
-    // only doing ipv4 query for now
+    // doing to requests for ipv4 and ipv6
+    // find out way to do it in one
     const resp = await fetch(`https://1.1.1.1/dns-query?name=${hostname}&type=A`, {
         method: 'GET',
         headers: {

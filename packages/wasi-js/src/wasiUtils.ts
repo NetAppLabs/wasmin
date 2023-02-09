@@ -1,4 +1,4 @@
-import { SystemError } from "./errors";
+import { SystemError } from "./errors.js";
 import {
     Errno,
     ErrnoN,
@@ -10,7 +10,7 @@ import {
     RightsN,
     Size,
     string,
-} from "./wasi_snapshot_preview1_bindings";
+} from "./wasi_snapshot_preview1/bindings.js";
 
 declare let globalThis: any;
 globalThis.WASI_DEBUG = false;
@@ -140,7 +140,7 @@ export async function forEachIoVec(
 }
 
 export class ExitStatus {
-    constructor(public statusCode: number) {}
+    constructor(public statusCode: number) { }
 }
 
 export class CStringArray {
@@ -351,6 +351,3 @@ export const RIGHTS_STDOUT_BASE =
     RightsN.POLL_FD_READWRITE;
 
 export const RIGHTS_CHARACTER_DEVICE_BASE = RIGHTS_STDIN_BASE | RIGHTS_STDOUT_BASE;
-
-
-

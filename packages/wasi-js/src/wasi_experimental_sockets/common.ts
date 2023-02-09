@@ -1,5 +1,5 @@
-import { Socket } from "../wasiFileSystem";
-import { Addr, AddrTypeN } from "./bindings";
+import { Socket } from "../wasiFileSystem.js";
+import { Addr, AddrTypeN } from "./bindings.js";
 
 export type AddressFamily = "IPv4" | "IPv6";
 

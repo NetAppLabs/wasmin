@@ -2,17 +2,17 @@
  * Main interface for using wasi-js
  */
 
-import { instantiate } from "./asyncify";
-import { instantiateWithAsyncDetection } from "./deasyncify";
+import { instantiate } from "./asyncify.js";
+import { instantiateWithAsyncDetection } from "./deasyncify.js";
 
-import { TTY } from "./tty";
-import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console";
-import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems";
-import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process";
-import { OpenFiles, Readable, Writable } from "./wasiFileSystem";
-import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1_host";
-import { CStringArray, detectNode, ExitStatus, In, lineOut, Out, wasiDebug, wasiError } from "./wasiUtils";
-import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host";
+import { TTY } from "./tty.js";
+import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console.js";
+import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems.js";
+import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
+import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
+import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
+import { CStringArray, ExitStatus, In, lineOut, Out, wasiDebug, wasiError } from "./wasiUtils.js";
+import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -24,7 +24,7 @@ export interface WasiOptions {
     abortSignal?: AbortSignal;
     tty?: TTY;
 }
-export class WasiEnv {
+export class WasiEnv implements WasiOptions {
     constructor(
         openFiles?: OpenFiles,
         stdin?: In,
@@ -171,11 +171,10 @@ export class WASI {
         wasiDebug("WASI.run:");
         this._moduleImports = this.initializeImports();
 
-        const useAsyncDetection = false;
+        const useAsyncDetection = true;
         if (useAsyncDetection) {
             const instRes = await instantiateWithAsyncDetection(module, this._moduleImports);
             this._moduleInstance = instRes.instance;
-            //const isAsync = instRes.isAsync;
         } else {
             this._moduleInstance = await instantiate(module, this._moduleImports);
         }

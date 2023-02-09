@@ -4,7 +4,17 @@ export default defineConfig({
   build: {
     target: "esnext",
     rollupOptions: {
-        external: ['node:fs', 'node:path', 'promises'],
+			external: [
+					'node:fs',
+					'node:path',
+					'promises',
+					'node:net',
+					'node:dns',
+					'node:url',
+					'node:child_process',
+					'node:worker_threads',
+					'node:module'
+			],
     },
     output: {
       globals: {

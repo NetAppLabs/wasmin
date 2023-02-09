@@ -1,9 +1,9 @@
 import { getOriginPrivateDirectory, memory } from "@wasm-env/fs-js";
-import { FileOrDir, OpenFiles } from "./wasiFileSystem";
-import { UTF8_DECODER, clamp_host } from "./intrinsics";
-import { WASI, WasiEnv } from "./wasi";
-import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils";
-import { Fd } from "./wasi_snapshot_preview1_bindings";
+import { FileOrDir, OpenFiles } from "./wasiFileSystem.js";
+import { UTF8_DECODER, clamp_host } from "./intrinsics.js";
+import { WASI, WasiEnv } from "./wasi.js";
+import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils.js";
+import { Fd } from "./wasi_snapshot_preview1/bindings.js";
 
 export function addWasiExperimentalProcessToImports(
     imports: any,

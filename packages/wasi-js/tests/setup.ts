@@ -11,20 +11,29 @@ import {
 } from "@wasm-env/fs-js";
 
 (() => {
-    globalThis.File = File;
-    Object.setPrototypeOf(globalThis.File, File.prototype);
+    if (!globalThis.File) {
+        globalThis.File = File;
+        Object.setPrototypeOf(globalThis.File, File.prototype);
+    }
 
-    globalThis.Blob = Blob;
-    Object.setPrototypeOf(globalThis.Blob, Blob.prototype);
+    if (!globalThis.Blob) {
+        globalThis.Blob = Blob;
+        Object.setPrototypeOf(globalThis.Blob, Blob.prototype);
+    }
 
-    // @ts-ignore
-    globalThis.WritableStream = WritableStream;
+    if (!globalThis.WritableStream) {
+        // @ts-ignore
+        globalThis.WritableStream = WritableStream;
+    }
 
-    // @ts-ignore
-    globalThis.ReadableStream = ReadableStream;
-    // @ts-ignore
-    globalThis.TransformStream = TransformStream;
-
+    if (!globalThis.ReadableStream) {
+        // @ts-ignore
+        globalThis.ReadableStream = ReadableStream;
+    }
+    if (!globalThis.TransformStream) {
+        // @ts-ignore
+        globalThis.TransformStream = TransformStream;
+    }
     // @ts-ignore
     globalThis.FileSystemDirectoryHandle = NFileSystemDirectoryHandle;
     // @ts-ignore
@@ -37,9 +46,12 @@ import {
     globalThis.getOriginPrivateDirectory = getOriginPrivateDirectory;
 
     // @ts-ignore
-    globalThis.performance = performance;
+    //globalThis.performance = performance;
 
     // @ts-ignore
-    globalThis.crypto = {};
-    globalThis.crypto.getRandomValues = randomBytes;
+    if (!globalThis.crypto) {
+        // @ts-ignore
+        globalThis.crypto = {};
+        globalThis.crypto.getRandomValues = randomBytes;
+    }
 })();

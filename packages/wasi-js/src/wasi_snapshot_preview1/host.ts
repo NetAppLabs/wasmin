@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { SystemError } from "./errors";
-import { FIRST_PREOPEN_FD, OpenFile, FileOrDir } from "./wasiFileSystem";
-import { unimplemented } from "./wasiUtils";
+import { SystemError } from "../errors.js";
+import { FIRST_PREOPEN_FD, OpenFile, FileOrDir } from "../wasiFileSystem.js";
+import { unimplemented } from "../wasiUtils.js";
 import {
     u64,
     string,
@@ -42,8 +42,8 @@ import {
     Exitcode,
     addWasiSnapshotPreview1ToImports,
     RightsN,
-} from "./wasi_snapshot_preview1_bindings";
-import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./wasi_snapshot_preview1_bindings";
+} from "./bindings.js";
+import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./bindings.js";
 import {
     Out,
     wasiDebug,
@@ -59,9 +59,8 @@ import {
     translateErrorToErrorno,
     wasiWarn,
     detectNode,
-} from "./wasiUtils";
-import { WasiEnv } from "./wasi";
-//import { webcrypto } from 'crypto'
+} from "../wasiUtils.js";
+import { WasiEnv } from "../wasi.js";
 
 export function initializeWasiSnapshotPreview1AsyncToImports(
     imports: any,
@@ -735,26 +734,20 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async randomGet(buf: mutptr<u8>, buf_len: Size): Promise<Errno> {
-        wasiDebug("[random_get]");
+        wasiDebug("[random_get] buf_len: ", buf_len);
         const uBuf = new Uint8Array(this.buffer, buf, buf_len);
-        //if (false) {
-        if (this.isNode) {
-            // node version
-            /*
-            wasiDebug("randomGet isNode buf_len:", buf_len);
-            crypto = webcrypto as unknown as Crypto;
-            crypto.getRandomValues(uBuf);
-            */
-            
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const webcrypto = require("crypto").webcrypto;
-            webcrypto.getRandomValues(new Uint8Array(this.buffer, buf, buf_len));
-        } else {
-            // default browser version
-            wasiDebug("randomGet else buf_len:", buf_len);
-            const crypto = globalThis.crypto;
-            crypto.getRandomValues(uBuf);
+        let crypto = globalThis.crypto;
+        if (!crypto) {
+            //fallback for older versions of node
+            if (this.isNode) {
+                wasiDebug("randomGet: isNode buf_len:", buf_len);
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                crypto = require("crypto").webcrypto;
+            } else {
+                wasiDebug("randomGet: not in node but globalThis.crypto not available:");
+            }
         }
+        crypto.getRandomValues(uBuf);
         return ErrnoN.SUCCESS;
     }
     async sockAccept(fd: Fd, flags: Fdflags, result_ptr: mutptr<Fd>): Promise<Errno> {
