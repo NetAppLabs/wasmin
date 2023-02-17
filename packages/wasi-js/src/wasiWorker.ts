@@ -75,8 +75,17 @@ export class WasiWorkerThreadRunner {
         }
     }
 
-    public async handleImport(messageId: string, importName: string, functionName: string, args: any[], buf: ArrayBuffer, transferMemoryFunc: TransferMemoryFunc): Promise<void> {
-        wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: importName: ${importName} functionName: ${functionName}`);
+    public async handleImport(
+        messageId: string,
+        importName: string,
+        functionName: string,
+        args: any[],
+        buf: ArrayBuffer,
+        transferMemoryFunc: TransferMemoryFunc
+    ): Promise<void> {
+        wasiWorkerDebug(
+            `WasiWorkerThreadRunner: handleImport: importName: ${importName} functionName: ${functionName}`
+        );
         const wasi = this.wasi;
         if (wasi) {
             wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is set`);
@@ -92,17 +101,15 @@ export class WasiWorkerThreadRunner {
 
         wasiWorkerDebug("WasiWorkerThread wasiOptions: ", this.wasiOptions);
 
-
         if (this.wasiOptions) {
             const wasiOpts = this.wasiOptions;
             wasiWorkerDebug("WasiWorkerThread wasiOpts: ", wasiOpts);
-    
+
             this.wasi = new WASI(wasiOpts);
             wasiWorkerDebug("WasiWorkerThread wasi: ");
 
             const { wasmMod, wasmBuf } = await getWasmModuleAndBuffer(moduleUrl);
             wasiWorkerDebug("WasiWorkerThread mod: ", wasmMod);
-
 
             return await this.wasi.run(wasmMod, wasmBuf);
         } else {

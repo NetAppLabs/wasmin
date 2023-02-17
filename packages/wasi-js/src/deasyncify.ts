@@ -6,8 +6,8 @@ import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
 import { Worker, parentPort } from "node:worker_threads";
 import { URL } from "node:url";
 import { sleep } from "./wasiUtils.js";
-import { Console } from 'node:console';
-import { default as fs } from 'node:fs';
+import { Console } from "node:console";
+import { default as fs } from "node:fs";
 
 //
 // deasyncify is for allowing async imports in a WebAssembly.Instance
@@ -34,7 +34,7 @@ export function wasmThreadDebug(msg?: any, ...optionalParams: any[]): void {
         wasmProxyLogger.log(msg, ...optionalParams);
         if (parentPort) {
             parentPort.postMessage(msg);
-            const message = {msg: msg, params: [...optionalParams]};
+            const message = { msg: msg, params: [...optionalParams] };
             parentPort.postMessage(message);
         } else {
             console.debug(msg, ...optionalParams);
@@ -49,7 +49,7 @@ export function wasmProxyDebug(msg?: any, ...optionalParams: any[]): void {
         wasmProxyLogger.log(msg, ...optionalParams);
         if (parentPort) {
             parentPort.postMessage(msg);
-            const message = {msg: msg, params: [...optionalParams]};
+            const message = { msg: msg, params: [...optionalParams] };
             parentPort.postMessage(message);
         } else {
             console.debug(msg, ...optionalParams);
@@ -65,13 +65,12 @@ export type HandleWasmImportFunc = (
     functionName: string,
     args: any[],
     memory: ArrayBuffer,
-    transferMemoryFunc: TransferMemoryFunc,
+    transferMemoryFunc: TransferMemoryFunc
 ) => any;
 
 export type GetMemoryFunc = () => ArrayBuffer;
 
-
-function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer)  {
+function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer) {
     new Uint8Array(dst).set(new Uint8Array(src));
     return dst;
 }
@@ -84,8 +83,12 @@ export class WasmThreadRunner {
     private wasmInstance?: WebAssembly.Instance;
     private sharedMemory?: SharedArrayBuffer;
 
-
-    public async instantiate(modSource: BufferSource, knownImports: string[], channel: Channel, handleImportFunc: HandleWasmImportFunc): Promise<void> {
+    public async instantiate(
+        modSource: BufferSource,
+        knownImports: string[],
+        channel: Channel,
+        handleImportFunc: HandleWasmImportFunc
+    ): Promise<void> {
         wasmThreadDebug("WasmThreadRunner instantiate");
 
         const transferMemoryFuncLocal = (buf: ArrayBuffer) => {
@@ -94,17 +97,17 @@ export class WasmThreadRunner {
                 const mem = this.wasmInstance.exports.memory as WebAssembly.Memory;
                 // @ts-ignore
                 //mem.buffer = buf;
-                copyBuffer(buf,mem.buffer);
+                copyBuffer(buf, mem.buffer);
             } else {
                 throw new Error("this.wasmInstance.exports not set");
             }
-        }
+        };
         //const transferMemoryFunc = comlink.proxy(transferMemoryFuncLocal);
         const transferMemoryFunc = transferMemoryFuncLocal;
 
-        const getMemoryFunc = () => {            
+        const getMemoryFunc = () => {
             wasmThreadDebug("WasmThreadRunner calling getMemoryFunc");
-            if (this && this.wasmInstance && this.wasmInstance.exports && this.wasmInstance.exports.memory ) {
+            if (this && this.wasmInstance && this.wasmInstance.exports && this.wasmInstance.exports.memory) {
                 const mem = this.wasmInstance.exports.memory as WebAssembly.Memory;
                 //const buf = mem.buffer;
                 //const copiedBuf = structuredClone(buf);
@@ -113,15 +116,21 @@ export class WasmThreadRunner {
                     if (!this.sharedMemory) {
                         this.sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                     }
-                    copyBuffer(mem.buffer,this.sharedMemory);
+                    copyBuffer(mem.buffer, this.sharedMemory);
                     return this.sharedMemory;
                 } else {
                     return mem.buffer;
                 }
             }
             throw new Error("Coud not get WebAssembly instance memory");
-        }
-        const wrappedImports = wrapAllImportsToProxy(knownImports, channel, handleImportFunc, getMemoryFunc, transferMemoryFunc);
+        };
+        const wrappedImports = wrapAllImportsToProxy(
+            knownImports,
+            channel,
+            handleImportFunc,
+            getMemoryFunc,
+            transferMemoryFunc
+        );
         //wasmThreadDebug("WasmThreadRunner instantiate wrappedImports: ", wrappedImports);
 
         const instantiatedSource = await WebAssembly.instantiate(modSource, wrappedImports);
@@ -174,8 +183,8 @@ export async function instantiateWithAsyncDetection(
     } else {
         wasmProxyDebug("instantiateWithAsyncDetection making channel");
         //const channel = makeChannel();
-        const bufferSize = 64*1024*1024;
-        const channel = makeAtomicsChannel({bufferSize});
+        const bufferSize = 64 * 1024 * 1024;
+        const channel = makeAtomicsChannel({ bufferSize });
         wasmProxyDebug("instantiateWithAsyncDetection made channel: ", channel);
 
         if (channel) {
@@ -195,7 +204,7 @@ export async function instantiateWithAsyncDetection(
             });
             //worker.on("error", err => console.error(error));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
-        
+
             wasmProxyDebug("instantiateWithAsyncDetection started worker");
 
             const client = comlink.wrap<WasmThreadRunner>(nodeEndpoint(worker));
@@ -264,13 +273,19 @@ function wrapAllImportsToProxy(
     channel: Channel,
     handleImport: HandleWasmImportFunc,
     getMemoryFunc: GetMemoryFunc,
-    transferMemoryFunc: TransferMemoryFunc,
+    transferMemoryFunc: TransferMemoryFunc
 ): WebAssembly.Imports {
     wasmThreadDebug("wrapAllImportsToProxy");
 
     const updatedImports: Record<string, WebAssembly.ModuleImports> = {};
     for (const [_importKey, importValue] of Object.entries(knownImports)) {
-        updatedImports[importValue] = wrapImportsToProxy(importValue, channel, handleImport, getMemoryFunc, transferMemoryFunc);
+        updatedImports[importValue] = wrapImportsToProxy(
+            importValue,
+            channel,
+            handleImport,
+            getMemoryFunc,
+            transferMemoryFunc
+        );
     }
     return updatedImports;
 }
@@ -280,25 +295,26 @@ function wrapImportsToProxy(
     channel: Channel,
     handleImport: HandleWasmImportFunc,
     getMemoryFunc: GetMemoryFunc,
-    transferMemoryFunc: TransferMemoryFunc,
+    transferMemoryFunc: TransferMemoryFunc
 ): WebAssembly.ModuleImports {
     wasmThreadDebug("wrapImportsToProxy importName: ", importName);
 
     const impDummy: WebAssembly.ModuleImports = {};
-    
+
     const importsProxy = new Proxy(impDummy, {
         get: (target, name, receiver) => {
             wasmThreadDebug(`wrapImportsToProxy importName: ${importName} get:`, name);
 
-            
             const myChannel = channel;
             const myImportName = importName;
             const functionName = name as string;
             const wrappedFunction = (...args: any[]) => {
                 const messageId = uuidv4();
-                wasmThreadDebug(`wrapImportsToProxy calling wrappedFunction ${functionName} messageId: ${messageId} args: `, args);
+                wasmThreadDebug(
+                    `wrapImportsToProxy calling wrappedFunction ${functionName} messageId: ${messageId} args: `,
+                    args
+                );
                 //wasmThreadDebug(`wrapImportsToProxy calling wrappedFunction ${functionName} myChannel: `, myChannel);
-
 
                 let memory = getMemoryFunc();
                 if (!USED_SHARED_MEMORY) {
@@ -314,19 +330,24 @@ function wrapImportsToProxy(
                     transferMemoryFunc(memory);
                 } else {
                     const numberArrayMemory = retMessage.memory as number[];
-                    const typedArrayMemory = new Uint8Array(numberArrayMemory)
+                    const typedArrayMemory = new Uint8Array(numberArrayMemory);
                     const buf = typedArrayMemory.buffer;
-                    wasmThreadDebug(`wrapImportsToProxy returning from wrappedFunction ${functionName} with buf: `, buf);
-                    transferMemoryFunc(buf);    
+                    wasmThreadDebug(
+                        `wrapImportsToProxy returning from wrappedFunction ${functionName} with buf: `,
+                        buf
+                    );
+                    transferMemoryFunc(buf);
                 }
 
                 //wasmThreadDebug(`wrapImportsToProxy returning from wrappedFunction ${functionName} with typedArrayMemory: `, typedArrayMemory);
-                wasmThreadDebug(`wrapImportsToProxy returning from wrappedFunction ${functionName} with retValue: `, retValue);
+                wasmThreadDebug(
+                    `wrapImportsToProxy returning from wrappedFunction ${functionName} with retValue: `,
+                    retValue
+                );
 
                 return retValue;
             };
             return wrappedFunction;
-
         },
     });
     return importsProxy;

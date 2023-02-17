@@ -3,7 +3,12 @@
  */
 
 import { instantiate } from "./asyncify.js";
-import { HandleWasmImportFunc, instantiateWithAsyncDetection, TransferMemoryFunc, USED_SHARED_MEMORY } from "./deasyncify.js";
+import {
+    HandleWasmImportFunc,
+    instantiateWithAsyncDetection,
+    TransferMemoryFunc,
+    USED_SHARED_MEMORY,
+} from "./deasyncify.js";
 import * as comlink from "comlink";
 
 import { TTY } from "./tty.js";
@@ -177,12 +182,24 @@ export class WASI {
 
         const useAsyncDetection = true;
         if (useAsyncDetection) {
-            const handleImportFuncLocal: HandleWasmImportFunc = async (messageId: string, importName: string, functionName: string, args: any[], buf: ArrayBuffer, transferMemoryFunc: TransferMemoryFunc) => {
-                return await this.handleImport(messageId, importName,functionName, args, buf, transferMemoryFunc);
-            }
+            const handleImportFuncLocal: HandleWasmImportFunc = async (
+                messageId: string,
+                importName: string,
+                functionName: string,
+                args: any[],
+                buf: ArrayBuffer,
+                transferMemoryFunc: TransferMemoryFunc
+            ) => {
+                return await this.handleImport(messageId, importName, functionName, args, buf, transferMemoryFunc);
+            };
             const handleImportFunc = comlink.proxy(handleImportFuncLocal);
             if (wasmBuf) {
-                const instRes = await instantiateWithAsyncDetection(wasmMod, wasmBuf, this._moduleImports, handleImportFunc);
+                const instRes = await instantiateWithAsyncDetection(
+                    wasmMod,
+                    wasmBuf,
+                    this._moduleImports,
+                    handleImportFunc
+                );
                 wasiDebug("[run] got instRes: ", instRes);
                 this._moduleInstance = instRes.instance;
                 this._channel = instRes.channel;
@@ -231,7 +248,14 @@ export class WASI {
         return exports;
     }
 
-    public async handleImport(messageId: string, importName: string, functionName: string, args: any[], buf: ArrayBuffer, transferMemoryFunc: TransferMemoryFunc): Promise<void> {
+    public async handleImport(
+        messageId: string,
+        importName: string,
+        functionName: string,
+        args: any[],
+        buf: ArrayBuffer,
+        transferMemoryFunc: TransferMemoryFunc
+    ): Promise<void> {
         wasiDebug(`WASI handleImport: messageId: ${messageId} importName: ${importName} functionName: ${functionName}`);
         const moduleImports = this.moduleImports;
 
@@ -247,7 +271,7 @@ export class WASI {
                     buffer: buf,
                     grow: function (delta: number): number {
                         throw new Error("grow function not implemented.");
-                    }
+                    },
                 };
                 this._memory = mem;
                 wasiDebug(`WASI handleImport: this._memory: `, this._memory);
@@ -261,7 +285,7 @@ export class WASI {
 
                 let response: any;
                 if (USED_SHARED_MEMORY) {
-                    response = {"return": funcReturn};
+                    response = { return: funcReturn };
                 } else {
                     const newBuf = this._memory.buffer;
                     const newTypedArray = new Uint8Array(newBuf);
@@ -270,7 +294,7 @@ export class WASI {
                     //const mem = this._memory
                     //transferMemoryFunc(buf);
                     // Tell other worker we have finished with response:
-                    response = {"memory": newNumberArray, "return": funcReturn};
+                    response = { memory: newNumberArray, return: funcReturn };
                     this._memory = undefined;
                 }
 
@@ -318,10 +342,10 @@ export class WASI {
             if (name == "memory") {
                 //wasiDebug("WASI getting memory")
                 if (this._memory) {
-                    wasiDebug("WASI getting memory, this._memory is set")
+                    wasiDebug("WASI getting memory, this._memory is set");
                     return this._memory;
                 } else {
-                    wasiDebug("WASI getting memory, this._memory is not set")
+                    wasiDebug("WASI getting memory, this._memory is not set");
                 }
             }
             if (this._moduleInstance) {

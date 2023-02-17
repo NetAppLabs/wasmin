@@ -225,5 +225,3 @@ function deserializeFunction(port: MessagePort) {
     port.start();
     return comlink.wrap(port);
 }
-
-
