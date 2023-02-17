@@ -24,7 +24,8 @@ export default defineConfig({
         "node:net",
         "node:url",
 		"node:module",
-		"node:worker_threads"
+		"node:worker_threads",
+		"node:console"
 	  ],
       output: {
         globals: {

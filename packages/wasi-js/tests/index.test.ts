@@ -21,6 +21,7 @@ const node = wasm_env_fs.node;
 
 globalThis.File = File;
 globalThis.Blob = Blob;
+
 /*
 declare let globalThis: any;
 globalThis.WASI_DEBUG = true;
@@ -31,17 +32,25 @@ globalThis.WASI_FS_DEBUG = true;
 type backendType = "fs-js" | "nfs-js" | "memory";
 let backend: backendType;
 switch (process.env.TEST_WASI_USING_BACKEND) {
-    case "memory": backend = "memory"; break;
-    case "nfs-js": backend = "nfs-js"; break;
-    default: backend = "fs-js"; break;
+    case "memory":
+        backend = "memory";
+        break;
+    case "nfs-js":
+        backend = "nfs-js";
+        break;
+    default:
+        backend = "fs-js";
+        break;
 }
 
 async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle> {
     const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     switch (backend) {
-        case "memory": return getOriginPrivateDirectory(memory);
+        case "memory":
+            return getOriginPrivateDirectory(memory);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
-        default: return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
+        default:
+            return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
     }
 }
 
@@ -83,65 +92,69 @@ const tests: (Test & { test: string })[] = [
 
 const textEncoder = new TextEncoder();
 describe("all", () => {
-    test.each(tests)("$test", async ({ test, stdin, stdout = "", exitCode = 0 }) => {
-        const wasmPath = path.resolve(path.join("tests", "async-wasm", `${test}.wasm`));
-        const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
+    test.each(tests)(
+        "$test",
+        async ({ test, stdin, stdout = "", exitCode = 0 }) => {
+            const wasmPath = path.resolve(path.join("tests", "async-wasm", `${test}.wasm`));
+            const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 
-        const rootHandle = await getRootHandle(backend);
-        if (backend == "memory") {
-            const nodeRootHandle = await getRootHandle("fs-js");
-            const dirs = ["sandbox", "tmp"];
-            for (const dir of dirs) {
-                const memDirHandle = await rootHandle.getDirectoryHandle(dir, { create: true });
-                const nodeDirHandle = await nodeRootHandle.getDirectoryHandle(dir);
-                for await (const [name, entry] of nodeDirHandle) {
-                    if (entry.kind == "file") {
-                        const esfh = entry as FileSystemFileHandle;
-                        const esf = await esfh.getFile();
-                        const sf = await memDirHandle.getFileHandle(name, { create: true });
-                        const sfc = await sf.createWritable({ keepExistingData: false });
-                        const sfw = await sfc.getWriter();
-                        await sfw.write(await esf.arrayBuffer());
-                        await sfw.close();
-                    } else {
-                        await memDirHandle.getDirectoryHandle(name, { create: true });
+            const rootHandle = await getRootHandle(backend);
+            if (backend == "memory") {
+                const nodeRootHandle = await getRootHandle("fs-js");
+                const dirs = ["sandbox", "tmp"];
+                for (const dir of dirs) {
+                    const memDirHandle = await rootHandle.getDirectoryHandle(dir, { create: true });
+                    const nodeDirHandle = await nodeRootHandle.getDirectoryHandle(dir);
+                    for await (const [name, entry] of nodeDirHandle) {
+                        if (entry.kind == "file") {
+                            const esfh = entry as FileSystemFileHandle;
+                            const esf = await esfh.getFile();
+                            const sf = await memDirHandle.getFileHandle(name, { create: true });
+                            const sfc = await sf.createWritable({ keepExistingData: false });
+                            const sfw = await sfc.getWriter();
+                            await sfw.write(await esf.arrayBuffer());
+                            await sfw.close();
+                        } else {
+                            await memDirHandle.getDirectoryHandle(name, { create: true });
+                        }
                     }
                 }
             }
-        }
 
-        const [sandbox, tmp] = await Promise.all([
-            rootHandle.getDirectoryHandle("sandbox"),
-            rootHandle.getDirectoryHandle("tmp"),
-        ]);
+            const [sandbox, tmp] = await Promise.all([
+                rootHandle.getDirectoryHandle("sandbox"),
+                rootHandle.getDirectoryHandle("tmp"),
+            ]);
 
-        let actualStdout = "";
-        let actualStderr = "";
-        let actualExitCode = 0;
+            let actualStdout = "";
+            let actualStderr = "";
+            let actualExitCode = 0;
 
-        try {
-            const w = new WASI({
-                openFiles: new OpenFiles({
-                    // @ts-ignore
-                    "/sandbox": sandbox,
-                    // @ts-ignore
-                    "/tmp": tmp,
-                }),
-                stdin: bufferIn(textEncoder.encode(stdin)),
-                stdout: stringOut((text) => (actualStdout += text)),
-                stderr: stringOut((text) => (actualStderr += text)),
-                args: ["foo", "-bar", "--baz=value"],
-                env: {
-                    NODE_PLATFORM: "win32",
-                },
-            });
-            actualExitCode = await w.run(await module);
-        } catch (err: any) {
-            console.log("err: ", err);
-            console.log("err.stack: ", err.stack);
-        }
-        expect(actualExitCode).toBe(exitCode);
-        expect(actualStdout).toBe(stdout);
-        expect(actualStderr).toBe("");
-    }, 10000);
+            try {
+                const w = new WASI({
+                    openFiles: new OpenFiles({
+                        // @ts-ignore
+                        "/sandbox": sandbox,
+                        // @ts-ignore
+                        "/tmp": tmp,
+                    }),
+                    stdin: bufferIn(textEncoder.encode(stdin)),
+                    stdout: stringOut((text) => (actualStdout += text)),
+                    stderr: stringOut((text) => (actualStderr += text)),
+                    args: ["foo", "-bar", "--baz=value"],
+                    env: {
+                        NODE_PLATFORM: "win32",
+                    },
+                });
+                actualExitCode = await w.run(await module);
+            } catch (err: any) {
+                console.log("err: ", err);
+                console.log("err.stack: ", err.stack);
+            }
+            expect(actualExitCode).toBe(exitCode);
+            expect(actualStdout).toBe(stdout);
+            expect(actualStderr).toBe("");
+        },
+        10000
+    );
 });

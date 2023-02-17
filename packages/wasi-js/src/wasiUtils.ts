@@ -47,6 +47,10 @@ export function wasiFdDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
+export function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export interface In {
     read(len: number): Uint8Array | Promise<Uint8Array>;
 }
@@ -140,7 +144,7 @@ export async function forEachIoVec(
 }
 
 export class ExitStatus {
-    constructor(public statusCode: number) { }
+    constructor(public statusCode: number) {}
 }
 
 export class CStringArray {

@@ -13,7 +13,8 @@ export default defineConfig({
 					'node:url',
 					'node:child_process',
 					'node:worker_threads',
-					'node:module'
+					'node:module',
+					'node:console'
 			],
     },
     output: {

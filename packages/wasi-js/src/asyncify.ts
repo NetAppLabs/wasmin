@@ -1,4 +1,5 @@
-// this file is from other repo(https://github.com/GoogleChromeLabs/asyncify)
+//
+// This file is borrowed from another repo (https://github.com/GoogleChromeLabs/asyncify)
 // for testing with ts-jest (not supported external module only esm)
 
 /**

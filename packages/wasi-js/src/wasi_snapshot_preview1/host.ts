@@ -85,7 +85,7 @@ export function initializeWasiSnapshotPreview1AsyncToImports(
         getExport: get_export,
         checkAbort: checkAbort,
         handleError: errorHandler,
-    }
+    };
     addWasiSnapshotPreview1ToImports(imports, wHost, handler);
 }
 

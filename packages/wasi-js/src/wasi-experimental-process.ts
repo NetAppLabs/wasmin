@@ -145,7 +145,6 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         env["USER"] = "none";
         env["HOME"] = "/";
 
-
         const tty = this._wasiEnv.tty;
 
         this._wasiEnv.suspendStdIn = true;

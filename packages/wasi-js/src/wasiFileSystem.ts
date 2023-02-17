@@ -36,7 +36,6 @@ export interface Writable {
 }
 
 export class Socket implements Writable, Readable {
-
     async read(_len: number): Promise<Uint8Array> {
         throw new SystemError(ErrnoN.NOTSUP);
     }
@@ -51,14 +50,14 @@ export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket;
 
 export class OpenDirectory {
-    constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) { }
+    constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
 
     private _currentIter:
         | {
-            pos: number;
-            reverted: FileSystemHandle | undefined;
-            iter: AsyncIterableIterator<FileSystemHandle>;
-        }
+              pos: number;
+              reverted: FileSystemHandle | undefined;
+              iter: AsyncIterableIterator<FileSystemHandle>;
+          }
         | undefined = undefined;
 
     asFile(): never {
@@ -247,7 +246,7 @@ export class OpenDirectory {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    close() { }
+    close() {}
 
     private async _resolve(path: string) {
         filesystemDebug(`[_resolve] path: ${path}`);
@@ -282,7 +281,7 @@ export class OpenFile implements Readable, Writable {
         private readonly _handle: FileSystemFileHandle,
         private _fsFlags: Fdflags = 0,
         public isFile = true
-    ) { }
+    ) {}
 
     public position = 0;
     private _writer: FileSystemWritableFileStream | undefined = undefined;
@@ -421,10 +420,7 @@ export class OpenFiles {
 
     add(res: OpenResource): Fd {
         filesystemDebug("[add]", res);
-        this._files.set(
-            this._nextFd,
-            res,
-        );
+        this._files.set(this._nextFd, res);
         return this._nextFd++ as Fd;
     }
 

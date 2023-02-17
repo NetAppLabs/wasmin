@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+//import { randomBytes } from "crypto";
 //import { performance } from "perf_hooks";
 import { File, Blob } from "web-file-polyfill";
 import { WritableStream, ReadableStream } from "web-streams-polyfill";
@@ -52,6 +52,6 @@ import {
     if (!globalThis.crypto) {
         // @ts-ignore
         globalThis.crypto = {};
-        globalThis.crypto.getRandomValues = randomBytes;
+        //globalThis.crypto.getRandomValues = randomBytes;
     }
 })();

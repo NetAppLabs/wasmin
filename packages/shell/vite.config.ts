@@ -18,7 +18,8 @@ export default defineConfig({
 			  "node:url",
 			  "node:child_process",
 			  "node:module",
-			  "node:worker_threads"
+			  "node:worker_threads",
+			  "node:console"
 	  ],
       output: {
         globals: {

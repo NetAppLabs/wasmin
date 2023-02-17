@@ -35,13 +35,13 @@ export interface NodeNetTcpSocket {
     connect(port: number, host: string, connectionListener?: () => void): this | Promise<this>;
     //end(callback?: () => void): this;
     end(str: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void): this;
-    on(event: 'close', listener: (hadError: boolean) => void): this;
-    on(event: 'connect', listener: () => void): this;
-    on(event: 'data', listener: (data: Buffer) => void): this;
-    on(event: 'end', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'ready', listener: () => void): this;
-    on(event: 'timeout', listener: () => void): this;
+    on(event: "close", listener: (hadError: boolean) => void): this;
+    on(event: "connect", listener: () => void): this;
+    on(event: "data", listener: (data: Buffer) => void): this;
+    on(event: "end", listener: () => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
+    on(event: "ready", listener: () => void): this;
+    on(event: "timeout", listener: () => void): this;
     write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
 }
 
@@ -50,22 +50,22 @@ export interface NodeNetTcpSocket {
  *
  */
 export interface NodeNetTcpServer {
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'connection', listener: (socket: NodeNetTcpSocket) => void): this;
-    on(event: 'listening', listener: () => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
+    on(event: "close", listener: () => void): this;
+    on(event: "connection", listener: (socket: NodeNetTcpSocket) => void): this;
+    on(event: "listening", listener: () => void): this;
     listen(port?: number, hostname?: string, backlog?: number, listeningListener?: () => void): this;
     address(): AddressInfo;
 }
 
 export function delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function createPromiseWithTimeout(
     promise: Promise<any>,
     ms: number,
-    timeoutError = new Error('Promise timed out')
+    timeoutError = new Error("Promise timed out")
 ) {
     // create a promise that rejects in milliseconds
     const timeout = new Promise((_, reject) => {
@@ -80,7 +80,7 @@ export function createPromiseWithTimeout(
 
 export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
     const newArray = new Uint8Array(arr.length + data.length);
-    newArray.set(arr);              // copy old data
+    newArray.set(arr); // copy old data
     newArray.set(data, arr.length); // copy new data after end of old data
     return newArray;
 }
@@ -116,10 +116,10 @@ export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
     let family: string;
     let hostAddr: string;
     if (addr.tag == AddrTypeN.IP_4) {
-        family = "IPv4"
+        family = "IPv4";
         hostAddr = `${addr.data.addr.n_0}.${addr.data.addr.n_1}.${addr.data.addr.h_0}.${addr.data.addr.h_1}`;
     } else if (addr.tag == AddrTypeN.IP_6) {
-        family = "IPv6"
+        family = "IPv6";
         const n0 = addr.data.addr.n_0;
         const n0s = n0.toString(16);
         const n1 = addr.data.addr.n_1;
@@ -144,8 +144,8 @@ export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
     const addrinfo: AddressInfo = {
         address: hostAddr,
         port: addr.data.port,
-        family: family
-    }
+        family: family,
+    };
     return addrinfo;
 }
 

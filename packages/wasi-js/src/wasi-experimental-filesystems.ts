@@ -1,4 +1,3 @@
-
 import { getDirectoryHandleByURL } from "@wasm-env/fs-js";
 import { SystemError } from "./errors.js";
 import { clamp_host, data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN } from "./intrinsics.js";
@@ -84,7 +83,6 @@ export function addWasiExperimentalFilesystemsToImports(
         data_view(memory).setInt32(arg0 + 0, result5, true);
     };
 }
-
 
 // Info for each Mount
 export interface MountInfo {

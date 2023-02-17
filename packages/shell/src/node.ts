@@ -124,7 +124,7 @@ export async function getRootFS(): Promise<FileSystemDirectoryHandle>{
 }
 
 
-async function getWasmModule(): Promise<{module: WebAssembly.Module, path: string}> {
+async function getWasmModule(): Promise<{module: WebAssembly.Module, buffer: BufferSource, path: string}> {
 
   const moduleSearchPaths = [
     "/snapshot/server/assets/nu.async.wasm",
@@ -158,7 +158,7 @@ async function getWasmModule(): Promise<{module: WebAssembly.Module, path: strin
   //const wasmBuf = await wasmRes.arrayBuffer();
   if (wasmBuf) {
     const mod = await WebAssembly.compile(wasmBuf);
-    return {module: mod, path: wasmBinary};
+    return {module: mod, buffer: wasmBuf, path: wasmBinary};
   } else {
     throw new Error("Wasm Shell module not found");
   }
@@ -202,6 +202,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
 
 
   const modResponse = await getWasmModule();
+  const wasmBuf = modResponse.buffer;
   const mod = modResponse.module;
   const wasmBinary = modResponse.path;
   const args: string[] = [wasmBinary];
@@ -250,7 +251,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         env: env,
         tty: tty,
       });
-      const statusCode = await wasi.run(mod);
+      const statusCode = await wasi.run(mod, wasmBuf);
       if (statusCode !== 0) {
         console.log(`Exit code: ${statusCode}`);
       }

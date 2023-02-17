@@ -1,8 +1,6 @@
-
-import { Socket } from './shim/net_shim.js';
+import { Socket } from "./shim/net_shim.js";
 import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common";
-import { AddressFamily } from './bindings';
-
+import { AddressFamily } from "./bindings";
 
 export function createNodeTcpSocket(): NodeNetTcpSocket {
     const wsSocket = new Socket();
@@ -14,7 +12,7 @@ export function createNodeTcpServer(): NodeNetTcpServer {
 }
 
 export async function addrResolve(hostname: string, port: number): Promise<AddressInfo[]> {
-    return await cloudflareResolve(hostname,port);
+    return await cloudflareResolve(hostname, port);
 }
 
 export async function cloudflareResolve(hostname: string, port: number): Promise<AddressInfo[]> {
@@ -22,10 +20,10 @@ export async function cloudflareResolve(hostname: string, port: number): Promise
     // doing to requests for ipv4 and ipv6
     // find out way to do it in one
     const resp = await fetch(`https://1.1.1.1/dns-query?name=${hostname}&type=A`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-            'Accept': 'application/dns-json',
-        },    
+            Accept: "application/dns-json",
+        },
     });
 
     const data = await resp.json();
@@ -35,23 +33,23 @@ export async function cloudflareResolve(hostname: string, port: number): Promise
             const type = aRecord.type;
             let family = "IPv4";
             if (type == 28) {
-                family = "IPv6"
+                family = "IPv6";
             }
             const ip = aRecord.data;
             const aInfo: AddressInfo = {
                 address: ip,
                 port: port,
                 family: family,
-            }
+            };
             aInfos.push(aInfo);
         }
     }
 
     const respv6 = await fetch(`https://1.1.1.1/dns-query?name=${hostname}&type=AAAA`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-            'Accept': 'application/dns-json',
-        },    
+            Accept: "application/dns-json",
+        },
     });
 
     const datav6 = await respv6.json();
@@ -61,14 +59,14 @@ export async function cloudflareResolve(hostname: string, port: number): Promise
             const type = aRecord.type;
             let family = "IPv4";
             if (type == 28) {
-                family = "IPv6"
+                family = "IPv6";
             }
             const ip = aRecord.data;
             const aInfo: AddressInfo = {
                 address: ip,
                 port: port,
                 family: family,
-            }
+            };
             aInfos.push(aInfo);
         }
     }

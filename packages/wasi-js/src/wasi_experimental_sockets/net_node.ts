@@ -17,7 +17,7 @@ export function createNodeTcpServer(): NodeNetTcpServer {
 
 export async function addrResolve(hostname: string, port: number): Promise<AddressInfo[]> {
     const addrInfos: AddressInfo[] = [];
-    
+
     const options: dns.LookupAllOptions = {
         all: true,
     };
@@ -33,7 +33,7 @@ export async function addrResolve(hostname: string, port: number): Promise<Addre
             address: addr,
             family: family,
             port: port,
-        }
+        };
         addrInfos.push(addrInfo);
     }
     return addrInfos;
