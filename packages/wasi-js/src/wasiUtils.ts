@@ -143,8 +143,23 @@ export async function forEachIoVec(
     Size.set(buffer, handledPtr, totalHandled);
 }
 
-export class ExitStatus {
-    constructor(public statusCode: number) {}
+export class ExitStatus extends Error {
+    constructor(public statusCode: number, public isExitStatus = true, public cause = undefined) {
+        super(cause);
+    }
+}
+
+export function isExitStatus(err: any) {
+    if (err) {
+        if (err instanceof ExitStatus) {
+            return true;
+        } else {
+            if (err.isExitStatus) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 export class CStringArray {
@@ -204,7 +219,7 @@ export class ErrorHandlerTranslator implements ErrorHandler {
 export function translateErrorToErrorno(err: any): Errno {
     wasiError(`translateErrorToErrorno: error: `, err);
 
-    if (err instanceof ExitStatus) {
+    if (isExitStatus(err)) {
         wasiError(`translateErrorToErrorno: ExitStatus: `, err);
         // forward throw ExitStatus because we want to exit out of the program loop
         throw err;

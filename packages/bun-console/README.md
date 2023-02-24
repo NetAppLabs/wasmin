@@ -65,15 +65,15 @@ In this package, we choose a better way to solve this problem. We release differ
 
 ## Develop requirements
 
-- Install the latest `Rust`
-- Install `Node.js@10+` which fully supported `Node-API`
-- Install `yarn@1.x`
+-   Install the latest `Rust`
+-   Install `Node.js@10+` which fully supported `Node-API`
+-   Install `yarn@1.x`
 
 ## Test in local
 
-- yarn
-- yarn build
-- yarn test
+-   yarn
+-   yarn build
+-   yarn test
 
 And you will see:
 

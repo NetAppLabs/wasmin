@@ -14,7 +14,7 @@
 
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
-import type { Fd } from "./wasi_snapshot_preview1/bindings";
+import type { Fd } from "./wasi_snapshot_preview1/bindings.js";
 
 import { openDirectoryHandle } from "@wasm-env/fs-js";
 

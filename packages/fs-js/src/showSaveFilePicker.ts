@@ -11,15 +11,15 @@ import { FileHandle } from "./adapters/downloader";
  */
 
 interface Options {
-  excludeAcceptAllOption: boolean;
-  accepts: any;
-  suggestedName: string;
+    excludeAcceptAllOption: boolean;
+    accepts: any;
+    suggestedName: string;
 }
 
 export async function showSaveFilePicker(
-  options: Partial<Options> = { excludeAcceptAllOption: false }
+    options: Partial<Options> = { excludeAcceptAllOption: false }
 ): Promise<NFileSystemDirectoryHandle | MyFileSystemFileHandle> {
-  const downloaderHandle = new FileHandle(options.suggestedName);
-  const adapterHandle = downloaderHandle as unknown as FileSystemFileHandle;
-  return new MyFileSystemFileHandle(adapterHandle);
+    const downloaderHandle = new FileHandle(options.suggestedName);
+    const adapterHandle = downloaderHandle as unknown as FileSystemFileHandle;
+    return new MyFileSystemFileHandle(adapterHandle);
 }

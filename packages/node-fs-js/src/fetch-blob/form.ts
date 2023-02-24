@@ -12,38 +12,37 @@ import { MyBlob } from "./blob";
 import { MyFile } from "./file";
 
 export const blobFrom = async (path: string, type?: string) => {
-  const s = await fs.stat(path);
-  return fromBlob(s, path, type);
+    const s = await fs.stat(path);
+    return fromBlob(s, path, type);
 };
 
 export const fileFrom = async (path: string, type?: string) => {
-  const s = await fs.stat(path);
-  return fromFile(s, path, type);
+    const s = await fs.stat(path);
+    return fromFile(s, path, type);
 };
 
 const fromBlob = (stat: Stats, path: string, type = "") => {
-  const mtimeMsInt = Math.floor(stat.mtimeMs);
-  return new MyBlob([new BlobDataItem(path, 0, stat.size, mtimeMsInt)], {
-    type,
-  });
+    const mtimeMsInt = Math.floor(stat.mtimeMs);
+    return new MyBlob([new BlobDataItem(path, 0, stat.size, mtimeMsInt)], {
+        type,
+    });
 };
 
 const fromFile = (stat: Stats, path: string, type = "") => {
-  const mtimeMsInt = Math.floor(stat.mtimeMs);
-  return new MyFile(
-    [new BlobDataItem(path, 0, stat.size, mtimeMsInt)],
-    basename(path),
-    { type, lastModified: mtimeMsInt }
-  );
+    const mtimeMsInt = Math.floor(stat.mtimeMs);
+    return new MyFile([new BlobDataItem(path, 0, stat.size, mtimeMsInt)], basename(path), {
+        type,
+        lastModified: mtimeMsInt,
+    });
 };
 
 class NotReadableError extends Error {
-  constructor() {
-    super(
-      "The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired."
-    );
-    this.name = "NotReadableError";
-  }
+    constructor() {
+        super(
+            "The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired."
+        );
+        this.name = "NotReadableError";
+    }
 }
 
 /**
@@ -53,35 +52,30 @@ class NotReadableError extends Error {
  */
 
 export class BlobDataItem {
-  constructor(
-    private path: string,
-    private start: number,
-    public size: number,
-    public lastModified: number
-  ) {}
+    constructor(private path: string, private start: number, public size: number, public lastModified: number) {}
 
-  /**
-   * Slicing arguments is first validated and formatted
-   * to not be out of range by Blob.prototype.slice
-   */
-  slice(start: number, end: number) {
-    return new BlobDataItem(this.path, start, end - start, this.lastModified);
-  }
-
-  async *stream() {
-    const { mtimeMs } = await fs.stat(this.path);
-    const mtimeMsInt = Math.floor(mtimeMs);
-    if (mtimeMsInt > this.lastModified) {
-      throw new NotReadableError();
+    /**
+     * Slicing arguments is first validated and formatted
+     * to not be out of range by Blob.prototype.slice
+     */
+    slice(start: number, end: number) {
+        return new BlobDataItem(this.path, start, end - start, this.lastModified);
     }
 
-    yield* createReadStream(this.path, {
-      start: this.start,
-      end: Math.max(this.start + this.size - 1, 0),
-    });
-  }
+    async *stream() {
+        const { mtimeMs } = await fs.stat(this.path);
+        const mtimeMsInt = Math.floor(mtimeMs);
+        if (mtimeMsInt > this.lastModified) {
+            throw new NotReadableError();
+        }
 
-  get [Symbol.toStringTag]() {
-    return "Blob";
-  }
+        yield* createReadStream(this.path, {
+            start: this.start,
+            end: Math.max(this.start + this.size - 1, 0),
+        });
+    }
+
+    get [Symbol.toStringTag]() {
+        return "Blob";
+    }
 }

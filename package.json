@@ -11,15 +11,15 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --tab-width 4 --print-width 120 --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "prettier": "^2.8.1",
-    "turbo": "^1.7.4"
+    "turbo": "^1.8.1"
   },
   "engines": {
     "npm": ">=7.0.0",
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {},
   "packageManager": "yarn@1.22.17"

@@ -80,7 +80,10 @@ const tests: (Test & { test: string })[] = [
     { test: "poll" },
     { test: "preopen_populates" },
     { test: "read_file", stdout: `hello from input.txt${EOL}` },
-    { test: "read_file_twice", stdout: `hello from input.txt${EOL}hello from input.txt${EOL}` },
+    {
+        test: "read_file_twice",
+        stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
+    },
     { test: "readdir" },
     { test: "write_file" },
     { test: "stdin", stdin: "hello world", stdout: "hello world" },
@@ -103,13 +106,17 @@ describe("all", () => {
                 const nodeRootHandle = await getRootHandle("fs-js");
                 const dirs = ["sandbox", "tmp"];
                 for (const dir of dirs) {
-                    const memDirHandle = await rootHandle.getDirectoryHandle(dir, { create: true });
+                    const memDirHandle = await rootHandle.getDirectoryHandle(dir, {
+                        create: true,
+                    });
                     const nodeDirHandle = await nodeRootHandle.getDirectoryHandle(dir);
                     for await (const [name, entry] of nodeDirHandle) {
                         if (entry.kind == "file") {
                             const esfh = entry as FileSystemFileHandle;
                             const esf = await esfh.getFile();
-                            const sf = await memDirHandle.getFileHandle(name, { create: true });
+                            const sf = await memDirHandle.getFileHandle(name, {
+                                create: true,
+                            });
                             const sfc = await sf.createWritable({ keepExistingData: false });
                             const sfw = await sfc.getWriter();
                             await sfw.write(await esf.arrayBuffer());

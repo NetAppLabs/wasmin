@@ -35,6 +35,11 @@ export async function getWasmModuleAndBuffer(moduleUrl: string) {
     return { wasmMod, wasmBuf };
 }
 
+export async function getWasmBuffer(moduleUrl: string) {
+    const wasmBuf = await getWasmModuleSource(moduleUrl);
+    return { wasmBuf };
+}
+
 export function initializeHandlers() {
     /*comlink.transferHandlers.set("FUNC", {
         canHandle: function (value: unknown): value is Function {

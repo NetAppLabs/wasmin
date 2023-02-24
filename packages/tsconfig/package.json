@@ -1,11 +1,29 @@
 {
-  "name": "tsconfig",
+  "name": "@wasm-env/tsconfig",
   "version": "0.0.0",
-  "private": true,
-  "main": "index.js",
+  "description": "tsconfig.json",
+  "tsconfig": "tsconfig.json",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./tsconfig.json",
+      "require": "./tsconfig.json"
+    }
+  },
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "scripts": {
+    "dist": "echo dist",
+    "lint": "echo lint",
+	"build": "echo build"
+  },
   "files": [
-    "base.json",
-    "nextjs.json",
-    "react-library.json"
-  ]
+    "tsconfig.json",
+    "bin/install.js"
+  ],
+  "dependencies": {
+    "typescript": "^4.9.5"
+  }
 }

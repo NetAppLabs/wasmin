@@ -1,6 +1,3 @@
-
-
-
 /*
 const res = await fetch('http://127.0.0.1:5001/say-hello/James', {
   method: 'POST',
@@ -10,8 +7,6 @@ const res = await fetch('http://127.0.0.1:5001/say-hello/James', {
 const t = await res.text();
 console.log(t);
 */
-
-
 
 import { Process } from "../server/types";
 
@@ -24,13 +19,13 @@ const p: Process = {
     stdout: "default",
     stderr: "default",
     mounts: {},
-    features: {}
+    features: {},
 };
 
-const res = await fetch('http://127.0.0.1:5001/processes', {
-  method: 'POST',
-  //headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(p),
+const res = await fetch("http://127.0.0.1:5001/processes", {
+    method: "POST",
+    //headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(p),
 });
 const t = await res.text();
 

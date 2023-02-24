@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 export const Host = z.object({
@@ -15,14 +14,9 @@ export const Host = z.object({
 // extract the inferred type
 export type Host = z.infer<typeof Host>;
 
-export const HostList = z.array(
-    Host
-);
+export const HostList = z.array(Host);
 
-export const HostMap = z.record(
-    z.string(),
-    Host
-);
+export const HostMap = z.record(z.string(), Host);
 
 export const ProcessStatuses = ["created", "ready", "running", "waiting", "terminated"] as const;
 
@@ -38,19 +32,14 @@ export const Process = z.object({
     stderr: z.optional(z.string()),
     mounts: z.optional(z.record(z.string(), z.string())),
     features: z.optional(z.record(z.string(), z.boolean())),
-    startTime : z.optional(z.date()),
-    endTime : z.optional(z.date()),
+    startTime: z.optional(z.date()),
+    endTime: z.optional(z.date()),
     exitCode: z.optional(z.number()),
 });
 
-export const ProcessList = z.array(
-    Process
-);
+export const ProcessList = z.array(Process);
 
-export const ProcessMap = z.record(
-    z.string(),
-    Process
-);
+export const ProcessMap = z.record(z.string(), Process);
 
 // extract the inferred type
 export type Process = z.infer<typeof Process>;

@@ -1,18 +1,17 @@
 import { Host } from "./types";
 
-import { uniqueNamesGenerator, Config, adjectives, colors, names } from 'unique-names-generator';
+import { uniqueNamesGenerator, Config, adjectives, colors, names } from "unique-names-generator";
 import { ProcessManager } from "./process";
 import { CreateHostId, isBun, isNode, sleep } from "./util";
-import { getDefaultLocalIPv4, getDefaultLocalIPv6,  } from "./util_node";
+import { getDefaultLocalIPv4, getDefaultLocalIPv6 } from "./util_node";
 
 const config: Config = {
-  dictionaries: [adjectives, colors, names],
-  separator: '-',
-  style: "lowerCase"
-}
+    dictionaries: [adjectives, colors, names],
+    separator: "-",
+    style: "lowerCase",
+};
 
-
-class HostManager{
+class HostManager {
     constructor() {
         const myid = CreateHostId();
         const randomName = uniqueNamesGenerator(config);
@@ -23,10 +22,10 @@ class HostManager{
         const ipv4Addr = getDefaultLocalIPv4();
         const ipv6Addr = getDefaultLocalIPv6();
         let runtime = "unknown";
-        if (isNode()){
+        if (isNode()) {
             runtime = "node";
         }
-        if (isBun()){
+        if (isBun()) {
             runtime = "bun";
         }
         this.self = {
@@ -37,15 +36,15 @@ class HostManager{
             ipv4: ipv4Addr,
             ipv6: ipv6Addr,
             runtime: runtime,
-        }
+        };
         this.hosts[myid] = this.self;
         this.processManager = new ProcessManager();
     }
     self: Host;
     processManager: ProcessManager;
-    private hosts: Record<string,Host> = {};
-    private staleHosts: Record<string,Host> = {};
-    private hostAge: Record<string,number> = {};
+    private hosts: Record<string, Host> = {};
+    private staleHosts: Record<string, Host> = {};
+    private hostAge: Record<string, number> = {};
 
     async addHost(host: Host) {
         this.hosts[host.id] = host;
@@ -59,20 +58,20 @@ class HostManager{
         delete this.hosts[hostid];
     }
 
-    async map(): Promise<Record<string,Host>>{
+    async map(): Promise<Record<string, Host>> {
         return this.hosts;
     }
 
-    async list(): Promise<Host[]>{
-        const hosts: Host[] = []
+    async list(): Promise<Host[]> {
+        const hosts: Host[] = [];
         Object.entries(this.hosts).forEach(([_key, host]) => {
             hosts.push(host);
         });
         return hosts;
     }
 
-    async hostMonitor(): Promise<void>{
-        while(true) {
+    async hostMonitor(): Promise<void> {
+        while (true) {
             const graceTime = 3000;
             const hosts = await this.list();
             for (const host of hosts) {
@@ -81,7 +80,7 @@ class HostManager{
                 const hostAge = this.hostAge[hostid];
                 if (hostAge) {
                     const hostAgePlusGrace = hostAge + graceTime;
-                    if (hostAgePlusGrace < curTime ) {
+                    if (hostAgePlusGrace < curTime) {
                         this.markHostStale(hostid);
                     }
                 }

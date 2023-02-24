@@ -1,49 +1,51 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react()],
-  build: {
-    target: "esnext",
-    lib: {
-      formats: ["cjs"],
-      entry: "server/index.ts",
-      name: "@wasm-env/server",
-    },
-    rollupOptions: {
-      external: ["node:fs", 
-        "node:path", 
-        "node", 
-        "node:fs:promises", 
-        "node:crypto", 
-        "stream", 
-        "node:stream", 
-        "http", 
-        "https", 
-        "node:util", 
-		"util",
-        "node:buffer",
-        "node:net",
-        "node:url",
-	    "bun-livereload"],
-      output: {
-        globals: {
-          fs: "fs",
-          path: "path",
-          node: "node",
-		  util: "util",
-          "node:fs": "fs",
-          "node:path": "path",
-          "node:stream": "stream",
-          "node:net": "net",
-          "node:buffer": "buffer",
-          "node:util": "util",
-          "node:crypto": "crypto",
-          "node:url": "url",
+    plugins: [react()],
+    build: {
+        target: "esnext",
+        lib: {
+            formats: ["cjs"],
+            entry: "server/index.ts",
+            name: "@wasm-env/server",
         },
-      },
+        rollupOptions: {
+            external: [
+                "node:fs",
+                "node:path",
+                "node",
+                "node:fs:promises",
+                "node:crypto",
+                "stream",
+                "node:stream",
+                "http",
+                "https",
+                "node:util",
+                "util",
+                "node:buffer",
+                "node:net",
+                "node:url",
+                "bun-livereload",
+            ],
+            output: {
+                globals: {
+                    fs: "fs",
+                    path: "path",
+                    node: "node",
+                    util: "util",
+                    "node:fs": "fs",
+                    "node:path": "path",
+                    "node:stream": "stream",
+                    "node:net": "net",
+                    "node:buffer": "buffer",
+                    "node:util": "util",
+                    "node:crypto": "crypto",
+                    "node:url": "url",
+                },
+            },
+        },
     },
-  },
 });
 
 /*

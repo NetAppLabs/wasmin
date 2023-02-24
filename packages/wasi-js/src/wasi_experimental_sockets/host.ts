@@ -91,50 +91,6 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         }
         return ErrnoN.NOSYS;
     }
-
-    async addrResolveOld(
-        host_ptr: ptr<string>,
-        host_len: number,
-        port: number,
-        buf: mutptr<number>,
-        buf_len: number,
-        result_ptr: mutptr<number>
-    ): Promise<ErrnoN> {
-        // TODO figure out why require is needed here, import does not seem to work
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const dns = require("node:dns");
-        // @ts-ignore
-        const options: dns.LookupAllOptions = {
-            all: true,
-        };
-        const dnsPromises = dns.promises;
-        const hostname = string.get(this.buffer, host_ptr, host_len);
-
-        let offset = 0;
-        const dnsResponses = await dnsPromises.lookup(hostname, options);
-        for (const dnsresp of dnsResponses) {
-            const addr = dnsresp.address;
-            let family = "IPv4";
-            if (dnsresp.family == 6) {
-                family = "IPv6";
-            }
-            const addrInfo: AddressInfo = {
-                address: addr,
-                family: family,
-                port: port,
-            };
-            const wasiAddr = AddressInfoToWasiAddr(addrInfo);
-            const mptr = (buf + offset) as any as mutptr<Addr>;
-            Addr.set(this.buffer, mptr, wasiAddr);
-            if (dnsresp.family == 4) {
-                offset = offset + 8;
-            } else if (dnsresp.family == 6) {
-                offset = offset + 20;
-            }
-        }
-        u32.set(this.buffer, result_ptr, offset);
-        return ErrnoN.SUCCESS;
-    }
     async sockAddrLocal(fd: number, buf: mutptr<number>, buf_len: number): Promise<ErrnoN> {
         wasiSocketsDebug("sockAddrLocal:");
         const sock = this.getSocket(fd);
@@ -259,7 +215,10 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         addr: mutptr<
             | {
                   tag: AddrTypeN.IP_4;
-                  data: { addr: { n_0: number; n_1: number; h_0: number; h_1: number }; port: number };
+                  data: {
+                      addr: { n_0: number; n_1: number; h_0: number; h_1: number };
+                      port: number;
+                  };
               }
             | {
                   tag: AddrTypeN.IP_6;
@@ -306,7 +265,10 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         addr: mutptr<
             | {
                   tag: AddrTypeN.IP_4;
-                  data: { addr: { n_0: number; n_1: number; h_0: number; h_1: number }; port: number };
+                  data: {
+                      addr: { n_0: number; n_1: number; h_0: number; h_1: number };
+                      port: number;
+                  };
               }
             | {
                   tag: AddrTypeN.IP_6;
@@ -394,7 +356,10 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         addr: mutptr<
             | {
                   tag: AddrTypeN.IP_4;
-                  data: { addr: { n_0: number; n_1: number; h_0: number; h_1: number }; port: number };
+                  data: {
+                      addr: { n_0: number; n_1: number; h_0: number; h_1: number };
+                      port: number;
+                  };
               }
             | {
                   tag: AddrTypeN.IP_6;

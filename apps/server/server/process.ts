@@ -1,6 +1,5 @@
-
 import { Process } from "./types";
-import { Readable, WASI, Writable } from "@wasm-env/wasi-js"
+import { Readable, WASI, Writable } from "@wasm-env/wasi-js";
 
 import { Logger } from "./log";
 import { CreateProcessId } from "./util";
@@ -27,7 +26,7 @@ class BufferedInOut implements Writable, Readable {
 }
 
 class ProcessInfo {
-    constructor(process: Process, wasi: WASI){
+    constructor(process: Process, wasi: WASI) {
         this.process = process;
         this.wasi = wasi;
     }
@@ -35,7 +34,6 @@ class ProcessInfo {
     wasi: WASI;
     abortController?: AbortController;
 }
-
 
 export class ProcessManager {
     processList: ProcessInfo[] = [];
@@ -54,11 +52,11 @@ export class ProcessManager {
 
     async start(process: Process): Promise<Process> {
         const wasmBinaryUrl = process.cmd;
-      
+
         const buf = await fetch(wasmBinaryUrl);
         const resp = await buf.arrayBuffer();
         const mod = await WebAssembly.compile(resp);
-      
+
         const stdin = new BufferedInOut();
         const stdout = new BufferedInOut();
         const stderr = new BufferedInOut();
@@ -66,14 +64,14 @@ export class ProcessManager {
         try {
             const abortController = new AbortController();
             const w = new WASI({
-              abortSignal: abortController.signal,
-              //openFiles: openFiles,
-              stdin: stdin,
-              stdout: stdout,
-              stderr: stderr,
-              args: process.args,
-              env: process.env,
-              //tty: tty,
+                abortSignal: abortController.signal,
+                //openFiles: openFiles,
+                stdin: stdin,
+                stdout: stdout,
+                stderr: stderr,
+                args: process.args,
+                env: process.env,
+                //tty: tty,
             });
             const pInfo = new ProcessInfo(process, w);
             pInfo.abortController = abortController;
@@ -84,26 +82,29 @@ export class ProcessManager {
               Logger.log(`Exit code: ${statusCode}`);
             }*/
             process.status = "running";
-            w.run(mod).then(() => {
-                Logger.log('in run then');
-            }).catch((err: any) => {
-                process.status = "terminated";
-                Logger.log('in run catch err:', err);
-            }).finally(() => {
-                process.status = "terminated";
-                Logger.log('in run finally');
-            });
+            w.run(mod)
+                .then(() => {
+                    Logger.log("in run then");
+                })
+                .catch((err: any) => {
+                    process.status = "terminated";
+                    Logger.log("in run catch err:", err);
+                })
+                .finally(() => {
+                    process.status = "terminated";
+                    Logger.log("in run finally");
+                });
         } catch (err: any) {
-            Logger.log('in try catch');
+            Logger.log("in try catch");
             Logger.error(err.message);
         } finally {
-            Logger.log('in try finally');
+            Logger.log("in try finally");
         }
         return process;
     }
 
-    async map(): Promise<Record<string,Process>> {
-        const pMap: Record<string,Process> = {};
+    async map(): Promise<Record<string, Process>> {
+        const pMap: Record<string, Process> = {};
         for (const p of this.processList) {
             const proc = p.process;
             if (proc.id) {
@@ -116,11 +117,11 @@ export class ProcessManager {
 
     async getProcessInfo(id: string): Promise<ProcessInfo> {
         for (const p of await this.processList) {
-            if (p.process.id == id){
+            if (p.process.id == id) {
                 return p;
             }
         }
-        throw new Error("process with id: "+id+" not found");
+        throw new Error("process with id: " + id + " not found");
     }
 
     async getProcess(id: string): Promise<Process> {
@@ -129,22 +130,20 @@ export class ProcessManager {
         if (proc) {
             return proc;
         }
-        throw new Error("process with id: "+id+" not found");
+        throw new Error("process with id: " + id + " not found");
     }
 
     async killProcess(id: string): Promise<boolean> {
         Logger.log("killing processes ", id);
         const p = await this.getProcessInfo(id);
-        if (p.abortController){
+        if (p.abortController) {
             const abortc = p.abortController;
             try {
                 abortc.abort();
-            } catch(err: any){
-                Logger.log("catched err: ",err);
+            } catch (err: any) {
+                Logger.log("catched err: ", err);
             }
         }
         return true;
     }
-
 }
-

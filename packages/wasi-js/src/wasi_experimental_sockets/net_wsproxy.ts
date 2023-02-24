@@ -1,6 +1,6 @@
-import { Socket } from "./shim/net_shim.js";
-import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common";
-import { AddressFamily } from "./bindings";
+import { Socket } from "../vendored/serverless/net_shim.js";
+import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
+import { AddressFamily } from "./bindings.js";
 
 export function createNodeTcpSocket(): NodeNetTcpSocket {
     const wsSocket = new Socket();

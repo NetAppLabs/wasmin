@@ -12,7 +12,7 @@
  */
 
 import { EventEmitter } from "events";
-import { AddressInfo, NodeNetTcpSocket } from "../common.js";
+import { AddressInfo, NodeNetTcpSocket } from "../../wasi_experimental_sockets/common.js";
 //import { startTls, TrustedCert, ReadQueue } from 'subtls';
 
 // @ts-ignore - esbuild knows how to deal with this
@@ -245,7 +245,9 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket {
             } catch (err) {
                 // Cloudflare Workers alternative
                 const wsProtocol = this.useSecureWebSocket ? "https:" : "http:";
-                fetch(wsProtocol + "//" + wsAddr, { headers: { Upgrade: "websocket" } }).then((resp) => {
+                fetch(wsProtocol + "//" + wsAddr, {
+                    headers: { Upgrade: "websocket" },
+                }).then((resp) => {
                     // @ts-ignore
                     const ws = resp.webSocket;
                     if (ws == undefined) throw err; // deliberate loose equality; if this also fails, report the original error

@@ -1,15 +1,14 @@
-
-import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import http from 'http';
-import { createOpenApiHttpHandler } from 'trpc-openapi';
-import { createHTTPServer } from '@trpc/server/adapters/standalone';
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import http from "http";
+import { createOpenApiHttpHandler } from "trpc-openapi";
+import { createHTTPServer } from "@trpc/server/adapters/standalone";
 
 //import { createOpenApiNodeHttpHandler } from 'trpc-openapi';
-import { appRouter } from './router';
-import { Logger } from './log';
-import { HostManagerInstance } from './host';
-import { DiscoveryManagerInstance } from './discovery';
-import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from './defaults';
+import { appRouter } from "./router";
+import { Logger } from "./log";
+import { HostManagerInstance } from "./host";
+import { DiscoveryManagerInstance } from "./discovery";
+import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
 
 /*
 type Proc = {
@@ -61,35 +60,36 @@ inspectProcs();
 
 //import { liveReload } from 'bun-livereload'
 
-const rpcPort = DEFAULT_RPC_PORT
+const rpcPort = DEFAULT_RPC_PORT;
 const restPort = DEFAULT_REST_PORT;
 
-const liveReloadImport = await import('bun-livereload');
+const liveReloadImport = await import("bun-livereload");
 const liveReload = liveReloadImport.liveReload;
 export default {
-  port: rpcPort,
-  fetch: liveReload(async (request: Request) => {
-    if (request.method === 'OPTIONS') return new Response('', {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*'
-      }
-    })
-  
-    const { appRouter } = await import('./router')
-    const response = await fetchRequestHandler({
-      router: appRouter,
-      endpoint: '',
-      req: request,
-      createContext: async () => {},
-    })
-    response.headers.set('Access-Control-Allow-Origin', '*')
-    return response
-  })
-}
+    port: rpcPort,
+    fetch: liveReload(async (request: Request) => {
+        if (request.method === "OPTIONS")
+            return new Response("", {
+                status: 200,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "*",
+                },
+            });
 
-Logger.log('RPC Listening on port ' + rpcPort);
+        const { appRouter } = await import("./router");
+        const response = await fetchRequestHandler({
+            router: appRouter,
+            endpoint: "",
+            req: request,
+            createContext: async () => {},
+        });
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
+    }),
+};
+
+Logger.log("RPC Listening on port " + rpcPort);
 const selfHost = HostManagerInstance.self;
 selfHost.port = rpcPort;
 DiscoveryManagerInstance.publish(selfHost);
@@ -98,4 +98,3 @@ DiscoveryManagerInstance.updateLoop();
 
 const server = http.createServer(liveReload(createOpenApiHttpHandler({ router: appRouter })));
 server.listen(restPort);
-

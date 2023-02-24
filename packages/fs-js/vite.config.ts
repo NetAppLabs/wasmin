@@ -1,23 +1,23 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  build: {
-    target: "esnext",
-    lib: {
-      entry: "src/index.ts",
-      name: "@wasm-env/fs-js",
-    },
-    rollupOptions: {
-      external: ["fs", "path", "node"],
-      output: {
-        globals: {
-          fs: "fs",
-          path: "path",
-          node: "node",
+    build: {
+        target: "esnext",
+        lib: {
+            entry: "src/index.ts",
+            name: "@wasm-env/fs-js",
         },
-      },
+        rollupOptions: {
+            external: ["fs", "path", "node"],
+            output: {
+                globals: {
+                    fs: "fs",
+                    path: "path",
+                    node: "node",
+                },
+            },
+        },
     },
-  },
 });
 
 /*

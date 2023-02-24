@@ -3,8 +3,8 @@ import * as comlink from "comlink";
 import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
 import { Worker } from "node:worker_threads";
 import { URL } from "node:url";
-import { getWasmModuleAndBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { TransferMemoryFunc } from "./deasyncify.js";
+import { getWasmBuffer, getWasmModuleAndBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { ReciveMemoryFunc } from "./desyncify.js";
 
 export class WASIWorker {
     constructor(wasiOptions: WasiOptions) {
@@ -81,7 +81,7 @@ export class WasiWorkerThreadRunner {
         functionName: string,
         args: any[],
         buf: ArrayBuffer,
-        transferMemoryFunc: TransferMemoryFunc
+        transferMemoryFunc: ReciveMemoryFunc
     ): Promise<void> {
         wasiWorkerDebug(
             `WasiWorkerThreadRunner: handleImport: importName: ${importName} functionName: ${functionName}`
@@ -89,11 +89,11 @@ export class WasiWorkerThreadRunner {
         const wasi = this.wasi;
         if (wasi) {
             wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is set`);
-            return await wasi.handleImport(messageId, importName, functionName, args, buf, transferMemoryFunc);
+            return await wasi.handleImport(messageId, importName, functionName, args, buf);
         } else {
             wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is not set`);
         }
-        throw new Error(`Error handling import: ${importName} functionName: ${functionName}`);
+        throw new Error(`WasiWorkerThreadRunner Error handling import: ${importName} functionName: ${functionName}`);
     }
 
     public async run(moduleUrl: string): Promise<number> {
@@ -108,10 +108,9 @@ export class WasiWorkerThreadRunner {
             this.wasi = new WASI(wasiOpts);
             wasiWorkerDebug("WasiWorkerThread wasi: ");
 
-            const { wasmMod, wasmBuf } = await getWasmModuleAndBuffer(moduleUrl);
-            wasiWorkerDebug("WasiWorkerThread mod: ", wasmMod);
+            const { wasmBuf } = await getWasmBuffer(moduleUrl);
 
-            return await this.wasi.run(wasmMod, wasmBuf);
+            return await this.wasi.run(wasmBuf);
         } else {
             throw new Error("run wasiOptions not set");
         }
