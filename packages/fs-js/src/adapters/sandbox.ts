@@ -1,4 +1,4 @@
-import { NotAllowedError } from "../errors";
+import { NotAllowedError } from "../errors.js";
 
 class Sink {
     constructor(writer: FileWriter, fileEntry: FileEntry) {

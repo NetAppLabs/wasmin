@@ -1,17 +1,17 @@
-//export { showDirectoryPicker } from "./showDirectoryPicker";
-//export { showOpenFilePicker } from "./showOpenFilePicker";
-//export { showSaveFilePicker } from "./showSaveFilePicker";
+//export { showDirectoryPicker } from "./showDirectoryPicker.js";
+//export { showOpenFilePicker } from "./showOpenFilePicker.js";
+//export { showSaveFilePicker } from "./showSaveFilePicker.js";
 
-export { getOriginPrivateDirectory } from "./getOriginPrivateDirectory";
-export { getDirectoryHandleByURL, RegisterProvider } from "./getDirectoryHandleByURL";
-export { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
-export { NFileSystemFileHandle } from "./FileSystemFileHandle";
-export { NFileSystemHandle } from "./FileSystemHandle";
-export { FileSystemWritableFileStream } from "./FileSystemWritableFileStream";
+export { getOriginPrivateDirectory } from "./getOriginPrivateDirectory.js";
+export { getDirectoryHandleByURL, RegisterProvider } from "./getDirectoryHandleByURL.js";
+export { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle.js";
+export { NFileSystemFileHandle } from "./FileSystemFileHandle.js";
+export { NFileSystemHandle } from "./FileSystemHandle.js";
+export { FileSystemWritableFileStream } from "./FileSystemWritableFileStream.js";
 //export { FileHandle as downloader } from ".//downloader";
-export { default as memory } from "./adapters/memory";
+export { default as memory } from "./adapters/memory.js";
 //export { default as node } from "./adapters/node";
-export { default as indexeddb } from "./adapters/indexeddb";
+export { default as indexeddb } from "./adapters/indexeddb.js";
 
 export {
     openHandle,
@@ -21,7 +21,7 @@ export {
     streamToBufferNode,
     substituteSecretValue,
     join,
-} from "./adapters/util";
+} from "./adapters/util.js";
 
 import {
     InvalidModificationError,
@@ -31,7 +31,7 @@ import {
     SecurityError,
     SyntaxError,
     TypeMismatchError,
-} from "./errors";
+} from "./errors.js";
 export {
     InvalidModificationError,
     InvalidStateError,
@@ -42,5 +42,5 @@ export {
     TypeMismatchError,
 };
 
-export type { ImpleFileHandle, ImplFolderHandle, ImpleSink } from "./adapters/implements";
-export { DefaultSink } from "./adapters/implements";
+export type { ImpleFileHandle, ImplFolderHandle, ImpleSink } from "./adapters/implements.js";
+export { DefaultSink } from "./adapters/implements.js";

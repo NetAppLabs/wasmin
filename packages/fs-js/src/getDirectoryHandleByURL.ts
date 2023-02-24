@@ -1,7 +1,7 @@
-import { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
+import { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle.js";
 import parseUrl from "parse-url";
-import indexeddb from "./adapters/indexeddb";
-import memory from "./adapters/memory";
+import indexeddb from "./adapters/indexeddb.js";
+import memory from "./adapters/memory.js";
 
 type providerFunc = (url: string, ...optionalParams: any[]) => Promise<FileSystemDirectoryHandle>;
 const providersRegistry: Record<string, providerFunc> = {};

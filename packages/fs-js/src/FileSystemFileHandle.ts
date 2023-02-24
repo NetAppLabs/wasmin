@@ -1,5 +1,5 @@
-import { NFileSystemHandle } from "./FileSystemHandle";
-import { FileSystemWritableFileStream } from "./FileSystemWritableFileStream";
+import { NFileSystemHandle } from "./FileSystemHandle.js";
+import { FileSystemWritableFileStream } from "./FileSystemWritableFileStream.js";
 
 export function detectBun() {
     // only bun has global Bun

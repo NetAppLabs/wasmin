@@ -1,4 +1,4 @@
-import { fromInput } from "./util";
+import { fromInput } from "./util.js";
 import type { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
 
 interface Options {

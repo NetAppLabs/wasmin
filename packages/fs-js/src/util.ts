@@ -1,6 +1,6 @@
-import { FolderHandle as MemoryFolderHandle, FileHandle as MemoryFileHandle } from "./adapters/memory";
-import { FolderHandle as SandboxFolderHandle, FileHandle as SandboxFileHandle } from "./adapters/sandbox";
-import { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
+import { FolderHandle as MemoryFolderHandle, FileHandle as MemoryFileHandle } from "./adapters/memory.js";
+import { FolderHandle as SandboxFolderHandle, FileHandle as SandboxFileHandle } from "./adapters/sandbox.js";
+import { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle.js";
 
 export const config = {
     writable: WritableStream,

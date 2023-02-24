@@ -1,8 +1,8 @@
-import { InvalidModificationError, InvalidStateError, NotFoundError, SyntaxError, TypeMismatchError } from "../errors";
-import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements";
-import { NFileSystemDirectoryHandle } from "../FileSystemDirectoryHandle";
-import { openFileHandle } from "./util";
+import { InvalidModificationError, InvalidStateError, NotFoundError, SyntaxError, TypeMismatchError } from "../errors.js";
+import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
+import { NFileSystemDirectoryHandle } from "../FileSystemDirectoryHandle.js";
+import { openFileHandle } from "./util.js";
 import { default as yaml } from "js-yaml";
 
 const INDEXEDDB_DEBUG = false;

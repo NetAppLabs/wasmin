@@ -5,9 +5,8 @@ import {
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
-} from "../errors";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements";
-import { NFileSystemDirectoryHandle } from "../FileSystemDirectoryHandle";
+} from "../errors.js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
 
 export class Sink extends DefaultSink<FileHandle> {
     constructor(fileHandle: FileHandle) {

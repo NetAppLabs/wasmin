@@ -19,21 +19,14 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "vitest run --globals",
-    "lint-prettier": "npm run lint:eslint && npm run lint:prettier",
-    "test-no-esm": "jest -i --silent=false --verbose false",
-    "test-jest": "export NODE_OPTIONS=\"--experimental-vm-modules --trace-warnings\" && jest -i --silent=false --verbose=false",
-    "build:esbuild": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/index.js",
-    "dev:esbuild": "esbuild --bundle src/index.ts --format=esm --outfile=dist/index.js --watch",
-    "lint:eslint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
-    "lint:prettier": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write"
+    "test": "vitest run --globals"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NetAppLabs/wasm-env.git"
   },
   "keywords": [],
-  "author": "Ingvar Stepanyan <rreverser@google.com>",
+  "author": "Tryggvi Larusson <tryggvi@netapp.com>",
   "contributors": [
     {
       "name": "Ingvar Stepanyan",
@@ -56,20 +49,17 @@
   "dependencies": {
     "@types/wicg-file-system-access": "^2020.9.5",
     "@wasm-env/fs-js": "*",
-    "@wasm-env/node-fs-js": "*",
     "comlink": "^4.4.1",
     "events": "^3.3.0"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
     "@vitest/coverage-c8": "^0.23.1",
+    "@wasm-env/node-fs-js": "*",
     "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "^0.0.0",
-    "jest": "^29.4.3",
     "jest-extended": "^3.2.3",
-    "ts-jest": "^29.0.5",
-    "vitest": "^0.28.5",
     "web-file-polyfill": "^1.0.4",
-    "web-streams-polyfill": "^3.1.1"
+    "vitest": "^0.28.5"
   }
 }

@@ -4,32 +4,25 @@
   "description": "File System Standard Implementation",
   "private": false,
   "type": "module",
-  "main": "./dist/fs-js.umd.cjs",
-  "module": "./dist/fs-js.js",
-  "exports": {
-    ".": {
-      "import": "./dist/fs-js.js",
-      "require": "./dist/fs-js.umd.cjs"
-    }
-  },
-  "types": "./types/index.d.ts",
-  "sideEffects": false,
+  "source": "src/index.ts",
+  "exports": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
-    "src",
     "dist",
-    "types"
+    "src"
   ],
   "scripts": {
-    "lint": "npm run lint:eslint && npm run lint:prettier",
-    "build-esbuild": "esbuild --bundle src/index.node.ts --platform=node --format=esm --outfile=dist/fs-js.umd.cjs && esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/fs-js.js --external:node:* ",
-    "dev": "esbuild --bundle src/index.ts --platform=browser --format=esm --outfile=dist/fs-js.js --watch",
-    "build": "vite build && yarn tsc",
-    "test": "jest --silent=false --verbose false",
-    "lint:eslint": "eslint \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --fix",
-    "lint:prettier": "prettier \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --write",
-    "prepublishOnly": "yarn lint && yarn test && yarn build"
+    "build": "tsc -p .",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "dev": "tsc -p . --watch",
+    "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
+    "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
+    "start": "echo start",
+    "test": "vitest run --globals"
   },
-  "repository": "ssh://git@github.com/tryggvil/fs-js.git",
+  "repository": "ssh://git@github.com/NetAppLabs/wasm-env.git",
   "keywords": [
     "filesystem",
     "file",
@@ -44,9 +37,9 @@
   ],
   "author": "Jimmy Wärting",
   "license": "MIT",
-  "homepage": "https://github.com/tryggvil/fs-js#readme",
+  "homepage": "https://github.com/NetAppLabs/wasm-env#readme",
   "bugs": {
-    "url": "https://github.com/tryggvil/fs-js/issues"
+    "url": "https://github.com/NetAppLabs/wasm-env/issues"
   },
   "contributors": [
     {
@@ -68,14 +61,8 @@
     "@types/jest": "^29.0.0",
     "@types/js-yaml": "^4.0.5",
     "@types/url-parse": "^1.4.8",
-    "esbuild": "^0.16.6",
-    "eslint": "^8.29.0",
+    "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "*",
-    "jest": "^29.2.2",
-    "rollup-plugin-polyfill-node": "^0.11.0",
-    "ts-jest": "^29.0.3",
-    "typescript": "^4.8.2",
-    "vite": "^4.0.1",
     "web-file-polyfill": "^1.0.4"
   },
   "funding": [

@@ -1,4 +1,4 @@
-import { NotFoundError } from "../errors";
+import { NotFoundError } from "../errors.js";
 
 export class FileHandle {
     constructor(public name = "unkown") {}

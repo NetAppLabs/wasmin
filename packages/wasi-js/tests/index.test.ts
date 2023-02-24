@@ -5,19 +5,10 @@ import path from "path";
 import { readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn } from "../src";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
-//import { node } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
 //import { NfsDirectoryHandle } from "../../../../nfs-js";
 import { File, Blob } from "web-file-polyfill";
-
-/*
-// require is here needed to get node export
-const wasm_env_fs = require("@wasm-env/fs-js");
-const getOriginPrivateDirectory = wasm_env_fs.getOriginPrivateDirectory;
-const memory = wasm_env_fs.getOriginPrivateDirectory;
-const node = wasm_env_fs.node;
-*/
 
 globalThis.File = File;
 globalThis.Blob = Blob;

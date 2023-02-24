@@ -1,7 +1,7 @@
-import { NFileSystemHandle } from "./FileSystemHandle";
-import { NFileSystemFileHandle } from "./FileSystemFileHandle";
-import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL";
-import { TypeMismatchError } from "./errors";
+import { NFileSystemHandle } from "./FileSystemHandle.js";
+import { NFileSystemFileHandle } from "./FileSystemFileHandle.js";
+import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL.js";
+import { TypeMismatchError } from "./errors.js";
 
 const FILESYSTEM_DEBUG = false;
 

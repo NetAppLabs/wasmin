@@ -1,5 +1,5 @@
 import type { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
-import { fromInput } from "./util";
+import { fromInput } from "./util.js";
 
 export async function showDirectoryPicker(): Promise<NFileSystemDirectoryHandle> {
     const input = document.createElement("input");

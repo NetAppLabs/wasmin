@@ -1,4 +1,4 @@
-import { NotFoundError } from "../errors";
+import { NotFoundError } from "../errors.js";
 
 declare let globalThis: any;
 globalThis.FSJS_UTIL_DEBUG = false;
