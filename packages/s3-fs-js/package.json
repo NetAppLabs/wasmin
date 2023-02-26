@@ -1,7 +1,7 @@
 {
   "name": "@wasm-env/s3-fs-js",
   "version": "0.1.0",
-  "description": "",
+  "description": "S3 implementation of FileSystem Standard",
   "private": false,
   "main": "./dist/s3-fs-js.umd.js",
   "module": "./dist/s3-fs-js.mjs",
@@ -22,11 +22,11 @@
     "lint:eslint": "eslint \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --fix",
     "lint:prettier": "prettier \"./{src,test}/**/*.{js,ts,tsx,svelte}\" --write"
   },
-  "author": "",
+  "author": "tryggvil",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.231.0",
-    "@aws-sdk/signature-v4-crt": "^3.226.0",
+    "@aws-sdk/client-s3": "^3.279.0",
+    "@aws-sdk/signature-v4-crt": "^3.272.0",
     "@wasm-env/fs-js": "*"
   },
   "devDependencies": {

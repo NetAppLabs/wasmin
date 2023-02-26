@@ -2,6 +2,8 @@
 // Borrowed from repository https://github.com/developit/web-worker
 // included and modified here because code is outdated
 
+import { isNode } from "../../wasiUtils.js";
+
 
 //type ConstructorOf<C> = { new (...args: any[]): C }
 //
@@ -69,12 +71,18 @@ interface WorkerOptions {
 export default Worker;
 
 export async function createWorker(scriptURL: string | URL, options?: WorkerOptions): Promise<Worker> {
-    const isNode = false;
-    if (isNode) {
+    const forNode = isNode();
+    if (forNode) {
         const nodeImport = await import("./node.js");
-        // @ts-ignore
-        const nodeWorker = nodeImport.Worker;
-        const w = new nodeWorker(scriptURL, options);
+        const nodeWorker = nodeImport.default;
+        let stringScriptUrl: string;
+        if (scriptURL instanceof URL) {
+            const sUrl = scriptURL as URL;
+            stringScriptUrl = sUrl.toString();
+        } else {
+            stringScriptUrl = scriptURL;
+        }
+        const w = new nodeWorker(stringScriptUrl, options);
         return w;
     } else {
         return new Worker(scriptURL, options);

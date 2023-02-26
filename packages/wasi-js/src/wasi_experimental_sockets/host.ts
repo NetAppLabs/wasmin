@@ -1,5 +1,5 @@
 import { WasiEnv } from "../wasi.js";
-import { detectNode, translateErrorToErrorno } from "../wasiUtils.js";
+import { isNode, translateErrorToErrorno } from "../wasiUtils.js";
 import {
     Addr,
     AddressFamily,
@@ -26,7 +26,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
         this._wasiEnv = wasiEnv;
         this._get_exports_func = get_export;
-        this._isNode = detectNode();
+        this._isNode = isNode();
     }
     public _get_exports_func?: (name: string) => WebAssembly.ExportValue;
     private _wasiEnv: WasiEnv;
@@ -65,7 +65,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
         let addrResolve: (host: string, port: number) => Promise<AddressInfo[]>;
-        if (detectNode()) {
+        if (isNode()) {
             const nodeImpl = await import("./net_node.js");
             addrResolve = nodeImpl.addrResolve;
         } else {
@@ -120,7 +120,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("sockOpen:  afn: ", af as number);
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
-            if (detectNode()) {
+            if (isNode()) {
                 const nodeImpl = await import("./net_node.js");
                 const createSocket = nodeImpl.createNodeTcpSocket;
                 const createServer = nodeImpl.createNodeTcpServer;
@@ -147,7 +147,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
             }
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
-            if (detectNode()) {
+            if (isNode()) {
                 let sock: WasiSocket;
                 switch (af) {
                     case AddressFamilyN.INET_4:

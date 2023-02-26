@@ -2,11 +2,13 @@ import { Asyncify } from "./asyncify.js";
 import { Channel, makeAtomicsChannel, makeChannel, readMessage, uuidv4 } from "./vendored/sync-message/index.js";
 import { initializeHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
-//import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
-import { parentPort } from "node:worker_threads";
-import Worker from "./vendored/web-worker/index.js";
+import Worker, { createWorker } from "./vendored/web-worker/index.js";
 //import { URL } from "node:url";
+
+import { parentPort } from "node:worker_threads";
+//import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
 //import {Worker} from 'node:worker_threads';
+
 import { sleep } from "./wasiUtils.js";
 
 //
@@ -238,7 +240,6 @@ export async function instantiateWithAsyncDetection(
             }
 
             const useAbsolutePath = false;
-
             let worker: Worker;
             if (useAbsolutePath) {
                 const workerPath =
@@ -248,23 +249,29 @@ export async function instantiateWithAsyncDetection(
                 //worker = new Worker(import.meta.url);
             } else {
                 //worker = new Worker(new URL("./worker.js", import.meta.url).href, { type: "module" });
+                //const workerUrlString = await import.meta.resolve("./wasmThread.js", import.meta.url);
+                //const workerUrl = new URL(workerUrlString);
 
                 const workerUrl = new URL("./wasmThread.js", import.meta.url);
+
+                wasmHandlerDebug("workerUrl:", workerUrl);
                 //const importSrc = `import ${JSON.stringify(workerUrl)};`;
                 //const blob = new Blob([importSrc], { type: "text/javascript" });
                 // @ts-ignore
                 //const objectURL = URL.createObjectURL(blob);
                 //const worker = new Worker(workerUrl.href, { type: "module" });
                 //const worker = new Worker(workerUrl.href);
-                worker = new Worker(workerUrl);
+                //worker = new Worker(workerUrl);
+                worker = await createWorker(workerUrl);
+                wasmHandlerDebug("createWorker: ", worker);
             }
 
             if (worker) {
                 worker.addEventListener("message", (msg: MessageEvent<any>) => {
+                //worker.on("message", (msg: MessageEvent<any>) => {
                     if (globalThis.WASM_THREAD_DEBUG) {
                         console.log("WasmThread worker message received: ", msg);
                     }
-                    console.log("WasmThread worker message received: ", msg);
                 });
 
                 //worker.on("error", err => console.log("`Worker error:", err));

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
 
-import URL from "url";
+import URL from "node:url";
 import VM from "vm";
 import threads from "node:worker_threads";
 
@@ -25,35 +24,44 @@ const EVENTS = Symbol.for("events");
 
 class EventTarget {
     constructor() {
-        Object.defineProperty(this, EVENTS, {
+        /*Object.defineProperty(this, EVENTS, {
             value: new Map(),
-        });
+        });*/
     }
-    dispatchEvent(event: any) {
+    _events = new Map();
+    _onlisteners: Map<string, (params: any[]) => any> = new Map();
+    get [EVENTS]() { return this._events }
+    get on() { return this._onlisteners }
+
+    //dispatchEvent(event: Event): boolean;
+    dispatchEvent(event: any): boolean {
         event.target = event.currentTarget = this;
-        if (this["on" + event.type]) {
+        const onevent = this.on.get(event.type);
+        if (onevent) {
             try {
-                this["on" + event.type](event);
+                onevent(event);
             } catch (err) {
                 console.error(err);
             }
         }
         const list = this[EVENTS].get(event.type);
-        if (list == null) return;
-        list.forEach((handler) => {
+        if (list == null) return false;
+        list.forEach((handler: any) => {
             try {
                 handler.call(this, event);
             } catch (err) {
                 console.error(err);
             }
         });
+        return true;
     }
-    addEventListener(type, fn) {
+    //addEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: AddEventListenerOptions | boolean): void;
+    addEventListener(type: string, fn: any) {
         let events = this[EVENTS].get(type);
         if (!events) this[EVENTS].set(type, (events = []));
         events.push(fn);
     }
-    removeEventListener(type, fn) {
+    removeEventListener(type: any, fn: any) {
         const events = this[EVENTS].get(type);
         if (events) {
             const index = events.indexOf(fn);
@@ -62,15 +70,26 @@ class EventTarget {
     }
 }
 
-function Event(type, target) {
-    this.type = type;
-    this.timeStamp = Date.now();
-    this.target = this.currentTarget = this.data = null;
+class WorkerEvent {
+    constructor(type: string, target?: any) {
+        this.type = type;
+        this.timeStamp = Date.now();
+        this.target = this.currentTarget = this.data = null;
+    }
+    public type: string;
+    public timeStamp: number;
+    public target: any;
+    public currentTarget: any;
+    public data: any;
 }
+
+
 
 // this module is used self-referentially on both sides of the
 // thread boundary, but behaves differently in each context.
-export default threads.isMainThread ? mainThread() : workerThread();
+//export default threads.isMainThread ? mainThread() : workerThread();
+
+export default mainThread();
 
 const baseUrl = URL.pathToFileURL(process.cwd() + "/");
 
@@ -88,43 +107,57 @@ function mainThread() {
      * @param {string} [options.type="classic"]  Pass "module" to create a Module Worker.
      */
     class Worker extends EventTarget {
-        constructor(url, options) {
+        
+        constructor(url: string, options: any) {
             super();
             const { name, type } = options || {};
             url += "";
-            let mod;
+            let mod: string
             if (/^data:/.test(url)) {
                 mod = url;
             } else {
                 mod = URL.fileURLToPath(new URL.URL(url, baseUrl));
             }
-            const worker = new threads.Worker(__filename, {
+            const threadsWorker = new threads.Worker(mod, {
                 workerData: { mod, name, type },
             });
-            Object.defineProperty(this, WORKER, {
+            /*Object.defineProperty(this, WORKER, {
                 value: worker,
-            });
-            worker.on("message", (data) => {
-                const event = new Event("message");
+            });*/
+            this._worker = threadsWorker;
+            threadsWorker.on("message", (data) => {
+                const event = new WorkerEvent("message");
                 event.data = data;
                 this.dispatchEvent(event);
             });
-            worker.on("error", (error) => {
+            threadsWorker.on("error", (error: any) => {
                 error.type = "error";
                 this.dispatchEvent(error);
             });
-            worker.on("exit", () => {
-                this.dispatchEvent(new Event("close"));
+            threadsWorker.on("exit", () => {
+                this.dispatchEvent(new WorkerEvent("close"));
             });
         }
-        postMessage(data, transferList) {
+        _worker: threads.Worker;
+        get [WORKER]() { return this._worker }    
+        postMessage(data: any, transferList: any) {
             this[WORKER].postMessage(data, transferList);
         }
         terminate() {
             this[WORKER].terminate();
         }
+
+        onmessage(msg: any){
+            console.log("node.Worker onmessage: ", msg)
+        }
+        onerror(msg: any){
+            console.log("node.Worker onerror: ", msg)
+        }
+        onmessageerror(msg: any){
+            console.log("node.Worker onmessageerror: ", msg)
+        }
     }
-    Worker.prototype.onmessage = Worker.prototype.onerror = Worker.prototype.onclose = null;
+    //Worker.prototype.onmessage = Worker.prototype.onerror = Worker.prototype.onclose = null;
     return Worker;
 }
 
@@ -132,31 +165,38 @@ function workerThread() {
     const { mod, name, type } = threads.workerData;
 
     // turn global into a mock WorkerGlobalScope
-    const workerSelf = globalThis;
+    const workerThis = globalThis;
 
     // enqueue messages to dispatch after modules are loaded
-    let q = [];
+    let q: Event[] | null = [];
     function flush() {
         const buffered = q;
         q = null;
-        buffered.forEach((event) => {
-            workerSelf.dispatchEvent(event);
+        if (buffered) {
+            buffered.forEach((event) => {
+                workerThis.dispatchEvent(event);
+            });
+        }
+    }
+    if (threads.parentPort) {
+        threads.parentPort.on("message", (data) => {
+            const event = new WorkerEvent("message");
+            event.data = data;
+            const ev = event as unknown as Event;
+            if (q == null) workerThis.dispatchEvent(ev);
+            else q.push(ev);
+        });
+        threads.parentPort.on("error", (err) => {
+            err.type = "Error";
+            workerThis.dispatchEvent(err);
         });
     }
-    threads.parentPort.on("message", (data) => {
-        const event = new Event("message");
-        event.data = data;
-        if (q == null) workerSelf.dispatchEvent(event);
-        else q.push(event);
-    });
-    threads.parentPort.on("error", (err) => {
-        err.type = "Error";
-        workerSelf.dispatchEvent(err);
-    });
 
     class WorkerGlobalScope extends EventTarget {
-        postMessage(data, transferList) {
-            threads.parentPort.postMessage(data, transferList);
+        postMessage(data: any, transferList: readonly threads.TransferListItem[] | undefined) {
+            if (threads.parentPort) {
+                threads.parentPort.postMessage(data, transferList);
+            }
         }
         // Emulates https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope/close
         close() {
@@ -170,6 +210,7 @@ function workerThread() {
     ["postMessage", "addEventListener", "removeEventListener", "dispatchEvent"].forEach((fn) => {
         proto[fn] = proto[fn].bind(global);
     });
+    // @ts-ignore
     global.name = name;
 
     const isDataUrl = /^data:/.test(mod);
@@ -199,15 +240,16 @@ function workerThread() {
     }
 }
 
-function evaluateDataUrl(url, name) {
+function evaluateDataUrl(url: any, name: any) {
     const { data } = parseDataUrl(url);
     return VM.runInThisContext(data, {
         filename: "worker.<" + (name || "data:") + ">",
     });
 }
 
-function parseDataUrl(url) {
-    const [m, type, encoding, data] = url.match(/^data: *([^;,]*)(?: *; *([^,]*))? *,(.*)$/) || [];
+function parseDataUrl(url: { match: (arg0: RegExp) => any[]; }) {
+    // eslint-disable-next-line prefer-const
+    let [m, type, encoding, data] = url.match(/^data: *([^;,]*)(?: *; *([^,]*))? *,(.*)$/) || [];
     if (!m) throw Error("Invalid Data URL.");
     if (encoding)
         switch (encoding.toLowerCase()) {

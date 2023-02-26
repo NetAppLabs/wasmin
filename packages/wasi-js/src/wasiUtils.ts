@@ -265,10 +265,20 @@ export function translateErrorToErrorno(err: any): Errno {
     return ErrnoN.INVAL;
 }
 
-export function detectNode() {
-    // only node.js has global process class
+export function isNode() {
+    // only node.js or bun has global process class
+    if (!isBun()) {        
+        return globalThis.process != null;
+    } else {
+        return false;
+    }
+}
+
+export function isBun() {
+    // only bun has global Bun
     try {
-        return Object.prototype.toString.call(global.process) === "[object process]";
+        // @ts-ignore
+        return globalThis.Bun != null;
     } catch (e) {
         return false;
     }

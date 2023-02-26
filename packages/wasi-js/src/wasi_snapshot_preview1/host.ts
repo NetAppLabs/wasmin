@@ -58,7 +58,7 @@ import {
     RIGHTS_DIRECTORY_INHERITING,
     translateErrorToErrorno,
     wasiWarn,
-    detectNode,
+    isNode,
 } from "../wasiUtils.js";
 import { WasiEnv } from "../wasi.js";
 
@@ -93,7 +93,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
         this._wasiEnv = wasiEnv;
         this._get_exports_func = get_export;
-        this._isNode = detectNode();
+        this._isNode = isNode();
     }
     public _get_exports_func?: (name: string) => WebAssembly.ExportValue;
     private _wasiEnv: WasiEnv;
