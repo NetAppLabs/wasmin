@@ -1,9 +1,7 @@
-
 // Borrowed from repository https://github.com/developit/web-worker
 // included and modified here because code is outdated
 
 import { isNode } from "../../wasiUtils.js";
-
 
 //type ConstructorOf<C> = { new (...args: any[]): C }
 //

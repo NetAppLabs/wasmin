@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import URL from "node:url";
 import VM from "vm";
 import threads from "node:worker_threads";
@@ -30,8 +29,12 @@ class EventTarget {
     }
     _events = new Map();
     _onlisteners: Map<string, (params: any[]) => any> = new Map();
-    get [EVENTS]() { return this._events }
-    get on() { return this._onlisteners }
+    get [EVENTS]() {
+        return this._events;
+    }
+    get on() {
+        return this._onlisteners;
+    }
 
     //dispatchEvent(event: Event): boolean;
     dispatchEvent(event: any): boolean {
@@ -83,8 +86,6 @@ class WorkerEvent {
     public data: any;
 }
 
-
-
 // this module is used self-referentially on both sides of the
 // thread boundary, but behaves differently in each context.
 //export default threads.isMainThread ? mainThread() : workerThread();
@@ -107,12 +108,11 @@ function mainThread() {
      * @param {string} [options.type="classic"]  Pass "module" to create a Module Worker.
      */
     class Worker extends EventTarget {
-        
         constructor(url: string, options: any) {
             super();
             const { name, type } = options || {};
             url += "";
-            let mod: string
+            let mod: string;
             if (/^data:/.test(url)) {
                 mod = url;
             } else {
@@ -139,7 +139,9 @@ function mainThread() {
             });
         }
         _worker: threads.Worker;
-        get [WORKER]() { return this._worker }    
+        get [WORKER]() {
+            return this._worker;
+        }
         postMessage(data: any, transferList: any) {
             this[WORKER].postMessage(data, transferList);
         }
@@ -147,14 +149,14 @@ function mainThread() {
             this[WORKER].terminate();
         }
 
-        onmessage(msg: any){
-            console.log("node.Worker onmessage: ", msg)
+        onmessage(msg: any) {
+            console.log("node.Worker onmessage: ", msg);
         }
-        onerror(msg: any){
-            console.log("node.Worker onerror: ", msg)
+        onerror(msg: any) {
+            console.log("node.Worker onerror: ", msg);
         }
-        onmessageerror(msg: any){
-            console.log("node.Worker onmessageerror: ", msg)
+        onmessageerror(msg: any) {
+            console.log("node.Worker onmessageerror: ", msg);
         }
     }
     //Worker.prototype.onmessage = Worker.prototype.onerror = Worker.prototype.onclose = null;
@@ -247,7 +249,7 @@ function evaluateDataUrl(url: any, name: any) {
     });
 }
 
-function parseDataUrl(url: { match: (arg0: RegExp) => any[]; }) {
+function parseDataUrl(url: { match: (arg0: RegExp) => any[] }) {
     // eslint-disable-next-line prefer-const
     let [m, type, encoding, data] = url.match(/^data: *([^;,]*)(?: *; *([^,]*))? *,(.*)$/) || [];
     if (!m) throw Error("Invalid Data URL.");

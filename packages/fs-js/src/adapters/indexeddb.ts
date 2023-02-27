@@ -1,4 +1,10 @@
-import { InvalidModificationError, InvalidStateError, NotFoundError, SyntaxError, TypeMismatchError } from "../errors.js";
+import {
+    InvalidModificationError,
+    InvalidStateError,
+    NotFoundError,
+    SyntaxError,
+    TypeMismatchError,
+} from "../errors.js";
 import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
 import { NFileSystemDirectoryHandle } from "../FileSystemDirectoryHandle.js";

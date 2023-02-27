@@ -11,7 +11,7 @@ export function isBun() {
 }
 
 export function isNode() {
-    if (!isBun()) {        
+    if (!isBun()) {
         return globalThis.process != null;
     } else {
         return false;

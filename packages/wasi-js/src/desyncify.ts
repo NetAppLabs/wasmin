@@ -3,11 +3,8 @@ import { Channel, makeAtomicsChannel, makeChannel, readMessage, uuidv4 } from ".
 import { initializeHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-//import { URL } from "node:url";
 
 import { parentPort } from "node:worker_threads";
-//import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
-//import {Worker} from 'node:worker_threads';
 
 import { sleep } from "./wasiUtils.js";
 
@@ -19,18 +16,6 @@ import { sleep } from "./wasiUtils.js";
 //
 
 export const USED_SHARED_MEMORY = true;
-
-/*
-export const wasmThreadDLogger = new Console({
-    stdout: fs.createWriteStream("wasmthread-out.log"),
-    stderr: fs.createWriteStream("wasmthread-err.log"),
-});
-
-export const wasmProxyLogger = new Console({
-    stdout: fs.createWriteStream("wasmproxy-out.log"),
-    stderr: fs.createWriteStream("wasmproxy-err.log"),
-});
-*/
 
 declare let globalThis: any;
 globalThis.WASM_THREAD_DEBUG = false;
@@ -174,10 +159,10 @@ export class WasmThreadRunner {
             if (exportedfunc) {
                 try {
                     const result = exportedfunc(...args);
-                    console.log("returning from exportedFunc");
+                    wasmThreadDebug("returning from exportedFunc");
                     return result;
                 } catch (err: any) {
-                    console.log("err catched from from exportedFunc:", err);
+                    wasmThreadDebug("err catched from from exportedFunc:", err);
                     throw err;
                 }
             } else {
@@ -234,46 +219,32 @@ export async function instantiateWithAsyncDetection(
         wasmHandlerDebug("instantiateWithAsyncDetection made channel: ", channel);
 
         if (channel) {
-
             if (!sourceBuffer) {
                 throw new Error("BufferSource must be set for non-asyncified wasm modules to work");
             }
 
-            const useAbsolutePath = false;
+            const useNodeWorkerThreads = false;
             let worker: Worker;
-            if (useAbsolutePath) {
+            if (useNodeWorkerThreads) {
                 const workerPath =
                     "file:///Users/tryggvil/Development/netapp/wasm/wasm-env/packages/wasi-js/dist/wasmThread.js";
                 const workerUrl = new URL(workerPath);
                 worker = new Worker(workerUrl);
-                //worker = new Worker(import.meta.url);
             } else {
-                //worker = new Worker(new URL("./worker.js", import.meta.url).href, { type: "module" });
-                //const workerUrlString = await import.meta.resolve("./wasmThread.js", import.meta.url);
-                //const workerUrl = new URL(workerUrlString);
-
                 const workerUrl = new URL("./wasmThread.js", import.meta.url);
 
                 wasmHandlerDebug("workerUrl:", workerUrl);
-                //const importSrc = `import ${JSON.stringify(workerUrl)};`;
-                //const blob = new Blob([importSrc], { type: "text/javascript" });
-                // @ts-ignore
-                //const objectURL = URL.createObjectURL(blob);
-                //const worker = new Worker(workerUrl.href, { type: "module" });
-                //const worker = new Worker(workerUrl.href);
-                //worker = new Worker(workerUrl);
                 worker = await createWorker(workerUrl);
                 wasmHandlerDebug("createWorker: ", worker);
             }
 
             if (worker) {
                 worker.addEventListener("message", (msg: MessageEvent<any>) => {
-                //worker.on("message", (msg: MessageEvent<any>) => {
+                    //worker.on("message", (msg: MessageEvent<any>) => {
                     if (globalThis.WASM_THREAD_DEBUG) {
                         console.log("WasmThread worker message received: ", msg);
                     }
                 });
-
                 //worker.on("error", err => console.log("`Worker error:", err));
                 //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
             }

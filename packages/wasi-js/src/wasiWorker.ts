@@ -1,10 +1,11 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
-import { Worker } from "node:worker_threads";
+//import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
+//import { Worker } from "node:worker_threads";
 import { URL } from "node:url";
-import { getWasmBuffer, getWasmModuleAndBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { getWasmBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
 import { ReciveMemoryFunc } from "./desyncify.js";
+import { createWorker } from "./vendored/web-worker/index.js";
 
 export class WASIWorker {
     constructor(wasiOptions: WasiOptions) {
@@ -17,26 +18,20 @@ export class WASIWorker {
         //const wasiOptionsProxied = {};
         wasiWorkerDebug("WASIWorker this._wasiOptions: ", this._wasiOptions);
         const wasiOptionsProxied = getWasiOptionsProxied(this._wasiOptions);
-        //const wasiOptionsProxied = this._wasiOptions;
-        //const pathResolved = path.resolve(__dirname, './wasiWorkerThread.js', import.meta.url);
-        //const pathResolved = path.resolve(__dirname, './wasiWorkerThread.js');
-        const pathResolved =
-            "file:///Users/tryggvil/Development/netapp/wasm/wasm-env/packages/wasi-js/dist/wasiWorkerThread.js";
-        wasiWorkerDebug("WASIWorker pathResolved: ", pathResolved);
 
-        const workerUrl = new URL(pathResolved);
-
+        const workerUrl = new URL("./wasiWorkerThread.js", import.meta.url);
         wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
-        //const worker = new Worker(`${__dirname}/wasiWorkerThread.js`);
-        const worker = new Worker(workerUrl);
+        const worker = await createWorker(workerUrl);
 
         //const worker =  new Worker(new URL("./worker.js", import.meta.url).href, { type: "module" });
 
-        const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(nodeEndpoint(worker));
+        //const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(nodeEndpoint(worker));
+        const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
         wasiWorkerDebug("WASIWorker setOptions: ", wasiOptionsProxied);
 
-        worker.on("message", (incoming) => {
-            wasiWorkerDebug("WASIWorker incoming message: ", { incoming });
+        //worker.on("message", (incoming) => {
+        worker.addEventListener("message", (msg: MessageEvent<any>) => {
+            wasiWorkerDebug("WASIWorker incoming message: ", { msg });
         });
 
         try {
