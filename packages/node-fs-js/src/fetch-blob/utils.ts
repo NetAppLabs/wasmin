@@ -1,4 +1,4 @@
-import { MyBlob } from "./blob";
+import { MyBlob } from "./blob.js";
 
 // 64 KiB (same size chrome slice theirs blob into Uint8array's)
 const POOL_SIZE = 65536;

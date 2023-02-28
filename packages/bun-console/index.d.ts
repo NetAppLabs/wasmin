@@ -7,3 +7,11 @@ export function termSetRawMode(mode: number): number
 export function termGetRawMode(): number
 export function termGetColumns(): number
 export function termGetRows(): number
+export function termSetRawMode(mode: number): number
+export function termGetRawMode(): number
+export function termGetColumns(): number
+export function termGetRows(): number
+export function termSetRawMode(mode: number): number
+export function termGetRawMode(): number
+export function termGetColumns(): number
+export function termGetRows(): number

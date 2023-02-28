@@ -1,4 +1,4 @@
-import { MyBlob } from "./blob";
+import { MyBlob } from "./blob.js";
 
 export class MyFile extends MyBlob {
     constructor(

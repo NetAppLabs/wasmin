@@ -1,11 +1,9 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-//import nodeEndpoint from "comlink/dist/umd/node-adapter.js";
-//import { Worker } from "node:worker_threads";
-import { URL } from "node:url";
 import { getWasmBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
 import { ReciveMemoryFunc } from "./desyncify.js";
 import { createWorker } from "./vendored/web-worker/index.js";
+import { isNode } from "./wasiUtils.js";
 
 export class WASIWorker {
     constructor(wasiOptions: WasiOptions) {
@@ -19,13 +17,20 @@ export class WASIWorker {
         wasiWorkerDebug("WASIWorker this._wasiOptions: ", this._wasiOptions);
         const wasiOptionsProxied = getWasiOptionsProxied(this._wasiOptions);
 
-        const workerUrl = new URL("./wasiWorkerThread.js", import.meta.url);
+        let workerUrlString = "./wasiWorkerThread.js";
+        if (isNode()){
+            workerUrlString = "./wasiWorkerThreadNode.js";
+        }
+        const workerUrl = new URL(workerUrlString, import.meta.url);
         wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
         const worker = await createWorker(workerUrl);
 
-        //const worker =  new Worker(new URL("./worker.js", import.meta.url).href, { type: "module" });
-
+        //const { URL } = await import("node:url");
+        //const nodeEndpoint = await import("comlink/dist/umd/node-adapter.js");
+        //const { Worker } = await import("node:worker_threads");
+        //const worker =  new Worker(new URL("./wasiWorkerThreadNode.js");
         //const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(nodeEndpoint(worker));
+
         const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
         wasiWorkerDebug("WASIWorker setOptions: ", wasiOptionsProxied);
 

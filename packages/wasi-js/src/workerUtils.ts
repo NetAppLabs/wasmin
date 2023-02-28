@@ -1,5 +1,4 @@
 import * as comlink from "comlink";
-import { promises } from "node:fs";
 
 declare let globalThis: any;
 globalThis.WASI_WORKER_DEBUG = false;
@@ -18,9 +17,19 @@ export function wasiWorkerSerializeDebug(msg?: any, ...optionalParams: any[]): v
     }
 }
 
-export async function getWasmModuleSource(moduleUrl: string) {
-    const wasmBuf = await promises.readFile(moduleUrl);
-    return wasmBuf;
+export async function getWasmModuleSource(urlOrPath: string) {
+    let url;
+    try {
+        url = new URL(urlOrPath);
+        const res = await fetch(url);
+        const data = await res.arrayBuffer();
+        return data;
+    } catch (err: any) {
+        wasiWorkerDebug("getWasmModuleSource failed to get url: ", err);
+        const promises = await import("node:fs/promises");
+        const wasmBuf = await promises.readFile(urlOrPath);
+        return wasmBuf;
+    }
 }
 
 export async function getWasmModule(moduleUrl: string) {

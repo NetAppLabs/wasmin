@@ -12,11 +12,11 @@ import {
     TypeMismatchError,
 } from "@wasm-env/fs-js";
 //} from "@wasm-env/fs-js/errors";
-import { fileFrom, BlobDataItem } from "./fetch-blob/form";
-import { MyBlob } from "./fetch-blob/blob";
+import { fileFrom, BlobDataItem } from "./fetch-blob/form.js";
+import { MyBlob } from "./fetch-blob/blob.js";
 //import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js/adapters/implements";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js";
-import type { MyFile } from "./fetch-blob/file";
+import type { MyFile } from "./fetch-blob/file.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 

@@ -8,7 +8,7 @@
     "esbuild": "esbuild --bundle src/index.ts --format=esm --platform=node --outfile=dist/out.js --main-fields=main,module",
     "clean": "rm -rf node_modules",
     "run": "bun src/index.ts",
-    "test": "bun wiptest",
+    "test": "bun test",
     "dev": "echo dev"
   },
   "devDependencies": {

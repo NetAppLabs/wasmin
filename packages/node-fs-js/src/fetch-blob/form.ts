@@ -8,8 +8,8 @@ import { basename } from "node:path";
 //import type { Stats } from "node:fs";
 //import { basename } from "node:path";
 
-import { MyBlob } from "./blob";
-import { MyFile } from "./file";
+import { MyBlob } from "./blob.js";
+import { MyFile } from "./file.js";
 
 export const blobFrom = async (path: string, type?: string) => {
     const s = await fs.stat(path);

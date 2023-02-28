@@ -1,5 +1,5 @@
 import * as fsSync from "fs";
-import * as fs from "fs/promises";
+import * as fs from "node:fs/promises";
 import { join } from "path";
 
 import {

@@ -3,10 +3,7 @@ import { Channel, makeAtomicsChannel, makeChannel, readMessage, uuidv4 } from ".
 import { initializeHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-
-import { parentPort } from "node:worker_threads";
-
-import { sleep } from "./wasiUtils.js";
+import { isNode, sleep } from "./wasiUtils.js";
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -22,31 +19,38 @@ globalThis.WASM_THREAD_DEBUG = false;
 
 export function wasmThreadDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASM_THREAD_DEBUG) {
-        console.debug(msg, ...optionalParams);
-        if (parentPort) {
-            parentPort.postMessage(msg);
-            const message = { msg: msg, params: [...optionalParams] };
-            parentPort.postMessage(message);
+        if (isNode()) {
+            workerDebugNode(msg, ...optionalParams);
         } else {
             console.debug(msg, ...optionalParams);
         }
     }
 }
+
 
 globalThis.WASM_HANDLER_DEBUG = false;
 
 export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASM_HANDLER_DEBUG) {
-        console.debug(msg, ...optionalParams);
-        if (parentPort) {
-            parentPort.postMessage(msg);
-            const message = { msg: msg, params: [...optionalParams] };
-            parentPort.postMessage(message);
+        if (isNode()) {
+            workerDebugNode(msg, ...optionalParams);
         } else {
             console.debug(msg, ...optionalParams);
         }
     }
 }
+
+export async function workerDebugNode(msg?: any, ...optionalParams: any[]): Promise<void> {
+    const{ parentPort } = await import("node:worker_threads");
+    if (parentPort) {
+        parentPort.postMessage(msg);
+        const message = { msg: msg, params: [...optionalParams] };
+        parentPort.postMessage(message);
+    } else {
+        console.debug(msg, ...optionalParams);
+    }
+}
+
 
 export type ReciveMemoryFunc = (buf: ArrayBuffer) => void;
 
@@ -231,7 +235,11 @@ export async function instantiateWithAsyncDetection(
                 const workerUrl = new URL(workerPath);
                 worker = new Worker(workerUrl);
             } else {
-                const workerUrl = new URL("./wasmThread.js", import.meta.url);
+                let workerUrlString = "./wasmThread.js";
+                if (isNode()) {
+                    workerUrlString = "./wasmThreadNode.js";
+                }
+                const workerUrl = new URL(workerUrlString, import.meta.url);
 
                 wasmHandlerDebug("workerUrl:", workerUrl);
                 worker = await createWorker(workerUrl);
