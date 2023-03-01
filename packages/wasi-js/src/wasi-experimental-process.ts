@@ -67,10 +67,10 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         wasiDebug("exec args: ", args);
         // TODO simplify this
         //prepend name as first arg:
-        const nameWasm = name + ".async.wasm";
+        const nameWasm = name + ".wasm";
         args.splice(0, 0, nameWasm);
         wasiDebug("exec args prepended: ", args);
-        let moduleWaiting: Promise<WebAssembly.Module> | undefined;
+        let moduleOrSource: WebAssembly.Module | BufferSource;
 
         const tryByPath = true;
         let tryByUrl = true;
@@ -86,7 +86,8 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 const file = await wasiFile.getFile();
                 const bufferSource = await file.arrayBuffer();
                 //bufferSource = this._openFiles.findRelPath(wasmFile);
-                moduleWaiting = WebAssembly.compile(bufferSource);
+                //moduleWaiting = WebAssembly.compile(bufferSource);
+                moduleOrSource = bufferSource;
                 tryByUrl = false;
             } catch (err: any) {
                 console.error("wasi::exec err: ", err);
@@ -98,7 +99,9 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
             const wasmUrl = "./" + nameWasm;
             wasiDebug("wasmUrl: ", wasmUrl);
             try {
-                moduleWaiting = WebAssembly.compileStreaming(fetch(wasmUrl));
+                //moduleWaiting = WebAssembly.compileStreaming(fetch(wasmUrl));
+                const res = await fetch(wasmUrl);
+                moduleOrSource = await res.arrayBuffer();
             } catch (err: any) {
                 console.error("wasi::exec err: ", err);
             }
@@ -117,7 +120,6 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 wasiDebug("devnull write: ", str);
             },
         };
-        const module = await moduleWaiting;
 
         const devNull = devnull;
         const runInSandbox = false;
@@ -169,7 +171,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 env: env,
                 tty: tty,
             });
-            w.run(module!)
+            w.run(moduleOrSource!)
                 .then((exitCode) => {
                     if (exitCode !== 0) {
                         wasiDebug(`exec:run exit code: ${exitCode}`);

@@ -113,6 +113,15 @@ export function populateFileStat(buffer: ArrayBuffer, file: File | undefined, fi
     Filestat.set(buffer, filestat_ptr, newFstat);
 }
 
+function copyUint8Array(data: Uint8Array) {
+    const size = data.length;
+    const newBuf = new Uint8Array(size);
+    for (let i=0 ; i < size; i++) {
+        newBuf[i] = data[i];
+    }
+    return newBuf;
+}
+
 export async function forEachIoVec(
     buffer: ArrayBuffer,
     iovsPtr: ptr<Iovec>,
@@ -128,6 +137,15 @@ export async function forEachIoVec(
         //iovec.bufLen = 8*1024;
         wasiDebug(`iovec.bufLen ${iovec.buf_len}`);
         const buf = new Uint8Array(buffer, iovec.buf, iovec.buf_len);
+        /*
+        // clone buffer in case of SharedArrayBuffer
+        const size = iovec.buf_len;
+        const newBuf = new Uint8Array(size);
+        const view = new DataView(newBuf);
+        for (let i=0 ; i < size; i++) {
+            view.setUint8(i, buf[i]);
+        }
+        */
         const handled = await cb(buf);
 
         //this._checkAbort();
@@ -271,6 +289,15 @@ export function isNode() {
         return globalThis.process != null;
     } else {
         return false;
+    }
+}
+
+export function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer) {
+    const srcBytes = new Uint8Array(src);
+    const size = src.byteLength;
+    const view = new DataView(dst);
+    for (let i=0 ; i < size; i++) {
+        view.setUint8(i, srcBytes[i]);
     }
 }
 

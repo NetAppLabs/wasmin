@@ -18,12 +18,12 @@ export class WASIWorker {
         const wasiOptionsProxied = getWasiOptionsProxied(this._wasiOptions);
 
         let workerUrlString = "./wasiWorkerThread.js";
-        if (isNode()){
+        if (isNode()) {
             workerUrlString = "./wasiWorkerThreadNode.js";
         }
         const workerUrl = new URL(workerUrlString, import.meta.url);
         wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
-        const worker = await createWorker(workerUrl);
+        const worker = await createWorker(workerUrl, { type: "module" });
 
         //const { URL } = await import("node:url");
         //const nodeEndpoint = await import("comlink/dist/umd/node-adapter.js");

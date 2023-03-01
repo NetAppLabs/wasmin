@@ -6,7 +6,7 @@ import { instantiate } from "./asyncify.js";
 import {
     HandleWasmImportFunc,
     instantiateWithAsyncDetection,
-    USED_SHARED_MEMORY,
+    USE_SHARED_MEMORY,
     WasmThreadRunner,
 } from "./desyncify.js";
 import * as comlink from "comlink";
@@ -17,7 +17,7 @@ import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimen
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
 import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
-import { CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
+import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
 
@@ -193,11 +193,16 @@ export class WASI {
                 try {
                     return await this.handleImport(messageId, importName, functionName, args, buf);
                 } catch (err: any) {
-                    console.log("WASI.handleImportFuncLocal err: ", err);
+                    wasiDebug("WASI.handleImportFuncLocal err: ", err);
                     throw err;
                 }
             };
             handleImportFunc = comlink.proxy(handleImportFuncLocal);
+            if(handleImportFunc) {
+                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
+            } else {
+                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
+            }
             const instRes = await instantiateWithAsyncDetection(
                 wasmModOrBufSource,
                 this._moduleImports,
@@ -280,14 +285,28 @@ export class WASI {
         if (channel) {
             //wasiDebug(`WASI handleImport: channel is set`);
             if (moduleImports) {
+                let wasmBuf: ArrayBuffer;
+                if (buf instanceof SharedArrayBuffer) {
+                    wasmBuf = new ArrayBuffer(buf.byteLength);
+                    copyBuffer(buf, wasmBuf);
+                } else {
+                    wasmBuf = buf;
+                }
+                /*
+                const wasmBuf = new ArrayBuffer(buf.byteLength);
+                copyBuffer(buf, wasmBuf);
+                */
                 const mem: WebAssembly.Memory = {
-                    buffer: buf,
+                    buffer: wasmBuf,
                     grow: function (delta: number): number {
                         throw new Error("grow function not implemented.");
                     },
                 };
+                
                 this._memory = mem;
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
+                wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._memory);
+
                 const modImport = moduleImports[importName];
                 const importedFunc = modImport[functionName] as any;
                 let funcReturn: any;
@@ -295,6 +314,7 @@ export class WASI {
                 try {
                     funcReturn = await importedFunc(...args);
                 } catch (err: any) {
+                    wasiDebug(`WASI handleImport: importedFunc err: `, err);
                     funcThrownError = err;
                 }
 
@@ -310,7 +330,10 @@ export class WASI {
                     );
                 }
                 let response: any;
-                if (USED_SHARED_MEMORY) {
+                if (USE_SHARED_MEMORY) {
+                    if (buf instanceof SharedArrayBuffer) {
+                        copyBuffer(wasmBuf, buf);
+                    }
                     response = { return: funcReturn, error: funcThrownError };
                 } else {
                     const newBuf = this._memory.buffer;
@@ -329,7 +352,7 @@ export class WASI {
                 throw new Error("WASI handleImport: moduleImports not set");
             }
         } else {
-            console.log(`WASI handleImport: channel is not set`);
+            wasiDebug(`WASI handleImport: channel is not set`);
         }
     }
 
