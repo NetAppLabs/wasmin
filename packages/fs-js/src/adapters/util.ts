@@ -15,7 +15,15 @@ export function join(parentPath: string, childName: string, includeTrailingSlash
         // Assuming we are at root
         path = childName;
     } else {
-        path = parentPath + childName;
+        let relChildName = childName;
+        let relParentPath = parentPath;
+        if (parentPath.endsWith("/")) {
+            relParentPath = parentPath.substring(0, parentPath.length - 1);
+        }
+        if (childName.startsWith("/")) {
+            relChildName = childName.substring(1, childName.length);
+        }
+        path = relParentPath + "/" + relChildName;
     }
     if (includeTrailingSlash) {
         path = `${path}/`;

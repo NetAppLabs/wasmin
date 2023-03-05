@@ -12,6 +12,7 @@
  */
 
 import { EventEmitter } from "events";
+import { TextDecoderWrapper } from "../../utils.js";
 import { AddressInfo, NodeNetTcpSocket } from "../../wasi_experimental_sockets/common.js";
 //import { startTls, TrustedCert, ReadQueue } from 'subtls';
 
@@ -39,7 +40,7 @@ function hexDump(data: Uint8Array) {
         `${data.length} bytes` +
         data.reduce((memo, byte) => memo + " " + byte.toString(16).padStart(2, "0"), "\nhex:") +
         "\nstr: " +
-        new TextDecoder().decode(data)
+        new TextDecoderWrapper().decode(data)
     );
 }
 

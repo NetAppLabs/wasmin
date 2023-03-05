@@ -24,8 +24,7 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasm-env/fs-js": "*",
-    "web-streams-polyfill": "^3.2.1"
+    "@wasm-env/fs-js": "*"
   },
   "devDependencies": {
     "@wasm-env/tsconfig": "*",

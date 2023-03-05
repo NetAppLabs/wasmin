@@ -1,4 +1,4 @@
-import { ReadableStream } from "web-streams-polyfill";
+//import { ReadableStream } from "web-streams-polyfill";
 
 import { toIterator } from "./utils.js";
 

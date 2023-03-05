@@ -1,4 +1,5 @@
 import { SystemError } from "./errors.js";
+import { TextDecoderWrapper } from "./utils.js";
 import {
     Errno,
     ErrnoN,
@@ -60,7 +61,7 @@ export interface Out {
 }
 
 export const stringOut = (writeStr: (chunk: string) => void): Out => {
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoderWrapper();
 
     return {
         write: (data) => {
@@ -116,7 +117,7 @@ export function populateFileStat(buffer: ArrayBuffer, file: File | undefined, fi
 function copyUint8Array(data: Uint8Array) {
     const size = data.length;
     const newBuf = new Uint8Array(size);
-    for (let i=0 ; i < size; i++) {
+    for (let i = 0; i < size; i++) {
         newBuf[i] = data[i];
     }
     return newBuf;
@@ -296,7 +297,7 @@ export function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer) {
     const srcBytes = new Uint8Array(src);
     const size = src.byteLength;
     const view = new DataView(dst);
-    for (let i=0 ; i < size; i++) {
+    for (let i = 0; i < size; i++) {
         view.setUint8(i, srcBytes[i]);
     }
 }

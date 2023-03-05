@@ -8,6 +8,8 @@ export default defineConfig({
         server.middlewares.use((_req, res, next) => {
           res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
           res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+          res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+          res.setHeader("Access-Control-Allow-Origin", "*");
           next();
         });
       },
@@ -16,18 +18,18 @@ export default defineConfig({
   build: {
     target: "esnext",
     rollupOptions: {
-			external: [
-					'node:fs',
-					'node:path',
-					'promises',
-					'node:net',
-					'node:dns',
-					'node:url',
-					'node:child_process',
-					'node:worker_threads',
-					'node:module',
-					'node:console'
-			],
+      external: [
+        'node:fs',
+        'node:path',
+        'promises',
+        'node:net',
+        'node:dns',
+        'node:url',
+        'node:child_process',
+        'node:worker_threads',
+        'node:module',
+        'node:console'
+      ],
     },
     output: {
       globals: {

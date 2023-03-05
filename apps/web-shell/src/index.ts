@@ -3,7 +3,7 @@ import "xterm/css/xterm.css";
 import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
-import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasm-env/wasi-js";
 import { default as s3 } from "@wasm-env/s3-fs-js";
 import { default as github } from "@wasm-env/github-fs-js";
 
@@ -211,7 +211,7 @@ if (REGISTER_GITHUB) {
   `);
 
     const textEncoder = new TextEncoder();
-    const textDecoder = new TextDecoder();
+    const textDecoder = new TextDecoderWrapper();
 
     const stdin = {
         async read(num: number) {

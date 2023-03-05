@@ -1,3 +1,5 @@
+import { TextDecoderWrapper } from "./utils.js";
+
 export function clamp_host(i: number, min: number, max: number) {
     if (!Number.isInteger(i)) throw new TypeError(`must be an integer`);
     if (i < min || i > max) throw new RangeError(`must be between ${min} and ${max}`);
@@ -10,7 +12,7 @@ export function data_view(mem: any) {
     if (DATA_VIEW.buffer !== mem.buffer) DATA_VIEW = new DataView(mem.buffer);
     return DATA_VIEW;
 }
-export const UTF8_DECODER = new TextDecoder("utf-8");
+export const UTF8_DECODER = new TextDecoderWrapper("utf-8");
 
 const UTF8_ENCODER = new TextEncoder();
 

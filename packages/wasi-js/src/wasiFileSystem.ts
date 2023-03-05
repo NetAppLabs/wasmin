@@ -236,13 +236,13 @@ export class OpenDirectory {
         }
     }
 
-    async delete(path: string): Promise<void> {
+    async delete(path: string, options?: FileSystemRemoveOptions): Promise<void> {
         filesystemDebug("[delete]");
         const { parent, name } = await this._resolve(path);
         if (!name) {
             throw new SystemError(ErrnoN.ACCES);
         }
-        await parent.removeEntry(name);
+        await parent.removeEntry(name, options);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

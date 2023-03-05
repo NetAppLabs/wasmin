@@ -6,6 +6,7 @@ import { instantiate } from "./asyncify.js";
 import {
     HandleWasmImportFunc,
     instantiateWithAsyncDetection,
+    USE_SHARED_ARRAYBUFFER_WORKAROUND,
     USE_SHARED_MEMORY,
     WasmThreadRunner,
 } from "./desyncify.js";
@@ -198,7 +199,7 @@ export class WASI {
                 }
             };
             handleImportFunc = comlink.proxy(handleImportFuncLocal);
-            if(handleImportFunc) {
+            if (handleImportFunc) {
                 wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
             } else {
                 wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
@@ -283,26 +284,23 @@ export class WASI {
         }
         const channel = this._channel;
         if (channel) {
-            //wasiDebug(`WASI handleImport: channel is set`);
             if (moduleImports) {
                 let wasmBuf: ArrayBuffer;
-                if (buf instanceof SharedArrayBuffer) {
+                if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
+                    wasiDebug("wasi.handleIimport is SharedArrayBuffer buf: ", buf);
                     wasmBuf = new ArrayBuffer(buf.byteLength);
                     copyBuffer(buf, wasmBuf);
                 } else {
+                    wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
                     wasmBuf = buf;
                 }
-                /*
-                const wasmBuf = new ArrayBuffer(buf.byteLength);
-                copyBuffer(buf, wasmBuf);
-                */
                 const mem: WebAssembly.Memory = {
                     buffer: wasmBuf,
                     grow: function (delta: number): number {
                         throw new Error("grow function not implemented.");
                     },
                 };
-                
+
                 this._memory = mem;
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._memory);
@@ -331,7 +329,7 @@ export class WASI {
                 }
                 let response: any;
                 if (USE_SHARED_MEMORY) {
-                    if (buf instanceof SharedArrayBuffer) {
+                    if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
                         copyBuffer(wasmBuf, buf);
                     }
                     response = { return: funcReturn, error: funcThrownError };

@@ -12,15 +12,15 @@
     "run": "node dist/out.js"
   },
   "devDependencies": {
+    "@types/node": "^18.14.5",
     "@wasm-env/tsconfig": "*",
-    "@types/node": "^18.11.15",
     "esbuild": "^0.15.12",
     "vite": "^3.1.8"
   },
   "dependencies": {
     "@wasm-env/fs-js": "*",
     "@wasm-env/node-fs-js": "*",
-    "@wasm-env/wasi-js": "*",
-    "@wasm-env/shell": "*"
+    "@wasm-env/shell": "*",
+    "@wasm-env/wasi-js": "*"
   }
 }

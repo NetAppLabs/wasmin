@@ -6,6 +6,7 @@ const POOL_SIZE = 65536;
 export async function* toIterator(parts: Array<MyBlob | Uint8Array>, clone = true) {
     for (const part of parts) {
         if ("stream" in part) {
+            // @ts-ignore
             yield* part.stream();
         } else if (ArrayBuffer.isView(part)) {
             if (clone) {

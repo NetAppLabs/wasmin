@@ -1,9 +1,10 @@
-import { getOriginPrivateDirectory, memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, join, memory } from "@wasm-env/fs-js";
 import { FileOrDir, OpenFiles } from "./wasiFileSystem.js";
 import { UTF8_DECODER, clamp_host } from "./intrinsics.js";
 import { WASI, WasiEnv } from "./wasi.js";
 import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils.js";
 import { Fd } from "./wasi_snapshot_preview1/bindings.js";
+import { TextDecoderWrapper } from "./utils.js";
 
 export function addWasiExperimentalProcessToImports(
     imports: any,
@@ -65,46 +66,77 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         wasiDebug("exec argvString: ", argvString);
         const args: string[] = parseCStringArray(argvString);
         wasiDebug("exec args: ", args);
+
         // TODO simplify this
         //prepend name as first arg:
-        const nameWasm = name + ".wasm";
-        args.splice(0, 0, nameWasm);
-        wasiDebug("exec args prepended: ", args);
-        let moduleOrSource: WebAssembly.Module | BufferSource;
+        //const nameWasm = name + ".wasm";
 
-        const tryByPath = true;
-        let tryByUrl = true;
+        let moduleOrSource: WebAssembly.Module | BufferSource | undefined;
 
-        if (tryByPath) {
-            // Try by filesystem:
-            try {
-                const wasmFile = "./" + nameWasm;
-                const rootFd = 3 as Fd;
-                const wasiFile = await this._wasiEnv.openFiles
-                    .getPreOpen(rootFd)
-                    .getFileOrDir(wasmFile, FileOrDir.File);
-                const file = await wasiFile.getFile();
-                const bufferSource = await file.arrayBuffer();
-                //bufferSource = this._openFiles.findRelPath(wasmFile);
-                //moduleWaiting = WebAssembly.compile(bufferSource);
-                moduleOrSource = bufferSource;
-                tryByUrl = false;
-            } catch (err: any) {
-                console.error("wasi::exec err: ", err);
+        // Name with suffixes to try to execute:
+        const nameWasmTries = [name, name + ".async.wasm", name + ".wasm"];
+
+        for (const nameWasm of nameWasmTries) {
+            wasiDebug("exec args prepended: ", args);
+
+            const tryByPath = true;
+            let tryByUrl = true;
+
+            if (tryByPath) {
+                // Try by filesystem:
+                try {
+                    wasiDebug("cwd: ", cwd);
+                    wasiDebug("nameWasm: ", nameWasm);
+
+                    let wasmFilePath = join(cwd, nameWasm);
+                    if (wasmFilePath.startsWith("/")) {
+                        wasmFilePath = wasmFilePath.substring(1, wasmFilePath.length);
+                    }
+                    wasiDebug("wasi:exec: trying path: ", wasmFilePath);
+
+                    const relOpen = this._wasiEnv.openFiles.findRelPath(cwd);
+                    if (relOpen) {
+                        const preOpenDir = relOpen.preOpen;
+                        wasiDebug("preOpenDir: ", preOpenDir);
+
+                        const wasiFile = await preOpenDir.getFileOrDir(wasmFilePath, FileOrDir.File);
+
+                        const file = await wasiFile.getFile();
+                        const bufferSource = await file.arrayBuffer();
+                        moduleOrSource = bufferSource;
+                        tryByUrl = false;
+                    }
+                } catch (err: any) {
+                    wasiDebug("wasi:exec err: ", err);
+                }
+            }
+
+            if (tryByUrl) {
+                // Try by url:
+                const wasmUrl = "./" + nameWasm;
+                wasiDebug("wasi:exec: trying wasmUrl: ", wasmUrl);
+                try {
+                    //moduleWaiting = WebAssembly.compileStreaming(fetch(wasmUrl));
+                    const res = await fetch(wasmUrl);
+                    if (res.ok) {
+                        const contentType = res.headers.get("Content-Type");
+                        if (contentType == "application/wasm") {
+                            moduleOrSource = await res.arrayBuffer();
+                        }
+                    }
+                } catch (err: any) {
+                    wasiDebug("wasi:exec err: ", err);
+                }
+            }
+
+            if (moduleOrSource) {
+                args.splice(0, 0, nameWasm);
+                break;
             }
         }
 
-        if (tryByUrl) {
-            // Try by url:
-            const wasmUrl = "./" + nameWasm;
-            wasiDebug("wasmUrl: ", wasmUrl);
-            try {
-                //moduleWaiting = WebAssembly.compileStreaming(fetch(wasmUrl));
-                const res = await fetch(wasmUrl);
-                moduleOrSource = await res.arrayBuffer();
-            } catch (err: any) {
-                console.error("wasi::exec err: ", err);
-            }
+        if (!moduleOrSource) {
+            throw new Error(name + " not found");
         }
 
         const devnull = {
@@ -115,7 +147,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 });
             },
             async write(data: Uint8Array): Promise<void> {
-                const textDecoder = new TextDecoder();
+                const textDecoder = new TextDecoderWrapper();
                 const str = textDecoder.decode(data, { stream: true }).replaceAll("\n", "\r\n");
                 wasiDebug("devnull write: ", str);
             },

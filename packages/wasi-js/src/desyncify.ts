@@ -1,5 +1,12 @@
 import { Asyncify } from "./asyncify.js";
-import { Channel, makeAtomicsChannel, makeChannel, readMessage, syncSleep, uuidv4 } from "./vendored/sync-message/index.js";
+import {
+    Channel,
+    makeAtomicsChannel,
+    makeChannel,
+    readMessage,
+    syncSleep,
+    uuidv4,
+} from "./vendored/sync-message/index.js";
 import { initializeHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
@@ -12,7 +19,12 @@ import { copyBuffer, isNode, sleep } from "./wasiUtils.js";
 // If the WebAssembly.Instance exported memory is not shared it is copied over.
 //
 
+// If true uses a SharedArrayBuffer as memory passed between workers
 export const USE_SHARED_MEMORY = true;
+
+// Copies the SharedArrayBuffer if true over to ArrayBuffer
+// Workaround for issues such as with TextDecoder
+export const USE_SHARED_ARRAYBUFFER_WORKAROUND = false;
 
 declare let globalThis: any;
 globalThis.WASM_THREAD_DEBUG = false;

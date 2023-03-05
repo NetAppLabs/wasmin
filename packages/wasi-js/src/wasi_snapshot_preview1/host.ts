@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { SystemError } from "../errors.js";
-import { FIRST_PREOPEN_FD, OpenFile, FileOrDir } from "../wasiFileSystem.js";
+import { FIRST_PREOPEN_FD, OpenFile, FileOrDir, OpenDirectory } from "../wasiFileSystem.js";
 import { unimplemented } from "../wasiUtils.js";
 import {
     u64,
@@ -549,7 +549,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             unimplemented("path_open FdFlags.SYNC");
         }
 
-        const resultFd = await this.openFiles.open(this.openFiles.getPreOpen(fd), path, oflags, fdflags);
+        const openDir = this.openFiles.getAsDir(fd);
+        const resultFd = await this.openFiles.open(openDir, path, oflags, fdflags);
         wasiDebug(`[path_open result: dirFd: ${fd}, path: ${path}, resultFd: ${resultFd} ]`);
 
         Fd.set(this.buffer, result_ptr, resultFd);
@@ -571,8 +572,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     async pathRemoveDirectory(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
         wasiDebug(`[path_remove_directory] fd: ${fd} path: ${path}`);
-        const preOpenDir = this.openFiles.getPreOpen(fd);
-        await preOpenDir.delete(path);
+        const openDir = this.openFiles.getAsDir(fd);
+        await openDir.delete(path);
         return ErrnoN.SUCCESS;
     }
     async pathRename(
@@ -599,7 +600,17 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     async pathUnlinkFile(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
         wasiDebug(`[path_unlink_file] dirfd: ${fd} path: ${path}`);
-        await this.openFiles.getPreOpen(fd).delete(path);
+        const resource = this.openFiles.get(fd);
+        if (resource instanceof OpenDirectory) {
+            const dir = resource as OpenDirectory;
+            await dir.delete(path);
+        } else if (resource instanceof OpenFile) {
+            const f = resource as OpenFile;
+            console.log("unexpected file fd in pathUnlinkFile");
+            return ErrnoN.BADF;
+        } else {
+            return ErrnoN.BADF;
+        }
         return ErrnoN.SUCCESS;
     }
     async pollOneoff(
@@ -735,7 +746,19 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async randomGet(buf: mutptr<u8>, buf_len: Size): Promise<Errno> {
         wasiDebug("[random_get] buf_len: ", buf_len);
-        const uBuf = new Uint8Array(this.buffer, buf, buf_len);
+        let copyToSharedArrayBuffer = false;
+        if (this.buffer instanceof SharedArrayBuffer) {
+            copyToSharedArrayBuffer = true;
+        }
+        let uBuf: Uint8Array;
+        let sBuf: Uint8Array | undefined;
+        if (copyToSharedArrayBuffer) {
+            sBuf = new Uint8Array(this.buffer, buf, buf_len);
+            uBuf = new Uint8Array(buf_len);
+        } else {
+            sBuf = undefined;
+            uBuf = new Uint8Array(this.buffer, buf, buf_len);
+        }
         let crypto = globalThis.crypto;
         if (!crypto) {
             //fallback for older versions of node
@@ -748,6 +771,11 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             }
         }
         crypto.getRandomValues(uBuf);
+        if (copyToSharedArrayBuffer) {
+            if (sBuf) {
+                sBuf.set(uBuf);
+            }
+        }
         return ErrnoN.SUCCESS;
     }
     async sockAccept(fd: Fd, flags: Fdflags, result_ptr: mutptr<Fd>): Promise<Errno> {

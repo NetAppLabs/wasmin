@@ -241,8 +241,32 @@ const {
   termGetRawMode,
   termGetColumns,
   termGetRows,
+  termSetRawMode,
+  termGetRawMode,
+  termGetColumns,
+  termGetRows,
+  termSetRawMode,
+  termGetRawMode,
+  termGetColumns,
+  termGetRows,
+  termSetRawMode,
+  termGetRawMode,
+  termGetColumns,
+  termGetRows,
 } = nativeBinding
 
+module.exports.termSetRawMode = termSetRawMode
+module.exports.termGetRawMode = termGetRawMode
+module.exports.termGetColumns = termGetColumns
+module.exports.termGetRows = termGetRows
+module.exports.termSetRawMode = termSetRawMode
+module.exports.termGetRawMode = termGetRawMode
+module.exports.termGetColumns = termGetColumns
+module.exports.termGetRows = termGetRows
+module.exports.termSetRawMode = termSetRawMode
+module.exports.termGetRawMode = termGetRawMode
+module.exports.termGetColumns = termGetColumns
+module.exports.termGetRows = termGetRows
 module.exports.termSetRawMode = termSetRawMode
 module.exports.termGetRawMode = termGetRawMode
 module.exports.termGetColumns = termGetColumns

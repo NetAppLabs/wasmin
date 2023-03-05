@@ -18,7 +18,9 @@ import * as AWS from "@aws-sdk/client-s3";
 //import { FetchHttpHandler } from "@aws-sdk/fetch-http-handler"
 
 import {
+    DeleteBucketCommand,
     DeleteObjectCommand,
+    DeleteObjectsCommand,
     GetObjectCommand,
     ListBucketsCommand,
     ListObjectsV2Command,
@@ -52,6 +54,7 @@ export class Sink extends DefaultSink<S3FileHandle> {
     }
 
     async write(chunk: any) {
+        s3Debug("write chunk:", chunk);
         const bucketName = this.fileHandle.config.bucketName;
         const s3client = this.fileHandle.config.getS3Client();
 
@@ -193,7 +196,7 @@ export class S3File {
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const start = this.start || 0;
-        let end = this.end || 0;
+        let end = this.end || this.size;
         const contentType = this.contentType;
         if (start >= this.size) {
             // handle EOF
@@ -202,10 +205,8 @@ export class S3File {
 
         s3Debug(`S3File: arrayBuffer: start: ${start}" end: ${end} contentType: ${contentType}`);
         const path = this.path;
-        if (end > this.size) {
+        if (end >= this.size) {
             end = this.size - 1;
-        } else {
-            end = end - 1;
         }
         const range = `bytes=${start}-${end}`;
         s3Debug(`s3client.getObject Range: ${range}`);
@@ -307,6 +308,7 @@ export class S3FileHandle implements ImpleFileHandle<Sink, File> {
     }
 
     public async createWritable() {
+        s3Debug("createWritable: ");
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
         return new Sink(this);
@@ -324,15 +326,11 @@ export class S3FileHandle implements ImpleFileHandle<Sink, File> {
             Key: this.path,
         };
         const command = new DeleteObjectCommand(params);
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const _res = await s3client.send(command);
-            this.deleted = true;
-            // @ts-ignore
-            this.file = null;
-        } catch (error) {
-            console.error("destroy catched error: ", error);
-        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _res = await s3client.send(command);
+        this.deleted = true;
+        // @ts-ignore
+        this.file = null;
     }
 }
 
@@ -551,6 +549,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
 
     public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
         if (this.deleted) throw new NotFoundError();
+        await this.populateEntries();
         const entry = this._entries[name];
         if (entry) {
             // entry exist
@@ -589,24 +588,34 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
     }
 
     public async createS3File(name: string): Promise<S3FileHandle> {
+        s3Debug("createS3File", name);
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const path = join(this.path, name);
-        const f = new S3FileHandle(this.config, path, name);
-        const abody = new Uint8Array();
-        const params = {
-            Bucket: bucketName,
-            Key: path,
-            Body: abody,
-        };
-        const command = new PutObjectCommand(params);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const _s3obj = await s3client.send(command);
-        //const _s3obj = await s3client.putObject();
-        return f;
+        try {
+            const f = new S3FileHandle(this.config, path, name);
+            s3Debug("createS3File f:", f);
+            const abody = new Uint8Array();
+            const params = {
+                Bucket: bucketName,
+                Key: path,
+                Body: abody,
+            };
+            s3Debug("createS3File params:", params);
+            const command = new PutObjectCommand(params);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _s3obj = await s3client.send(command);
+            //const _s3obj = await s3client.putObject();
+            return f;
+        } catch (err: any) {
+            s3Debug("err: ", err);
+        }
+        throw new Error("Unable to create file");
     }
 
     public async getFileHandle(name: string, options?: { create?: boolean }): Promise<S3FileHandle | undefined> {
+        s3Debug("getFileHandle: ", name, options);
+        await this.populateEntries();
         const entry = this._entries[name];
         const isFile = entry instanceof S3FileHandle;
         let do_create = false;
@@ -631,17 +640,39 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
     }
 
     public async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+        s3Debug("removeEntry: ", name, opts);
+
         const entry = this._entries[name];
         if (!entry) throw new NotFoundError();
-        await entry.destroy(opts.recursive);
-        delete this._entries[name];
+        try {
+            await entry.destroy(opts.recursive);
+            delete this._entries[name];
+        } catch (err: any) {
+            console.log("removeEntry err: ", err);
+        }
     }
 
     public async destroy(recursive?: boolean) {
-        for (const x of Object.values(this._entries)) {
-            if (!recursive) throw new InvalidModificationError();
-            await x.destroy(recursive);
+        const bucketName = this.config.bucketName;
+        const s3client = this.config.getS3Client();
+        const path = this.path;
+        s3Debug("destroy: ", path);
+        if (recursive) {
+            for (const x of Object.values(this._entries)) {
+                await x.destroy(recursive);
+            }
         }
+
+        const params = {
+            Bucket: bucketName,
+            Key: path,
+        };
+
+        s3Debug("destroy params:", params);
+        const command = new DeleteObjectCommand(params);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _s3obj = await s3client.send(command);
+
         this._entries = {};
         this.deleted = true;
     }
