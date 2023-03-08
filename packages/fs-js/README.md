@@ -2,7 +2,7 @@
 
 This is a general FileSystem abstraction for JavaScript/TypeScript environments based on the [File System Access Spec](https://wicg.github.io/file-system-access/) (browser/node etc.).
 
-This is a fork of [kobakazu0429/native-file-system-adapter-lite](https://github.com/kobakazu0429/native-file-system-adapter-lite) which in turn is a fork of [jimmywarting/native-file-system-adapter](https://github.com/jimmywarting/native-file-system-adapter)
+This package was originally based on [kobakazu0429/native-file-system-adapter-lite](https://github.com/kobakazu0429/native-file-system-adapter-lite) which in turn is a fork of [jimmywarting/native-file-system-adapter](https://github.com/jimmywarting/native-file-system-adapter)
 
 ## Diferrences
 

@@ -2,7 +2,7 @@
  * Main interface for using wasi-js
  */
 
-import { instantiate } from "./asyncify.js";
+import { instantiate } from "./vendored/asyncify/asyncify.js";
 import {
     HandleWasmImportFunc,
     instantiateWithAsyncDetection,

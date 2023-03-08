@@ -1,4 +1,4 @@
-import { Asyncify } from "./asyncify.js";
+import { Asyncify } from "./vendored/asyncify/asyncify.js";
 import {
     Channel,
     makeAtomicsChannel,

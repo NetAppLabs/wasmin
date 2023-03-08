@@ -2,7 +2,7 @@
 
 This is a [WASI](https://wasi.dev) implementation for JavaScript/TypeScript environments (browser/node etc.).
 
-This repository is fork of [kobakazu0429/wasi](https://github.com/kobakazu0429/wasi)
+This package was originally based on [kobakazu0429/wasi](https://github.com/kobakazu0429/wasi)
 
 -   which in turn is a fork of [GoogleChromeLabs/wasi-fs-access](https://github.com/GoogleChromeLabs/wasi-fs-access.git).
 

@@ -17,6 +17,7 @@ import "./std-polyfill.js";
 
 import { bun as bunFs } from "@wasm-env/bun-fs-js";
 
+// s3 not currently working because of missing node:http2
 //import { s3 } from "@wasm-env/s3-fs-js";
 import { github } from "@wasm-env/github-fs-js";
 
