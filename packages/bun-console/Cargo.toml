@@ -11,8 +11,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 crossterm = "0.24.0"
-napi = "2"
-napi-derive = "2"
+napi = "2.11"
+napi-derive = "2.11"
 
 [build-dependencies]
 napi-build = "2"

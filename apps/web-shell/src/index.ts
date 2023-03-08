@@ -4,8 +4,8 @@ import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
 import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasm-env/wasi-js";
-import { default as s3 } from "@wasm-env/s3-fs-js";
-import { default as github } from "@wasm-env/github-fs-js";
+import { s3 } from "@wasm-env/s3-fs-js";
+import { github } from "@wasm-env/github-fs-js";
 
 // @ts-ignore
 import LocalEchoController from "local-echo";

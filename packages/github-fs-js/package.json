@@ -2,7 +2,6 @@
   "name": "@wasm-env/github-fs-js",
   "version": "0.1.0",
   "description": "",
-  "private": false,
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.js",

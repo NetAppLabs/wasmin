@@ -2,7 +2,6 @@
   "name": "@wasm-env/shell",
   "version": "0.0.1",
   "description": "WASI Shell",
-  "private": false,
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.js",
@@ -38,10 +37,10 @@
     "eslint-config-custom": "*"
   },
   "dependencies": {
-    "@wasm-env/wasi-js": "*",
     "@wasm-env/fs-js": "*",
-    "@wasm-env/node-fs-js": "*",
     "@wasm-env/github-fs-js": "*",
-    "@wasm-env/s3-fs-js": "*"
+    "@wasm-env/node-fs-js": "*",
+    "@wasm-env/s3-fs-js": "*",
+    "@wasm-env/wasi-js": "*"
   }
 }

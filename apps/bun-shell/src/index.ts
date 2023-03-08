@@ -5,7 +5,7 @@ const termGetColumns = bun_console.termGetColumns;
 const termGetRows = bun_console.termGetRows;
 
 // TODO figure out ESM import
-//import { termSetRawMode, termGetRawMode, termGetRows } from "@wasm-env/bun-console";
+//import { termSetRawMode, termGetColumns, termGetRows } from "@wasm-env/bun-console";
 
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
 import { getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
@@ -15,17 +15,10 @@ import { readFileSync } from "fs";
 //polyfill needed for process.stdin/stdout/stderr
 import "./std-polyfill.js";
 
-import { default as bunFs } from "./bun-fs-js";
+import { bun as bunFs } from "@wasm-env/bun-fs-js";
 
-import { default as s3 } from "@wasm-env/s3-fs-js";
-import { default as github } from "@wasm-env/github-fs-js";
-
-/*
-import { MyFile } from "./fetch-blob/file";
-// polyfill for bun
-if (!globalThis.File) {
-  globalThis.File = MyFile;
-}*/
+//import { s3 } from "@wasm-env/s3-fs-js";
+import { github } from "@wasm-env/github-fs-js";
 
 const DEBUG_MODE = false;
 
@@ -114,7 +107,7 @@ const startShell = async () => {
         };
     }
 
-    RegisterProvider("s3", s3);
+    //RegisterProvider("s3", s3);
     RegisterProvider("github", github);
 
     const preOpens: Record<string, FileSystemDirectoryHandle> = {};

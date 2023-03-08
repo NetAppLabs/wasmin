@@ -2,7 +2,6 @@
   "name": "@wasm-env/s3-fs-js",
   "version": "0.1.0",
   "description": "S3 implementation of FileSystem Standard",
-  "private": false,
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.js",

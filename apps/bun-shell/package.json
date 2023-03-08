@@ -12,12 +12,13 @@
     "dev": "echo dev"
   },
   "devDependencies": {
-    "bun-types": "^0.2.2",
+    "bun-types": "^0.5.7",
     "esbuild": "^0.14.39",
     "typescript": "^4.7.3"
   },
   "dependencies": {
     "@wasm-env/bun-console": "*",
+    "@wasm-env/bun-fs-js": "*",
     "@wasm-env/fs-js": "*",
     "@wasm-env/s3-fs-js": "*",
     "@wasm-env/wasi-js": "*",

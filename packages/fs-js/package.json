@@ -2,7 +2,6 @@
   "name": "@wasm-env/fs-js",
   "version": "0.0.4",
   "description": "File System Standard Implementation",
-  "private": false,
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.js",

@@ -17,7 +17,7 @@
   "scripts": {
     "dist": "echo dist",
     "lint": "echo lint",
-	"build": "echo build"
+    "build": "echo build"
   },
   "files": [
     "tsconfig.json",

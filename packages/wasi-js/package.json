@@ -1,7 +1,6 @@
 {
   "name": "@wasm-env/wasi-js",
   "version": "0.0.2",
-  "private": false,
   "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.js",
@@ -59,7 +58,7 @@
     "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "^0.0.0",
     "jest-extended": "^3.2.3",
-    "web-file-polyfill": "^1.0.4",
-    "vitest": "^0.28.5"
+    "vitest": "^0.28.5",
+    "web-file-polyfill": "^1.0.4"
   }
 }

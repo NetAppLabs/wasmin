@@ -10,8 +10,8 @@ import { default as path } from "node:path";
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 
-import { default as s3 } from "@wasm-env/s3-fs-js";
-import { default as github } from "@wasm-env/github-fs-js";
+import { s3 } from "@wasm-env/s3-fs-js";
+import { github } from "@wasm-env/github-fs-js";
 
 const DEBUG_MODE = false;
 const USE_MEMORY = false;

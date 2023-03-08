@@ -1,0 +1,15 @@
+{
+  "extends": "@wasm-env/tsconfig",
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "webworker",
+      "esnext"
+    ],
+    "types": ["bun-types"],
+    "outDir": "./dist"
+  },
+  "include": [
+    "./src"
+  ]
+}

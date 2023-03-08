@@ -1,0 +1,33 @@
+{
+  "name": "@wasm-env/bun-fs-js",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "dev": "tsc -p . --watch",
+    "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
+    "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
+    "start": "echo start",
+    "test": "echo test"
+  },
+  "author": "tryggvil",
+  "dependencies": {
+    "@wasm-env/fs-js": "*"
+  },
+  "devDependencies": {
+    "@wasm-env/tsconfig": "*",
+    "bun-types": "^0.5.7",
+    "eslint-config-custom": "*"
+  }
+}
