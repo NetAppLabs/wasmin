@@ -1,0 +1,50 @@
+#!/bin/bash
+
+BIN_SRC="$(realpath -e -- "${BASH_SOURCE[0]}"; )";
+BIN_DIR="$(dirname -- "${BIN_SRC}" )";
+
+if [ -z "${WASM_ENV_ROOT}" ]; then
+	WASM_ENV_ROOT="$(dirname "${BIN_DIR}"; )";
+fi
+
+while [ -n "$1" ] ; do
+    case $1 in
+    -h|--help)
+        echo "$(basename $0) [arguments]"
+        echo "Arguments:"
+        echo "  -d                          debug"
+        echo "  -w                          Run in worker"
+        exit 0
+        ;;
+   -d)
+        set -x
+        ;;
+   -w)
+        export NODE_SHELL_WORKER=1
+        ;;
+    -*)
+        echo "Unknown option $1.  Use --help for usage."
+        exit 3
+        ;;
+    *)
+        # End of options.  Positional variables starting.
+        break
+        ;;
+    esac
+    shift
+done
+
+NODE_SHELL_BINARY=$1
+if [ -n "${NODE_SHELL_BINARY}" ]; then
+    export NODE_SHELL_BINARY="${NODE_SHELL_BINARY}"
+fi
+
+#node --experimental-vm-modules --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
+#node --experimental-specifier-resolution=node --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
+#node --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
+#node --trace-warnings --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
+#node --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/dist/index.js $*
+#node --experimental-import-meta-resolve --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
+#node --trace-warnings --experimental-import-meta-resolve --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
+
+node --no-warnings --trace-warnings --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
