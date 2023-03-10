@@ -104,10 +104,21 @@ function IPv4AddressToArray(addr: string): number[] {
 }
 
 function IPv6AddressToArray(addr: string): number[] {
-    const saddrs = addr.split(":");
+    // TODO: handle IPv6 representation of IPv4 address? (e.g. '::ffff:192.168.1.1')
+    const a = addr.startsWith("::") ? "0" + addr : addr.endsWith("::") ? addr + "0" : addr;
+    const saddrs = a.split(":");
     const retAddrs: number[] = [];
     for (const saddr of saddrs) {
-        retAddrs.push(parseInt(saddr, 16));
+        if (saddr !== "") {
+            retAddrs.push(parseInt(saddr, 16));
+        } else {
+            // saddr is empty so this should be the "::" shorthand
+            // need to add zeroes to retAddrs as many times as it
+            // takes to end up with 8 elements in total
+            for (let i = saddrs.length - 1; i < 8; i++) {
+                retAddrs.push(0);
+            }
+        }
     }
     return retAddrs;
 }
