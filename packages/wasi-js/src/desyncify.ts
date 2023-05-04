@@ -169,8 +169,12 @@ export class WasmThreadRunner {
         }
         if (this.wasmInstance) {
             wasmThreadDebug("WasmThreadRunner executeExportedFunction functionName: ", functionName);
-            const exportedfunc = this.wasmInstance.exports[functionName] as any;
-            if (exportedfunc) {
+            const exportedMember = this.wasmInstance.exports[functionName] as any;
+            console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
+
+                
+            if (isFunction(exportedMember)) {
+                let exportedfunc = exportedMember;
                 try {
                     const result = exportedfunc(...args);
                     wasmThreadDebug("returning from exportedFunc");
@@ -180,13 +184,23 @@ export class WasmThreadRunner {
                     throw err;
                 }
             } else {
-                return;
+                /*if (exportedMember instanceof WebAssembly.Memory){
+                    let wasmMem = exportedMember as WebAssembly.Memory;
+                    let exportReturn = wasmMem.buffer;
+                    console.log("WasmThreadRunner isWasmEmory executeExportedFunction functionName: ", functionName, "exportReturn: ", exportReturn);
+                    return exportReturn;
+                } else {*/
+                    console.log("WasmThreadRunner isNotFunction executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
+                    return exportedMember;    
+                //}
             }
         } else {
             throw new Error("WasmInstance not set");
         }
     }
 }
+
+const isFunction = (value: any) => value && (Object.prototype.toString.call(value) === "[object Function]" || "function" === typeof value || value instanceof Function);
 
 export async function instantiateWithAsyncDetection(
     wasmModOrBufSource: WebAssembly.Module | BufferSource,
@@ -304,6 +318,7 @@ async function handlerInstanciateProxy(
     const exportsDummy: WebAssembly.Exports = {};
     const exportsProxy = new Proxy(exportsDummy, {
         get: (target, name, receiver) => {
+            console.log("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
             wasmHandlerDebug("instantiateProxy get:", name);
             if (threadRemote) {
                 wasmHandlerDebug("instantiateProxy creating wrappedFunction");

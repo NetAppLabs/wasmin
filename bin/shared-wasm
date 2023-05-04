@@ -1,0 +1,12 @@
+#!/bin/bash
+
+from=$1
+to_base=$(echo "${from}" | sed 's/\.wasm//')
+to="${to_base}.shared.wasm"
+
+#wasm-opt --enable-threads $from -o $to
+#wasm-opt ... --strip-producers \ perf.wasm -o perfO$OPT.wasm --mvp-features --enable-threads ...
+
+#wasm-opt --strip-producers $from -o $to --mvp-features --enable-threads
+#wasm-opt $from -o $to --all-features --enable-threads
+~/.cargo/bin/wasm-tools rewrite add ${from} -o ${to}

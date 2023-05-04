@@ -3,10 +3,22 @@
   "version": "0.0.2",
   "type": "module",
   "source": "src/index.ts",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    },
+    "./wasi_snapshot_preview2/*": {
+      "types": "./dist/wasi_snapshot_preview2/*.d.ts",
+      "import": "./dist/wasi_snapshot_preview2/*.js"
+    }
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "src"

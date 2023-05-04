@@ -177,6 +177,57 @@ export class WASI {
         return this._moduleImports;
     }
 
+    public async instantiateWithAsyncDetection(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource,
+        imports: WebAssembly.Imports
+    ): Promise<WebAssembly.Instance> {
+        let handleImportFunc: HandleWasmImportFunc | undefined;
+        let threadRemote: comlink.Remote<WasmThreadRunner> | undefined;
+        const useAsyncDetection = true;
+        if (useAsyncDetection) {
+            const handleImportFuncLocal: HandleWasmImportFunc = async (
+                messageId: string,
+                importName: string,
+                functionName: string,
+                args: any[],
+                buf: ArrayBuffer
+            ) => {
+                try {
+                    return await this.handleImport(messageId, importName, functionName, args, buf);
+                } catch (err: any) {
+                    wasiDebug("WASI.handleImportFuncLocal err: ", err);
+                    throw err;
+                }
+            };
+            handleImportFunc = comlink.proxy(handleImportFuncLocal);
+            if (handleImportFunc) {
+                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
+            } else {
+                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
+            }
+            const instRes = await instantiateWithAsyncDetection(
+                wasmModOrBufSource,
+                imports,
+                handleImportFunc
+            );
+            wasiDebug("[run] got instRes: ", instRes);
+            this._moduleInstance = instRes.instance;
+            this._channel = instRes.channel;
+            threadRemote = instRes.threadRemote;
+            wasiDebug("[run] setting channel: ", this._channel);
+        } else {
+            let wasmMod: WebAssembly.Module;
+            if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
+                const modSource = wasmModOrBufSource as ArrayBufferView;
+                wasmMod = WebAssembly.compile(modSource);
+            } else {
+                wasmMod = wasmModOrBufSource as WebAssembly.Module;
+            }
+            this._moduleInstance = await instantiate(wasmMod, imports);
+        }
+        return this._moduleInstance;
+    }
+
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
         wasiDebug("WASI.run:");
         this._moduleImports = this.initializeImports();
