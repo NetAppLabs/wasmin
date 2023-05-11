@@ -38,10 +38,12 @@ function getErrorPayload(e) {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-const w = new WASI({});
+let w = [];
 //const instantiateCore = WebAssembly.instantiate;
 const instantiateCore = (modOrBuf, wasmImports) => {
-  return w.instantiateWithAsyncDetection(modOrBuf, wasmImports);
+  let _w = new WASI({});
+  w.push(_w);
+  return _w.instantiateWithAsyncDetection(modOrBuf, wasmImports);
 }
 
 async function fetchBuffer(url) {
@@ -473,8 +475,8 @@ function lowering11(arg0, arg1, arg2, arg3) {
 }
 let exports3;
 
-function run() {
-  const ret = exports2.run();
+async function run() {
+  const ret = await exports2.run();
   let variant0;
   switch (ret) {
     case 0: {
@@ -492,7 +494,7 @@ function run() {
       break;
     }
     default: {
-      throw new TypeError('invalid variant discriminant for expected');
+      throw new TypeError(`invalid variant discriminant for expected: ${ret}`);
     }
   }
   if (variant0.tag === 'err') {
@@ -507,13 +509,17 @@ const initBufferFromString = (str) => Buffer.from(str, 'base64')
 
 const $init = (async() => {
   //const module0 = fetchCompile(new URL('./component.core.wasm', import.meta.url));
-  const module0 = fetchBuffer(new URL('./component.core.wasm', import.meta.url));
+  const module0 = await fetchBuffer(new URL('./component.core.wasm', import.meta.url));
   //const module1 = fetchCompile(new URL('./component.core2.wasm', import.meta.url));
-  const module1 = fetchBuffer(new URL('./component.core2.wasm', import.meta.url));
+  const module1 = await fetchBuffer(new URL('./component.core2.wasm', import.meta.url));
   //const module2 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
   const module2 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
   //const module3 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
   const module3 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+  console.log(`exports0 - module2.byteLength: ${module2.byteLength}`);
+  console.log(`exports1 - module0.byteLength: ${module0.byteLength}`);
+  console.log(`exports2 - module1.byteLength: ${module1.byteLength}`);
+  console.log(`exports3 - module3.byteLength: ${module3.byteLength}`);
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
@@ -524,7 +530,7 @@ const $init = (async() => {
       proc_exit: exports0['9'],
     },
   }));
-  console.log("exports1.memory:", exports1.memory);
+  // console.log("exports1.memory:", exports1.memory);
   let bufMem = await exports1.memory();
   /*let bufSize = bufMem.byteLength;
   console.log("bufMem: ", bufMem);
@@ -534,15 +540,13 @@ const $init = (async() => {
     );
   let dstMem = mem.buffer;
   copyBuffer(bufMem,dstMem);*/
-  let mem = bufMem;
 
-  console.log("mem:", mem);
   ({ exports: exports2 } = await instantiateCore(await module1, {
     __main_module__: {
       _start: exports1._start,
     },
     env: {
-      memory: mem,
+      memory: bufMem,
     },
     environment: {
       'get-environment': exports0['3'],
@@ -567,17 +571,18 @@ const $init = (async() => {
       write: exports0['4'],
     },
   }));
-  memory0 = exports1.memory;
+  memory0 = bufMem;
   realloc0 = exports2.cabi_import_realloc;
 
-  let environ_sizes_get = exports2.environ_sizes_get;
-  console.log("exports2.environ_sizes_get: ", environ_sizes_get);
-  let proc_exit = exports2.proc_exit;
-  console.log("exports2.proc_exit: ", exports2.proc_exit);
+  // let environ_sizes_get = exports2.environ_sizes_get;
+  // console.log("exports2.environ_sizes_get: ", environ_sizes_get);
+  // let proc_exit = exports2.proc_exit;
+  // console.log("exports2.proc_exit: ", exports2.proc_exit);
 
+  let table = new WebAssembly.Table({element: "anyfunc", initial: 10, maximum: 10});
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
-      $imports: exports0.$imports,
+      $imports: table,
       '0': lowering6,
       '1': lowering7,
       '2': lowering8,

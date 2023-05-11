@@ -1,4 +1,4 @@
 
 import {run} from './component.js'
 
-run();
+await run();

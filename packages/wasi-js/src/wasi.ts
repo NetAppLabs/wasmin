@@ -211,6 +211,21 @@ export class WASI {
                 handleImportFunc
             );
             wasiDebug("[run] got instRes: ", instRes);
+            if (!this._moduleImports && imports) {
+                const imps: Record<string, WebAssembly.ModuleImports> = {}; // this.initializeImports();
+                for (const [importKey, importValue] of Object.entries(imports)) {
+                    // if (importKey !== "wasi_snapshot_preview1") {
+                        let vals: WebAssembly.ModuleImports = {};
+                        for (const [funcKey, funcValue] of Object.entries(importValue)) {
+                            vals[funcKey] = funcValue;
+                        }
+                        imps[importKey] = vals;
+                        // console.log("WASI: handleImportFunc: importKey:", importKey);
+                    // }
+                }
+                this._moduleImports = imps;
+                // console.log("WASI: handleImportFunc: _moduleImports:", this._moduleImports);
+            }
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
             threadRemote = instRes.threadRemote;

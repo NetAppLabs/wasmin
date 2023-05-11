@@ -14,7 +14,7 @@ import {
 } from "./wasi_snapshot_preview1/bindings.js";
 
 declare let globalThis: any;
-globalThis.WASI_DEBUG = false;
+globalThis.WASI_DEBUG = true;
 globalThis.WASI_FD_DEBUG = false;
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
