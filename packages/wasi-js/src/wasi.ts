@@ -145,6 +145,18 @@ export class WasiEnv implements WasiOptions {
     }
 }
 
+class MultiModule {
+    _moduleInstances: WebAssembly.Instance[] = [];
+    _moduleImports: WebAssembly.Imports[] = [];
+}
+
+export type InstantiateMultipleFunc = () => Promise<{
+    instanceSource: BufferSource,
+    instanceImport: WebAssembly.Imports,
+    instances: WebAssembly.Instance[],
+    imports: WebAssembly.Imports[],
+}>;
+
 export class WASI {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = new WasiEnv(
@@ -164,17 +176,27 @@ export class WASI {
     private _moduleImports?: WebAssembly.Imports;
     private _channel?: Channel;
     private _memory?: WebAssembly.Memory;
+    private _multiModule?: MultiModule;
 
     get wasiEnv() {
         return this._wasiEnv;
     }
 
     get moduleInstance() {
-        return this._moduleInstance;
+        return this._multiModule ? this._multiModule._moduleInstances : [this._moduleInstance] as WebAssembly.Instance[];
     }
 
     get moduleImports() {
-        return this._moduleImports;
+        return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
+    }
+
+    public async instantiateMultiModule(instantiateMultipleFunc: InstantiateMultipleFunc): Promise<WebAssembly.Instance> {
+        const ret = await instantiateMultipleFunc();
+        this._multiModule = {
+            _moduleInstances: ret.instances,
+            _moduleImports: ret.imports,
+        };
+        return this.instantiateWithAsyncDetection(ret.instanceSource, ret.instanceImport);
     }
 
     public async instantiateWithAsyncDetection(
@@ -350,7 +372,7 @@ export class WASI {
         }
         const channel = this._channel;
         if (channel) {
-            if (moduleImports) {
+            if (moduleImports.length > 0) {
                 let wasmBuf: ArrayBuffer;
                 if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
                     wasiDebug("wasi.handleIimport is SharedArrayBuffer buf: ", buf);
@@ -371,7 +393,14 @@ export class WASI {
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._memory);
 
-                const modImport = moduleImports[importName];
+                let modImport: any;
+                for (let i = 0; i < moduleImports.length; i++) {
+                    if (moduleImports[i] && moduleImports[i][importName]) {
+                        modImport = moduleImports[i][importName];
+                        break;
+                    }
+                }
+                // const modImport = moduleImports[importName];
                 const importedFunc = modImport[functionName] as any;
                 let funcReturn: any;
                 let funcThrownError: any;

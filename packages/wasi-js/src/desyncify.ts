@@ -39,7 +39,7 @@ export function wasmThreadDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
-globalThis.WASM_HANDLER_DEBUG = true;
+globalThis.WASM_HANDLER_DEBUG = false;
 
 export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASM_HANDLER_DEBUG) {
@@ -111,17 +111,17 @@ export class WasmThreadRunner {
 
         const getMemoryFuncLocal = (functionName: string) => {
             wasmThreadDebug("WasmThreadRunner calling getMemoryFunc");
-            console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName}`);
+            // console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName}`);
             if (this && this.wasmInstance && this.wasmInstance.exports && (this.wasmInstance.exports.memory || envMemory)) {
                 // console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} this.wasmInstance.exports.memory: ${this.wasmInstance.exports.memory}`);
                 const mem = (this.wasmInstance.exports.memory || envMemory) as WebAssembly.Memory;
                 // console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} mem: ${mem}`);
                 if (USE_SHARED_MEMORY) {
                     if (mem.buffer instanceof SharedArrayBuffer) {
-                        console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} with SharedArrayBuffer`);
+                        // console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} with SharedArrayBuffer`);
                         this.sharedMemory = mem.buffer as SharedArrayBuffer;
                     } else {
-                        console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} with non-SharedArrayBuffer`);
+                        // console.log(`WasmThreadRunner calling getMemoryFunc functionName: ${functionName} with non-SharedArrayBuffer`);
                         if (!this.sharedMemory) {
                             this.sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                         } else {
@@ -151,7 +151,7 @@ export class WasmThreadRunner {
         );
 
         const instantiatedSource = await WebAssembly.instantiate(modSource, wrappedImports);
-        console.log(`WasmThreadRunner instantiate modSource.byteLength: ${modSource.byteLength} instantiatedSource.instance.exports.memory: ${instantiatedSource.instance.exports.memory}`);
+        // console.log(`WasmThreadRunner instantiate modSource.byteLength: ${modSource.byteLength} instantiatedSource.instance.exports.memory: ${instantiatedSource.instance.exports.memory}`);
         this.wasmInstance = instantiatedSource.instance;
         this.handleImportFunc = handleImportFunc;
     }
@@ -184,7 +184,7 @@ export class WasmThreadRunner {
             if (isFunction(exportedMember)) {
                 let exportedfunc = exportedMember;
                 try {
-                    console.log("WasmThreadRunner exportedfunc:", exportedfunc, ...args);
+                    // console.log("WasmThreadRunner exportedfunc:", exportedfunc, ...args);
                     const result = exportedfunc(...args);
                     wasmThreadDebug("returning from exportedFunc");
                     return result;
@@ -429,9 +429,9 @@ function threadWrapImportNamespace(
                 );
                 //wasmThreadDebug(`threadWrapAllImports calling wrappedFunction ${functionName} myChannel: `, myChannel);
 
-                console.log(`threadWrapImportNamespace wrappedFunction importName: ${myImportName} functionName: ${functionName} messageId: ${messageId} getMemoryFunc call`);
+                // console.log(`threadWrapImportNamespace wrappedFunction importName: ${myImportName} functionName: ${functionName} messageId: ${messageId} getMemoryFunc call`);
                 let memory = getMemoryFunc(functionName);
-                console.log(`threadWrapImportNamespace wrappedFunction importName: ${myImportName} functionName: ${functionName} messageId: ${messageId} memory: ${memory}`);
+                // console.log(`threadWrapImportNamespace wrappedFunction importName: ${myImportName} functionName: ${functionName} messageId: ${messageId} memory: ${memory}`);
                 if (!USE_SHARED_MEMORY) {
                     memory = comlink.transfer(memory, [memory]);
                     wasmThreadDebug("threadWrapImportNamespace marking memory as transferrable, memory: ", memory);

@@ -38,14 +38,6 @@ function getErrorPayload(e) {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-let w = [];
-//const instantiateCore = WebAssembly.instantiate;
-const instantiateCore = (modOrBuf, wasmImports) => {
-  let _w = new WASI({});
-  w.push(_w);
-  return _w.instantiateWithAsyncDetection(modOrBuf, wasmImports);
-}
-
 async function fetchBuffer(url) {
   if (isNode) {
     _fs = _fs || await import('fs/promises');
@@ -94,9 +86,6 @@ function utf8Encode(s, realloc, memory) {
   return ptr;
 }
 
-let exports0;
-let exports1;
-
 function lowering0(arg0, arg1) {
   const ret = lowering0Callee(arg0 >>> 0, BigInt.asUintN(64, arg1));
   return toUint32(ret);
@@ -142,7 +131,7 @@ function lowering4(arg0) {
 function lowering5(arg0) {
   lowering5Callee(arg0 >>> 0);
 }
-let exports2;
+let exported;
 let memory0;
 
 function lowering6(arg0) {
@@ -473,10 +462,9 @@ function lowering11(arg0, arg1, arg2, arg3) {
     }
   }
 }
-let exports3;
 
 async function run() {
-  const ret = await exports2.run();
+  const ret = await exported.run();
   let variant0;
   switch (ret) {
     case 0: {
@@ -500,6 +488,7 @@ async function run() {
   if (variant0.tag === 'err') {
     throw new ComponentError(variant0.val);
   }
+  // (async() => lowering3(ret))(); // invoke `lowering3(ret)` asynchronously here? (lowering3 == exit) ... shouldn't exit be invoked implicitly?
   return variant0.val;
 }
 
@@ -507,93 +496,90 @@ export { run }
 
 const initBufferFromString = (str) => Buffer.from(str, 'base64')
 
+let wasi = new WASI({});
+
 const $init = (async() => {
-  //const module0 = fetchCompile(new URL('./component.core.wasm', import.meta.url));
-  const module0 = await fetchBuffer(new URL('./component.core.wasm', import.meta.url));
-  //const module1 = fetchCompile(new URL('./component.core2.wasm', import.meta.url));
-  const module1 = await fetchBuffer(new URL('./component.core2.wasm', import.meta.url));
-  //const module2 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
-  const module2 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
-  //const module3 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
-  const module3 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
-  console.log(`exports0 - module2.byteLength: ${module2.byteLength}`);
-  console.log(`exports1 - module0.byteLength: ${module0.byteLength}`);
-  console.log(`exports2 - module1.byteLength: ${module1.byteLength}`);
-  console.log(`exports3 - module3.byteLength: ${module3.byteLength}`);
-  Promise.all([module0, module1, module2, module3]).catch(() => {});
-  ({ exports: exports0 } = await instantiateCore(await module2));
-  ({ exports: exports1 } = await instantiateCore(await module0, {
-    wasi_snapshot_preview1: {
-      environ_get: exports0['7'],
-      environ_sizes_get: exports0['8'],
-      fd_write: exports0['6'],
-      proc_exit: exports0['9'],
-    },
-  }));
-  // console.log("exports1.memory:", exports1.memory);
-  let bufMem = await exports1.memory();
-  /*let bufSize = bufMem.byteLength;
-  console.log("bufMem: ", bufMem);
-  let mem = new WebAssembly.Memory({
-    initial: 65536,
-    maximum: 65536}
-    );
-  let dstMem = mem.buffer;
-  copyBuffer(bufMem,dstMem);*/
+  ({ exports: exported } = await wasi.instantiateMultiModule(async () => {
+    //const module0 = fetchCompile(new URL('./component.core.wasm', import.meta.url));
+    const module0 = await fetchBuffer(new URL('./component.core.wasm', import.meta.url));
+    //const module1 = fetchCompile(new URL('./component.core2.wasm', import.meta.url));
+    const module1 = await fetchBuffer(new URL('./component.core2.wasm', import.meta.url));
+    //const module2 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
+    const module2 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAwsKAAABAAICAwQEBQQFAXABCgoHNAsBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJCCRpbXBvcnRzAQAKfQoJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwkAIABBAxEAAAsPACAAIAEgAiADQQQRAgALDwAgACABIAIgA0EFEQIACw8AIAAgASACIANBBhEDAAsLACAAIAFBBxEEAAsLACAAIAFBCBEEAAsJACAAQQkRBQALAC0JcHJvZHVjZXJzAQxwcm9jZXNzZWQtYnkBDXdpdC1jb21wb25lbnQFMC43LjEAhAMEbmFtZQATEndpdC1jb21wb25lbnQ6c2hpbQHnAgoAG2luZGlyZWN0LXByZW9wZW5zLWdldC1zdGRpbwEhaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LWRpcmVjdG9yaWVzAhxpbmRpcmVjdC1maWxlc3lzdGVtLWdldC10eXBlAyRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQEFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUFH2luZGlyZWN0LXN0cmVhbXMtYmxvY2tpbmctd3JpdGUGJWFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZmRfd3JpdGUHKGFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9nZXQILmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtZW52aXJvbl9zaXplc19nZXQJJmFkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcHJvY19leGl0');
+    //const module3 = base64Compile('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+    const module3 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+    Promise.all([module0, module1, module2, module3]).catch(() => {});
+    const instance0Imports = undefined;
+    const { instance: instance0 } = await WebAssembly.instantiate(await module2, instance0Imports);
+    const exports0 = instance0.exports;
+    const instance1Imports = {
+      wasi_snapshot_preview1: {
+        environ_get: exports0['7'],
+        environ_sizes_get: exports0['8'],
+        fd_write: exports0['6'],
+        proc_exit: exports0['9'],
+      },
+    };
+    const { instance: instance1 } = await WebAssembly.instantiate(await module0, instance1Imports);
+    const exports1 = instance1.exports;
 
-  ({ exports: exports2 } = await instantiateCore(await module1, {
-    __main_module__: {
-      _start: exports1._start,
-    },
-    env: {
-      memory: bufMem,
-    },
-    environment: {
-      'get-environment': exports0['3'],
-    },
-    exit: {
-      exit: lowering3,
-    },
-    filesystem: {
-      'append-via-stream': lowering1,
-      'drop-descriptor': lowering2,
-      'get-type': exports0['2'],
-      'write-via-stream': lowering0,
-    },
-    preopens: {
-      'get-directories': exports0['1'],
-      'get-stdio': exports0['0'],
-    },
-    streams: {
-      'blocking-write': exports0['5'],
-      'drop-input-stream': lowering4,
-      'drop-output-stream': lowering5,
-      write: exports0['4'],
-    },
-  }));
-  memory0 = bufMem;
-  realloc0 = exports2.cabi_import_realloc;
+    const instance2Imports = {
+      __main_module__: {
+        _start: exports1._start,
+      },
+      env: {
+        memory: exports1.memory,
+      },
+      environment: {
+        'get-environment': exports0['3'],
+      },
+      exit: {
+        exit: lowering3,
+      },
+      filesystem: {
+        'append-via-stream': lowering1,
+        'drop-descriptor': lowering2,
+        'get-type': exports0['2'],
+        'write-via-stream': lowering0,
+      },
+      preopens: {
+        'get-directories': exports0['1'],
+        'get-stdio': exports0['0'],
+      },
+      streams: {
+        'blocking-write': exports0['5'],
+        'drop-input-stream': lowering4,
+        'drop-output-stream': lowering5,
+        write: exports0['4'],
+      },
+    };
+    const { instance: instance2 } = await WebAssembly.instantiate(await module1, instance2Imports);
+    const exports2 = instance2.exports;
+    memory0 = exports1.memory;
+    realloc0 = exports2.cabi_import_realloc;
 
-  // let environ_sizes_get = exports2.environ_sizes_get;
-  // console.log("exports2.environ_sizes_get: ", environ_sizes_get);
-  // let proc_exit = exports2.proc_exit;
-  // console.log("exports2.proc_exit: ", exports2.proc_exit);
-
-  let table = new WebAssembly.Table({element: "anyfunc", initial: 10, maximum: 10});
-  ({ exports: exports3 } = await instantiateCore(await module3, {
-    '': {
-      $imports: table,
-      '0': lowering6,
-      '1': lowering7,
-      '2': lowering8,
-      '3': lowering9,
-      '4': lowering10,
-      '5': lowering11,
-      '6': exports2.fd_write,
-      '7': exports2.environ_get,
-      '8': exports2.environ_sizes_get,
-      '9': exports2.proc_exit,
-    },
+    const instance3Imports = {
+      '': {
+        $imports: exports0.$imports,
+        '0': lowering6,
+        '1': lowering7,
+        '2': lowering8,
+        '3': lowering9,
+        '4': lowering10,
+        '5': lowering11,
+        '6': exports2.fd_write,
+        '7': exports2.environ_get,
+        '8': exports2.environ_sizes_get,
+        '9': exports2.proc_exit,
+      },
+    };
+    const { instance: instance3 } = await WebAssembly.instantiate(await module3, instance3Imports);
+    return {
+      instanceSource: module1,
+      instanceImport: instance2Imports,
+      instances: [instance0, instance1, instance2, instance3],
+      imports: [instance0Imports, instance1Imports, instance2Imports, instance3Imports],
+    };
   }));
 })();
 
