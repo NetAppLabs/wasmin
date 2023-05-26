@@ -1,9 +1,11 @@
-import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@bytecodealliance/preview2-shim/filesystem';
-import { exit as lowering3Callee } from '@bytecodealliance/preview2-shim/exit';
-import { getRandomBytes as lowering9Callee } from '@bytecodealliance/preview2-shim/random';
-import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@bytecodealliance/preview2-shim/streams';
-import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@bytecodealliance/preview2-shim/preopens';
-import { getEnvironment as lowering10Callee } from '@bytecodealliance/preview2-shim/environment';
+import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/filesystem';
+import { exit as lowering3Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/exit';
+import { getRandomBytes as lowering9Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/random';
+import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/streams';
+import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/preopens';
+import { getEnvironment as lowering10Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/environment';
+
+import { WASI } from '@wasm-env/wasi-js';
 
 const base64Compile = str => WebAssembly.compile(typeof Buffer !== 'undefined' ? Buffer.from(str, 'base64') : Uint8Array.from(atob(str), b => b.charCodeAt(0)));
 
@@ -19,6 +21,16 @@ async function fetchCompile (url) {
   }
   return fetch(url).then(WebAssembly.compileStreaming);
 }
+
+async function fetchBuffer(url) {
+  if (isNode) {
+    _fs = _fs || await import('fs/promises');
+    return await _fs.readFile(url);
+  }
+  return fetch(url);
+}
+
+const initBufferFromString = (str) => Buffer.from(str, 'base64')
 
 function getErrorPayload(e) {
   if (e && hasOwnProperty.call(e, 'payload')) return e.payload;
@@ -65,8 +77,7 @@ function utf8Encode(s, realloc, memory) {
   return ptr;
 }
 
-let exports0;
-let exports1;
+let exported;
 
 function lowering0(arg0, arg1) {
   const ret = lowering0Callee(arg0 >>> 0, BigInt.asUintN(64, arg1));
@@ -113,7 +124,6 @@ function lowering4(arg0) {
 function lowering5(arg0) {
   lowering5Callee(arg0 >>> 0);
 }
-let exports2;
 let memory0;
 
 function lowering6(arg0) {
@@ -433,15 +443,14 @@ function lowering11(arg0, arg1, arg2, arg3) {
     }
   }
 }
-let exports3;
 let realloc1;
 let postReturn0;
 let postReturn1;
 
-function hello(arg0) {
+async function hello(arg0) {
   const ptr0 = utf8Encode(arg0, realloc1, memory0);
   const len0 = utf8EncodedLen;
-  const ret = exports1.hello(ptr0, len0);
+  const ret = await exported.hello(ptr0, len0);
   const ptr1 = dataView(memory0).getInt32(ret + 0, true);
   const len1 = dataView(memory0).getInt32(ret + 4, true);
   const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
@@ -449,8 +458,8 @@ function hello(arg0) {
   return result1;
 }
 
-function uuid() {
-  const ret = exports1.uuid();
+async function uuid() {
+  const ret = await exported.uuid();
   const ptr0 = dataView(memory0).getInt32(ret + 0, true);
   const len0 = dataView(memory0).getInt32(ret + 4, true);
   const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -460,75 +469,92 @@ function uuid() {
 
 export { hello, uuid }
 
+let wasi = new WASI({});
+
 const $init = (async() => {
-  const module0 = fetchCompile(new URL('./wasi_reactor.core.wasm', import.meta.url));
-  const module1 = fetchCompile(new URL('./wasi_reactor.core2.wasm', import.meta.url));
-  const module2 = base64Compile('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgCuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
-  const module3 = base64Compile('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
-  Promise.all([module0, module1, module2, module3]).catch(() => {});
-  ({ exports: exports0 } = await instantiateCore(await module2));
-  ({ exports: exports1 } = await instantiateCore(await module0, {
-    wasi_snapshot_preview1: {
-      environ_get: exports0['8'],
-      environ_sizes_get: exports0['9'],
-      fd_write: exports0['7'],
-      proc_exit: exports0['10'],
-      random_get: exports0['6'],
-    },
+  ({ exports: exported } = await wasi.instantiateMultiModule(async () => {
+    const module0 = await fetchBuffer(new URL('./wasi_reactor.core.wasm', import.meta.url));
+    const module1 = await fetchBuffer(new URL('./wasi_reactor.core2.wasm', import.meta.url));
+    const module2 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgCuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
+    const module3 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+    Promise.all([module0, module1, module2, module3]).catch(() => {});
+    const instance0Imports = undefined;
+    const { instance: instance0 } = await instantiateCore(await module2, instance0Imports);
+    const exports0 = instance0.exports;
+    const instance1Imports = {
+      wasi_snapshot_preview1: {
+        environ_get: exports0['8'],
+        environ_sizes_get: exports0['9'],
+        fd_write: exports0['7'],
+        proc_exit: exports0['10'],
+        random_get: exports0['6'],
+      },
+    };
+    const { instance: instance1 } = await instantiateCore(await module0, instance1Imports);
+    const exports1 = instance1.exports;
+    const instance2Imports = {
+      __main_module__: {
+        cabi_realloc: exports1.cabi_realloc,
+      },
+      env: {
+        memory: exports1.memory,
+      },
+      environment: {
+        'get-environment': exports0['4'],
+      },
+      exit: {
+        exit: lowering3,
+      },
+      filesystem: {
+        'append-via-stream': lowering1,
+        'drop-descriptor': lowering2,
+        'get-type': exports0['2'],
+        'write-via-stream': lowering0,
+      },
+      preopens: {
+        'get-directories': exports0['1'],
+        'get-stdio': exports0['0'],
+      },
+      random: {
+        'get-random-bytes': exports0['3'],
+      },
+      streams: {
+        'drop-input-stream': lowering4,
+        'drop-output-stream': lowering5,
+        write: exports0['5'],
+      },
+    };
+    const { instance: instance2 } = await instantiateCore(await module1, instance2Imports);
+    const exports2 = instance2.exports;
+    memory0 = exports1.memory;
+    realloc0 = exports2.cabi_import_realloc;
+    const instance3Imports = {
+      '': {
+        $imports: exports0.$imports,
+        '0': lowering6,
+        '1': lowering7,
+        '10': exports2.proc_exit,
+        '2': lowering8,
+        '3': lowering9,
+        '4': lowering10,
+        '5': lowering11,
+        '6': exports2.random_get,
+        '7': exports2.fd_write,
+        '8': exports2.environ_get,
+        '9': exports2.environ_sizes_get,
+      },
+    };
+    const { instance: instance3 } = await instantiateCore(await module3, instance3Imports);
+    realloc1 = exports1.cabi_realloc;
+    postReturn0 = exports1.cabi_post_hello;
+    postReturn1 = exports1.cabi_post_uuid;
+    return {
+      instanceSource: module0,
+      instanceImport: instance1Imports,
+      instances: [instance0, instance1, instance2, instance3],
+      imports: [instance0Imports, instance1Imports, instance2Imports, instance3Imports],
+    };
   }));
-  ({ exports: exports2 } = await instantiateCore(await module1, {
-    __main_module__: {
-      cabi_realloc: exports1.cabi_realloc,
-    },
-    env: {
-      memory: exports1.memory,
-    },
-    environment: {
-      'get-environment': exports0['4'],
-    },
-    exit: {
-      exit: lowering3,
-    },
-    filesystem: {
-      'append-via-stream': lowering1,
-      'drop-descriptor': lowering2,
-      'get-type': exports0['2'],
-      'write-via-stream': lowering0,
-    },
-    preopens: {
-      'get-directories': exports0['1'],
-      'get-stdio': exports0['0'],
-    },
-    random: {
-      'get-random-bytes': exports0['3'],
-    },
-    streams: {
-      'drop-input-stream': lowering4,
-      'drop-output-stream': lowering5,
-      write: exports0['5'],
-    },
-  }));
-  memory0 = exports1.memory;
-  realloc0 = exports2.cabi_import_realloc;
-  ({ exports: exports3 } = await instantiateCore(await module3, {
-    '': {
-      $imports: exports0.$imports,
-      '0': lowering6,
-      '1': lowering7,
-      '10': exports2.proc_exit,
-      '2': lowering8,
-      '3': lowering9,
-      '4': lowering10,
-      '5': lowering11,
-      '6': exports2.random_get,
-      '7': exports2.fd_write,
-      '8': exports2.environ_get,
-      '9': exports2.environ_sizes_get,
-    },
-  }));
-  realloc1 = exports1.cabi_realloc;
-  postReturn0 = exports1.cabi_post_hello;
-  postReturn1 = exports1.cabi_post_uuid;
 })();
 
 await $init;
