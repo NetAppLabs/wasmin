@@ -1,0 +1,5 @@
+/// An example world for the component to target.
+default world component {
+    export hello: func(x: string) -> string
+    export uuid: func() -> string
+}
