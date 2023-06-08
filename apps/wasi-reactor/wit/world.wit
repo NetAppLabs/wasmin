@@ -1,4 +1,5 @@
 /// An example world for the component to target.
+//package wasm-env:wasi-reactor
 default world component {
     export hello: func(x: string) -> string
     export uuid: func() -> string

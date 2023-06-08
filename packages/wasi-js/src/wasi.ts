@@ -182,9 +182,11 @@ export class WASI {
         return this._wasiEnv;
     }
 
+    /*
     get moduleInstance() {
         return this._multiModule ? this._multiModule._moduleInstances : [this._moduleInstance] as WebAssembly.Instance[];
     }
+    */
 
     get moduleImports() {
         return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
@@ -196,13 +198,16 @@ export class WASI {
             _moduleInstances: ret.instances,
             _moduleImports: ret.imports,
         };
-        return this.instantiateWithAsyncDetection(ret.instanceSource, ret.instanceImport);
+        //return this.instantiateSingle(ret.instanceSource, ret.instanceImport);
+        const firstInstance = ret.instances[1];
+        return firstInstance;
     }
 
-    public async instantiateWithAsyncDetection(
+    public async instantiateSingle(
         wasmModOrBufSource: WebAssembly.Module | BufferSource,
         imports: WebAssembly.Imports
     ): Promise<WebAssembly.Instance> {
+        console.log("instantiateSingle:");
         let handleImportFunc: HandleWasmImportFunc | undefined;
         let threadRemote: comlink.Remote<WasmThreadRunner> | undefined;
         const useAsyncDetection = true;
@@ -234,7 +239,7 @@ export class WASI {
             );
             wasiDebug("[run] got instRes: ", instRes);
             if (!this._moduleImports && imports) {
-                const imps: Record<string, WebAssembly.ModuleImports> = {}; // this.initializeImports();
+                /*const imps: Record<string, WebAssembly.ModuleImports> = {}; // this.initializeImports();
                 for (const [importKey, importValue] of Object.entries(imports)) {
                     // if (importKey !== "wasi_snapshot_preview1") {
                         let vals: WebAssembly.ModuleImports = {};
@@ -247,6 +252,8 @@ export class WASI {
                 }
                 this._moduleImports = imps;
                 // console.log("WASI: handleImportFunc: _moduleImports:", this._moduleImports);
+                */
+               this._moduleImports = imports;
             }
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
@@ -405,6 +412,10 @@ export class WASI {
                 let funcReturn: any;
                 let funcThrownError: any;
                 try {
+                    wasiDebug(`WASI handleImport: importedFunc: `, importedFunc);
+                    if (functionName == "fd_write") {
+                        console.log("WASI handleImport, import is fd_write");
+                    }
                     funcReturn = await importedFunc(...args);
                 } catch (err: any) {
                     wasiDebug(`WASI handleImport: importedFunc err: `, err);

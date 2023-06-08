@@ -170,38 +170,81 @@ export class WasmThreadRunner {
     }
 
     public async executeExportedFunction(functionName: string, args: any[]): Promise<any> {
-        wasmThreadDebug("WasmThreadRunner executeExportedFunction: ", functionName);
+        console.log("WasmThreadRunner executeExportedFunction: ", functionName);
+
+        if (functionName == "6") {
+            wasmThreadDebug("WasmThreadRunner executeExportedFunction: ", functionName);
+        }
+        console.log("WasmThreadRunner executeExportedFunction: ", functionName);
         while (!this.wasmInstance) {
             wasmThreadDebug("WasmThreadRunner executeExportedFunction: waiting for wasmInstance");
             await sleep(100);
         }
         if (this.wasmInstance) {
-            wasmThreadDebug("WasmThreadRunner executeExportedFunction functionName: ", functionName);
-            const exportedMember = this.wasmInstance.exports[functionName] as any;
-            // console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
+            console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName);
+            console.log("WasmThreadRunner executeExportedFunction wasmInstance: ", this.wasmInstance);
+            console.log("WasmThreadRunner executeExportedFunction wasmInstance.exports: ", this.wasmInstance.exports);
 
-                
+            const exportedMember = this.wasmInstance.exports[functionName] as any;
+            console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
+            console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember.toString(): ", exportedMember.toString());
+            console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember.length: ", exportedMember.length);
+
             if (isFunction(exportedMember)) {
                 let exportedfunc = exportedMember;
                 try {
-                    // console.log("WasmThreadRunner exportedfunc:", exportedfunc, ...args);
-                    const result = exportedfunc(...args);
+                    let result: any;
+                    console.log("WasmThreadRunner exportedfunc:", exportedfunc, ...args);
+                    /*if (functionName == "6") {
+                        const arg_0 = args[0];
+                        const arg_1 = args[1];
+                        const arg_2 = args[2];
+                        const arg_3 = args[3];
+                        result = exportedfunc.bind(this.wasmInstance).call(arg_0, arg_1, arg_2, arg_3);
+                    } else {
+                        result = exportedfunc(...args);
+                    }*/
+                    result = exportedfunc(...args);
                     wasmThreadDebug("returning from exportedFunc");
                     return result;
                 } catch (err: any) {
                     wasmThreadDebug(`err catched from from exportedFunc: ${functionName} , err:`, err);
+                    if (err instanceof WebAssembly.RuntimeError){
+                        const e = err as WebAssembly.RuntimeError;
+                        console.log("WebAssembly.RuntimeError"); // "Hello"
+                        console.log(e.message); // "Hello"
+                        console.log(e.name); // "RuntimeError"
+                        console.log(e.cause); // "someFile"
+                        console.log(e.stack); // returns the location where the code was run
+                    }
                     throw err;
                 }
             } else {
-                /*if (exportedMember instanceof WebAssembly.Memory){
+                console.log("WasmThreadRunner executeExportedFunction "+functionName+" exportedMember:", exportedMember);
+                if (exportedMember instanceof WebAssembly.Memory){
                     let wasmMem = exportedMember as WebAssembly.Memory;
                     let exportReturn = wasmMem.buffer;
                     console.log("WasmThreadRunner isWasmEmory executeExportedFunction functionName: ", functionName, "exportReturn: ", exportReturn);
-                    return exportReturn;
-                } else {*/
+                    return wasmMem;
+                    //return exportedMember;
+                } else if (exportedMember instanceof WebAssembly.Table){
+                    let wasmTable = exportedMember as WebAssembly.Table;
                     // console.log("WasmThreadRunner isNotFunction executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
-                    return exportedMember;    
-                //}
+                    let wasmTableSerialized = JSON.stringify(wasmTable);
+                    const wasmTableLength = wasmTable.length;
+                    console.log("exportedMember wasmTableLength", wasmTableLength);
+
+                    for (let i = 0; i < wasmTable.length; i++) {
+                        const ti = wasmTable.get(i);
+                        console.log("exportedMember wasmTable i:"+i, ti);
+                    }
+                    console.log("exportedMember wasmTable", wasmTable);
+                    console.log("exportedMember wasmTableSerialized", wasmTableSerialized);
+                    return wasmTableSerialized;    
+
+                } else {
+                    return exportedMember;
+                }
             }
         } else {
             throw new Error("WasmInstance not set");
@@ -275,6 +318,7 @@ export async function instantiateWithAsyncDetection(
                 const workerUrl = new URL(workerUrlString, import.meta.url);
 
                 wasmHandlerDebug("workerUrl:", workerUrl);
+                // TODO: provide way to have shared worker with multiple modules
                 worker = await createWorker(workerUrl, { type: "module" });
                 wasmHandlerDebug("createWorker: ", worker);
             }
@@ -328,14 +372,34 @@ async function handlerInstanciateProxy(
     const exportsProxy = new Proxy(exportsDummy, {
         get: (target, name, receiver) => {
             // console.log("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
-            wasmHandlerDebug("instantiateProxy get:", name);
+            console.log("instantiateProxy get:", name);
             if (threadRemote) {
                 wasmHandlerDebug("instantiateProxy creating wrappedFunction");
+                // hack - refine this:
+                if (name == "$imports") {
+                    // TODO: imlement fetching local $imports from local
+                    // moduleinstance if using shared worker
+                    const expFunc = threadRemote.executeExportedFunction;
+                    let imp = expFunc(name, []);
+                    return imp;
+                }
+                if (name == "memory") {
+                    const expFunc = threadRemote.executeExportedFunction;
+                    let imp = expFunc(name, []);
+                    return imp;
+                }
+                // TODO: implement syncmessage readMessage and writeMessage
+                // to enable caller to be synchronous
+                // wrappedFunction would then not be async
                 const wrappedFunction = async (...args: any[]) => {
                     wasmHandlerDebug("instantiateProxy calling wrappedFunction");
                     const functionName = name as string;
+                    if (name == "6") {
+                        console.log("instantiateProxy calling wrappedFunction with name 6");
+                    }
                     wasmHandlerDebug("instantiateProxy calling wrappedFunction functionName: ", functionName);
-                    return await threadRemote.executeExportedFunction(functionName, args);
+                    const expFunc = threadRemote.executeExportedFunction;
+                    return await expFunc(functionName, args);
                 };
                 return wrappedFunction;
             } else {
@@ -349,6 +413,7 @@ async function handlerInstanciateProxy(
     };
     wasmHandlerDebug("workerProxy created: instanceProxy");
     let envMemory;
+    // TODO: change knownImports to Record<string,string>
     const knownImports: string[] = [];
     if (importObject) {
         for (const [importKey, value] of Object.entries(importObject)) {
@@ -388,7 +453,7 @@ function threadWrapAllImports(
             recieveMemoryFunc,
             envMemory
         );
-    }
+    }    
     return updatedImports;
 }
 
@@ -416,6 +481,10 @@ function threadWrapImportNamespace(
                 return envMemory;
             }
             if (myImportName === "" && functionName === "$imports") {
+
+                // TODO: special case if $imports and fetch it locally from a string reference
+                // if using shared workers use string reference to look up $imports table from another module
+                
                 const table = new WebAssembly.Table({element: "anyfunc", initial: 10, maximum: 10});
                 // console.log(`threadWrapImportNamespace importName: ${myImportName} functionName: ${functionName} table: ${table}`);
                 return table;

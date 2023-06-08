@@ -39,7 +39,6 @@ function getErrorPayload(e) {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-const instantiateCore = WebAssembly.instantiate;
 
 const toUint64 = val => BigInt.asUintN(64, val);
 
@@ -448,7 +447,7 @@ let postReturn0;
 let postReturn1;
 
 async function hello(arg0) {
-  const ptr0 = utf8Encode(arg0, realloc1, memory0);
+  const ptr0 = await utf8Encode(arg0, realloc1, memory0);
   const len0 = utf8EncodedLen;
   const ret = await exported.hello(ptr0, len0);
   const ptr1 = dataView(memory0).getInt32(ret + 0, true);
@@ -471,6 +470,15 @@ export { hello, uuid }
 
 let wasi = new WASI({});
 
+//const instantiateCore = WebAssembly.instantiate;
+//const instantiateCore = WebAssembly.instantiate;
+
+async function instantiateCore(wasmModOrBufferSource, imports) {
+  let inst = await wasi.instantiateSingle(wasmModOrBufferSource, imports);
+  return {instance: inst};
+}
+
+
 const $init = (async() => {
   ({ exports: exported } = await wasi.instantiateMultiModule(async () => {
     const module0 = await fetchBuffer(new URL('./wasi_reactor.core.wasm', import.meta.url));
@@ -480,6 +488,7 @@ const $init = (async() => {
     Promise.all([module0, module1, module2, module3]).catch(() => {});
     const instance0Imports = undefined;
     const { instance: instance0 } = await instantiateCore(await module2, instance0Imports);
+    console.log("instance0: ", instance0);
     const exports0 = instance0.exports;
     const instance1Imports = {
       wasi_snapshot_preview1: {
@@ -492,12 +501,14 @@ const $init = (async() => {
     };
     const { instance: instance1 } = await instantiateCore(await module0, instance1Imports);
     const exports1 = instance1.exports;
+    let exports1Memory = await exports1.memory;
+    console.log("exports1.memory: ",exports1Memory);
     const instance2Imports = {
       __main_module__: {
         cabi_realloc: exports1.cabi_realloc,
       },
       env: {
-        memory: exports1.memory,
+        memory: exports1Memory,
       },
       environment: {
         'get-environment': exports0['4'],
@@ -524,13 +535,24 @@ const $init = (async() => {
         write: exports0['5'],
       },
     };
+    //console.log("exports1.memory: ",exports1.memory);
+
     const { instance: instance2 } = await instantiateCore(await module1, instance2Imports);
     const exports2 = instance2.exports;
-    memory0 = exports1.memory;
+    //memory0 = exports1.memory;
+    memory0 = await exports1.memory;
     realloc0 = exports2.cabi_import_realloc;
+    //let instance3ImportsTable = exports0.$imports;
+
+    // TODO: implement string reference for $imports special case
+    let instance3ImportsTableReference = "module0.exports.$imports";
+
+    //let instance3ImportsTable = new WebAssembly.Table({element: "anyfunc", initial: 11, maximum: 11});
+    //let instance3ImportsTable = await exports0.$imports();
+    console.log("instance3ImportsTable", instance3ImportsTable);
     const instance3Imports = {
       '': {
-        $imports: exports0.$imports,
+        $imports: instance3ImportsTableReference,
         '0': lowering6,
         '1': lowering7,
         '10': exports2.proc_exit,
