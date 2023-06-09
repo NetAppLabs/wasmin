@@ -38,3 +38,6 @@ yarn-error.log*
 packages/nfs-js
 
 *.wasm
+*.log
+
+apps/wasi-reactor/target

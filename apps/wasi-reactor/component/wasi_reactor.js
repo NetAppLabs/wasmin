@@ -10,7 +10,7 @@ import { WASI } from '@wasm-env/wasi-js';
 const base64Compile = str => WebAssembly.compile(typeof Buffer !== 'undefined' ? Buffer.from(str, 'base64') : Uint8Array.from(atob(str), b => b.charCodeAt(0)));
 
 let dv = new DataView(new ArrayBuffer());
-const dataView = mem => dv.buffer === mem.buffer ? dv : dv = new DataView(mem.buffer);
+const dataView = mem => dv.buffer === mem ? dv : dv = new DataView(mem);
 
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 let _fs;
@@ -51,7 +51,7 @@ const utf8Decoder = new TextDecoder();
 const utf8Encoder = new TextEncoder();
 
 let utf8EncodedLen = 0;
-function utf8Encode(s, realloc, memory) {
+async function utf8Encode(s, realloc, memory) {
   if (typeof s !== 'string') throw new TypeError('expected a string');
   if (s.length === 0) {
     utf8EncodedLen = 0;
@@ -61,17 +61,17 @@ function utf8Encode(s, realloc, memory) {
   let ptr = 0;
   let writtenTotal = 0;
   while (s.length > 0) {
-    ptr = realloc(ptr, allocLen, 1, allocLen + s.length);
+    ptr = await realloc(ptr, allocLen, 1, allocLen + s.length);
     allocLen += s.length;
     const { read, written } = utf8Encoder.encodeInto(
     s,
-    new Uint8Array(memory.buffer, ptr + writtenTotal, allocLen - writtenTotal),
+    new Uint8Array(memory, ptr + writtenTotal, allocLen - writtenTotal),
     );
     writtenTotal += written;
     s = s.slice(read);
   }
   if (allocLen > writtenTotal)
-  ptr = realloc(ptr, allocLen, 1, writtenTotal);
+  ptr = await realloc(ptr, allocLen, 1, writtenTotal);
   utf8EncodedLen = writtenTotal;
   return ptr;
 }
@@ -387,7 +387,7 @@ function lowering9(arg0, arg1) {
   const len0 = val0.byteLength;
   const ptr0 = realloc0(0, 0, 1, len0 * 1);
   const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-  (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+  (new Uint8Array(memory0, ptr0, len0 * 1)).set(src0);
   dataView(memory0).setInt32(arg1 + 4, len0, true);
   dataView(memory0).setInt32(arg1 + 0, ptr0, true);
 }
@@ -416,7 +416,7 @@ function lowering10(arg0) {
 function lowering11(arg0, arg1, arg2, arg3) {
   const ptr0 = arg1;
   const len0 = arg2;
-  const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
+  const result0 = new Uint8Array(memory0.slice(ptr0, ptr0 + len0 * 1));
   let ret;
   try {
     ret = { tag: 'ok', val: lowering11Callee(arg0 >>> 0, result0) };
@@ -452,7 +452,7 @@ async function hello(arg0) {
   const ret = await exported.hello(ptr0, len0);
   const ptr1 = dataView(memory0).getInt32(ret + 0, true);
   const len1 = dataView(memory0).getInt32(ret + 4, true);
-  const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+  const result1 = utf8Decoder.decode(new Uint8Array(memory0, ptr1, len1));
   postReturn0(ret);
   return result1;
 }
@@ -461,7 +461,7 @@ async function uuid() {
   const ret = await exported.uuid();
   const ptr0 = dataView(memory0).getInt32(ret + 0, true);
   const len0 = dataView(memory0).getInt32(ret + 4, true);
-  const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
+  const result0 = utf8Decoder.decode(new Uint8Array(memory0, ptr0, len0));
   postReturn1(ret);
   return result0;
 }
@@ -480,103 +480,98 @@ async function instantiateCore(wasmModOrBufferSource, imports) {
 
 
 const $init = (async() => {
-  ({ exports: exported } = await wasi.instantiateMultiModule(async () => {
-    const module0 = await fetchBuffer(new URL('./wasi_reactor.core.wasm', import.meta.url));
-    const module1 = await fetchBuffer(new URL('./wasi_reactor.core2.wasm', import.meta.url));
-    const module2 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgCuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
-    const module3 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
-    Promise.all([module0, module1, module2, module3]).catch(() => {});
-    const instance0Imports = undefined;
-    const { instance: instance0 } = await instantiateCore(await module2, instance0Imports);
-    console.log("instance0: ", instance0);
-    const exports0 = instance0.exports;
-    const instance1Imports = {
-      wasi_snapshot_preview1: {
-        environ_get: exports0['8'],
-        environ_sizes_get: exports0['9'],
-        fd_write: exports0['7'],
-        proc_exit: exports0['10'],
-        random_get: exports0['6'],
-      },
-    };
-    const { instance: instance1 } = await instantiateCore(await module0, instance1Imports);
-    const exports1 = instance1.exports;
-    let exports1Memory = await exports1.memory;
-    console.log("exports1.memory: ",exports1Memory);
-    const instance2Imports = {
-      __main_module__: {
-        cabi_realloc: exports1.cabi_realloc,
-      },
-      env: {
-        memory: exports1Memory,
-      },
-      environment: {
-        'get-environment': exports0['4'],
-      },
-      exit: {
-        exit: lowering3,
-      },
-      filesystem: {
-        'append-via-stream': lowering1,
-        'drop-descriptor': lowering2,
-        'get-type': exports0['2'],
-        'write-via-stream': lowering0,
-      },
-      preopens: {
-        'get-directories': exports0['1'],
-        'get-stdio': exports0['0'],
-      },
-      random: {
-        'get-random-bytes': exports0['3'],
-      },
-      streams: {
-        'drop-input-stream': lowering4,
-        'drop-output-stream': lowering5,
-        write: exports0['5'],
-      },
-    };
-    //console.log("exports1.memory: ",exports1.memory);
+  const module1 = await fetchBuffer(new URL('./wasi_reactor.core.wasm', import.meta.url));
+  const module2 = await fetchBuffer(new URL('./wasi_reactor.core2.wasm', import.meta.url));
+  const module0 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgCuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
+  const module3 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+  Promise.all([module1, module2, module0, module3]).catch(() => {});
+  const instance0Imports = undefined;
+  const { instance: instance0 } = await instantiateCore(await module0, instance0Imports);
+  // console.log("instance0: ", instance0);
+  const exports0 = instance0.exports;
+  const instance1Imports = {
+    wasi_snapshot_preview1: {
+      environ_get: exports0['8'],
+      environ_sizes_get: exports0['9'],
+      fd_write: exports0['7'],
+      proc_exit: exports0['10'],
+      random_get: exports0['6'],
+    },
+  };
+  const { instance: instance1 } = await instantiateCore(await module1, instance1Imports);
+  const exports1 = instance1.exports;
+  let exports1MemoryBuffer = await exports1.memory;
+  let exports1Memory = new WebAssembly.Memory({initial: exports1MemoryBuffer.byteLength / 65536, maximum: exports1MemoryBuffer.byteLength / 65536, shared: false});
+  // console.log("exports1.memory: ",exports1MemoryBuffer);
+  const instance2Imports = {
+    __main_module__: {
+      cabi_realloc: exports1.cabi_realloc,
+    },
+    env: {
+      memory: exports1Memory,
+    },
+    environment: {
+      'get-environment': exports0['4'],
+    },
+    exit: {
+      exit: lowering3,
+    },
+    filesystem: {
+      'append-via-stream': lowering1,
+      'drop-descriptor': lowering2,
+      'get-type': exports0['2'],
+      'write-via-stream': lowering0,
+    },
+    preopens: {
+      'get-directories': exports0['1'],
+      'get-stdio': exports0['0'],
+    },
+    random: {
+      'get-random-bytes': exports0['3'],
+    },
+    streams: {
+      'drop-input-stream': lowering4,
+      'drop-output-stream': lowering5,
+      write: exports0['5'],
+    },
+  };
+  //console.log("exports1.memory: ",exports1.memory);
 
-    const { instance: instance2 } = await instantiateCore(await module1, instance2Imports);
-    const exports2 = instance2.exports;
-    //memory0 = exports1.memory;
-    memory0 = await exports1.memory;
-    realloc0 = exports2.cabi_import_realloc;
-    //let instance3ImportsTable = exports0.$imports;
+  const { instance: instance2 } = await instantiateCore(await module2, instance2Imports);
+  const exports2 = instance2.exports;
+  //memory0 = exports1.memory;
+  memory0 = await exports1.memory;
+  realloc0 = exports2.cabi_import_realloc;
+  //let instance3ImportsTable = exports0.$imports;
 
-    // TODO: implement string reference for $imports special case
-    let instance3ImportsTableReference = "module0.exports.$imports";
+  // TODO: implement string reference for $imports special case
+  let instance3ImportsTableReference = "module0.exports.$imports";
 
-    //let instance3ImportsTable = new WebAssembly.Table({element: "anyfunc", initial: 11, maximum: 11});
-    //let instance3ImportsTable = await exports0.$imports();
-    console.log("instance3ImportsTable", instance3ImportsTable);
-    const instance3Imports = {
-      '': {
-        $imports: instance3ImportsTableReference,
-        '0': lowering6,
-        '1': lowering7,
-        '10': exports2.proc_exit,
-        '2': lowering8,
-        '3': lowering9,
-        '4': lowering10,
-        '5': lowering11,
-        '6': exports2.random_get,
-        '7': exports2.fd_write,
-        '8': exports2.environ_get,
-        '9': exports2.environ_sizes_get,
-      },
-    };
-    const { instance: instance3 } = await instantiateCore(await module3, instance3Imports);
-    realloc1 = exports1.cabi_realloc;
-    postReturn0 = exports1.cabi_post_hello;
-    postReturn1 = exports1.cabi_post_uuid;
-    return {
-      instanceSource: module0,
-      instanceImport: instance1Imports,
-      instances: [instance0, instance1, instance2, instance3],
-      imports: [instance0Imports, instance1Imports, instance2Imports, instance3Imports],
-    };
-  }));
+  //let instance3ImportsTable = new WebAssembly.Table({element: "anyfunc", initial: 11, maximum: 11});
+  //let instance3ImportsTable = await exports0.$imports();
+  // console.log("instance3ImportsTable", instance3ImportsTable);
+  const instance3Imports = {
+    '': {
+      $imports: instance3ImportsTableReference,
+      '0': lowering6,
+      '1': lowering7,
+      '10': exports2.proc_exit,
+      '2': lowering8,
+      '3': lowering9,
+      '4': lowering10,
+      '5': lowering11,
+      '6': exports2.random_get,
+      '7': exports2.fd_write,
+      '8': exports2.environ_get,
+      '9': exports2.environ_sizes_get,
+    },
+  };
+  const { instance: instance3 } = await instantiateCore(await module3, instance3Imports);
+  realloc1 = exports1.cabi_realloc;
+  postReturn0 = exports1.cabi_post_hello;
+  postReturn1 = exports1.cabi_post_uuid;
+
+  exported = exports1;
 })();
 
 await $init;

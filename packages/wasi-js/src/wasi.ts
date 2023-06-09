@@ -5,6 +5,7 @@
 import { instantiate } from "./vendored/asyncify/asyncify.js";
 import {
     HandleWasmImportFunc,
+    instantiateSingle,
     instantiateWithAsyncDetection,
     USE_SHARED_ARRAYBUFFER_WORKAROUND,
     USE_SHARED_MEMORY,
@@ -176,7 +177,7 @@ export class WASI {
     private _moduleImports?: WebAssembly.Imports;
     private _channel?: Channel;
     private _memory?: WebAssembly.Memory;
-    private _multiModule?: MultiModule;
+    // private _multiModule?: MultiModule;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -189,25 +190,26 @@ export class WASI {
     */
 
     get moduleImports() {
-        return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
+        // return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
+        return this._moduleImports as WebAssembly.Imports;
     }
 
-    public async instantiateMultiModule(instantiateMultipleFunc: InstantiateMultipleFunc): Promise<WebAssembly.Instance> {
-        const ret = await instantiateMultipleFunc();
-        this._multiModule = {
-            _moduleInstances: ret.instances,
-            _moduleImports: ret.imports,
-        };
-        //return this.instantiateSingle(ret.instanceSource, ret.instanceImport);
-        const firstInstance = ret.instances[1];
-        return firstInstance;
-    }
+    // public async instantiateMultiModule(instantiateMultipleFunc: InstantiateMultipleFunc): Promise<WebAssembly.Instance> {
+    //     const ret = await instantiateMultipleFunc();
+    //     this._multiModule = {
+    //         _moduleInstances: ret.instances,
+    //         _moduleImports: ret.imports,
+    //     };
+    //     //return this.instantiateSingle(ret.instanceSource, ret.instanceImport);
+    //     const firstInstance = ret.instances[1];
+    //     return firstInstance;
+    // }
 
     public async instantiateSingle(
-        wasmModOrBufSource: WebAssembly.Module | BufferSource,
+        wasmModOrBufSource: BufferSource,
         imports: WebAssembly.Imports
     ): Promise<WebAssembly.Instance> {
-        console.log("instantiateSingle:");
+        // console.log("instantiateSingle:");
         let handleImportFunc: HandleWasmImportFunc | undefined;
         let threadRemote: comlink.Remote<WasmThreadRunner> | undefined;
         const useAsyncDetection = true;
@@ -232,7 +234,7 @@ export class WASI {
             } else {
                 wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
             }
-            const instRes = await instantiateWithAsyncDetection(
+            const instRes = await instantiateSingle(
                 wasmModOrBufSource,
                 imports,
                 handleImportFunc
@@ -379,7 +381,7 @@ export class WASI {
         }
         const channel = this._channel;
         if (channel) {
-            if (moduleImports.length > 0) {
+            if (moduleImports) {
                 let wasmBuf: ArrayBuffer;
                 if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
                     wasiDebug("wasi.handleIimport is SharedArrayBuffer buf: ", buf);
@@ -400,14 +402,7 @@ export class WASI {
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._memory);
 
-                let modImport: any;
-                for (let i = 0; i < moduleImports.length; i++) {
-                    if (moduleImports[i] && moduleImports[i][importName]) {
-                        modImport = moduleImports[i][importName];
-                        break;
-                    }
-                }
-                // const modImport = moduleImports[importName];
+                const modImport = moduleImports[importName];
                 const importedFunc = modImport[functionName] as any;
                 let funcReturn: any;
                 let funcThrownError: any;

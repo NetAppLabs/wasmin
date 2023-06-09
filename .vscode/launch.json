@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "wasi-component-run",
             "program": "${workspaceFolder}/apps/wasi-component/component/run.mjs",
@@ -16,7 +15,6 @@
         },
         {
             "name": "wasi-reactor-run",
-            "runtimeExecutable": "/opt/homebrew/bin/node",
             "program": "${workspaceFolder}/apps/wasi-reactor/component/run.mjs",
             "request": "launch",
             "skipFiles": [
