@@ -498,8 +498,13 @@ const initBufferFromString = (str) => Buffer.from(str, 'base64')
 
 let wasi = new WASI({});
 
+async function instantiateCore(wasmModOrBufferSource, imports) {
+  let inst = await wasi.instantiateSingle(wasmModOrBufferSource, imports);
+  return {instance: inst};
+}
+
 const $init = (async() => {
-  ({ exports: exported } = await wasi.instantiateMultiModule(async () => {
+  //({ exports: exported } = await wasi.instantiateMultiModule(async () => {
     //const module0 = fetchCompile(new URL('./component.core.wasm', import.meta.url));
     const module0 = await fetchBuffer(new URL('./component.core.wasm', import.meta.url));
     //const module1 = fetchCompile(new URL('./component.core2.wasm', import.meta.url));
@@ -510,7 +515,7 @@ const $init = (async() => {
     const module3 = initBufferFromString('AGFzbQEAAAABIwZgAX8AYAJ/fwBgBH9/f38AYAR/f39/AX9gAn9/AX9gAX8AAkILAAEwAAAAATEAAAABMgABAAEzAAAAATQAAgABNQACAAE2AAMAATcABAABOAAEAAE5AAUACCRpbXBvcnRzAXABCgoJEAEAQQALCgABAgMEBQYHCAkALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjcuMQAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
     Promise.all([module0, module1, module2, module3]).catch(() => {});
     const instance0Imports = undefined;
-    const { instance: instance0 } = await WebAssembly.instantiate(await module2, instance0Imports);
+    const { instance: instance0 } = await instantiateCore(await module2, instance0Imports);
     const exports0 = instance0.exports;
     const instance1Imports = {
       wasi_snapshot_preview1: {
@@ -520,15 +525,17 @@ const $init = (async() => {
         proc_exit: exports0['9'],
       },
     };
-    const { instance: instance1 } = await WebAssembly.instantiate(await module0, instance1Imports);
+    const { instance: instance1 } = await instantiateCore(await module0, instance1Imports);
     const exports1 = instance1.exports;
-
+    let exports1MemoryBuffer = await exports1.memory;
+    let exports1Memory = exports1MemoryBuffer;
+  
     const instance2Imports = {
       __main_module__: {
         _start: exports1._start,
       },
       env: {
-        memory: exports1.memory,
+        memory: exports1MemoryBuffer,
       },
       environment: {
         'get-environment': exports0['3'],
@@ -553,14 +560,17 @@ const $init = (async() => {
         write: exports0['4'],
       },
     };
-    const { instance: instance2 } = await WebAssembly.instantiate(await module1, instance2Imports);
+    const { instance: instance2 } = await instantiateCore(await module1, instance2Imports);
     const exports2 = instance2.exports;
-    memory0 = exports1.memory;
+    memory0 = await exports1.memory;
     realloc0 = exports2.cabi_import_realloc;
+
+    //let instance3ImportsTableReference = exports0.$imports;
+    let instance3ImportsTableReference = "module0.exports.$imports";
 
     const instance3Imports = {
       '': {
-        $imports: exports0.$imports,
+        $imports: instance3ImportsTableReference,
         '0': lowering6,
         '1': lowering7,
         '2': lowering8,
@@ -573,14 +583,18 @@ const $init = (async() => {
         '9': exports2.proc_exit,
       },
     };
-    const { instance: instance3 } = await WebAssembly.instantiate(await module3, instance3Imports);
-    return {
+    const { instance: instance3 } = await instantiateCore(await module3, instance3Imports);
+    /*return {
       instanceSource: module1,
       instanceImport: instance2Imports,
       instances: [instance0, instance1, instance2, instance3],
       imports: [instance0Imports, instance1Imports, instance2Imports, instance3Imports],
     };
-  }));
+  //}));
+  */
+
+  exported = exports1;
+
 })();
 
 await $init;
