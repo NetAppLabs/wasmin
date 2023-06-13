@@ -5,10 +5,11 @@
 import { instantiate } from "./vendored/asyncify/asyncify.js";
 import {
     HandleWasmImportFunc,
-    instantiateSingle,
+    instantiateOnThreadRemote,
     instantiateWithAsyncDetection,
     USE_SHARED_ARRAYBUFFER_WORKAROUND,
     USE_SHARED_MEMORY,
+    USE_SINGLE_THREAD_REMOTE,
     WasmThreadRunner,
 } from "./desyncify.js";
 import * as comlink from "comlink";
@@ -176,6 +177,7 @@ export class WASI {
     private _moduleInstance?: WebAssembly.Instance;
     private _moduleImports?: WebAssembly.Imports;
     private _channel?: Channel;
+    private _threadRemote?: comlink.Remote<WasmThreadRunner>;
     private _memory?: WebAssembly.Memory;
     // private _multiModule?: MultiModule;
 
@@ -235,10 +237,11 @@ export class WASI {
             } else {
                 wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
             }
-            const instRes = await instantiateSingle(
+            const instRes = await instantiateOnThreadRemote(
                 wasmModOrBufSource,
                 imports,
-                handleImportFunc
+                handleImportFunc,
+                this._threadRemote
             );
             wasiDebug("[run] got instRes: ", instRes);
             if (!this._moduleImports && imports) {
@@ -260,7 +263,9 @@ export class WASI {
             }
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
-            threadRemote = instRes.threadRemote;
+            if (USE_SINGLE_THREAD_REMOTE) {
+                this._threadRemote = instRes.threadRemote;
+            }
             wasiDebug("[run] setting channel: ", this._channel);
         } else {
             let wasmMod: WebAssembly.Module;

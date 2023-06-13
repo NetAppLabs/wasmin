@@ -6,6 +6,7 @@ import {
     readMessage,
     syncSleep,
     uuidv4,
+    writeMessage,
 } from "./vendored/sync-message/index.js";
 import { initializeHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
@@ -268,9 +269,11 @@ export class WasmThreadRunner {
                             const exportRef = importExportReference.exportRef;
                             const moduleInstanceId = importExportReference.moduleInstanceId;
                             const modInst = wasmThreadRunner._wasmInstancesMap[moduleInstanceId];
-                            const exportedFunc = modInst.exports[exportRef];
-                            wasmThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: exportedFunc: `, exportedFunc);
-                            return exportedFunc;
+                            if (modInst) {
+                                const exportedFunc = modInst.exports[exportRef];
+                                wasmThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: exportedFunc: `, exportedFunc);
+                                return exportedFunc;
+                            }
                         }
                     } else {
                         wasmThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: importReference else : `);
@@ -282,9 +285,11 @@ export class WasmThreadRunner {
                                     const exportRef = importExportReference.exportRef;
                                     const moduleInstanceId = importExportReference.moduleInstanceId;
                                     const modInst = wasmThreadRunner._wasmInstancesMap[moduleInstanceId];
-                                    const exportedFunc = modInst.exports[exportRef];
-                                    wasmThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: exportedFunc2: `, exportedFunc);
-                                    return exportedFunc;        
+                                    if (modInst) {
+                                        const exportedFunc = modInst.exports[exportRef];
+                                        wasmThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: exportedFunc2: `, exportedFunc);
+                                        return exportedFunc;
+                                    }
                                 }
                             }
                         }
@@ -364,6 +369,25 @@ export class WasmThreadRunner {
                 this.handleImportFunc[comlink.releaseProxy]();
             }
         }
+    }
+
+    public async executeExportedFunctionSync(myChannel: Channel, messageId: string, functionName: string, args: any[]): Promise<any> {
+
+        let funcReturn = undefined;
+        let funcThrownError = undefined;
+
+        try {
+            funcReturn = await this.executeExportedFunction(functionName, args);
+        } catch (err: any) {
+            funcThrownError = err;
+        }
+        const response = { return: funcReturn, error: funcThrownError };
+
+        wasmThreadDebug("executeExportedFunctionSync before : readMessage, channel:", myChannel);
+        const retMessage = writeMessage(myChannel, response, messageId);
+        wasmThreadDebug("executeExportedFunctionSync after : readMessage");
+
+        return funcReturn;
     }
 
     public async executeExportedFunction(functionName: string, args: any[]): Promise<any> {
@@ -488,13 +512,14 @@ export async function instantiateWithAsyncDetection(
         return { instance: asyncifiedInstance, isAsync: isAsyncified };
     }
 
-    return instantiateSingle(sourceBuffer, imports, handleImportFunc);
+    return instantiateOnThreadRemote(sourceBuffer, imports, handleImportFunc);
 }
 
-export async function instantiateSingle(
+export async function instantiateOnThreadRemote(
     sourceBuffer: BufferSource | null,
     imports: WebAssembly.Imports,
-    handleImportFunc: HandleWasmImportFunc
+    handleImportFunc: HandleWasmImportFunc,
+    threadRemote?: comlink.Remote<WasmThreadRunner>,
 ): Promise<{
     instance: WebAssembly.Instance;
     isAsync: boolean;
@@ -517,8 +542,9 @@ export async function instantiateSingle(
             throw new Error("BufferSource must be set for non-asyncified wasm modules to work");
         }
 
-        //const threadRemote = comlink.wrap<WasmThreadRunner>(nodeEndpoint(worker));
-        const threadRemote = await acquireThreadRemote();
+        if(!threadRemote) {
+            threadRemote = await acquireThreadRemote();
+        }
 
         wasmHandlerDebug("instantiate wrapped threadRemote");
         const moduleInstanceId = uuidv4();
@@ -545,14 +571,9 @@ export async function instantiateSingle(
     }
 }
 
-const USE_SINGLE_THREAD_REMOTE = true;
-let singleThreadRemote: comlink.Remote<WasmThreadRunner>;
+export const USE_SINGLE_THREAD_REMOTE = true;
 
 async function acquireThreadRemote(): Promise<comlink.Remote<WasmThreadRunner>> {
-    if (USE_SINGLE_THREAD_REMOTE && singleThreadRemote) {
-        return singleThreadRemote;
-    }
-
     const useNodeWorkerThreads = false;
     let worker: Worker;
     if (useNodeWorkerThreads) {
@@ -584,9 +605,6 @@ async function acquireThreadRemote(): Promise<comlink.Remote<WasmThreadRunner>> 
     }
     wasmHandlerDebug("acquireWorker started worker");
     const threadRemote = comlink.wrap<WasmThreadRunner>(worker);
-    if (USE_SINGLE_THREAD_REMOTE) {
-        singleThreadRemote = threadRemote;
-    }
     return threadRemote;
 }
 
@@ -599,6 +617,16 @@ async function handlerInstanciateProxy(
     moduleInstanceId?: string
 ): Promise<WebAssembly.Instance> {
     wasmHandlerDebug("instantiateProxy");
+
+    let exportChannel: Channel | null;
+    if (USE_SHARED_MEMORY) {
+        exportChannel = makeChannel();
+    } else {
+        const bufferSize = 64 * 1024 * 1024;
+        exportChannel = makeAtomicsChannel({ bufferSize });
+    }
+
+
     const exportsDummy: WebAssembly.Exports = {};
     const exportsProxy = new Proxy(exportsDummy, {
         get: (target, name, receiver) => {
@@ -619,25 +647,72 @@ async function handlerInstanciateProxy(
                     let imp = expFunc(name, []);
                     return imp;
                 }
-                // TODO: implement syncmessage readMessage and writeMessage
-                // to enable caller to be synchronous
-                // wrappedExportFunction would then not be async
-                const wrappedExportFunction = async (...args: any[]) => {
-                    wasmHandlerDebug("instantiateProxy calling wrappedExportFunction");
-                    const functionName = name as string;
-                    if (name == "6") {
-                        console.log("instantiateProxy calling wrappedExportFunction with name 6");
-                    }
-                    wasmHandlerDebug("instantiateProxy calling wrappedExportFunction functionName: ", functionName);
-                    const expFunc = threadRemote.executeExportedFunction;
-                    const retval = await expFunc(functionName, args);
-                    return retval;
-                };
+
+                // if wrapExportFunctionSync is true it wraps it in a synchronous function
+                // using syncmessage readMessage and writeMessage
+                let wrapExportFunctionSync = false;
+                const functionName = name as string;
+                let wrappedExportFunction = undefined;
+
+                if (wrapExportFunctionSync) {
+                    // In this case the wrappedExportFunction is synchronous
+                    wrappedExportFunction = (...args: any[]) => {
+                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction synchronous");
+                        if (name == "6") {
+                            console.log("instantiateProxy calling wrappedExportFunction synchronous with name 6");
+                        }
+                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction synchronous functionName: ", functionName);
+                        const messageId = uuidv4();
+                        const expFunc = threadRemote.executeExportedFunctionSync;
+                        if (exportChannel) {
+                            expFunc(exportChannel, messageId, functionName, args);
+                            wasmThreadDebug("threadWrapImportNamespace after : readMessage");
+                            const checkInterrupt = function checkInterrupt(): boolean {
+                                return true;
+                            }
+                            const retries = 100;
+                            let retValue = undefined;
+                            let errValue = undefined;
+                            for (let i = 0; i< retries; i++) {
+                                const retMessage = readMessage(exportChannel, messageId, {checkInterrupt});
+                                if (retMessage) {
+                                    retValue = retMessage.return;
+                                    errValue = retMessage.error;
+                                    break;
+                                } else {
+                                    syncSleep(1, exportChannel);
+                                }
+                            }
+                            if (errValue) {
+                                console.error("threadWrapImportNamespace after : readMessage error:", errValue);
+                                throw errValue;
+                            }
+                            return retValue;
+                        } else {
+                            console.warn("channel not set for handlerInstanciateProxy wrappedExportFunctionSync");
+                        }
+                    };
+                } else {
+                    // In this case the wrappedExportFunction is async
+                    wrappedExportFunction = async (...args: any[]) => {
+                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction async");
+                        const functionName = name as string;
+                        if (name == "6") {
+                            console.log("instantiateProxy calling wrappedExportFunction async with name 6");
+                        }
+                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction async functionName: ", functionName);
+                        const expFunc = threadRemote.executeExportedFunction;
+                        const retval = await expFunc(functionName, args);
+                        return retval;
+                    };
+                }
+
+
                 const wrappedExportedFunctionTyped = wrappedExportFunction as unknown as WrappedExportedFunction;
                 // custom properties set to wrappedExportFunction function:
-                wrappedExportedFunctionTyped["isWrappedFunction"] = true;
-                wrappedExportedFunctionTyped["functionName"] = name as string
-                wrappedExportedFunctionTyped["moduleInstanceId"] = moduleInstanceId as string;
+                wrappedExportedFunctionTyped.isWrappedFunction = true;
+                wrappedExportedFunctionTyped.functionName = name as string
+                wrappedExportedFunctionTyped.moduleInstanceId = moduleInstanceId as string;
 
                 return wrappedExportFunction;
             } else {
