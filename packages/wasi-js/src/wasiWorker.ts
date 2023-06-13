@@ -88,8 +88,13 @@ export class WasiWorkerThreadRunner {
         );
         const wasi = this.wasi;
         if (wasi) {
-            wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is set`);
-            return await wasi.handleImport(messageId, importName, functionName, args, buf);
+            const moduleImports = this.wasi?.moduleImports;
+            if (moduleImports) {
+                wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is set`);
+                return await wasi.handleImport(messageId, importName, functionName, args, buf, moduleImports);
+            } else {
+                console.error("no moduleImports set");
+            }
         } else {
             wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is not set`);
         }

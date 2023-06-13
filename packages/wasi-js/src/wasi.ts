@@ -221,8 +221,9 @@ export class WASI {
                 args: any[],
                 buf: ArrayBuffer
             ) => {
+                const moduleImports = imports;
                 try {
-                    return await this.handleImport(messageId, importName, functionName, args, buf);
+                    return await this.handleImport(messageId, importName, functionName, args, buf, moduleImports);
                 } catch (err: any) {
                     wasiDebug("WASI.handleImportFuncLocal err: ", err);
                     throw err;
@@ -289,7 +290,8 @@ export class WASI {
                 buf: ArrayBuffer
             ) => {
                 try {
-                    return await this.handleImport(messageId, importName, functionName, args, buf);
+                    const moduleImports = this.moduleImports;
+                    return await this.handleImport(messageId, importName, functionName, args, buf, moduleImports);
                 } catch (err: any) {
                     wasiDebug("WASI.handleImportFuncLocal err: ", err);
                     throw err;
@@ -370,10 +372,11 @@ export class WASI {
         importName: string,
         functionName: string,
         args: any[],
-        buf: ArrayBuffer
+        buf: ArrayBuffer,
+        moduleImports: WebAssembly.Imports,
     ): Promise<void> {
         wasiDebug(`WASI handleImport: messageId: ${messageId} importName: ${importName} functionName: ${functionName}`);
-        const moduleImports = this.moduleImports;
+        //const moduleImports = this.moduleImports;
 
         while (!this._channel) {
             wasiDebug("waiting for channel");
