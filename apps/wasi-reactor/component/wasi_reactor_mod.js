@@ -1,14 +1,16 @@
-import { getEnvironment as lowering10Callee } from '@bytecodealliance/preview2-shim/environment';
-import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@bytecodealliance/preview2-shim/preopens';
-import { exit as lowering3Callee } from '@bytecodealliance/preview2-shim/exit';
-import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@bytecodealliance/preview2-shim/filesystem';
-import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@bytecodealliance/preview2-shim/streams';
-import { getRandomBytes as lowering9Callee } from '@bytecodealliance/preview2-shim/random';
+import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/filesystem';
+import { exit as lowering3Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/exit';
+import { getRandomBytes as lowering9Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/random';
+import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/streams';
+import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/preopens';
+import { getEnvironment as lowering10Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/environment';
+
+import { WASI } from '@wasm-env/wasi-js';
 
 const base64Compile = str => WebAssembly.compile(typeof Buffer !== 'undefined' ? Buffer.from(str, 'base64') : Uint8Array.from(atob(str), b => b.charCodeAt(0)));
 
 let dv = new DataView(new ArrayBuffer());
-const dataView = mem => dv.buffer === mem.buffer ? dv : dv = new DataView(mem.buffer);
+const dataView = mem => dv.buffer === mem ? dv : dv = new DataView(mem);
 
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 let _fs;
@@ -20,6 +22,16 @@ async function fetchCompile (url) {
   return fetch(url).then(WebAssembly.compileStreaming);
 }
 
+async function fetchBuffer(url) {
+  if (isNode) {
+    _fs = _fs || await import('fs/promises');
+    return await _fs.readFile(url);
+  }
+  return fetch(url);
+}
+
+const initBufferFromString = (str) => Buffer.from(str, 'base64')
+
 function getErrorPayload(e) {
   if (e && hasOwnProperty.call(e, 'payload')) return e.payload;
   return e;
@@ -27,7 +39,6 @@ function getErrorPayload(e) {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-const instantiateCore = WebAssembly.instantiate;
 
 const toUint64 = val => BigInt.asUintN(64, val);
 
@@ -40,7 +51,7 @@ const utf8Decoder = new TextDecoder();
 const utf8Encoder = new TextEncoder();
 
 let utf8EncodedLen = 0;
-function utf8Encode(s, realloc, memory) {
+async function utf8Encode(s, realloc, memory) {
   if (typeof s !== 'string') throw new TypeError('expected a string');
   if (s.length === 0) {
     utf8EncodedLen = 0;
@@ -50,23 +61,22 @@ function utf8Encode(s, realloc, memory) {
   let ptr = 0;
   let writtenTotal = 0;
   while (s.length > 0) {
-    ptr = realloc(ptr, allocLen, 1, allocLen + s.length);
+    ptr = await realloc(ptr, allocLen, 1, allocLen + s.length);
     allocLen += s.length;
     const { read, written } = utf8Encoder.encodeInto(
     s,
-    new Uint8Array(memory.buffer, ptr + writtenTotal, allocLen - writtenTotal),
+    new Uint8Array(memory, ptr + writtenTotal, allocLen - writtenTotal),
     );
     writtenTotal += written;
     s = s.slice(read);
   }
   if (allocLen > writtenTotal)
-  ptr = realloc(ptr, allocLen, 1, writtenTotal);
+  ptr = await realloc(ptr, allocLen, 1, writtenTotal);
   utf8EncodedLen = writtenTotal;
   return ptr;
 }
 
-let exports0;
-let exports1;
+let exported;
 
 function lowering0(arg0, arg1) {
   const ret = lowering0Callee(arg0 >>> 0, BigInt.asUintN(64, arg1));
@@ -113,7 +123,6 @@ function lowering4(arg0) {
 function lowering5(arg0) {
   lowering5Callee(arg0 >>> 0);
 }
-let exports2;
 let memory0;
 
 function lowering6(arg0) {
@@ -124,17 +133,35 @@ function lowering6(arg0) {
   dataView(memory0).setInt32(arg0 + 8, toUint32(v0_2), true);
 }
 let realloc0;
+let realloc0base = 500000;
+let realloc_func = async function(oldPtr, oldLen, align, newLen) {
+  if (oldPtr === 0) {
+    const ptr = realloc0base+4;
+    dataView(memory0).setInt32(realloc0base, newLen, true);
+    realloc0base = ptr + (align * newLen) + 50000;
+    return ptr;
+  }
+  if (oldLen < newLen) {
+    return oldPtr;
+  }
+  if (newLen > oldLen + 50000) {
+    return realloc0(0, 0, align, newLen);
+  }
+  dataView(memory0).setInt32(oldPtr-4, newLen, true);
+  return oldPtr;
+}
+realloc0 = realloc_func;
 
-function lowering7(arg0) {
+async function lowering7(arg0) {
   const ret = lowering7Callee();
   const vec2 = ret;
   const len2 = vec2.length;
-  const result2 = realloc0(0, 0, 4, len2 * 12);
+  const result2 = await realloc0(0, 0, 4, len2 * 12);
   for (let i = 0; i < vec2.length; i++) {
     const e = vec2[i];
     const base = result2 + i * 12;const [tuple0_0, tuple0_1] = e;
     dataView(memory0).setInt32(base + 0, toUint32(tuple0_0), true);
-    const ptr1 = utf8Encode(tuple0_1, realloc0, memory0);
+    const ptr1 = await utf8Encode(tuple0_1, realloc0, memory0);
     const len1 = utf8EncodedLen;
     dataView(memory0).setInt32(base + 8, len1, true);
     dataView(memory0).setInt32(base + 4, ptr1, true);
@@ -372,30 +399,30 @@ function lowering8(arg0, arg1) {
   }
 }
 
-function lowering9(arg0, arg1) {
-  const ret = lowering9Callee(BigInt.asUintN(64, arg0));
+async function lowering9(arg0, arg1) {
+  const ret = await lowering9Callee(BigInt.asUintN(64, arg0));
   const val0 = ret;
   const len0 = val0.byteLength;
-  const ptr0 = realloc0(0, 0, 1, len0 * 1);
+  const ptr0 = await realloc0(0, 0, 1, len0 * 1);
   const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-  (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+  (new Uint8Array(memory0, ptr0, len0 * 1)).set(src0);
   dataView(memory0).setInt32(arg1 + 4, len0, true);
   dataView(memory0).setInt32(arg1 + 0, ptr0, true);
 }
 
-function lowering10(arg0) {
+async function lowering10(arg0) {
   const ret = lowering10Callee();
   const vec3 = ret;
   const len3 = vec3.length;
-  const result3 = realloc0(0, 0, 4, len3 * 16);
+  const result3 = await realloc0(0, 0, 4, len3 * 16);
   for (let i = 0; i < vec3.length; i++) {
     const e = vec3[i];
     const base = result3 + i * 16;const [tuple0_0, tuple0_1] = e;
-    const ptr1 = utf8Encode(tuple0_0, realloc0, memory0);
+    const ptr1 = await utf8Encode(tuple0_0, realloc0, memory0);
     const len1 = utf8EncodedLen;
     dataView(memory0).setInt32(base + 4, len1, true);
     dataView(memory0).setInt32(base + 0, ptr1, true);
-    const ptr2 = utf8Encode(tuple0_1, realloc0, memory0);
+    const ptr2 = await utf8Encode(tuple0_1, realloc0, memory0);
     const len2 = utf8EncodedLen;
     dataView(memory0).setInt32(base + 12, len2, true);
     dataView(memory0).setInt32(base + 8, ptr2, true);
@@ -407,7 +434,7 @@ function lowering10(arg0) {
 function lowering11(arg0, arg1, arg2, arg3) {
   const ptr0 = arg1;
   const len0 = arg2;
-  const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
+  const result0 = new Uint8Array(memory0.slice(ptr0, ptr0 + len0 * 1));
   let ret;
   try {
     ret = { tag: 'ok', val: lowering11Callee(arg0 >>> 0, result0) };
@@ -433,41 +460,65 @@ function lowering11(arg0, arg1, arg2, arg3) {
     }
   }
 }
-let exports3;
 let realloc1;
 let postReturn0;
 let postReturn1;
 
-function hello(arg0) {
-  const ptr0 = utf8Encode(arg0, realloc1, memory0);
+async function hello(arg0) {
+  const ptr0 = await utf8Encode(arg0, realloc1, memory0);
   const len0 = utf8EncodedLen;
-  const ret = exports1.hello(ptr0, len0);
+  const ret = await exported.hello(ptr0, len0);
   const ptr1 = dataView(memory0).getInt32(ret + 0, true);
   const len1 = dataView(memory0).getInt32(ret + 4, true);
-  const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
-  postReturn0(ret);
+  const result1 = utf8Decoder.decode(new Uint8Array(memory0, ptr1, len1));
+  await postReturn0(ret);
   return result1;
 }
 
-function uuid() {
-  const ret = exports1.uuid();
+async function uuid() {
+  const ret = await exported.uuid();
   const ptr0 = dataView(memory0).getInt32(ret + 0, true);
   const len0 = dataView(memory0).getInt32(ret + 4, true);
-  const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
-  postReturn1(ret);
+  const result0 = utf8Decoder.decode(new Uint8Array(memory0, ptr0, len0));
+  await postReturn1(ret);
   return result0;
 }
 
 export { hello, uuid }
 
+let wasi1 = new WASI({});
+let wasi2 = new WASI({});
+let wasi3 = new WASI({});
+
+//const instantiateCore = WebAssembly.instantiate;
+//const instantiateCore = WebAssembly.instantiate;
+
+async function instantiateCore(wasmModOrBufferSource, imports) {
+  let inst = await wasi1.instantiateSingle(wasmModOrBufferSource, imports);
+  return {instance: inst};
+}
+
+async function instantiateCore2(wasmModOrBufferSource, imports) {
+  let inst = await wasi2.instantiateSingle(wasmModOrBufferSource, imports);
+  return {instance: inst};
+}
+
+async function instantiateCore3(wasmModOrBufferSource, imports) {
+  let inst = await wasi3.instantiateSingle(wasmModOrBufferSource, imports);
+  return {instance: inst};
+}
+
 const $init = (async() => {
-  const module0 = fetchCompile(new URL('./wasi_reactor.core.wasm', import.meta.url));
-  const module1 = fetchCompile(new URL('./wasi_reactor.core2.wasm', import.meta.url));
-  const module2 = base64Compile('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjkuMACuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
-  const module3 = base64Compile('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjkuMAAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
-  Promise.all([module0, module1, module2, module3]).catch(() => {});
-  ({ exports: exports0 } = await instantiateCore(await module2));
-  ({ exports: exports1 } = await instantiateCore(await module0, {
+  const module1 = await fetchBuffer(new URL('./wasi_reactor.core.wasm', import.meta.url));
+  const module2 = await fetchBuffer(new URL('./wasi_reactor.core2.wasm', import.meta.url));
+  const module0 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwADDAsAAAECAAMEBQQEBgQFAXABCwsHOQwBMAAAATEAAQEyAAIBMwADATQABAE1AAUBNgAGATcABwE4AAgBOQAJAjEwAAoIJGltcG9ydHMBAAqFAQsJACAAQQARAAALCQAgAEEBEQAACwsAIAAgAUECEQEACwsAIAAgAUEDEQIACwkAIABBBBEAAAsPACAAIAEgAiADQQURAwALCwAgACABQQYRBAALDwAgACABIAIgA0EHEQUACwsAIAAgAUEIEQQACwsAIAAgAUEJEQQACwkAIABBChEGAAsALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgCuAwRuYW1lABMSd2l0LWNvbXBvbmVudDpzaGltAZEDCwAbaW5kaXJlY3QtcHJlb3BlbnMtZ2V0LXN0ZGlvASFpbmRpcmVjdC1wcmVvcGVucy1nZXQtZGlyZWN0b3JpZXMCHGluZGlyZWN0LWZpbGVzeXN0ZW0tZ2V0LXR5cGUDIGluZGlyZWN0LXJhbmRvbS1nZXQtcmFuZG9tLWJ5dGVzBCRpbmRpcmVjdC1lbnZpcm9ubWVudC1nZXQtZW52aXJvbm1lbnQFFmluZGlyZWN0LXN0cmVhbXMtd3JpdGUGJ2FkYXB0LXdhc2lfc25hcHNob3RfcHJldmlldzEtcmFuZG9tX2dldAclYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1mZF93cml0ZQgoYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX2dldAkuYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1lbnZpcm9uX3NpemVzX2dldAomYWRhcHQtd2FzaV9zbmFwc2hvdF9wcmV2aWV3MS1wcm9jX2V4aXQ');
+  const module3 = initBufferFromString('AGFzbQEAAAABKAdgAX8AYAJ/fwBgAn5/AGAEf39/fwBgAn9/AX9gBH9/f38Bf2ABfwACSAwAATAAAAABMQAAAAEyAAEAATMAAgABNAAAAAE1AAMAATYABAABNwAFAAE4AAQAATkABAACMTAABgAIJGltcG9ydHMBcAELCwkRAQBBAAsLAAECAwQFBgcICQoALQlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQENd2l0LWNvbXBvbmVudAUwLjguMgAcBG5hbWUAFRR3aXQtY29tcG9uZW50OmZpeHVwcw');
+  Promise.all([module1, module2, module0, module3]).catch(() => {});
+  const instance0Imports = undefined;
+  const { instance: instance0 } = await instantiateCore(await module0, instance0Imports);
+  // console.log("instance0: ", instance0);
+  const exports0 = instance0.exports;
+  const instance1Imports = {
     wasi_snapshot_preview1: {
       environ_get: exports0['8'],
       environ_sizes_get: exports0['9'],
@@ -475,13 +526,19 @@ const $init = (async() => {
       proc_exit: exports0['10'],
       random_get: exports0['6'],
     },
-  }));
-  ({ exports: exports2 } = await instantiateCore(await module1, {
+  };
+  const { instance: instance1 } = await instantiateCore(await module1, instance1Imports);
+  const exports1 = instance1.exports;
+  let exports1MemoryBuffer = await exports1.memory;
+  let exports1Memory = exports1MemoryBuffer;
+  //let exports1Memory = new WebAssembly.Memory({initial: exports1MemoryBuffer.byteLength / 65536, maximum: exports1MemoryBuffer.byteLength / 65536, shared: false});
+  // console.log("exports1.memory: ",exports1MemoryBuffer);
+  const instance2Imports = {
     __main_module__: {
       cabi_realloc: exports1.cabi_realloc,
     },
     env: {
-      memory: exports1.memory,
+      memory: exports1Memory,
     },
     environment: {
       'get-environment': exports0['4'],
@@ -507,17 +564,25 @@ const $init = (async() => {
       'drop-output-stream': lowering5,
       write: exports0['5'],
     },
-  }));
-  memory0 = exports1.memory;
+  };
+  //console.log("exports1.memory: ",exports1.memory);
+
+  const { instance: instance2 } = await instantiateCore(await module2, instance2Imports);
+  const exports2 = instance2.exports;
+  //memory0 = exports1.memory;
+  memory0 = await exports1.memory;
   //realloc0 = exports2.cabi_import_realloc;
-  let realloc0_proxy = (...args) => {
-      let ret = exports2.cabi_import_realloc(...args);
-      return ret;
-  }
-  realloc0 = realloc0_proxy;
-  ({ exports: exports3 } = await instantiateCore(await module3, {
+  //let instance3ImportsTable = exports0.$imports;
+
+  // TODO: implement string reference for $imports special case
+  let instance3ImportsTableReference = "module0.exports.$imports";
+
+  //let instance3ImportsTable = new WebAssembly.Table({element: "anyfunc", initial: 11, maximum: 11});
+  //let instance3ImportsTable = await exports0.$imports();
+  // console.log("instance3ImportsTable", instance3ImportsTable);
+  const instance3Imports = {
     '': {
-      $imports: exports0.$imports,
+      $imports: instance3ImportsTableReference,
       '0': lowering6,
       '1': lowering7,
       '10': exports2.proc_exit,
@@ -530,25 +595,13 @@ const $init = (async() => {
       '8': exports2.environ_get,
       '9': exports2.environ_sizes_get,
     },
-  }));
-  //realloc1 = exports1.cabi_realloc;
-  let realloc1_proxy = (...args) => {
-    let ret = exports1.cabi_realloc(...args);
-    return ret;
-  }
-  realloc1 = realloc1_proxy;
-  //postReturn0 = exports1.cabi_post_hello;
-  let postReturn0_proxy = (...args) => {
-    let ret = exports1.cabi_post_hello(...args);
-    return ret;
-  }
-  postReturn0 = postReturn0_proxy;
-  let postReturn1_proxy = (...args) => {
-    let ret = exports1.cabi_post_uuid(...args);
-    return ret;
-  }
-  //postReturn1 = exports1.cabi_post_uuid;
-  postReturn1 = postReturn1_proxy;
+  };
+  const { instance: instance3 } = await instantiateCore(await module3, instance3Imports);
+  realloc1 = exports1.cabi_realloc;
+  postReturn0 = exports1.cabi_post_hello;
+  postReturn1 = exports1.cabi_post_uuid;
+
+  exported = exports1;
 })();
 
 await $init;

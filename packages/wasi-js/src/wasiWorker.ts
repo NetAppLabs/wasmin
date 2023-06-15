@@ -4,8 +4,10 @@ import { getWasmBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtil
 import { ReciveMemoryFunc } from "./desyncify.js";
 import { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
+import { readMessage, uuidv4 } from "./vendored/sync-message/index.js";
 
 export class WASIWorker {
+    wasiWorkerThread?: comlink.Remote<WasiWorkerThreadRunner>;
     constructor(wasiOptions: WasiOptions) {
         initializeHandlers();
         this._wasiOptions = wasiOptions;
@@ -31,7 +33,7 @@ export class WASIWorker {
         //const worker =  new Worker(new URL("./wasiWorkerThreadNode.js");
         //const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(nodeEndpoint(worker));
 
-        const wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
+        this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
         wasiWorkerDebug("WASIWorker setOptions: ", wasiOptionsProxied);
 
         //worker.on("message", (incoming) => {
@@ -48,6 +50,33 @@ export class WASIWorker {
 
         wasiWorkerDebug("WASIWorker run: ");
         return await wasiWorkerThread.run(moduleUrl);
+    }
+
+    public async createWorker(): Promise<void> {
+        let workerUrlString = "./wasiWorkerThread.js";
+        if (isNode()) {
+            workerUrlString = "./wasiWorkerThreadNode.js";
+        }
+        const workerUrl = new URL(workerUrlString, import.meta.url);
+        wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
+
+        const worker = await createWorker(workerUrl, { type: "module" });
+
+        this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
+
+    }
+
+    public handleImport(
+        importName: string,
+        functionName: string,
+        args: any[],
+        buf: ArrayBuffer,
+    ): any {
+        if (this.wasiWorkerThread) {
+            const messageId = uuidv4();
+            this.wasiWorkerThread.handleImport(messageId,importName,functionName,args,buf);
+            const retMsg = readMessage(channel, messageId);
+        }
     }
 }
 
@@ -80,8 +109,7 @@ export class WasiWorkerThreadRunner {
         importName: string,
         functionName: string,
         args: any[],
-        buf: ArrayBuffer,
-        transferMemoryFunc: ReciveMemoryFunc
+        buf: ArrayBuffer
     ): Promise<void> {
         wasiWorkerDebug(
             `WasiWorkerThreadRunner: handleImport: importName: ${importName} functionName: ${functionName}`

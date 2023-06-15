@@ -23,6 +23,15 @@
             "type": "node"
         },
         {
+            "name": "wasi-reactor-run-mod",
+            "program": "${workspaceFolder}/apps/wasi-reactor/component/run_mod.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
