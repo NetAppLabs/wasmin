@@ -68,6 +68,10 @@ export class OpenDirectory {
         return this;
     }
 
+    get handle() {
+        return this._handle;
+    }
+
     getEntries(start = 0): AsyncIterableIterator<FileSystemHandle> & {
         revert: (handle: FileSystemHandle) => void;
     } {
@@ -294,6 +298,10 @@ export class OpenFile implements Readable, Writable {
         return f;
     }
 
+    get handle(){
+        return this._handle;
+    }
+
     async setSize(size: number): Promise<void> {
         await this.close();
         const writer = await this._getWriter(false);
@@ -512,6 +520,17 @@ export class OpenFiles {
             await fdhandle.close();
         }
     }
+
+    async openReader(fd: Fd, offset?: bigint): Promise<Fd> {
+        // TODO implement Reader InputStream
+        return fd;
+    }
+
+    async openWriter(fd: Fd, offset?: bigint): Promise<Fd> {
+        // TODO implement Writer OutputStream
+        return fd;
+    }
+
 
     addPreopenedDir(path: string, handle: Handle) {
         this._nextFd = this._add(path, handle);

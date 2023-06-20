@@ -1,0 +1,1 @@
+{"version":3,"file":"cli-base-stdin.d.ts","sourceRoot":"","sources":["../../src/imports/cli-base-stdin.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,YAAY;IAC1B,QAAQ,IAAI,WAAW,CAAC;CAC1B;AACD,MAAM,WAAW,iBAAiB;IAC/B,QAAQ,IAAI,OAAO,CAAC,WAAW,CAAC,CAAC;CACnC;AACD,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,uBAAuB,CAAC;AACzD,OAAO,EAAE,WAAW,EAAE,CAAC"}

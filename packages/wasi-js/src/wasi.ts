@@ -23,6 +23,7 @@ import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_pr
 import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
+import { constructWasiSnapshotPreview2Imports } from "./wasi_snapshot_preview2/index.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -34,6 +35,21 @@ export interface WasiOptions {
     abortSignal?: AbortSignal;
     tty?: TTY;
 }
+
+export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
+    const wasiEnv = new WasiEnv(
+        wasiOptions.openFiles,
+        wasiOptions.stdin,
+        wasiOptions.stdout,
+        wasiOptions.stderr,
+        wasiOptions.args,
+        wasiOptions.env,
+        wasiOptions.abortSignal,
+        wasiOptions.tty
+    );
+    return wasiEnv;
+}
+
 export class WasiEnv implements WasiOptions {
     constructor(
         openFiles?: OpenFiles,
@@ -172,6 +188,7 @@ export class WASI {
             wasiOptions.tty
         );
         this._wasiEnv = wasiEnv;
+        this._componentImportObject = {};
     }
     private _wasiEnv: WasiEnv;
     private _moduleInstance?: WebAssembly.Instance;
@@ -180,6 +197,13 @@ export class WASI {
     private _threadRemote?: comlink.Remote<WasmThreadRunner>;
     private _memory?: WebAssembly.Memory;
     // private _multiModule?: MultiModule;
+    private _componentImportObject: {};
+    public get componentImportObject(): {} {
+        return this._componentImportObject;
+    }
+    public set componentImportObject(value: {}) {
+        this._componentImportObject = value;
+    }
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -461,6 +485,10 @@ export class WASI {
         } else {
             wasiDebug(`WASI handleImport: channel is not set`);
         }
+    }
+
+    private initializeWasiSnapshotPreview2Imports(): void {
+        this._componentImportObject = constructWasiSnapshotPreview2Imports(this._wasiEnv);
     }
 
     private initializeImports(): WebAssembly.Imports {

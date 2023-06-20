@@ -432,7 +432,7 @@ export class WasmThreadRunner {
             // console.log("WasmThreadRunner executeExportedFunction functionName: ", functionName, "exportedMember.length: ", exportedMember.length);
 
             if (isFunction(exportedMember)) {
-                let exportedfunc = exportedMember;
+                const exportedfunc = exportedMember;
                 try {
                     let result: any;
                     // console.log("WasmThreadRunner exportedfunc:", exportedfunc, ...args);
@@ -466,16 +466,16 @@ export class WasmThreadRunner {
             } else {
                 // console.log("WasmThreadRunner executeExportedFunction "+functionName+" exportedMember:", exportedMember);
                 if (exportedMember instanceof WebAssembly.Memory){
-                    let wasmMem = exportedMember as WebAssembly.Memory;
-                    let exportReturn = wasmMem.buffer;
+                    const wasmMem = exportedMember as WebAssembly.Memory;
+                    const exportReturn = wasmMem.buffer;
                     // console.log("WasmThreadRunner isWasmEmory executeExportedFunction functionName: ", functionName, "exportReturn: ", exportReturn);
                     //return wasmMem;
                     //return exportedMember;
                     return exportReturn;
                 } else if (exportedMember instanceof WebAssembly.Table){
-                    let wasmTable = exportedMember as WebAssembly.Table;
+                    const wasmTable = exportedMember as WebAssembly.Table;
                     // console.log("WasmThreadRunner isNotFunction executeExportedFunction functionName: ", functionName, "exportedMember: ", exportedMember);
-                    let wasmTableSerialized = JSON.stringify(wasmTable);
+                    const wasmTableSerialized = JSON.stringify(wasmTable);
                     const wasmTableLength = wasmTable.length;
                     // console.log("exportedMember wasmTableLength", wasmTableLength);
 
@@ -662,18 +662,18 @@ async function handlerInstanciateProxy(
                     // TODO: imlement fetching local $imports from local
                     // moduleinstance if using shared worker
                     const expFunc = threadRemote.executeExportedFunction;
-                    let imp = expFunc(moduleInstanceId, name, []);
+                    const imp = expFunc(moduleInstanceId, name, []);
                     return imp;
                 }
                 if (name == "memory") {
                     const expFunc = threadRemote.executeExportedFunction;
-                    let imp = expFunc(moduleInstanceId, name, []);
+                    const imp = expFunc(moduleInstanceId, name, []);
                     return imp;
                 }
 
                 // if wrapExportFunctionSync is true it wraps it in a synchronous function
                 // using syncmessage readMessage and writeMessage
-                let wrapExportFunctionSync = false;
+                const wrapExportFunctionSync = false;
                 const functionName = name as string;
                 let wrappedExportFunction = undefined;
 

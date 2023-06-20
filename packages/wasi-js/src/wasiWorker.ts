@@ -42,14 +42,14 @@ export class WASIWorker {
         });
 
         try {
-            await wasiWorkerThread.setOptions(wasiOptionsProxied);
+            await this.wasiWorkerThread.setOptions(wasiOptionsProxied);
         } catch (err: any) {
             wasiWorkerDebug("wasiWorkerThread.setOptions err: ", err);
             console.trace(err);
         }
 
         wasiWorkerDebug("WASIWorker run: ");
-        return await wasiWorkerThread.run(moduleUrl);
+        return await this.wasiWorkerThread.run(moduleUrl);
     }
 
     public async createWorker(): Promise<void> {
@@ -73,8 +73,10 @@ export class WASIWorker {
         buf: ArrayBuffer,
     ): any {
         if (this.wasiWorkerThread) {
+            const channel = undefined;
             const messageId = uuidv4();
             this.wasiWorkerThread.handleImport(messageId,importName,functionName,args,buf);
+            // @ts-ignore
             const retMsg = readMessage(channel, messageId);
         }
     }
