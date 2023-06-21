@@ -15,7 +15,9 @@
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import type { Fd } from "./wasi_snapshot_preview1/bindings.js";
-
+import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
+type DirectoryEntry = fs.DirectoryEntry;
+type DescriptorType = fs.DescriptorType;
 import { openDirectoryHandle } from "@wasm-env/fs-js";
 
 declare let globalThis: any;
@@ -47,7 +49,7 @@ export class Socket implements Writable, Readable {
 
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -279,11 +281,58 @@ export class OpenDirectory {
     }
 }
 
+export class OpenDirectoryIterator {
+    private _openDir: OpenDirectory;
+    private _cursor: number = 0;
+    constructor(openDir: OpenDirectory){
+        this._openDir=openDir;
+    }
+    public get cursor(): number {
+        return this._cursor;
+    }
+    public set cursor(value: number) {
+        this._cursor = value;
+    }
+    public get openDir(): OpenDirectory {
+        return this._openDir;
+    }
+    public set openDir(value: OpenDirectory) {
+        this._openDir = value;
+    }
+
+    async next(): Promise<DirectoryEntry|null>{
+        let count = 0;
+        const iterator = this.openDir.handle.values();
+        for await (const handle of iterator) {
+            // TODO handle abort
+            //this._checkAbort();
+            let ftype: DescriptorType = 'unknown';
+            const { name } = handle;
+            if (handle.kind == "file") {
+                ftype = "regular-file";
+            } else if (handle.kind == "directory") {
+                ftype = "directory";
+            }
+            const textEncoder = new TextEncoder();
+            const ret: DirectoryEntry = {
+                type: ftype,
+                name: name,
+            }
+            if (count == this.cursor) {
+                this.cursor++;
+                return ret;
+            }
+            count++;
+        }
+        return null;
+    }
+}
+
 export class OpenFile implements Readable, Writable {
     constructor(
         public readonly path: string,
         private readonly _handle: FileSystemFileHandle,
-        private _fsFlags: Fdflags = 0,
+        private _fdFlags: Fdflags = 0,
         public isFile = true
     ) {}
 
@@ -321,7 +370,7 @@ export class OpenFile implements Readable, Writable {
     async write(data: Uint8Array): Promise<void> {
         filesystemDebug("[write]");
         const writer = await this._getWriter();
-        if (this._fsFlags & FdflagsN.APPEND) {
+        if (this.fdFlags & FdflagsN.APPEND) {
             // if Append mode then write to the end position of the file
             const f = await this.getFile();
             this.position = f.size;
@@ -358,8 +407,12 @@ export class OpenFile implements Readable, Writable {
         await this.flush();
     }
 
-    public setFdFlags(fdFlags: Fdflags): void {
-        this._fsFlags = fdFlags;
+    public set fdFlags(fdFlags: Fdflags) {
+        this._fdFlags = fdFlags;
+    }
+
+    public get fdFlags(): Fdflags {
+        return this._fdFlags;
     }
 
     private async _getWriter(keepExistingData = true) {
@@ -522,13 +575,56 @@ export class OpenFiles {
     }
 
     async openReader(fd: Fd, offset?: bigint): Promise<Fd> {
-        // TODO implement Reader InputStream
-        return fd;
+        let reader: Readable;
+        if (this.isFile(fd)) {
+            const file = this.getAsFile(fd);
+            const path = file.path;
+            const handle = file.handle;
+            const fsFlags = file.fdFlags;
+            const newFile = new OpenFile(path, handle, fsFlags);
+            // TODO: safely handle bigint
+            newFile.position = Number(offset);
+            reader = newFile;
+        } else {
+            reader = this.getAsReadable(fd);
+        }
+        const newFd = this.add(reader);
+        return newFd;
     }
 
-    async openWriter(fd: Fd, offset?: bigint): Promise<Fd> {
-        // TODO implement Writer OutputStream
-        return fd;
+    async openWriter(fd: Fd, offset?: bigint, append?: boolean): Promise<Fd> {
+        let writer: Writable;
+        if (this.isFile(fd)) {
+            const file = this.getAsFile(fd);
+            const path = file.path;
+            const handle = file.handle;
+            let fdFlags = file.fdFlags;
+            if (append) {
+                fdFlags = fdFlags & FdflagsN.APPEND;
+            }
+            const newFile = new OpenFile(path, handle, fdFlags);
+            // TODO: safely handle bigint
+            if (!append) {
+                newFile.position = Number(offset);
+            }
+            writer = newFile;
+        } else {
+            writer = this.getAsWritable(fd);
+        }
+        const newFd = this.add(writer);
+        return newFd;
+    }
+
+    async openOpenDirectoryIterator(fd: Fd): Promise<Fd> {
+        const openDir = this.getAsDir(fd);
+        const iter = new OpenDirectoryIterator(openDir);
+        const iterFd = this.add(iter);
+        return iterFd;
+    }
+
+    async getAsOpenDirectoryIterator(fd: Fd): Promise<OpenDirectoryIterator> {
+        const res = this.get(fd);
+        return res as OpenDirectoryIterator;
     }
 
 

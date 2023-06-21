@@ -1,37 +1,5 @@
 import { RandomRandomAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-random";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
-import { WASIWorker, WasiWorkerThreadRunner } from "../wasiWorker.js";
-
-
-let WASI_WORKER: WASIWorker;
-
-async function initializeWasi() {
-    if (!WASI_WORKER){
-        const wasiWorker = new WASIWorker({});
-        await wasiWorker.createWorker();
-        WASI_WORKER = wasiWorker;
-    }
-    return WASI_WORKER;
-}
-
-function getWasi(): WASIWorker {
-    if (!WASI_WORKER){
-        throw new Error("Error, WASIWorker not initialized");
-    }
-    return WASI_WORKER;
-}
-
-export function getRandomBytes(len: bigint): Uint8Array | ArrayBuffer {
-
-
-    const wasi = getWasi();
-
-    const args = [len];
-    const buf = new ArrayBuffer(0);
-    const ret = wasi.handleImport("wasi-random", "get-random-bytes", args, buf);
-    
-    return ret as Uint8Array;
-}
 
 export class RandomRandomAsynHost implements RandomRandomAsync {
 
@@ -42,7 +10,16 @@ export class RandomRandomAsynHost implements RandomRandomAsync {
     }
     
     async getRandomU64(): Promise<bigint> {
-        throw new Error("Method not implemented.");
+        let result = 0n;
+        const rand = await this.getRandomBytes(8n);
+        if (rand instanceof Uint8Array) {
+            const view = new DataView(rand.buffer, 0);
+            result = view.getBigUint64(0, true);    
+        } else if (rand instanceof ArrayBuffer) {
+            const view = new DataView(rand, 0);
+            result = view.getBigUint64(0, true);    
+        }
+        return result;
     }
 
     async getRandomBytes(len: bigint): Promise<Uint8Array | ArrayBuffer> {
@@ -56,7 +33,7 @@ export class RandomRandomAsynHost implements RandomRandomAsync {
                 ret[i] = i + offset;
             }
         }
-        // console.log("getRandomBytes - len:", len, "ret:", ret);
+        //console.log("RandomRandomAsynHost getRandomBytes - len:", len, "ret:", ret);
         return ret;
     }
 

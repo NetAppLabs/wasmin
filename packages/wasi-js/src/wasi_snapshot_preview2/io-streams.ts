@@ -4,6 +4,7 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
+type Pollable = io.Pollable;
 
 export class IoStreamsAsyncHost implements IoStreamsAsync {
     private _wasiEnv: WasiEnv;
@@ -18,10 +19,17 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         return this.wasiEnv.openFiles;
     }
     async read(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
+        if (len == 0n) {
+            return [new Uint8Array(), true];
+        }
         const reader = this.openFiles.getAsReadable(instr);
         // TODO: handle bigint
         const buffer = await reader.read(Number(len));
-        return [buffer,true];
+        let isEnd = false;
+        if (buffer.length < len ) {
+            isEnd = true;
+        }
+        return [buffer,isEnd];
     }
     async blockingRead(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
         return await this.read(instr, len);
@@ -32,17 +40,16 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     blockingSkip(instr: InputStream, len: bigint): Promise<[bigint, boolean]> {
         throw new Error("Method not implemented.");
     }
-    subscribeToInputStream(instr: InputStream): Promise<number> {
+    subscribeToInputStream(instr: InputStream): Promise<Pollable> {
         throw new Error("Method not implemented.");
     }
-    dropInputStream(instr: InputStream): Promise<void> {
-        throw new Error("Method not implemented.");
+    async dropInputStream(instr: InputStream): Promise<void> {
+        await this.openFiles.close(instr);
     }
     async write(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
         const writer = this.openFiles.getAsWritable(outstr);
         const len = await writer.write(buf);
         const written = buf.length;
-        // TODO: handle bigint
         return BigInt(written);
     }
     async blockingWrite(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
@@ -63,7 +70,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     forward(outstr: OutputStream, src: number): Promise<bigint> {
         throw new Error("Method not implemented.");
     }
-    subscribeToOutputStream(outstr: OutputStream): Promise<number> {
+    subscribeToOutputStream(outstr: OutputStream): Promise<Pollable> {
         throw new Error("Method not implemented.");
     }
     async dropOutputStream(outstr: OutputStream): Promise<void> {

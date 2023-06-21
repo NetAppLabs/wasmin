@@ -265,7 +265,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             unimplemented("fd_fdstat_set_flags FdFlags.Sync");
         }
         const openFile = this.openFiles.getAsFile(fd);
-        openFile.setFdFlags(flags);
+        openFile.fdFlags = flags;
         return ErrnoN.SUCCESS;
     }
     async fdFdstatSetRights(fd: Fd, fs_rights_base: Rights, fs_rights_inheriting: Rights): Promise<Errno> {
@@ -673,6 +673,12 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                             wasiDebug("poll_oneoff EventType.FdRead: _suspendStdIn==false");
                             wasiDebug("poll_oneoff EventType.FdRead: args: ", this.cargs);
                             wasiDebug("poll_oneoff EventType.FdRead: env: ", this.cenv);
+
+                            const ofd = this.openFiles.get(fd_forread);
+                            const ofda = ofd as any;
+                            if (ofda.peek) {
+                                const peekBytes = await ofda.peek();
+                            }
 
                             // TODO this is a hack, specifically for stdin , fd=0
                             // TODO: implement number of bytes to read
