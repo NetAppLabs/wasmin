@@ -1,7 +1,7 @@
 import { CliBasePreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
 import { CliBasePreopensAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-preopens";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi";
-import { FIRST_PREOPEN_FD } from "../wasiFileSystem";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { FIRST_PREOPEN_FD } from "../wasiFileSystem.js";
 type Descriptor = clibp.Descriptor
 
 

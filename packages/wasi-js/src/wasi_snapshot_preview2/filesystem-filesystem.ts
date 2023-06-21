@@ -1,7 +1,7 @@
 //import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasm-env/wasi-snapshot-preview2"
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi";
-import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../wasiFileSystem";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../wasiFileSystem.js";
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
 type DescriptorType = fs.DescriptorType;

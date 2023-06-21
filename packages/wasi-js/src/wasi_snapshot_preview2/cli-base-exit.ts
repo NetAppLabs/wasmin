@@ -1,5 +1,5 @@
 import { CliBaseExitNamespace as clib } from "@wasm-env/wasi-snapshot-preview2";
-import { ExitStatus } from "../wasiUtils";
+import { ExitStatus } from "../wasiUtils.js";
 type Result<T, E> = clib.Result<T,E>;
 
 export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync{

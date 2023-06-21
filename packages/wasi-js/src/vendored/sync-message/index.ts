@@ -251,6 +251,19 @@ function ensurePositiveNumber(n: number, defaultValue: number) {
     return n > 0 ? +n : defaultValue;
 }
 
+function toUint8Array(obj: any): Uint8Array | undefined {
+    const count = Object.entries(obj).length;
+    const ret = new Uint8Array(count);
+    for (let i = 0; i < count; i++) {
+        const entry = obj[i.toString()];
+        if (!entry) {
+            return;
+        }
+        ret[i] = entry;
+    }
+    return ret;
+}
+
 /**
  * Call this in a web worker to synchronously receive a message sent by the main thread with `writeMessage`.
  *
@@ -301,7 +314,14 @@ export function readMessage(
 
                 const decoder = new TextDecoder();
                 const text = decoder.decode(bytes);
-                return JSON.parse(text);
+                const parsed = JSON.parse(text);
+                if (parsed.return) {
+                    const uint8Array = toUint8Array(parsed.return);
+                    if (uint8Array) {
+                        parsed.return = uint8Array;
+                    }
+                }
+                return parsed;
             }
         };
     } else {

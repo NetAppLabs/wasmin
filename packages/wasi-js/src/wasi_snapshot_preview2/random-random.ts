@@ -1,6 +1,6 @@
 import { RandomRandomAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-random";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi";
-import { WASIWorker, WasiWorkerThreadRunner } from "../wasiWorker";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { WASIWorker, WasiWorkerThreadRunner } from "../wasiWorker.js";
 
 
 let WASI_WORKER: WASIWorker;
@@ -56,7 +56,7 @@ export class RandomRandomAsynHost implements RandomRandomAsync {
                 ret[i] = i + offset;
             }
         }
-        console.log("getRandomBytes - len:", len, "ret:", ret);
+        // console.log("getRandomBytes - len:", len, "ret:", ret);
         return ret;
     }
 

@@ -23,7 +23,7 @@ import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_pr
 import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
-import { constructWasiSnapshotPreview2Imports } from "./wasi_snapshot_preview2/index.js";
+import { WasiSnapshotPreview2ImportObject, constructWasiSnapshotPreview2Imports } from "./wasi_snapshot_preview2/index.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -188,7 +188,6 @@ export class WASI {
             wasiOptions.tty
         );
         this._wasiEnv = wasiEnv;
-        this._componentImportObject = {};
     }
     private _wasiEnv: WasiEnv;
     private _moduleInstance?: WebAssembly.Instance;
@@ -197,11 +196,14 @@ export class WASI {
     private _threadRemote?: comlink.Remote<WasmThreadRunner>;
     private _memory?: WebAssembly.Memory;
     // private _multiModule?: MultiModule;
-    private _componentImportObject: {};
-    public get componentImportObject(): {} {
+    private _componentImportObject?: WasiSnapshotPreview2ImportObject;
+    public get componentImportObject(): WasiSnapshotPreview2ImportObject {
+        if (!this._componentImportObject) {
+            throw new Error("component imports not set");
+        }
         return this._componentImportObject;
     }
-    public set componentImportObject(value: {}) {
+    public set componentImportObject(value: WasiSnapshotPreview2ImportObject) {
         this._componentImportObject = value;
     }
 
@@ -230,6 +232,10 @@ export class WASI {
     //     const firstInstance = ret.instances[1];
     //     return firstInstance;
     // }
+
+    public async initializeComponentImports(): Promise<void> {
+        this.initializeWasiSnapshotPreview2Imports();
+    }
 
     public async instantiateSingle(
         wasmModOrBufSource: BufferSource,
@@ -394,6 +400,33 @@ export class WASI {
         this.initializeInstanceMemory(exports);
 
         return exports;
+    }
+
+    public async handleComponentImport(
+        channel: Channel,
+        messageId: string,
+        importName: string,
+        sectionName: string,
+        functionName: string,
+        args: any[]
+    ): Promise<void> {
+        const componentImports = this.componentImportObject as any;
+        const sections = componentImports[importName];
+        const section = sections[sectionName];
+        const func = section[functionName];
+
+        let funcReturn, funcThrownError;
+        try {
+            funcReturn = await func(...args);
+        } catch (err: any) {
+            funcThrownError = err;
+        }
+
+        const response = {
+            return: funcReturn,
+            error: funcThrownError,
+        };
+        writeMessage(channel, response, messageId);
     }
 
     public async handleImport(

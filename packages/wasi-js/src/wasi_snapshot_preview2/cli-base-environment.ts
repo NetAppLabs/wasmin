@@ -1,5 +1,5 @@
 import { CliBaseEnvironmentNamespace as clibe } from "@wasm-env/wasi-snapshot-preview2";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
 type CliBaseEnvironmentAsync = clibe.CliBaseEnvironmentAsync;
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
@@ -18,5 +18,4 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
     async getArguments(): Promise<string[]> {
         return this._wasiEnv.args;
     }
-
 }

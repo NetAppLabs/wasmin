@@ -1,36 +1,36 @@
 
-import {CliBaseEnvironmentNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBaseEnvironmentNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBaseEnvironmentAsync = CliBaseEnvironmentNamespace.CliBaseEnvironmentAsync;
-import {CliBasePreopensNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBasePreopensNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBasePreopensAsync = CliBasePreopensNamespace.CliBasePreopensAsync;
-import {CliBaseExitNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBaseExitNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBaseExitAsync = CliBaseExitNamespace.CliBaseExitAsync;
-import {CliBaseStdinNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBaseStdinNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBaseStdinAsync = CliBaseStdinNamespace.CliBaseStdinAsync;
-import {CliBaseStdoutNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBaseStdoutNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBaseStdoutAsync = CliBaseStdoutNamespace.CliBaseStdoutAsync;
-import {CliBaseStderrNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { CliBaseStderrNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type CliBaseStderrAsync = CliBaseStderrNamespace.CliBaseStderrAsync;
-import {FilesystemFilesystemNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { FilesystemFilesystemNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type FilesystemFilesystemAsync = FilesystemFilesystemNamespace.FilesystemFilesystemAsync;
-import {IoStreamsNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { IoStreamsNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type IoStreamsAsync = IoStreamsNamespace.IoStreamsAsync;
-import {RandomRandomNamespace } from "@wasm-env/wasi-snapshot-preview2"
+import { RandomRandomNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type RandomRandomAsync = RandomRandomNamespace.RandomRandomAsync;
 
 import { WasiOptions } from "../wasi";
-import { FileSystemFileSystemAsyncHost } from "./filesystem-filesystem";
-import { IoStreamsAsyncHost } from "./io-streams";
-import { RandomRandomAsynHost } from "./random-random";
-import { CliBaseEnvironmentAsyncHost } from "./cli-base-environment";
-import { CliBasePreopensAsyncHost } from "./cli-base-preopens";
-import { CliBaseExitAsyncHost } from "./cli-base-exit";
-import { CliBaseStdinAsyncHost } from "./cli-base-stdin";
-import { CliBaseStdoutAsyncHost } from "./cli-base-stdout";
-import { CliBaseStderrAsyncHost } from "./cli-base-stderr";
+import { FileSystemFileSystemAsyncHost } from "./filesystem-filesystem.js";
+import { IoStreamsAsyncHost } from "./io-streams.js";
+import { RandomRandomAsynHost } from "./random-random.js";
+import { CliBaseEnvironmentAsyncHost } from "./cli-base-environment.js";
+import { CliBasePreopensAsyncHost } from "./cli-base-preopens.js";
+import { CliBaseExitAsyncHost } from "./cli-base-exit.js";
+import { CliBaseStdinAsyncHost } from "./cli-base-stdin.js";
+import { CliBaseStdoutAsyncHost } from "./cli-base-stdout.js";
+import { CliBaseStderrAsyncHost } from "./cli-base-stderr.js";
 
 
-type WasiSnapshotPreview2ImportObject = {
+export type WasiSnapshotPreview2ImportObject = {
     'cli-base': {
       cliBaseEnvironment: CliBaseEnvironmentAsync,
       cliBasePreopens: CliBasePreopensAsync,
@@ -71,7 +71,6 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
           random: {
             randomRandom: new RandomRandomAsynHost(wasiOptions),
           },
-      
     };
     return wasiImports;
 }

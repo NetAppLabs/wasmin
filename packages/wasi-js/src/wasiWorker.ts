@@ -1,10 +1,10 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { ReciveMemoryFunc } from "./desyncify.js";
+import { ReciveMemoryFunc, USE_SHARED_MEMORY } from "./desyncify.js";
 import { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
-import { readMessage, uuidv4 } from "./vendored/sync-message/index.js";
+import { Channel, makeAtomicsChannel, makeChannel, readMessage, uuidv4, writeMessage } from "./vendored/sync-message/index.js";
 
 export class WASIWorker {
     wasiWorkerThread?: comlink.Remote<WasiWorkerThreadRunner>;
@@ -13,6 +13,14 @@ export class WASIWorker {
         this._wasiOptions = wasiOptions;
     }
     private _wasiOptions: WasiOptions;
+    private _channel?: Channel;
+
+    get channel(): Channel {
+        if (!this._channel) {
+            throw new Error("channel not set");
+        }
+        return this._channel;
+    }
 
     public async run(moduleUrl: string): Promise<number> {
         //const wasiOptionsProxied = {};
@@ -63,7 +71,49 @@ export class WASIWorker {
         const worker = await createWorker(workerUrl, { type: "module" });
 
         this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(worker);
+        this._channel = createChannel();
+        await this.wasiWorkerThread.initializeComponentImports();
+    }
 
+    public getComponentImports(): {} {
+        // TODO: obtain import names programmatically
+        return {
+            'cli-base': this.getComponentModuleImports('cli-base'),
+            filesystem: this.getComponentModuleImports('filesystem'),
+            io: this.getComponentModuleImports('io'),
+            random: this.getComponentModuleImports('random'),
+        };
+    }
+
+    private getComponentModuleImports(importName: string): {} {
+        const wasiWorker = this;
+        const importDummy = {};
+        return new Proxy(importDummy, {
+            get: (_target, name, _receiver) => {
+                const sectionName = name as string;
+                const sectionDummy = {};
+                return new Proxy(sectionDummy, {
+                    get: (_target, name, _receiver) => {
+                        const functionName = name as string;
+                        return (...args: any) => {
+                            if (!wasiWorker.wasiWorkerThread) {
+                                throw new Error("worker thread not set");
+                            }
+
+                            const workerThread = wasiWorker.wasiWorkerThread;
+                            const channel = wasiWorker.channel;
+                            const messageId = uuidv4();
+                            workerThread.handleComponentImport(channel, messageId, importName, sectionName, functionName, args);
+                            const ret = readMessage(channel, messageId);
+                            if (ret.error) {
+                                throw ret.error;
+                            }
+                            return ret.return;
+                        };
+                    },
+                });
+            },
+        });
     }
 
     public handleImport(
@@ -104,6 +154,24 @@ export class WasiWorkerThreadRunner {
         } else {
             throw new Error("WasiOptions not set");
         }
+    }
+
+    public async initializeComponentImports(): Promise<void> {
+        if (!this.wasi) {
+            this.wasi = new WASI(this.wasiOptions || {});
+        }
+        await this.wasi.initializeComponentImports();
+    }
+
+    public async handleComponentImport(
+        channel: Channel,
+        messageId: string,
+        importName: string,
+        sectionName: string,
+        functionName: string,
+        args: any[]
+    ): Promise<any> {
+        await this.wasi?.handleComponentImport(channel, messageId, importName, sectionName, functionName, args);
     }
 
     public async handleImport(
@@ -150,6 +218,20 @@ export class WasiWorkerThreadRunner {
             throw new Error("run wasiOptions not set");
         }
     }
+}
+
+function createChannel(): Channel {
+    let channel: Channel | null;
+    if (USE_SHARED_MEMORY) {
+        channel = makeChannel();
+    } else {
+        const bufferSize = 64 * 1024 * 1024;
+        channel = makeAtomicsChannel({ bufferSize });
+    }
+    if (!channel) {
+        throw new Error("could not create channel");
+    }
+    return channel;
 }
 
 export function getWasiOptionsProxied(options: WasiOptions): WasiOptions {
