@@ -27,10 +27,14 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         return this.wasiEnv.openFiles;
     }
     async readViaStream(fd: Descriptor, offset: FileSize): Promise<InputStream> {
-        return await this.openFiles.openReader(fd, offset);
+        const newFd = await this.openFiles.openReader(fd, offset);
+        console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:",newFd);
+        return newFd;
     }
     async writeViaStream(fd: Descriptor, offset: FileSize): Promise<OutputStream> {
-        return await this.openFiles.openWriter(fd, offset);
+        const newFd = await this.openFiles.openWriter(fd, offset);
+        console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:",newFd);
+        return newFd;
     }
     async appendViaStream(fd: Descriptor): Promise<OutputStream> {
         return await this.openFiles.openWriter(fd, 0n, true);

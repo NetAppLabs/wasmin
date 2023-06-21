@@ -47,10 +47,15 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         await this.openFiles.close(instr);
     }
     async write(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
-        const writer = this.openFiles.getAsWritable(outstr);
-        const len = await writer.write(buf);
-        const written = buf.length;
-        return BigInt(written);
+        try {
+            const writer = this.openFiles.getAsWritable(outstr);
+            const len = await writer.write(buf);
+            const written = buf.length;
+            return BigInt(written);
+        } catch (err: any) {
+            console.log("IoStreamsAsyncHost write err: ", err);
+            throw 'bad-descriptor';
+        }
     }
     async blockingWrite(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
         return await this.write(outstr, buf);

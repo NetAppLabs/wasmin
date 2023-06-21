@@ -52,21 +52,21 @@ version = "0.1.0"
 dependencies = [
  "uuid",
  "wasi_reactor-bindings",
- "wit-bindgen 0.5.0",
+ "wit-bindgen 0.7.0",
 ]
 
 [[package]]
 name = "wasi_reactor-bindings"
 version = "0.1.0"
 dependencies = [
- "wit-bindgen 0.7.0",
+ "wit-bindgen 0.6.0",
 ]
 
 [[package]]
 name = "wit-bindgen"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb2c38628008163b3fedefa9399ce5966ec27ea1b91e500ee569d81d9cf60418"
+checksum = "ad22d93d3f55847ac4b3df31607a26f35231754ef472382319de032770d8b5bf"
 dependencies = [
  "bitflags",
 ]

@@ -1,12 +1,12 @@
 export namespace FilesystemFilesystem {
-  export function writeViaStream(this: Descriptor, offset: Filesize): OutputStream;
-  export function appendViaStream(this: Descriptor): OutputStream;
-  export function getType(this: Descriptor): DescriptorType;
-  export function dropDescriptor(this: Descriptor): void;
+  export function writeViaStream(this0: Descriptor, offset: Filesize): OutputStream;
+  export function appendViaStream(this0: Descriptor): OutputStream;
+  export function getType(this0: Descriptor): DescriptorType;
+  export function dropDescriptor(this0: Descriptor): void;
 }
 export type Descriptor = number;
 export type Filesize = bigint;
-import type { OutputStream } from '../imports/streams';
+import type { OutputStream } from '../imports/io-streams';
 export { OutputStream };
 /**
  * # Variants
