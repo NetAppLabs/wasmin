@@ -24,6 +24,7 @@ import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDe
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
 import { WasiSnapshotPreview2ImportObject, constructWasiSnapshotPreview2Imports } from "./wasi_snapshot_preview2/index.js";
+import { wasiWorkerDebug } from "./workerUtils.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -413,15 +414,23 @@ export class WASI {
         const componentImports = this.componentImportObject as any;
         const sections = componentImports[importName];
         const section = sections[sectionName];
-        const func = section[functionName];
+        const func = section[functionName] as Function;
 
         let funcReturn, funcThrownError;
         try {
-            funcReturn = await func(...args);
+            // Binding "this" to section object for fuction
+            const boundFunc = func.bind(section);
+            funcReturn = await boundFunc(...args);
         } catch (err: any) {
             funcThrownError = err;
         }
-
+        if (funcThrownError) {
+            //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, ` funcThrownError: `, funcThrownError)
+            wasiWorkerDebug(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `funcThrownError: `, funcThrownError)
+        } else {
+            //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
+            wasiWorkerDebug(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
+        }
         const response = {
             return: funcReturn,
             error: funcThrownError,
