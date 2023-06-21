@@ -2,6 +2,7 @@ import { CliBasePreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-previ
 import { CliBasePreopensAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-preopens";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
 import { FIRST_PREOPEN_FD } from "../wasiFileSystem.js";
+import { wasiError } from "../wasiUtils.js";
 type Descriptor = clibp.Descriptor
 
 
@@ -32,7 +33,7 @@ export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
                 preopens.push([preopen_fd, path]);
             }
         } catch(err: any){
-            console.log("getDirectories: err: ", err);
+            wasiError("getDirectories: err: ", err);
         }
         return preopens;
     }

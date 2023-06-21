@@ -57,10 +57,10 @@ const componentImports = wasi.getComponentImports();
 //     },
 // };
 
-console.log("componentImports:", componentImports);
-
 const rootInstance = await instantiate(compileCore, componentImports);
 
 rootInstance.run();
+
+wasi.stopWorker();
 
 console.log("done");

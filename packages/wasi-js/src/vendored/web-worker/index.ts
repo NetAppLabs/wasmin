@@ -8,7 +8,7 @@ import { isNode } from "../../wasiUtils.js";
 //declare const _default: ConstructorOf<Worker>;
 //export default _default
 
-interface AbstractWorker {
+export interface AbstractWorker {
     onerror: ((this: AbstractWorker, ev: ErrorEvent) => any) | null;
     addEventListener<K extends keyof AbstractWorkerEventMap>(
         type: K,
@@ -32,7 +32,7 @@ interface AbstractWorker {
     ): void;
 }
 
-interface Worker extends EventTarget, AbstractWorker {
+export interface Worker extends EventTarget, AbstractWorker {
     onmessage: ((this: Worker, ev: MessageEvent) => any) | null;
     onmessageerror: ((this: Worker, ev: MessageEvent) => any) | null;
     postMessage(message: any, transfer: Transferable[]): void;

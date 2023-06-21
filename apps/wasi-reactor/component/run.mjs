@@ -64,4 +64,7 @@ console.log(await reactorInstance.hello("there"));
 console.log(await reactorInstance.hello("to one"));
 console.log(await reactorInstance.hello("to all"));
 console.log("uuid:", await reactorInstance.uuid());
+
+wasi.stopWorker();
+
 console.log("done");

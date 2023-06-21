@@ -54,8 +54,9 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             return BigInt(written);
         } catch (err: any) {
             console.log("IoStreamsAsyncHost write err: ", err);
-            throw 'bad-descriptor';
+            //throw 'bad-descriptor';
         }
+        return 0n;
     }
     async blockingWrite(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
         return await this.write(outstr, buf);

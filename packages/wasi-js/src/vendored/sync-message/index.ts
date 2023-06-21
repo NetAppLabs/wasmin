@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 
+import { jsonStringify, jsonParse } from "./deser.js";
+
 // Borrowed from repository https://github.com/alexmojaki/sync-message
 // included here because of webpack build issues
 
@@ -51,7 +53,7 @@ export function serviceWorkerFetchListener(): (e: FetchEvent) => boolean {
         async function respond(): Promise<Response> {
             function success(message: any) {
                 const response: ServiceWorkerResponse = { message, version: VERSION };
-                return new Response(JSON.stringify(response), { status: 200 });
+                return new Response(jsonStringify(response), { status: 200 });
             }
 
             if (url.endsWith("/read")) {
@@ -152,9 +154,12 @@ export class ServiceWorkerError extends Error {
 
 export type Channel = AtomicsChannel | ServiceWorkerChannel;
 
+// @ts-ignore
+BigInt.prototype.toJSON = function() { return this.toString() }
+
 export function writeMessageAtomics(channel: AtomicsChannel, message: any) {
     const encoder = new TextEncoder();
-    const bytes = encoder.encode(JSON.stringify(message));
+    const bytes = encoder.encode(jsonStringify(message));
     const { data, meta } = channel;
     if (bytes.length > data.length) {
         throw new Error("Message is too big, increase bufferSize when making channel.");
@@ -173,7 +178,7 @@ export async function writeMessageServiceWorker(channel: ServiceWorkerChannel, m
         const request: ServiceWorkerWriteRequest = { message, messageId };
         const response = await fetch(url, {
             method: "POST",
-            body: JSON.stringify(request),
+            body: jsonStringify(request),
         });
         if (response.status === 200 && (await response.json()).version === VERSION) {
             return;
@@ -251,19 +256,6 @@ function ensurePositiveNumber(n: number, defaultValue: number) {
     return n > 0 ? +n : defaultValue;
 }
 
-function toUint8Array(obj: any): Uint8Array | undefined {
-    const count = Object.entries(obj).length;
-    const ret = new Uint8Array(count);
-    for (let i = 0; i < count; i++) {
-        const entry = obj[i.toString()];
-        if (!entry) {
-            return;
-        }
-        ret[i] = entry;
-    }
-    return ret;
-}
-
 /**
  * Call this in a web worker to synchronously receive a message sent by the main thread with `writeMessage`.
  *
@@ -314,13 +306,7 @@ export function readMessage(
 
                 const decoder = new TextDecoder();
                 const text = decoder.decode(bytes);
-                const parsed = JSON.parse(text);
-                if (parsed.return) {
-                    const uint8Array = toUint8Array(parsed.return);
-                    if (uint8Array) {
-                        parsed.return = uint8Array;
-                    }
-                }
+                const parsed = jsonParse(text);
                 return parsed;
             }
         };
@@ -334,13 +320,13 @@ export function readMessage(
                 messageId,
                 timeout: totalCheckTimeout,
             };
-            request.send(JSON.stringify(requestBody));
+            request.send(jsonStringify(requestBody));
             const { status } = request;
 
             if (status === 408) {
                 return null;
             } else if (status === 200) {
-                const response = JSON.parse(request.responseText);
+                const response = jsonParse(request.responseText);
                 if (response.version !== VERSION) {
                     return null;
                 }
