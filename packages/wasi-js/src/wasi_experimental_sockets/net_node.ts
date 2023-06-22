@@ -1,5 +1,5 @@
 import { default as net } from "node:net";
-import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
+import { AddressFamily, AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
 
 //import { default as dgram } from "node:dgram";
 import { default as dns } from "node:dns";
@@ -25,7 +25,7 @@ export async function addrResolve(hostname: string, port: number): Promise<Addre
     const dnsResponses = await dnsPromises.lookup(hostname, options);
     for (const dnsresp of dnsResponses) {
         const addr = dnsresp.address;
-        let family = "IPv4";
+        let family: AddressFamily = "IPv4";
         if (dnsresp.family == 6) {
             family = "IPv6";
         }

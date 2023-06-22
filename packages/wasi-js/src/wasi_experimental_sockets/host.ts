@@ -20,7 +20,7 @@ import {
 
 import { SystemError } from "../errors.js";
 import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common.js";
-import { NetTcpSocket, NetUdpSocket } from "./net.js";
+import { NetTcpSocket, NetUdpSocket, addrFamilyNoToAddrFamily, createTcpSocket, getAddressResolver } from "./net.js";
 
 export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSocketsAsync {
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
@@ -64,14 +64,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         buf_len: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        let addrResolve: (host: string, port: number) => Promise<AddressInfo[]>;
-        if (isNode()) {
-            const nodeImpl = await import("./net_node.js");
-            addrResolve = nodeImpl.addrResolve;
-        } else {
-            const wsImpl = await import("./net_wsproxy.js");
-            addrResolve = wsImpl.addrResolve;
-        }
+        const addrResolve = await getAddressResolver();
         if (addrResolve) {
             let offset = 0;
             const hostname = string.get(this.buffer, host_ptr, host_len);
@@ -120,7 +113,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("sockOpen:  afn: ", af as number);
         wasiSocketsDebug("sockOpen:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
-            if (isNode()) {
+            /*if (isNode()) {
                 const nodeImpl = await import("./net_node.js");
                 const createSocket = nodeImpl.createNodeTcpSocket;
                 const createServer = nodeImpl.createNodeTcpServer;
@@ -144,7 +137,14 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
                 Fd.set(this.buffer, result_ptr, resultFd);
                 wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
                 return ErrnoN.SUCCESS;
-            }
+            }*/
+            const addrFamily = addrFamilyNoToAddrFamily(af);
+            const sock = await createTcpSocket(addrFamily);
+            const resultFd = this.openFiles.add(sock);
+            wasiSocketsDebug("sockOpen tcp 3 :");
+            Fd.set(this.buffer, result_ptr, resultFd);
+            wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
+            return ErrnoN.SUCCESS;
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
             if (isNode()) {

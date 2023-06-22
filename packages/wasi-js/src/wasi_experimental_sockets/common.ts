@@ -1,11 +1,12 @@
+import { SystemError } from "../errors.js";
 import { Socket } from "../wasiFileSystem.js";
-import { Addr, AddrTypeN } from "./bindings.js";
+import { Addr, AddrTypeN, ErrnoN } from "./bindings.js";
 
 export type AddressFamily = "IPv4" | "IPv6";
 
 export interface AddressInfo {
     address: string;
-    family: AddressFamily | string;
+    family: AddressFamily;
     port: number;
 }
 
@@ -94,20 +95,20 @@ export function wasiSocketsDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
-function IPv4AddressToArray(addr: string): number[] {
+export function IPv4AddressToArray(addr: string): [number, number, number, number] {
     const saddrs = addr.split(".");
-    const retAddrs: number[] = [];
+    const retAddrs: [number, number, number, number] = [0, 0, 0, 0];
     for (const saddr of saddrs) {
         retAddrs.push(parseInt(saddr));
     }
     return retAddrs;
 }
 
-function IPv6AddressToArray(addr: string): number[] {
+export function IPv6AddressToArray(addr: string): [number, number, number, number, number, number, number, number] {
     // TODO: handle IPv6 representation of IPv4 address? (e.g. '::ffff:192.168.1.1')
     const a = addr.startsWith("::") ? "0" + addr : addr.endsWith("::") ? addr + "0" : addr;
     const saddrs = a.split(":");
-    const retAddrs: number[] = [];
+    const retAddrs: [number, number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0, 0];
     for (const saddr of saddrs) {
         if (saddr !== "") {
             retAddrs.push(parseInt(saddr, 16));
@@ -124,7 +125,7 @@ function IPv6AddressToArray(addr: string): number[] {
 }
 
 export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
-    let family: string;
+    let family: AddressFamily;
     let hostAddr: string;
     if (addr.tag == AddrTypeN.IP_4) {
         family = "IPv4";
@@ -149,8 +150,7 @@ export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
         const h3s = h3.toString(16);
         hostAddr = `${n0s}:${n1s}:${n2s}}:${n3s}:${h0s}:${h1s}:${h2s}}:${h3s}`;
     } else {
-        family = "undefined";
-        hostAddr = "";
+        throw new SystemError(ErrnoN.AFNOSUPPORT);
     }
     const addrinfo: AddressInfo = {
         address: hostAddr,

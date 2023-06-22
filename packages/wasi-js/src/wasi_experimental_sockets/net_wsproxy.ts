@@ -1,6 +1,5 @@
 import { Socket } from "../vendored/serverless/net_shim.js";
-import { AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
-import { AddressFamily } from "./bindings.js";
+import { AddressFamily, AddressInfo, NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
 
 export function createNodeTcpSocket(): NodeNetTcpSocket {
     const wsSocket = new Socket();
@@ -31,7 +30,7 @@ export async function cloudflareResolve(hostname: string, port: number): Promise
         const answers = data.Answer;
         for (const aRecord of answers) {
             const type = aRecord.type;
-            let family = "IPv4";
+            let family: AddressFamily = "IPv4";
             if (type == 28) {
                 family = "IPv6";
             }
@@ -57,7 +56,7 @@ export async function cloudflareResolve(hostname: string, port: number): Promise
         const answers = datav6.Answer;
         for (const aRecord of answers) {
             const type = aRecord.type;
-            let family = "IPv4";
+            let family: AddressFamily = "IPv4";
             if (type == 28) {
                 family = "IPv6";
             }

@@ -1,9 +1,11 @@
 import { SystemError } from "../errors.js";
 import { Socket } from "../wasiFileSystem.js";
+import { isNode } from "../wasiUtils.js";
 
-import { ErrnoN } from "./bindings.js";
+import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
 import { AddressInfo, appendToUint8Array, delay, WasiSocket, wasiSocketsDebug } from "./common.js";
-import { NodeNetTcpServer, NodeNetTcpSocket } from "./common.js";
+import { NodeNetTcpServer, NodeNetTcpSocket, AddressFamily } from "./common.js";
+import { addrResolve } from "./net_node.js";
 
 /*
 import { default as net } from "node:net";
@@ -172,10 +174,11 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         const remotePort = this._nodeSocket.remotePort;
         const remoteFamily = this._nodeSocket.remoteFamily;
         if (remoteAddr && remotePort && remoteFamily) {
+            const aRemoteFamily = remoteFamily as AddressFamily;
             const addr: AddressInfo = {
                 address: remoteAddr,
                 port: remotePort,
-                family: remoteFamily,
+                family: aRemoteFamily,
             };
             wasiSocketsDebug("remoteAddress: returning addr:", addr);
             return addr;
@@ -390,5 +393,48 @@ export class NetUdpSocket extends Socket implements WasiSocket {
     }
     shutdown(): void {
         throw new Error("UDP not implemented.");
+    }
+}
+
+export async function createTcpSocket(af?: AddressFamily): Promise<NetTcpSocket> {
+    if (isNode()) {
+        const nodeImpl = await import("./net_node.js");
+        const createSocket = nodeImpl.createNodeTcpSocket;
+        const createServer = nodeImpl.createNodeTcpServer;
+        wasiSocketsDebug("net createTcpSocket node 1 :");
+        const sock = new NetTcpSocket(createSocket, createServer);
+        wasiSocketsDebug("net createTcpSocket node 2 :");
+        return sock;
+    } else {
+        const wsImpl = await import("./net_wsproxy.js");
+        const createSocket = wsImpl.createNodeTcpSocket;
+        const createServer = wsImpl.createNodeTcpServer;
+        wasiSocketsDebug("net createTcpSocket ws 1 :");
+        const sock = new NetTcpSocket(createSocket, createServer);
+        wasiSocketsDebug("net createTcpSocket ws 2 :");
+        return sock;
+    }
+}
+
+export function addrFamilyNoToAddrFamily(afno: AddressFamilyNo): AddressFamily {
+    switch (afno) {
+        case AddressFamilyN.INET_4:
+            return "IPv4";
+        case AddressFamilyN.INET_6:
+            return "IPv6";
+    }
+}
+
+export type AddressResolve = (host: string, port: number) => Promise<AddressInfo[]>;
+
+export async function getAddressResolver(): Promise<AddressResolve> {
+    if (isNode()) {
+        const nodeImpl = await import("./net_node.js");
+        const addrResolve = nodeImpl.addrResolve;
+        return addrResolve;
+    } else {
+        const wsImpl = await import("./net_wsproxy.js");
+        const addrResolve = wsImpl.addrResolve;
+        return addrResolve;
     }
 }

@@ -1,3 +1,4 @@
+import { SystemError } from "../errors.js";
 import { translateErrorToErrorno } from "../wasiUtils.js";
 import { ErrnoN } from "../wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
@@ -172,4 +173,40 @@ export function translateError(err: any) {
         //    errCode = 'not-capable';
     }
     return errCode;
+}
+
+export type ManagedResourceId = number;
+export type ManagedResource = any;
+export class ResourceManager {
+    constructor() {}
+
+    private _resources = new Map<ManagedResourceId, ManagedResource>();
+    private _nextResourceId = 0;
+
+    add(res: ManagedResource): ManagedResourceId {
+        this._resources.set(this._nextResourceId, res);
+        return this._nextResourceId++ as ManagedResourceId;
+    }
+
+    get(resId: ManagedResourceId): ManagedResource {
+        const res = this._resources.get(resId);
+        if (!res) {
+            throw new SystemError(ErrnoN.BADF);
+        }
+        return res;
+    }
+
+    private _take(resId: ManagedResourceId) {
+        const res = this._resources.get(resId);
+        this._resources.delete(resId);
+        return res;
+    }
+
+    async close(resId: ManagedResourceId) {
+        const res = this._take(resId);
+        const fdhandle = res as any;
+        if (fdhandle.close) {
+            await fdhandle.close();
+        }
+    }
 }

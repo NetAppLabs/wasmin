@@ -36,6 +36,12 @@ import { ClocksMonotonicClockAsyncHost, ClocksTimezoneAsyncHost, ClocksWallClock
 import { ClocksMonotonicClockAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-monotonic-clock";
 import { ClocksWallClockAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-wall-clock";
 import { ClocksTimezoneAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-timezone";
+import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-instance-network";
+import { SocketsNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network";
+import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket";
+import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp";
+import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost } from "./sockets";
+import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup";
 
 export type WasiSnapshotPreview2ImportObject = {
     "cli-base": {
@@ -57,6 +63,13 @@ export type WasiSnapshotPreview2ImportObject = {
     io: {
         ioStreams: IoStreamsAsync;
     };
+    sockets: {
+        socketsInstanceNetwork: SocketsInstanceNetworkAsync;
+        socketsNetwork: SocketsNetworkAsync;
+        socketsTcpCreateSocket: SocketsTcpCreateSocketAsync;
+        socketsTcp: SocketsTcpAsync;
+        socketsIpNameLookup: SocketsIpNameLookupAsync;
+    };
     random: {
         randomRandom: RandomRandomAsync;
         randomInsecure: RandomInsecureAsync;
@@ -65,6 +78,10 @@ export type WasiSnapshotPreview2ImportObject = {
 };
 
 export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2ImportObject {
+    const socketsNetworkInstance = new SocketsNetworkAsyncHost(wasiOptions);
+    const socketsTcpInstance = new SocketsTcpAsyncHost(wasiOptions);
+    const socketsIpNameLookupInstance = new SocketsIpNameLookupAsyncHost(wasiOptions);
+
     const wasiImports: WasiSnapshotPreview2ImportObject = {
         "cli-base": {
             cliBaseEnvironment: new CliBaseEnvironmentAsyncHost(wasiOptions),
@@ -84,6 +101,13 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         },
         io: {
             ioStreams: new IoStreamsAsyncHost(wasiOptions),
+        },
+        sockets: {
+            socketsInstanceNetwork: socketsNetworkInstance,
+            socketsNetwork: socketsNetworkInstance,
+            socketsTcpCreateSocket: socketsTcpInstance,
+            socketsTcp: socketsTcpInstance,
+            socketsIpNameLookup: socketsIpNameLookupInstance,
         },
         random: {
             randomRandom: new RandomRandomAsynHost(wasiOptions),
