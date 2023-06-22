@@ -9,4 +9,4 @@ to="${to_base}.shared.wasm"
 
 #wasm-opt --strip-producers $from -o $to --mvp-features --enable-threads
 #wasm-opt $from -o $to --all-features --enable-threads
-~/.cargo/bin/wasm-tools rewrite add ${from} -o ${to}
+~/.cargo/bin/wasm-tools rewrite ${from} -o ${to}

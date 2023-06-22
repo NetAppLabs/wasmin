@@ -155,7 +155,9 @@ export class ServiceWorkerError extends Error {
 export type Channel = AtomicsChannel | ServiceWorkerChannel;
 
 // @ts-ignore
-BigInt.prototype.toJSON = function() { return this.toString() }
+BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
 
 export function writeMessageAtomics(channel: AtomicsChannel, message: any) {
     const encoder = new TextEncoder();

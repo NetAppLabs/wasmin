@@ -3,7 +3,10 @@ import parseUrl from "parse-url";
 import indexeddb from "./adapters/indexeddb.js";
 import memory from "./adapters/memory.js";
 
-type providerFunc = (url: string, ...optionalParams: any[]) => Promise<FileSystemDirectoryHandle>;
+type providerFunc = (
+    url: string,
+    ...optionalParams: any[]
+) => FileSystemDirectoryHandle | Promise<FileSystemDirectoryHandle>;
 const providersRegistry: Record<string, providerFunc> = {};
 
 export function RegisterProvider(prefix: string, provFunc: providerFunc) {
@@ -22,7 +25,6 @@ export async function getDirectoryHandleByURL(url: string, secretStore?: any): P
     //@ts-ignore
     //providersRegistry["indexeddb"] = indexeddb;
 
-    //@ts-ignore
     RegisterProvider("memory", memory);
     //@ts-ignore
     RegisterProvider("indexeddb", indexeddb);

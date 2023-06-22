@@ -3,7 +3,7 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
 type CliBaseEnvironmentAsync = clibe.CliBaseEnvironmentAsync;
 import { CliBaseExitNamespace as clib } from "@wasm-env/wasi-snapshot-preview2";
 import { ExitStatus } from "../wasiUtils.js";
-type Result<T, E> = clib.Result<T,E>;
+type Result<T, E> = clib.Result<T, E>;
 import { CliBasePreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
 import { CliBasePreopensAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-preopens";
 import { FIRST_PREOPEN_FD } from "../wasiFileSystem.js";
@@ -24,9 +24,9 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
         this._wasiEnv = wasiEnv;
     }
     async getEnvironment(): Promise<[string, string][]> {
-        let retEnv: [string,string][] = [];
-        for (const [key,val] of Object.entries(this._wasiEnv.env)) {
-            retEnv.push([key,val]);
+        let retEnv: [string, string][] = [];
+        for (const [key, val] of Object.entries(this._wasiEnv.env)) {
+            retEnv.push([key, val]);
         }
         return retEnv;
     }
@@ -35,7 +35,7 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
     }
 }
 
-export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync{
+export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
     private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
@@ -43,12 +43,12 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync{
     }
     async exit(status: Result<void, void>): Promise<void> {
         let rval = 0;
-        if (status.tag == 'ok') {
+        if (status.tag == "ok") {
             rval = 0;
             console.log("CliBaseExitAsyncHost exit ok: ", status.val);
-        } else if (status.tag == 'err') {
+        } else if (status.tag == "err") {
             console.log("CliBaseExitAsyncHost exit err: ", status.val);
-            // TODO: figure out exit code
+            // TODO: figure out if exit code should be other than 1 for error
             rval = 1;
         }
         throw new ExitStatus(rval);
@@ -65,12 +65,12 @@ export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
         let preopens: [Descriptor, string][] = [];
         let preopen_fd = FIRST_PREOPEN_FD;
         try {
-            for (let i = preopen_fd; i++; true){
+            for (let i = preopen_fd; i++; true) {
                 const openDir = this._wasiEnv.openFiles.getPreOpen(preopen_fd);
                 const path = openDir.path;
                 preopens.push([preopen_fd, path]);
             }
-        } catch(err: any){
+        } catch (err: any) {
             wasiError("getDirectories: err: ", err);
         }
         return preopens;
@@ -90,7 +90,7 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
     }
 }
 
-export class CliBaseStdinAsyncHost implements CliBaseStdinAsync{
+export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
     private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
@@ -114,5 +114,4 @@ export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
         const stdout_fd_no = 1;
         return stdout_fd_no;
     }
-
 }

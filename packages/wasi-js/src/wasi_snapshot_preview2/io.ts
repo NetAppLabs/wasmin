@@ -13,14 +13,14 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
-    get wasiEnv(){
+    get wasiEnv() {
         return this._wasiEnv;
     }
-    get openFiles(){
+    get openFiles() {
         return this.wasiEnv.openFiles;
     }
     async read(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
-        try{
+        try {
             if (len == 0n) {
                 return [new Uint8Array(), true];
             }
@@ -28,10 +28,10 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             // TODO: handle bigint
             const buffer = await reader.read(Number(len));
             let isEnd = false;
-            if (buffer.length < len ) {
+            if (buffer.length < len) {
                 isEnd = true;
             }
-            return [buffer,isEnd];
+            return [buffer, isEnd];
         } catch (err: any) {
             throw translateError(err);
         }
@@ -49,7 +49,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         throw new Error("Method not implemented.");
     }
     async dropInputStream(instr: InputStream): Promise<void> {
-        try{
+        try {
             await this.openFiles.close(instr);
         } catch (err: any) {
             throw translateError(err);
@@ -91,11 +91,10 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         throw new Error("Method not implemented.");
     }
     async dropOutputStream(outstr: OutputStream): Promise<void> {
-        try{
+        try {
             await this.openFiles.close(outstr);
         } catch (err: any) {
             throw translateError(err);
         }
     }
-
 }

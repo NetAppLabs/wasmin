@@ -1,5 +1,5 @@
 import { Typeson } from "typeson";
-import { builtin, date, error, regexp, typedArrays, bigint, bigintObject, arraybuffer} from 'typeson-registry';
+import { builtin, date, error, regexp, typedArrays, bigint, bigintObject, arraybuffer } from "typeson-registry";
 
 let TYPESON_INSTANCE: Typeson;
 
@@ -24,7 +24,7 @@ export function getTypeson() {
 export function jsonStringify(obj: any) {
     const typeson = getTypeson();
     const jsonFriendly = typeson.encapsulate(obj);
-    const str = JSON.stringify(jsonFriendly)
+    const str = JSON.stringify(jsonFriendly);
     return str;
 }
 
@@ -36,4 +36,3 @@ export function jsonParse(jsonString: string) {
     const revived = typeson.revive(parsed);
     return revived;
 }
-

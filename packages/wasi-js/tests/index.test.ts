@@ -8,10 +8,10 @@ import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
 //import { NfsDirectoryHandle } from "../../../../nfs-js";
-import { File, Blob } from "web-file-polyfill";
+//import { File, Blob } from "web-file-polyfill";
 
-globalThis.File = File;
-globalThis.Blob = Blob;
+//globalThis.File = File;
+//globalThis.Blob = Blob;
 
 /*
 declare let globalThis: any;

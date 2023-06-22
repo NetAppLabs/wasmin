@@ -21,6 +21,7 @@ export async function getWasmModuleSource(urlOrPath: string) {
     let url;
     try {
         url = new URL(urlOrPath);
+        wasiWorkerDebug("trying url: failed to get url: ", url);
         const res = await fetch(url);
         const data = await res.arrayBuffer();
         return data;

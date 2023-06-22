@@ -23,7 +23,10 @@ import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_pr
 import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
-import { WasiSnapshotPreview2ImportObject, constructWasiSnapshotPreview2Imports } from "./wasi_snapshot_preview2/index.js";
+import {
+    WasiSnapshotPreview2ImportObject,
+    constructWasiSnapshotPreview2Imports,
+} from "./wasi_snapshot_preview2/index.js";
 import { wasiWorkerDebug } from "./workerUtils.js";
 
 export interface WasiOptions {
@@ -63,9 +66,10 @@ export class WasiEnv implements WasiOptions {
         tty?: TTY
     ) {
         if (!openFiles) {
-            openFiles = new OpenFiles({});
+            this._openFiles = new OpenFiles({});
+        } else {
+            this._openFiles = openFiles;
         }
-        this._openFiles = openFiles;
 
         if (!stdin) {
             stdin = { read: () => new Uint8Array() };
@@ -170,10 +174,10 @@ class MultiModule {
 }
 
 export type InstantiateMultipleFunc = () => Promise<{
-    instanceSource: BufferSource,
-    instanceImport: WebAssembly.Imports,
-    instances: WebAssembly.Instance[],
-    imports: WebAssembly.Imports[],
+    instanceSource: BufferSource;
+    instanceImport: WebAssembly.Imports;
+    instances: WebAssembly.Instance[];
+    imports: WebAssembly.Imports[];
 }>;
 
 export class WASI {
@@ -290,7 +294,7 @@ export class WASI {
                 this._moduleImports = imps;
                 // console.log("WASI: handleImportFunc: _moduleImports:", this._moduleImports);
                 */
-               this._moduleImports = imports;
+                this._moduleImports = imports;
             }
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
@@ -371,7 +375,9 @@ export class WASI {
         try {
             if (this.wasiEnv.tty) {
                 // Reloading to set correct rows and columns
-                await this.wasiEnv.tty.reload();
+                if (this.wasiEnv.tty.reload) {
+                    await this.wasiEnv.tty.reload();
+                }
             }
             wasiDebug("[run] calling _start: ");
             await (_start as any)();
@@ -426,10 +432,20 @@ export class WASI {
         }
         if (funcThrownError) {
             //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, ` funcThrownError: `, funcThrownError)
-            wasiWorkerDebug(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `funcThrownError: `, funcThrownError)
+            wasiWorkerDebug(
+                `WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,
+                args,
+                `funcThrownError: `,
+                funcThrownError
+            );
         } else {
             //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
-            wasiWorkerDebug(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
+            wasiWorkerDebug(
+                `WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,
+                args,
+                `return: `,
+                funcReturn
+            );
         }
         const response = {
             return: funcReturn,
@@ -444,7 +460,7 @@ export class WASI {
         functionName: string,
         args: any[],
         buf: ArrayBuffer,
-        moduleImports: WebAssembly.Imports,
+        moduleImports: WebAssembly.Imports
     ): Promise<void> {
         wasiDebug(`WASI handleImport: messageId: ${messageId} importName: ${importName} functionName: ${functionName}`);
         //const moduleImports = this.moduleImports;
@@ -558,7 +574,9 @@ export class WASI {
         //const { memory } = exports;
         if (this.wasiEnv.tty) {
             wasiDebug("WASI tty.setModuleInstanceExports");
-            this.wasiEnv.tty.setModuleInstanceExports(exports);
+            if (this.wasiEnv.tty.setModuleInstanceExports) {
+                this.wasiEnv.tty.setModuleInstanceExports(exports);
+            }
         } else {
             wasiDebug("WASI tty is null");
         }

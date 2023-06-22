@@ -15,31 +15,31 @@ type OutputStream = fs.OutputStream;
 type DirectoryEntryStream = fs.DirectoryEntryStream;
 type Datetime = fs.Datetime;
 
-export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsync{
+export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsync {
     private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
-    get wasiEnv(){
+    get wasiEnv() {
         return this._wasiEnv;
     }
-    get openFiles(){
+    get openFiles() {
         return this.wasiEnv.openFiles;
     }
     async readViaStream(fd: Descriptor, offset: FileSize): Promise<InputStream> {
-        try{
+        try {
             const newFd = await this.openFiles.openReader(fd, offset);
-            console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:",newFd);
+            console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);
         }
     }
     async writeViaStream(fd: Descriptor, offset: FileSize): Promise<OutputStream> {
-        try{
+        try {
             const newFd = await this.openFiles.openWriter(fd, offset);
-            console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:",newFd);
+            console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);
@@ -56,7 +56,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         throw new Error("Method not implemented.");
     }
     async syncData(fd: Descriptor): Promise<void> {
-        try{
+        try {
             await this.openFiles.getAsFile(fd).flush();
         } catch (err: any) {
             throw translateError(err);
@@ -70,33 +70,37 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             dataIntegritySync: false,
             requestedWriteSync: false,
             mutateDirectory: false,
-        }
+        };
         return dFlags;
     }
     async getType(fd: Descriptor): Promise<DescriptorType> {
-        try{
+        try {
             const fdhandle = this.openFiles.get(fd);
-            if (fdhandle instanceof OpenFile){
-                return 'regular-file'
-            } else if (fdhandle instanceof OpenDirectory){
-                return 'directory'
-            } else if (fdhandle instanceof Socket){
-                return 'socket'
+            if (fdhandle instanceof OpenFile) {
+                return "regular-file";
+            } else if (fdhandle instanceof OpenDirectory) {
+                return "directory";
+            } else if (fdhandle instanceof Socket) {
+                return "socket";
             } else {
-                return 'character-device'
+                return "character-device";
             }
         } catch (err: any) {
             throw translateError(err);
         }
     }
     async setSize(fd: Descriptor, size: bigint): Promise<void> {
-        try{
+        try {
             await this.openFiles.getAsFile(fd).setSize(Number(size));
         } catch (err: any) {
             throw translateError(err);
         }
     }
-    async setTimes(fd: Descriptor, dataAccessTimestamp: fs.NewTimestamp, dataModificationTimestamp: fs.NewTimestamp): Promise<void> {
+    async setTimes(
+        fd: Descriptor,
+        dataAccessTimestamp: fs.NewTimestamp,
+        dataModificationTimestamp: fs.NewTimestamp
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
     async read(fd: Descriptor, length: bigint, offset: FileSize): Promise<[Uint8Array | ArrayBuffer, boolean]> {
@@ -108,7 +112,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             const chunk = await input.read(lengthNumber);
             this.openFiles.close(newFd);
             let isEnd = false;
-            if (chunk.length < length){
+            if (chunk.length < length) {
                 isEnd = true;
             }
             return [chunk, isEnd];
@@ -146,7 +150,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     async createDirectoryAt(fd: Descriptor, path: string): Promise<void> {
         try {
             const openDir = this.openFiles.getAsDir(fd);
-            await openDir.openWithCreate(path,true,FileOrDir.Dir,openDir.handle);
+            await openDir.openWithCreate(path, true, FileOrDir.Dir, openDir.handle);
         } catch (err: any) {
             throw translateError(err);
         }
@@ -155,7 +159,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         try {
             const fdhandle = this.openFiles.get(fd);
             let stat: DescriptorStat;
-            if (fdhandle instanceof OpenFile){
+            if (fdhandle instanceof OpenFile) {
                 const handle = fdhandle.handle;
                 stat = populateDescriptorStat(handle.kind === "file" ? await handle.getFile() : undefined);
                 return stat;
@@ -176,26 +180,41 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             throw translateError(err);
         }
     }
-    async setTimesAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, dataAccessTimestamp: fs.NewTimestamp, dataModificationTimestamp: fs.NewTimestamp): Promise<void> {
+    async setTimesAt(
+        fd: Descriptor,
+        pathFlags: fs.PathFlags,
+        path: string,
+        dataAccessTimestamp: fs.NewTimestamp,
+        dataModificationTimestamp: fs.NewTimestamp
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    linkAt(fd: Descriptor, oldPathFlags: fs.PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void> {
+    linkAt(
+        fd: Descriptor,
+        oldPathFlags: fs.PathFlags,
+        oldPath: string,
+        newDescriptor: Descriptor,
+        newPath: string
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    async openAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, openFlags: fs.OpenFlags, descriptorFlags: DescriptorFlags, modes: fs.Modes): Promise<Descriptor> {
+    async openAt(
+        fd: Descriptor,
+        pathFlags: fs.PathFlags,
+        path: string,
+        openFlags: fs.OpenFlags,
+        descriptorFlags: DescriptorFlags,
+        modes: fs.Modes
+    ): Promise<Descriptor> {
         try {
             let fdflags: Fdflags = 0x0;
             let oflags: Oflags = 0x0;
 
-            if (openFlags.create)
-                oflags |= OflagsN.CREAT;
-            if (openFlags.directory)
-                oflags |= OflagsN.DIRECTORY;
-            if (openFlags.exclusive)
-                oflags |= OflagsN.EXCL;
-            if (openFlags.truncate)
-                oflags |= OflagsN.TRUNC;
-            
+            if (openFlags.create) oflags |= OflagsN.CREAT;
+            if (openFlags.directory) oflags |= OflagsN.DIRECTORY;
+            if (openFlags.exclusive) oflags |= OflagsN.EXCL;
+            if (openFlags.truncate) oflags |= OflagsN.TRUNC;
+
             /*
             if (descriptorFlags.read && descriptorFlags.write)
                 oflags |= OflagsN.O_RDWR;
@@ -209,9 +228,9 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             if (modes.executable)
             fsMode |= todo;
             */
-            
+
             wasiDebug(`[openAt fd: ${fd}, oflags: ${oflags}, path: ${path}, fdflags: ${fdflags} ]`);
-            
+
             if (fdflags & FdflagsN.NONBLOCK) {
                 wasiWarn(
                     `openAt Asked for non-blocking mode on path ${path} with dirFd: ${fd} while opening the file, falling back to blocking one.`
@@ -267,7 +286,12 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     changeFilePermissionsAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, modes: fs.Modes): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    changeDirectoryPermissionsAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, modes: fs.Modes): Promise<void> {
+    changeDirectoryPermissionsAt(
+        fd: Descriptor,
+        pathFlags: fs.PathFlags,
+        path: string,
+        modes: fs.Modes
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
     lockShared(fd: Descriptor): Promise<void> {
@@ -308,10 +332,9 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             throw translateError(err);
         }
     }
-
 }
 
-function populateDescriptorStat(file: File | undefined): DescriptorStat{
+function populateDescriptorStat(file: File | undefined): DescriptorStat {
     let size = 0n;
     let timeSeconds = 0n;
     let timeNanoSeconds = 0;
@@ -323,11 +346,11 @@ function populateDescriptorStat(file: File | undefined): DescriptorStat{
     const time: Datetime = {
         seconds: timeSeconds,
         nanoseconds: timeNanoSeconds,
-    }
+    };
     const newStat: DescriptorStat = {
         device: 0n,
         inode: 0n,
-        type: file ? 'regular-file' : 'directory',
+        type: file ? "regular-file" : "directory",
         linkCount: 0n,
         statusChangeTimestamp: time,
         dataModificationTimestamp: time,

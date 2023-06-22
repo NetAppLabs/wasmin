@@ -1,6 +1,5 @@
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
 import { promises } from "node:fs";
-import { default as path } from "node:path";
 
 // File & Blob is now in node v19 (19.2)
 // ignored for now because @types/node is not updated for node 19.2
@@ -206,9 +205,10 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     if (useWorker) {
         const { WASIWorker } = await import("@wasm-env/wasi-js");
         try {
+            const openFilesMap = {};
             const wasi = new WASIWorker({
                 abortSignal: abortController.signal,
-                openFiles: openFiles,
+                openFiles: openFilesMap,
                 stdin: stdin,
                 stdout: stdout,
                 stderr: stderr,

@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "wasi-worker-run",
+            "program": "${workspaceFolder}/apps/node-shell/dist/index.js",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {
+                "NODE_SHELL_WORKER": 1
+            },
+            "type": "node"
+        },
+        {
             "name": "wasi-component-run",
             "program": "${workspaceFolder}/apps/wasi-component/component/run.mjs",
             "request": "launch",

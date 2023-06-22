@@ -284,8 +284,8 @@ export class OpenDirectory {
 export class OpenDirectoryIterator {
     private _openDir: OpenDirectory;
     private _cursor: number = 0;
-    constructor(openDir: OpenDirectory){
-        this._openDir=openDir;
+    constructor(openDir: OpenDirectory) {
+        this._openDir = openDir;
     }
     public get cursor(): number {
         return this._cursor;
@@ -300,13 +300,13 @@ export class OpenDirectoryIterator {
         this._openDir = value;
     }
 
-    async next(): Promise<DirectoryEntry|null>{
+    async next(): Promise<DirectoryEntry | null> {
         let count = 0;
         const iterator = this.openDir.handle.values();
         for await (const handle of iterator) {
             // TODO handle abort
             //this._checkAbort();
-            let ftype: DescriptorType = 'unknown';
+            let ftype: DescriptorType = "unknown";
             const { name } = handle;
             if (handle.kind == "file") {
                 ftype = "regular-file";
@@ -317,7 +317,7 @@ export class OpenDirectoryIterator {
             const ret: DirectoryEntry = {
                 type: ftype,
                 name: name,
-            }
+            };
             if (count == this.cursor) {
                 this.cursor++;
                 return ret;
@@ -347,7 +347,7 @@ export class OpenFile implements Readable, Writable {
         return f;
     }
 
-    get handle(){
+    get handle() {
         return this._handle;
     }
 
@@ -580,8 +580,8 @@ export class OpenFiles {
             const file = this.getAsFile(fd);
             const path = file.path;
             const handle = file.handle;
-            const fsFlags = file.fdFlags;
-            const newFile = new OpenFile(path, handle, fsFlags);
+            const fdFlags = file.fdFlags;
+            const newFile = new OpenFile(path, handle, fdFlags);
             // TODO: safely handle bigint
             newFile.position = Number(offset);
             reader = newFile;
@@ -626,7 +626,6 @@ export class OpenFiles {
         const res = this.get(fd);
         return res as OpenDirectoryIterator;
     }
-
 
     addPreopenedDir(path: string, handle: Handle) {
         this._nextFd = this._add(path, handle);
