@@ -234,8 +234,8 @@ export class WASI {
     //     return firstInstance;
     // }
 
-    public async initializeComponentImports(): Promise<void> {
-        this.initializeWasiSnapshotPreview2Imports();
+    public async initializeComponentImports(): Promise<string[]> {
+        return this.initializeWasiSnapshotPreview2Imports();
     }
 
     public async instantiateSingle(
@@ -529,8 +529,14 @@ export class WASI {
         }
     }
 
-    private initializeWasiSnapshotPreview2Imports(): void {
+    private initializeWasiSnapshotPreview2Imports(): string[] {
         this._componentImportObject = constructWasiSnapshotPreview2Imports(this._wasiEnv);
+
+        const importNames: string[] = [];
+        for (const [importName, _importValue] of Object.entries(this._componentImportObject)) {
+            importNames.push(importName);
+        }
+        return importNames;
     }
 
     private initializeImports(): WebAssembly.Imports {

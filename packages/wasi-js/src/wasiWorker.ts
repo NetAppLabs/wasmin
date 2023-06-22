@@ -15,12 +15,20 @@ export class WASIWorker {
     }
     private _wasiOptions: WasiOptions;
     private _channel?: Channel;
+    private _componentImports?: any;
 
     get channel(): Channel {
         if (!this._channel) {
             throw new Error("channel not set");
         }
         return this._channel;
+    }
+
+    public get componentImports(): {} {
+        if (!this._componentImports) {
+            throw new Error("component imports not set");
+        }
+        return this._componentImports;
     }
 
     public async run(moduleUrl: string): Promise<number> {
@@ -73,24 +81,18 @@ export class WASIWorker {
 
         this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(this.worker);
         this._channel = createChannel();
-        await this.wasiWorkerThread.initializeComponentImports();
+        this._componentImports = {};
+        const importNames = await this.wasiWorkerThread.initializeComponentImports();
+        for (const importName of importNames) {
+            this._componentImports[importName] = this.createComponentModuleImportProxy(importName)
+        }
     }
 
     public stopWorker(): void {
         this.worker?.terminate();
     }
 
-    public getComponentImports(): {} {
-        // TODO: obtain import names programmatically
-        return {
-            'cli-base': this.getComponentModuleImports('cli-base'),
-            filesystem: this.getComponentModuleImports('filesystem'),
-            io: this.getComponentModuleImports('io'),
-            random: this.getComponentModuleImports('random'),
-        };
-    }
-
-    private getComponentModuleImports(importName: string): {} {
+    private createComponentModuleImportProxy(importName: string): {} {
         const wasiWorker = this;
         const importDummy = {};
         return new Proxy(importDummy, {
@@ -161,11 +163,11 @@ export class WasiWorkerThreadRunner {
         }
     }
 
-    public async initializeComponentImports(): Promise<void> {
+    public async initializeComponentImports(): Promise<string[]> {
         if (!this.wasi) {
             this.wasi = new WASI(this.wasiOptions || {});
         }
-        await this.wasi.initializeComponentImports();
+        return await this.wasi.initializeComponentImports();
     }
 
     public async handleComponentImport(
