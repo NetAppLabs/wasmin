@@ -4,14 +4,14 @@ import { RandomInsecureAsync } from "@wasm-env/wasi-snapshot-preview2/dist/impor
 import { RandomInsecureSeedAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-insecure-seed.js";
 
 export class RandomRandomAsynHost implements RandomRandomAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
 
     async getRandomU64(): Promise<bigint> {
-        let ret = randomU64();
+        const ret = randomU64();
         return ret;
     }
 
@@ -22,31 +22,31 @@ export class RandomRandomAsynHost implements RandomRandomAsync {
 }
 
 export class RandomInsecureAsyncHost implements RandomInsecureAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
     async getInsecureRandomBytes(len: bigint): Promise<Uint8Array | ArrayBuffer> {
         const ret = randomBytes(len);
         return ret;
     }
     async getInsecureRandomU64(): Promise<bigint> {
-        let ret = randomU64();
+        const ret = randomU64();
         return ret;
     }
 }
 
 export class RandomInsecureSeedAsyncHost implements RandomInsecureSeedAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
     async insecureSeed(): Promise<[bigint, bigint]> {
         const rand1 = randomU64();
         const rand2 = randomU64();
-        return [rand1, rand1];
+        return [rand1, rand2];
     }
 }
 

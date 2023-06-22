@@ -32,6 +32,10 @@ import { CliBaseExitAsyncHost } from "./cli-base.js";
 import { CliBaseStdinAsyncHost } from "./cli-base.js";
 import { CliBaseStdoutAsyncHost } from "./cli-base.js";
 import { CliBaseStderrAsyncHost } from "./cli-base.js";
+import { ClocksMonotonicClockAsyncHost, ClocksTimezoneAsyncHost, ClocksWallClockAsyncHost } from "./clocks.js";
+import { ClocksMonotonicClockAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-monotonic-clock";
+import { ClocksWallClockAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-wall-clock";
+import { ClocksTimezoneAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/clocks-timezone";
 
 export type WasiSnapshotPreview2ImportObject = {
     "cli-base": {
@@ -41,6 +45,11 @@ export type WasiSnapshotPreview2ImportObject = {
         cliBaseStdin: CliBaseStdinAsync;
         cliBaseStdout: CliBaseStdoutAsync;
         cliBaseStderr: CliBaseStderrAsync;
+    };
+    clocks: {
+        clocksMonotonicClock: ClocksMonotonicClockAsync;
+        clocksTimezone: ClocksTimezoneAsync;
+        clocksWallClck: ClocksWallClockAsync;
     };
     filesystem: {
         filesystemFilesystem: FilesystemFilesystemAsync;
@@ -56,8 +65,7 @@ export type WasiSnapshotPreview2ImportObject = {
 };
 
 export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2ImportObject {
-    let wasiImports: WasiSnapshotPreview2ImportObject;
-    wasiImports = {
+    const wasiImports: WasiSnapshotPreview2ImportObject = {
         "cli-base": {
             cliBaseEnvironment: new CliBaseEnvironmentAsyncHost(wasiOptions),
             cliBasePreopens: new CliBasePreopensAsyncHost(wasiOptions),
@@ -65,6 +73,11 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
             cliBaseStdin: new CliBaseStdinAsyncHost(wasiOptions),
             cliBaseStdout: new CliBaseStdoutAsyncHost(wasiOptions),
             cliBaseStderr: new CliBaseStderrAsyncHost(wasiOptions),
+        },
+        clocks: {
+            clocksMonotonicClock: new ClocksMonotonicClockAsyncHost(wasiOptions),
+            clocksTimezone: new ClocksTimezoneAsyncHost(wasiOptions),
+            clocksWallClck: new ClocksWallClockAsyncHost(wasiOptions),
         },
         filesystem: {
             filesystemFilesystem: new FileSystemFileSystemAsyncHost(wasiOptions),

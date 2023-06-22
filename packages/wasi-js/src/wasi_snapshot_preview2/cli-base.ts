@@ -18,13 +18,14 @@ import { CliBaseStdoutNamespace } from "@wasm-env/wasi-snapshot-preview2";
 import { CliBaseStdoutAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-Stdout";
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async getEnvironment(): Promise<[string, string][]> {
-        let retEnv: [string, string][] = [];
+        const retEnv: [string, string][] = [];
         for (const [key, val] of Object.entries(this._wasiEnv.env)) {
             retEnv.push([key, val]);
         }
@@ -36,11 +37,12 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
 }
 
 export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async exit(status: Result<void, void>): Promise<void> {
         let rval = 0;
         if (status.tag == "ok") {
@@ -56,14 +58,15 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
 }
 
 export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async getDirectories(): Promise<[Descriptor, string][]> {
-        let preopens: [Descriptor, string][] = [];
-        let preopen_fd = FIRST_PREOPEN_FD;
+        const preopens: [Descriptor, string][] = [];
+        const preopen_fd = FIRST_PREOPEN_FD;
         try {
             for (let i = preopen_fd; i++; true) {
                 const openDir = this._wasiEnv.openFiles.getPreOpen(preopen_fd);
@@ -78,11 +81,12 @@ export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
 }
 
 export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async getStderr(): Promise<OutputStream> {
         //TODO: synchronize stderr numbering in openFiles
         const stderr_fd_no = 2;
@@ -91,11 +95,12 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
 }
 
 export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async getStdin(): Promise<InputStream> {
         //TODO: synchronize stdin numbering in openFiles
         const stdin_fd_no = 0;
@@ -104,11 +109,12 @@ export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
 }
 
 export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     async getStdout(): Promise<OutputStream> {
         //TODO: synchronize stdin numbering in openFiles
         const stdout_fd_no = 1;

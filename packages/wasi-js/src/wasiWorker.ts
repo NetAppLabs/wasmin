@@ -32,12 +32,13 @@ export interface WasiWorkerOptions {
 //export type WasiWorkerOptions = WasiOptions;
 
 export class WASIWorker {
-    wasiWorkerThread?: comlink.Remote<WasiWorkerThreadRunner>;
-    worker?: Worker;
     constructor(wasiOptions: WasiWorkerOptions) {
         initializeHandlers();
         this._wasiOptions = wasiOptions;
     }
+    wasiWorkerThread?: comlink.Remote<WasiWorkerThreadRunner>;
+    worker?: Worker;
+
     private _wasiOptions: WasiWorkerOptions;
     private _channel?: Channel;
     private _componentImports?: any;

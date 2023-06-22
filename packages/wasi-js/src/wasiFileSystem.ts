@@ -282,11 +282,12 @@ export class OpenDirectory {
 }
 
 export class OpenDirectoryIterator {
-    private _openDir: OpenDirectory;
-    private _cursor: number = 0;
     constructor(openDir: OpenDirectory) {
         this._openDir = openDir;
     }
+    private _openDir: OpenDirectory;
+    private _cursor = 0;
+
     public get cursor(): number {
         return this._cursor;
     }

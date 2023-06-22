@@ -8,11 +8,12 @@ type OutputStream = io.OutputStream;
 type Pollable = io.Pollable;
 
 export class IoStreamsAsyncHost implements IoStreamsAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     get wasiEnv() {
         return this._wasiEnv;
     }

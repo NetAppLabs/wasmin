@@ -16,11 +16,12 @@ type DirectoryEntryStream = fs.DirectoryEntryStream;
 type Datetime = fs.Datetime;
 
 export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsync {
-    private _wasiEnv: WasiEnv;
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
     get wasiEnv() {
         return this._wasiEnv;
     }
