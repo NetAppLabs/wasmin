@@ -1,6 +1,7 @@
 import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
 import { IoStreamsAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/io-streams";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { translateError } from "./preview2Utils.js";
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
@@ -19,17 +20,21 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         return this.wasiEnv.openFiles;
     }
     async read(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
-        if (len == 0n) {
-            return [new Uint8Array(), true];
+        try{
+            if (len == 0n) {
+                return [new Uint8Array(), true];
+            }
+            const reader = this.openFiles.getAsReadable(instr);
+            // TODO: handle bigint
+            const buffer = await reader.read(Number(len));
+            let isEnd = false;
+            if (buffer.length < len ) {
+                isEnd = true;
+            }
+            return [buffer,isEnd];
+        } catch (err: any) {
+            throw translateError(err);
         }
-        const reader = this.openFiles.getAsReadable(instr);
-        // TODO: handle bigint
-        const buffer = await reader.read(Number(len));
-        let isEnd = false;
-        if (buffer.length < len ) {
-            isEnd = true;
-        }
-        return [buffer,isEnd];
     }
     async blockingRead(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
         return await this.read(instr, len);
@@ -44,7 +49,11 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         throw new Error("Method not implemented.");
     }
     async dropInputStream(instr: InputStream): Promise<void> {
-        await this.openFiles.close(instr);
+        try{
+            await this.openFiles.close(instr);
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
     async write(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
         try {
@@ -53,13 +62,15 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             const written = buf.length;
             return BigInt(written);
         } catch (err: any) {
-            console.log("IoStreamsAsyncHost write err: ", err);
-            //throw 'bad-descriptor';
+            throw translateError(err);
         }
-        return 0n;
     }
     async blockingWrite(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
-        return await this.write(outstr, buf);
+        try {
+            return await this.write(outstr, buf);
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
     writeZeroes(outstr: OutputStream, len: bigint): Promise<bigint> {
         throw new Error("Method not implemented.");
@@ -80,7 +91,11 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         throw new Error("Method not implemented.");
     }
     async dropOutputStream(outstr: OutputStream): Promise<void> {
-        await this.openFiles.close(outstr);
+        try{
+            await this.openFiles.close(outstr);
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
 
 }

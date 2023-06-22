@@ -17,18 +17,22 @@ import { IoStreamsNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.
 type IoStreamsAsync = IoStreamsNamespace.IoStreamsAsync;
 import { RandomRandomNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
 type RandomRandomAsync = RandomRandomNamespace.RandomRandomAsync;
+import { RandomInsecureNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
+type RandomInsecureAsync = RandomInsecureNamespace.RandomInsecureAsync;
+import { RandomInsecureSeedNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js"
+type RandomInsecureSeedAsync = RandomInsecureSeedNamespace.RandomInsecureSeedAsync;
 
 import { WasiOptions } from "../wasi";
-import { FileSystemFileSystemAsyncHost } from "./filesystem-filesystem.js";
-import { IoStreamsAsyncHost } from "./io-streams.js";
-import { RandomRandomAsynHost } from "./random-random.js";
-import { CliBaseEnvironmentAsyncHost } from "./cli-base-environment.js";
-import { CliBasePreopensAsyncHost } from "./cli-base-preopens.js";
-import { CliBaseExitAsyncHost } from "./cli-base-exit.js";
-import { CliBaseStdinAsyncHost } from "./cli-base-stdin.js";
-import { CliBaseStdoutAsyncHost } from "./cli-base-stdout.js";
-import { CliBaseStderrAsyncHost } from "./cli-base-stderr.js";
-
+import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
+import { IoStreamsAsyncHost } from "./io.js";
+import { RandomInsecureSeedAsyncHost, RandomRandomAsynHost } from "./random.js";
+import { RandomInsecureAsyncHost } from "./random.js";
+import { CliBaseEnvironmentAsyncHost } from "./cli-base.js";
+import { CliBasePreopensAsyncHost } from "./cli-base.js";
+import { CliBaseExitAsyncHost } from "./cli-base.js";
+import { CliBaseStdinAsyncHost } from "./cli-base.js";
+import { CliBaseStdoutAsyncHost } from "./cli-base.js";
+import { CliBaseStderrAsyncHost } from "./cli-base.js";
 
 export type WasiSnapshotPreview2ImportObject = {
     'cli-base': {
@@ -47,6 +51,8 @@ export type WasiSnapshotPreview2ImportObject = {
     },
     random: {
       randomRandom: RandomRandomAsync,
+      randomInsecure: RandomInsecureAsync,
+      randomInsecureSeed: RandomInsecureSeedAsync,
     },
 };
 
@@ -57,10 +63,10 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         'cli-base': {
             cliBaseEnvironment: new CliBaseEnvironmentAsyncHost(wasiOptions),
             cliBasePreopens: new CliBasePreopensAsyncHost(wasiOptions),
-            cliBaseExit: new CliBaseExitAsyncHost(),
+            cliBaseExit: new CliBaseExitAsyncHost(wasiOptions),
             cliBaseStdin: new CliBaseStdinAsyncHost(wasiOptions),
-            cliBaseStdout: new CliBaseStdoutAsyncHost(),
-            cliBaseStderr: new CliBaseStderrAsyncHost(),
+            cliBaseStdout: new CliBaseStdoutAsyncHost(wasiOptions),
+            cliBaseStderr: new CliBaseStderrAsyncHost(wasiOptions),
           },
           filesystem: {
             filesystemFilesystem: new FileSystemFileSystemAsyncHost(wasiOptions),
@@ -70,6 +76,8 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
           },
           random: {
             randomRandom: new RandomRandomAsynHost(wasiOptions),
+            randomInsecure: new RandomInsecureAsyncHost(wasiOptions),
+            randomInsecureSeed: new RandomInsecureSeedAsyncHost(wasiOptions)
           },
     };
     return wasiImports;
