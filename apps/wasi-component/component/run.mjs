@@ -12,17 +12,15 @@ async function fetchCompile (url) {
 }
 
 async function compileCore(url) {
-    url = "./" + url;
-    return await fetchCompile(new URL(url, import.meta.url));
+  url = "./" + url;
+  return await fetchCompile(new URL(url, import.meta.url));
 }
 
 const wasi = new WASIWorker({});
-await wasi.createWorker();
-
-const rootInstance = await instantiate(compileCore, wasi.componentImports);
-
-rootInstance.run();
-
-wasi.stopWorker();
-
-console.log("done");
+await wasi.createWorker()
+  .then((componentImports) => instantiate(compileCore, componentImports))
+  .then((rootInstance) => rootInstance.run())
+  .finally(() => {
+    wasi.stopWorker();
+    console.log("done");
+  });

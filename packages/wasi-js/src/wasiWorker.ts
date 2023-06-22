@@ -82,7 +82,7 @@ export class WASIWorker {
         }
     }
 
-    public async createWorker(): Promise<void> {
+    public async createWorker(): Promise<{}> {
         let workerUrlString = "./wasiWorkerThread.js";
         if (isNode()) {
             workerUrlString = "./wasiWorkerThreadNode.js";
@@ -99,6 +99,7 @@ export class WASIWorker {
         for (const importName of importNames) {
             this._componentImports[importName] = this.createComponentModuleImportProxy(importName);
         }
+        return this._componentImports;
     }
 
     public stopWorker(): void {

@@ -12,21 +12,21 @@ async function fetchCompile (url) {
 }
 
 async function compileCore(url) {
-    url = "./" + url;
-    return await fetchCompile(new URL(url, import.meta.url));
+  url = "./" + url;
+  return await fetchCompile(new URL(url, import.meta.url));
 }
 
 const wasi = new WASIWorker({});
-await wasi.createWorker();
-
-const reactorInstance = await instantiate(compileCore, wasi.componentImports);
-
-console.log(await reactorInstance.hello("Mr. Reactor"));
-console.log(await reactorInstance.hello("there"));
-console.log(await reactorInstance.hello("to one"));
-console.log(await reactorInstance.hello("to all"));
-console.log("uuid:", await reactorInstance.uuid());
-
-wasi.stopWorker();
-
-console.log("done");
+await wasi.createWorker()
+  .then((componentImports) => instantiate(compileCore, componentImports))
+  .then((reactorInstance) => {
+    console.log(reactorInstance.hello("Mr. Reactor"));
+    console.log(reactorInstance.hello("there"));
+    console.log(reactorInstance.hello("to one"));
+    console.log(reactorInstance.hello("to all"));
+    console.log("uuid:", reactorInstance.uuid());
+  })
+  .finally(() => {
+    wasi.stopWorker();
+    console.log("done");
+  });
