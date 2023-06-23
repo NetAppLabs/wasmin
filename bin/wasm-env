@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BIN_SRC="$(realpath -e -- "${BASH_SOURCE[0]}"; )";
+BIN_SRC="$(realpath -- "${BASH_SOURCE[0]}"; )";
 BIN_DIR="$(dirname -- "${BIN_SRC}" )";
 
 if [ -z "${WASM_ENV_ROOT}" ]; then
