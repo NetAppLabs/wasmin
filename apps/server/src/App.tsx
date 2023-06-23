@@ -1,4 +1,4 @@
-import { trpc } from "./utils/trpc";
+import { trpc } from "./utils/trpc.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { httpBatchLink } from "@trpc/client";

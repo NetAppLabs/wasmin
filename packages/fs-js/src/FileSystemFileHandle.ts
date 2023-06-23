@@ -17,6 +17,10 @@ export class NFileSystemFileHandle extends NFileSystemHandle implements FileSyst
         this.isFile = true;
         this.isDirectory = false;
     }
+
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("Method not implemented.");
+    }
     /**
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */

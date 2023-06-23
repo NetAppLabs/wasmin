@@ -10,7 +10,7 @@ import { CreateHTTPContextOptions, createHTTPServer, createHTTPHandler } from "@
 
 export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
     Logger.log("RPC Listening on port " + rpcPort);
-    const liveReloadImport = await import("bun-livereload");
+    /*const liveReloadImport = await import("bun-livereload");
     const liveReload = liveReloadImport.liveReload;
 
     const { appRouter } = await import("./router");
@@ -20,6 +20,14 @@ export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
             router: appRouter,
             createContext: () => ({}),
         })
+    );*/
+
+    const { appRouter } = await import("./router");
+
+    const trpcHandler = createHTTPHandler({
+            router: appRouter,
+            createContext: () => ({}),
+        }
     );
 
     // create and listen to the server handler
@@ -44,6 +52,7 @@ export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
     server.listen(rpcPort);
 }
 
+/*
 export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
     Logger.log("REST Listening on port " + restPort);
 
@@ -52,5 +61,15 @@ export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
     const { appRouter } = await import("./router");
 
     const server = http.createServer(liveReload(createOpenApiHttpHandler({ router: appRouter })));
+    server.listen(restPort);
+}
+*/
+
+export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
+    Logger.log("REST Listening on port " + restPort);
+
+    const { appRouter } = await import("./router");
+
+    const server = http.createServer(createOpenApiHttpHandler({ router: appRouter }));
     server.listen(restPort);
 }

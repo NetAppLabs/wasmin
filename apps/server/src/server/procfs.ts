@@ -249,6 +249,9 @@ export class ObjectFileSystemFileHandle implements FileSystemFileHandle {
     isDirectory: false;
 
     public kind = "file" as const;
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("Method not implemented.");
+    }
     async isSameEntry(other: FileSystemHandle): Promise<boolean> {
         throw new Error("Method not implemented.");
     }

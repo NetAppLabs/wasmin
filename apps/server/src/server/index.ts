@@ -10,6 +10,7 @@ import { z } from "zod";
 import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
 
 if (!globalThis.File) {
+    //@ts-ignore
     globalThis.File = File;
 }
 

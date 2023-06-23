@@ -7,8 +7,7 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "typescript": "^4.9.5",
-    "vite": "^4.1.4"
+    "@wasm-env/tsconfig": "*"
   },
   "dependencies": {
     "@wasm-env/fs-js": "*",

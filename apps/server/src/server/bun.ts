@@ -63,11 +63,12 @@ inspectProcs();
 const rpcPort = DEFAULT_RPC_PORT;
 const restPort = DEFAULT_REST_PORT;
 
-const liveReloadImport = await import("bun-livereload");
-const liveReload = liveReloadImport.liveReload;
+//const liveReloadImport = await import("bun-livereload");
+//const liveReload = liveReloadImport.liveReload;
 export default {
     port: rpcPort,
-    fetch: liveReload(async (request: Request) => {
+    fetch: async (request: Request) => {
+    //fetch: liveReload(async (request: Request) => {
         if (request.method === "OPTIONS")
             return new Response("", {
                 status: 200,
@@ -86,7 +87,8 @@ export default {
         });
         response.headers.set("Access-Control-Allow-Origin", "*");
         return response;
-    }),
+    //}),
+    },
 };
 
 Logger.log("RPC Listening on port " + rpcPort);
@@ -96,5 +98,6 @@ DiscoveryManagerInstance.publish(selfHost);
 
 DiscoveryManagerInstance.updateLoop();
 
-const server = http.createServer(liveReload(createOpenApiHttpHandler({ router: appRouter })));
+const server = http.createServer(createOpenApiHttpHandler({ router: appRouter }));
+//const server = http.createServer(liveReload(createOpenApiHttpHandler({ router: appRouter })));
 server.listen(restPort);
