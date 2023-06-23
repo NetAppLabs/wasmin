@@ -40,7 +40,7 @@ import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/di
 import { SocketsNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network";
 import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket";
 import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp";
-import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost } from "./sockets";
+import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost } from "./sockets.js";
 import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup";
 
 export type WasiSnapshotPreview2ImportObject = {

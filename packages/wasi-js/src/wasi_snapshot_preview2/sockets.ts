@@ -10,7 +10,7 @@ type SocketsIpNameLookupAsync = socklookup.SocketsIpNameLookupAsync;
 
 import { SocketsTcpNamespace as sockt } from "@wasm-env/wasi-snapshot-preview2";
 import { InputStream, OutputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/io-streams";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
 import { createTcpSocket, getAddressResolver } from "../wasi_experimental_sockets/net.js";
 import {
     AddressFamily as AddressFamilyCommon,
@@ -18,8 +18,8 @@ import {
     IPv4AddressToArray,
     IPv6AddressToArray,
     WasiSocket,
-} from "../wasi_experimental_sockets/common";
-import { ResourceManager, translateError } from "./preview2Utils";
+} from "../wasi_experimental_sockets/common.js";
+import { ResourceManager, translateError } from "./preview2Utils.js";
 type SocketsTcpAsync = sockt.SocketsTcpAsync;
 type TcpSocket = socktc.TcpSocket;
 type Pollable = sockt.Pollable;
