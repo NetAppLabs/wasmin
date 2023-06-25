@@ -19,6 +19,7 @@ import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-pre
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
 import { openDirectoryHandle } from "@wasm-env/fs-js";
+import { FileSystemDirectoryHandle, FileSystemFileHandle, FileSystemWritableFileStream } from "@wasm-env/fs-js";
 
 declare let globalThis: any;
 globalThis.WASI_FS_DEBUG = false;

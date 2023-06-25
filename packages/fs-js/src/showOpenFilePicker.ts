@@ -1,5 +1,5 @@
 import { fromInput } from "./util.js";
-import type { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
+import type { FileSystemDirectoryHandle } from "./index.js";
 
 interface Options {
     multiple: boolean;
@@ -8,7 +8,7 @@ interface Options {
     _preferPolyfill: boolean;
 }
 
-export async function showOpenFilePicker(options: Partial<Options> = {}): Promise<NFileSystemDirectoryHandle> {
+export async function showOpenFilePicker(options: Partial<Options> = {}): Promise<FileSystemDirectoryHandle> {
     const opts: Partial<Options> = { accepts: [], ...options };
 
     const input = document.createElement("input");

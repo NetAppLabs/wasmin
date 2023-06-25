@@ -3,6 +3,7 @@ import { getOriginPrivateDirectory, memory, NFileSystemDirectoryHandle } from "@
 import { node } from "@wasm-env/node-fs-js";
 import { getHostsFsHandle, getProcFsHandle } from "./procfs";
 import { HostManagerInstance } from "./host";
+import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 const USE_MEMORY = true;
 

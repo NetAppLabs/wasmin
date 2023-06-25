@@ -4,6 +4,7 @@ import { clamp_host, data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN } fr
 import { WasiEnv } from "./wasi.js";
 import { wasiDebug, unimplemented, translateErrorToErrorno } from "./wasiUtils.js";
 import { ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
+import { showDirectoryPicker } from "@wasm-env/fs-js";
 
 export function addWasiExperimentalFilesystemsToImports(
     imports: any,

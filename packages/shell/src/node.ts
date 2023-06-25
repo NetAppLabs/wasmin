@@ -6,6 +6,7 @@ import { promises } from "node:fs";
 // @ts-ignore
 //import { File, Blob } from 'node:buffer';
 
+import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 

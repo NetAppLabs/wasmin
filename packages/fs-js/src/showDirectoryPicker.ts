@@ -1,7 +1,7 @@
-import type { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
 import { fromInput } from "./util.js";
+import { FileSystemDirectoryHandle } from "./index.js";
 
-export async function showDirectoryPicker(): Promise<NFileSystemDirectoryHandle> {
+export async function showDirectoryPicker(): Promise<FileSystemDirectoryHandle> {
     const input = document.createElement("input");
     input.type = "file";
     input.webkitdirectory = true;

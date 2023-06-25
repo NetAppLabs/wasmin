@@ -1,7 +1,8 @@
-import { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle.js";
+import { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";
 import parseUrl from "parse-url";
 import indexeddb from "./adapters/indexeddb.js";
 import memory from "./adapters/memory.js";
+import { FileSystemDirectoryHandle } from "./index.js";
 
 type providerFunc = (
     url: string,

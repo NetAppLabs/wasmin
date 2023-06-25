@@ -5,7 +5,7 @@ import { WritableStream, ReadableStream } from "web-streams-polyfill";
 import {
     NFileSystemDirectoryHandle,
     NFileSystemFileHandle,
-    FileSystemWritableFileStream,
+    NFileSystemWritableFileStream,
     NFileSystemHandle,
     getOriginPrivateDirectory,
 } from "@wasm-env/fs-js";
@@ -41,7 +41,7 @@ import {
     // @ts-ignore
     globalThis.FileSystemHandle = NFileSystemHandle;
     // @ts-ignore
-    globalThis.FileSystemWritableFileStream = FileSystemWritableFileStream;
+    globalThis.FileSystemWritableFileStream = NFileSystemWritableFileStream;
     // @ts-ignore
     globalThis.getOriginPrivateDirectory = getOriginPrivateDirectory;
 

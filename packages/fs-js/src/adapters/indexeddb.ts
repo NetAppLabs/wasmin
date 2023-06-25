@@ -7,9 +7,10 @@ import {
 } from "../errors.js";
 import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
-import { NFileSystemDirectoryHandle } from "../FileSystemDirectoryHandle.js";
+import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
 import { openFileHandle } from "./util.js";
 import { default as yaml } from "js-yaml";
+import { FileSystemDirectoryHandle, FileSystemHandlePermissionDescriptor } from "../index.js";
 
 const INDEXEDDB_DEBUG = false;
 

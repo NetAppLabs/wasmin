@@ -1,23 +1,14 @@
 const FileSystemHandlePermissionRead = "read";
 const FileSystemHandlePermissionReadWrite = "readwrite";
 
+import { FileSystemHandle, FileSystemHandlePermissionDescriptor } from "./index.js";
+
 const FS_DEBUG = false;
 export class NFileSystemHandle implements FileSystemHandle {
     constructor(public adapter: FileSystemHandle) {
         this.kind = adapter.kind;
         this.name = adapter.name;
-        this.isDirectory = false;
-        this.isFile = false;
     }
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    isFile: boolean;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    isDirectory: boolean;
-
     name: string;
     kind: "file" | "directory";
 

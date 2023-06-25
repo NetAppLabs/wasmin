@@ -15,6 +15,7 @@ import {
 import { OpenFiles } from "./wasiFileSystem.js";
 import { getDirectoryHandleByURL } from "@wasm-env/fs-js";
 import { TTY } from "./tty.js";
+import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
@@ -28,8 +29,6 @@ export interface WasiWorkerOptions {
     abortSignal?: AbortSignal;
     tty?: TTY;
 }
-
-//export type WasiWorkerOptions = WasiOptions;
 
 export class WASIWorker {
     constructor(wasiOptions: WasiWorkerOptions) {

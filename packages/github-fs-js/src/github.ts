@@ -9,6 +9,7 @@ import {
 import { join, substituteSecretValue } from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 import { default as urlparse } from "url-parse";
+import { FileSystemHandlePermissionDescriptor } from "@wasm-env/fs-js"
 
 const GITHUB_DEBUG = false;
 
@@ -414,11 +415,11 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
     public kind = "directory" as const;
     public path = "";
 
-    public async queryPermission(_options: FileSystemHandlePermissionDescriptor): Promise<"granted" | "denied"> {
+    public async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
         return "granted" as const;
     }
 
-    public async requestPermission(_options: FileSystemHandlePermissionDescriptor): Promise<"granted" | "denied"> {
+    public async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
         return "granted" as const;
     }
 
@@ -572,11 +573,11 @@ export class GithubRepoListHandle implements ImplFolderHandle<GithubFileHandle, 
     public path = "";
     secretStore: any;
 
-    public async queryPermission(_options: FileSystemHandlePermissionDescriptor): Promise<"granted" | "denied"> {
+    public async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
         return "granted" as const;
     }
 
-    public async requestPermission(_options: FileSystemHandlePermissionDescriptor): Promise<"granted" | "denied"> {
+    public async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
         return "granted" as const;
     }
 

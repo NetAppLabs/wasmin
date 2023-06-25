@@ -6,6 +6,7 @@ import { WebglAddon } from "xterm-addon-webgl";
 import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasm-env/wasi-js";
 import { s3 } from "@wasm-env/s3-fs-js";
 import { github } from "@wasm-env/github-fs-js";
+import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 // @ts-ignore
 import LocalEchoController from "local-echo";
@@ -309,7 +310,8 @@ if (REGISTER_GITHUB) {
     if (useOPFS) {
         // Use OPFS by default (Chrome)
         console.log("Using browser OPFS storage as root");
-        const root = await navigator.storage.getDirectory();
+        const rootDirHandle = await navigator.storage.getDirectory();
+        const root = rootDirHandle as FileSystemDirectoryHandle;
         rootfs = new NFileSystemDirectoryHandle(root);
     } else {
         // Fall back on indexeddb if OPFS is not available

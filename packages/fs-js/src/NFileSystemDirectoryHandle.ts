@@ -1,7 +1,8 @@
-import { NFileSystemHandle } from "./FileSystemHandle.js";
-import { NFileSystemFileHandle } from "./FileSystemFileHandle.js";
+import { NFileSystemHandle } from "./NFileSystemHandle.js";
+import { NFileSystemFileHandle } from "./NFileSystemFileHandle.js";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL.js";
 import { TypeMismatchError } from "./errors.js";
+import { FileSystemDirectoryHandle, FileSystemFileHandle } from "./index.js";
 
 const FILESYSTEM_DEBUG = false;
 
@@ -13,8 +14,6 @@ export function fileSystemDebug(msg?: any, ...optionalParams: any[]): void {
 export class NFileSystemDirectoryHandle extends NFileSystemHandle implements FileSystemDirectoryHandle {
     constructor(public adapter: FileSystemDirectoryHandle, secretStore?: any) {
         super(adapter);
-        this.isFile = false;
-        this.isDirectory = true;
         //this.getFile = this.getFileHandle;
         //this.getDirectory = this.getDirectoryHandle;
         //this.getEntries = this.values;
@@ -25,30 +24,6 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
     secretStore: any;
     _externalHandleCache: Record<string, FileSystemDirectoryHandle | FileSystemFileHandle>;
 
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    // @ts-ignore
-    getFile: FileSystemDirectoryHandle["getFileHandle"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-     */
-    // @ts-ignore
-    getDirectory: FileSystemDirectoryHandle["getDirectoryHandle"];
-
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
-     */
-    // @ts-ignore
-    getEntries: FileSystemDirectoryHandle["values"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: false;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: true;
     public kind = "directory" as const;
 
     async getDirectoryHandle(

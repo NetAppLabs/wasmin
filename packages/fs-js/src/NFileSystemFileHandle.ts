@@ -1,5 +1,6 @@
-import { NFileSystemHandle } from "./FileSystemHandle.js";
-import { FileSystemWritableFileStream } from "./FileSystemWritableFileStream.js";
+import { NFileSystemHandle } from "./NFileSystemHandle.js";
+import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
+import { FileSystemFileHandle } from "./index.js";
 
 export function detectBun() {
     // only bun has global Bun
@@ -14,37 +15,26 @@ export function detectBun() {
 export class NFileSystemFileHandle extends NFileSystemHandle implements FileSystemFileHandle {
     constructor(adapter: FileSystemFileHandle) {
         super(adapter);
-        this.isFile = true;
-        this.isDirectory = false;
     }
 
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
         throw new Error("Method not implemented.");
     }
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isFile: true;
-
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isDirectory: false;
 
     public kind = "file" as const;
 
-    async createWritable(options: { keepExistingData?: boolean } = {}): Promise<FileSystemWritableFileStream> {
+    async createWritable(options: { keepExistingData?: boolean } = {}): Promise<NFileSystemWritableFileStream> {
         const thisAdapter = this.getAdapterFileSystemFileHandle();
         if (thisAdapter.createWritable) {
             const isBun = detectBun();
             if (isBun) {
-                // Temporary hack for Bun as FileSystemWritableFileStream does not work
-                // TODO: remove this once FileSystemWritableFileStream becomes usable in bun
+                // Temporary hack for Bun as NFileSystemWritableFileStream does not work
+                // TODO: remove this once NFileSystemWritableFileStream becomes usable in bun
                 //const wr = await thisAdapter.createWritable(options);
-                const wr = new FileSystemWritableFileStream(await thisAdapter.createWritable(options));
+                const wr = new NFileSystemWritableFileStream(await thisAdapter.createWritable(options));
                 return wr;
             } else {
-                return new FileSystemWritableFileStream(await thisAdapter.createWritable(options));
+                return new NFileSystemWritableFileStream(await thisAdapter.createWritable(options));
             }
 
             // @ts-ignore

@@ -5,6 +5,7 @@ import { WASI, WasiEnv } from "./wasi.js";
 import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils.js";
 import { Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { TextDecoderWrapper } from "./utils.js";
+import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 export function addWasiExperimentalProcessToImports(
     imports: any,

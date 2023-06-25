@@ -75,7 +75,6 @@
     }
   ],
   "dependencies": {
-    "@types/wicg-file-system-access": "2020.9.5",
     "buffer": "^6.0.3",
     "js-yaml": "^4.1.0",
     "parse-url": "^8.1.0",

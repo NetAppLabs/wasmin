@@ -58,7 +58,6 @@
   },
   "homepage": "https://github.com/NetAppLabs/wasm-env#readme",
   "dependencies": {
-    "@types/wicg-file-system-access": "^2020.9.5",
     "@wasm-env/fs-js": "*",
     "@wasm-env/wasi-snapshot-preview2": "*",
     "comlink": "^4.4.1",

@@ -1,3 +1,5 @@
+import { FileSystemHandlePermissionDescriptor } from "../index.js";
+
 /* eslint-disable @typescript-eslint/member-ordering */
 export interface ImpleSink<T> {
     fileHandle: T;
@@ -61,11 +63,10 @@ export interface ImplFolderHandle<T = any, U = any> {
     kind: "directory";
     path: string;
     name: string;
-    writable: boolean;
 
-    queryPermission?: (options: FileSystemHandlePermissionDescriptor) => Promise<"granted" | "denied">;
+    queryPermission?: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
 
-    requestPermission?: (options: FileSystemHandlePermissionDescriptor) => Promise<"granted" | "denied">;
+    requestPermission?: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
 
     isSameEntry: (other: any) => boolean;
 

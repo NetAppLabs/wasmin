@@ -1,6 +1,7 @@
-import { NFileSystemFileHandle as MyFileSystemFileHandle } from "./FileSystemFileHandle.js";
-import type { NFileSystemDirectoryHandle } from "./FileSystemDirectoryHandle";
+import { NFileSystemFileHandle as MyFileSystemFileHandle } from "./NFileSystemFileHandle.js";
+import type { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle";
 import { FileHandle } from "./adapters/downloader.js";
+import { FileSystemFileHandle } from "./index.js";
 
 /**
  * @param {Object} [options]

@@ -4,10 +4,15 @@ import { TypeMismatchError } from "@wasm-env/fs-js";
 import { HostManagerInstance } from "./host";
 import { Logger } from "./log";
 import { Host, Process } from "./types";
-//import { FileSystemDirectoryHandle } from '@types/wicg-file-system-access';
-//import { FileSystemDirectoryHandle } from 'wicg-file-system-access';
-//import { default as g } from 'wicg-file-system-access';
-//type PermissionState = "denied" | "granted" | "prompt";
+
+import {
+    PermissionState,
+    FileSystemDirectoryHandle,
+    FileSystemFileHandle,
+    FileSystemSyncAccessHandle,
+    FileSystemHandlePermissionDescriptor,
+    FileSystemWritableFileStream,
+} from "@wasm-env/fs-js";
 
 /*
 declare var File: {
@@ -62,8 +67,6 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
     constructor(name: string, obj: Object | (() => Promise<Object>)) {
         this.obj = obj;
         this.name = name;
-        this.isFile = false;
-        this.isDirectory = true;
         this.kind = "directory";
     }
     obj: Object | (() => Promise<Object>);
@@ -80,29 +83,6 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
     async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor | undefined): Promise<PermissionState> {
         return "granted";
     }
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    // @ts-ignore
-    getFile: FileSystemDirectoryHandle["getFileHandle"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-     */
-    // @ts-ignore
-    getDirectory: FileSystemDirectoryHandle["getDirectoryHandle"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
-     */
-    // @ts-ignore
-    getEntries: FileSystemDirectoryHandle["values"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: false;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: true;
     kind: "directory";
     async getHandle(name: string, options?: FileSystemGetDirectoryOptions): Promise<FileSystemHandle> {
         const key = name;
@@ -233,20 +213,9 @@ export class ObjectFileSystemFileHandle implements FileSystemFileHandle {
     constructor(name: string, obj: any) {
         this.name = name;
         this.obj = obj;
-        this.isFile = true;
-        this.isDirectory = false;
     }
     name: string;
     obj: any;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isFile: true;
-
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isDirectory: false;
 
     public kind = "file" as const;
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
