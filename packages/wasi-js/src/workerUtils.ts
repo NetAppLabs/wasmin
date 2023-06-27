@@ -106,7 +106,7 @@ function shouldHandleObject(value: any) {
     return false;
 }
 
-function isObject(value: any) {
+export function isObject(value: any) {
     if (isArray(value)) {
         return false;
     } else {
@@ -114,15 +114,15 @@ function isObject(value: any) {
     }
 }
 
-function isFunction(value: any) {
+export function isFunction(value: any) {
     return typeof value === "function" || value instanceof Function || value instanceof MessagePort;
 }
 
-function isSymbol(value: any) {
+export function isSymbol(value: any) {
     return typeof value === "symbol" || value instanceof Symbol;
 }
 
-function isArray(value: any) {
+export function isArray(value: any) {
     return (
         Array.isArray(value) ||
         (ArrayBuffer.isView(value) && Object.prototype.toString.call(value) !== "[object DataView]")
@@ -240,3 +240,11 @@ function deserializeFunction(port: MessagePort) {
     port.start();
     return comlink.wrap(port);
 }
+
+/*
+export const isFunction2 = (value: any) =>
+    value &&
+    (Object.prototype.toString.call(value) === "[object Function]" ||
+        "function" === typeof value ||
+        value instanceof Function);
+*/

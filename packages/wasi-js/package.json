@@ -67,12 +67,12 @@
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
-    "@vitest/coverage-c8": "^0.23.1",
+    "@vitest/coverage-c8": "^0.32.2",
     "@wasm-env/node-fs-js": "*",
     "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "^0.0.0",
-    "jest-extended": "^3.2.3",
-    "vitest": "^0.28.5",
+    "jest-extended": "^4.0.0",
+    "vitest": "^0.32.2",
     "web-file-polyfill": "^1.0.4"
   }
 }

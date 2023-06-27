@@ -10,8 +10,8 @@ import {
     USE_SHARED_ARRAYBUFFER_WORKAROUND,
     USE_SHARED_MEMORY,
     USE_SINGLE_THREAD_REMOTE,
-    WasmThreadRunner,
 } from "./desyncify.js";
+import { WasmThreadRunner } from "./wasmThreadRunner.js";
 import * as comlink from "comlink";
 
 import { TTY } from "./tty.js";
@@ -27,6 +27,7 @@ import {
     WasiSnapshotPreview2ImportObject,
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/index.js";
+import { Worker } from "./vendored/web-worker/index.js";
 import { wasiWorkerDebug } from "./workerUtils.js";
 
 export interface WasiOptions {
@@ -168,18 +169,6 @@ export class WasiEnv implements WasiOptions {
     }
 }
 
-class MultiModule {
-    _moduleInstances: WebAssembly.Instance[] = [];
-    _moduleImports: WebAssembly.Imports[] = [];
-}
-
-export type InstantiateMultipleFunc = () => Promise<{
-    instanceSource: BufferSource;
-    instanceImport: WebAssembly.Imports;
-    instances: WebAssembly.Instance[];
-    imports: WebAssembly.Imports[];
-}>;
-
 export class WASI {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = new WasiEnv(
@@ -194,13 +183,14 @@ export class WASI {
         );
         this._wasiEnv = wasiEnv;
     }
+    public component = false;
     private _wasiEnv: WasiEnv;
     private _moduleInstance?: WebAssembly.Instance;
     private _moduleImports?: WebAssembly.Imports;
     private _channel?: Channel;
+    private _worker?: Worker;
     private _threadRemote?: comlink.Remote<WasmThreadRunner>;
     private _memory?: WebAssembly.Memory;
-    // private _multiModule?: MultiModule;
     private _componentImportObject?: WasiSnapshotPreview2ImportObject;
     public get componentImportObject(): WasiSnapshotPreview2ImportObject {
         if (!this._componentImportObject) {
@@ -216,39 +206,21 @@ export class WASI {
         return this._wasiEnv;
     }
 
-    /*
-    get moduleInstance() {
-        return this._multiModule ? this._multiModule._moduleInstances : [this._moduleInstance] as WebAssembly.Instance[];
-    }
-    */
-
     get moduleImports() {
         // return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
         return this._moduleImports as WebAssembly.Imports;
     }
 
-    // public async instantiateMultiModule(instantiateMultipleFunc: InstantiateMultipleFunc): Promise<WebAssembly.Instance> {
-    //     const ret = await instantiateMultipleFunc();
-    //     this._multiModule = {
-    //         _moduleInstances: ret.instances,
-    //         _moduleImports: ret.imports,
-    //     };
-    //     //return this.instantiateSingle(ret.instanceSource, ret.instanceImport);
-    //     const firstInstance = ret.instances[1];
-    //     return firstInstance;
-    // }
-
     public async initializeComponentImports(): Promise<string[]> {
         return this.initializeWasiSnapshotPreview2Imports();
     }
 
-    public async instantiateSingle(
+    public async instantiate(
         wasmModOrBufSource: BufferSource,
         imports: WebAssembly.Imports
     ): Promise<WebAssembly.Instance> {
-        // console.log("instantiateSingle:");
+        // console.log("WASI instantiate:");
         let handleImportFunc: HandleWasmImportFunc | undefined;
-        let threadRemote: comlink.Remote<WasmThreadRunner> | undefined;
         const useAsyncDetection = true;
         if (useAsyncDetection) {
             const handleImportFuncLocal: HandleWasmImportFunc = async (
@@ -262,7 +234,7 @@ export class WASI {
                 try {
                     return await this.handleImport(messageId, importName, functionName, args, buf, moduleImports);
                 } catch (err: any) {
-                    wasiDebug("WASI.handleImportFuncLocal err: ", err);
+                    console.log("WASI.handleImportFuncLocal err: ", err);
                     throw err;
                 }
             };
@@ -276,30 +248,18 @@ export class WASI {
                 wasmModOrBufSource,
                 imports,
                 handleImportFunc,
+                this._worker,
                 this._threadRemote
             );
             wasiDebug("[run] got instRes: ", instRes);
             if (!this._moduleImports && imports) {
-                /*const imps: Record<string, WebAssembly.ModuleImports> = {}; // this.initializeImports();
-                for (const [importKey, importValue] of Object.entries(imports)) {
-                    // if (importKey !== "wasi_snapshot_preview1") {
-                        let vals: WebAssembly.ModuleImports = {};
-                        for (const [funcKey, funcValue] of Object.entries(importValue)) {
-                            vals[funcKey] = funcValue;
-                        }
-                        imps[importKey] = vals;
-                        // console.log("WASI: handleImportFunc: importKey:", importKey);
-                    // }
-                }
-                this._moduleImports = imps;
-                // console.log("WASI: handleImportFunc: _moduleImports:", this._moduleImports);
-                */
                 this._moduleImports = imports;
             }
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
             if (USE_SINGLE_THREAD_REMOTE) {
                 this._threadRemote = instRes.threadRemote;
+                this._worker = instRes.worker;
             }
             wasiDebug("[run] setting channel: ", this._channel);
         } else {
@@ -316,6 +276,20 @@ export class WASI {
     }
 
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
+        if (this.component) {
+            const ret = await this.runComponent(wasmModOrBufSource);
+            return ret;
+        } else {
+            const ret = await this.runCore(wasmModOrBufSource);
+            return ret;
+        }
+    }
+
+    public async runComponent(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
+        return 0;
+    }
+
+    public async runCore(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
         wasiDebug("WASI.run:");
         this._moduleImports = this.initializeImports();
         let handleImportFunc: HandleWasmImportFunc | undefined;
@@ -349,6 +323,8 @@ export class WASI {
                 handleImportFunc
             );
             wasiDebug("[run] got instRes: ", instRes);
+            this._worker = instRes.worker;
+            this._threadRemote = instRes.threadRemote;
             this._moduleInstance = instRes.instance;
             this._channel = instRes.channel;
             threadRemote = instRes.threadRemote;
@@ -382,6 +358,7 @@ export class WASI {
             wasiDebug("[run] calling _start: ");
             await (_start as any)();
             wasiDebug("[run] returning from _start: ");
+            //this.stopWorker();
             return 0;
         } catch (err: any) {
             wasiError(err);
@@ -394,10 +371,12 @@ export class WASI {
                 }
                 this._moduleInstance = undefined;
                 this._channel = undefined;
-                return err.statusCode;
+                return err.code;
             } else {
                 throw err;
             }
+        } finally {
+            this.stopWorker();
         }
     }
 
@@ -499,7 +478,7 @@ export class WASI {
                 try {
                     wasiDebug(`WASI handleImport: importedFunc: `, importedFunc);
                     if (functionName == "fd_write") {
-                        console.log("WASI handleImport, import is fd_write");
+                        wasiDebug("WASI handleImport, import is fd_write");
                     }
                     funcReturn = await importedFunc(...args);
                 } catch (err: any) {
@@ -605,5 +584,11 @@ export class WASI {
         } else {
             throw new Error(`this not set on get_export`);
         }
+    }
+
+    public stopWorker(): void {
+        this._worker?.terminate();
+        this._worker = undefined;
+        this._threadRemote = undefined;
     }
 }

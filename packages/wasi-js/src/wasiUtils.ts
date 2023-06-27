@@ -163,8 +163,10 @@ export async function forEachIoVec(
 }
 
 export class ExitStatus extends Error {
-    constructor(public statusCode: number, public isExitStatus = true, public cause = undefined) {
+    constructor(public code: number, public isExitStatus = true, public cause = undefined) {
         super(cause);
+        this.name = "ExitStatus";
+        this.message = "ExitStatus:" + code;
     }
 }
 
@@ -175,6 +177,16 @@ export function isExitStatus(err: any) {
         } else {
             if (err.isExitStatus) {
                 return true;
+            } else if (err.message) {
+                const msg = err.message;
+                if (msg.startsWith("ExitStatus:")) {
+                    // This case if ExitStatus has been serialized/deserialized
+                    const codes = msg.split("ExitStatus:");
+                    const scode = codes[1];
+                    const code = Number(scode);
+                    err.code = code;
+                    return true;
+                }
             }
         }
     }

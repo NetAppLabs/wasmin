@@ -3,22 +3,10 @@ import "jest-extended";
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "../src";
-import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
+import { WASI, stringOut, OpenFiles, bufferIn } from "@wasm-env/wasi-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
-//import { NfsDirectoryHandle } from "../../../../nfs-js";
-//import { File, Blob } from "web-file-polyfill";
-
-//globalThis.File = File;
-//globalThis.Blob = Blob;
-
-/*
-declare let globalThis: any;
-globalThis.WASI_DEBUG = true;
-globalThis.WASI_FD_DEBUG = false;
-globalThis.WASI_FS_DEBUG = true;
-*/
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 let backend: backendType;

@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "wasi-tester",
+            "program": "${workspaceFolder}/packages/wasi-js/tests/tester.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {},
+            "type": "node"
+        },
+        {
             "name": "wasi-worker-run",
             "program": "${workspaceFolder}/apps/node-shell/dist/index.js",
             "request": "launch",

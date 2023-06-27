@@ -8,7 +8,7 @@ const termGetRows = bun_console.termGetRows;
 //import { termSetRawMode, termGetColumns, termGetRows } from "@wasm-env/bun-console";
 
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory, RegisterProvider } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, RegisterProvider } from "@wasm-env/fs-js";
 
 import { readFileSync } from "fs";
 
@@ -190,7 +190,9 @@ const startShell = async () => {
     } catch (err: any) {
         console.log(err.message);
     } finally {
-        console.log("finally");
+        if (DEBUG_MODE) {
+            console.log("bun-shell wasi run finally");
+        }
         process.exit(0);
     }
 };

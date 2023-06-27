@@ -1,6 +1,5 @@
 /dist
 /node_modules
-/tests/*.wasm
 /demo/public/*.wasm
 .vscode
 .yalc

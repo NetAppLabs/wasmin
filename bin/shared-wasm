@@ -1,8 +1,36 @@
 #!/bin/bash
 
+OVERWRITE=0
+
+while [ -n "$1" ] ; do
+    case $1 in
+    -h|--help)
+        echo "$(basename $0) [arguments] [from_wasm] [to_wasm]" 
+        echo "Arguments:"
+        echo "  -o                          overwrite" 
+        exit 0
+        ;;
+   -o)
+        OVERWRITE=1
+        ;;
+    -*)
+        echo "Unknown option $1.  Use --help for usage."
+        exit 3
+        ;;
+    *)
+        # End of options.  Positional variables starting.
+        break
+        ;;
+    esac
+    shift
+done
+
 from=$1
-to_base=$(echo "${from}" | sed 's/\.wasm//')
-to="${to_base}.shared.wasm"
+to=$2
+if [ -z "${to}" ]; then
+    to_base=$(echo "${from}" | sed 's/\.wasm//')
+    to="${to_base}.shared.wasm"
+fi
 
 #wasm-opt --enable-threads $from -o $to
 #wasm-opt ... --strip-producers \ perf.wasm -o perfO$OPT.wasm --mvp-features --enable-threads ...
@@ -10,3 +38,7 @@ to="${to_base}.shared.wasm"
 #wasm-opt --strip-producers $from -o $to --mvp-features --enable-threads
 #wasm-opt $from -o $to --all-features --enable-threads
 ~/.cargo/bin/wasm-tools rewrite ${from} -o ${to}
+
+if [ "${OVERWRITE}" -eq 1 ]; then
+		mv -f ${to} ${from}
+fi

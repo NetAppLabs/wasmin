@@ -37,7 +37,6 @@ yarn-error.log*
 #packages/fs-js
 packages/nfs-js
 
-*.wasm
 *.log
 
-apps/wasi-reactor/target
+nu.async.wasm

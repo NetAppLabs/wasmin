@@ -1,4 +1,4 @@
 import * as comlink from "comlink";
-import { WasmThreadRunner } from "./desyncify.js";
+import { WasmThreadRunner } from "./wasmThreadRunner.js";
 
 comlink.expose(new WasmThreadRunner());
