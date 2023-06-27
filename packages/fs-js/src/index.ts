@@ -10,7 +10,6 @@ export { NFileSystemHandle } from "./NFileSystemHandle.js";
 export { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 //export { FileHandle as downloader } from ".//downloader";
 export { default as memory } from "./adapters/memory.js";
-//export { default as node } from "./adapters/node";
 export { default as indexeddb } from "./adapters/indexeddb.js";
 
 export {
@@ -69,3 +68,6 @@ export type {
     FileSystemPermissionMode,
     FileSystemCreateWritableOptions,
 };
+
+import { TestsFileSystemHandle } from "./test/test-fs.js";
+export { TestsFileSystemHandle };

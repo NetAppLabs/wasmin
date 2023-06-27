@@ -128,7 +128,7 @@ export class FileHandle implements ImpleFileHandle<Sink, File> {
     public async createWritable(options?: FileSystemCreateWritableOptions) {
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
-        if (options && !options.keepExistingData ){
+        if (options && !options.keepExistingData) {
             const s = new Sink(this);
             await s.truncate(0);
             return s;

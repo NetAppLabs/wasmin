@@ -1,4 +1,4 @@
-import { FileSystemDirectoryHandle, FileSystemFileHandle } from "../src";
+import { FileSystemDirectoryHandle, FileSystemFileHandle } from "../index.js";
 
 export function streamFromFetch(data: string) {
     return new ReadableStream<string>({
