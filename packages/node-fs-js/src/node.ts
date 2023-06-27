@@ -1,9 +1,6 @@
 import { promises as fs } from "node:fs";
 import { join } from "node:path";
 
-//import fs from "node:fs/promises";
-//import { join } from "node:path";
-
 import {
     InvalidModificationError,
     InvalidStateError,
@@ -11,11 +8,8 @@ import {
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
-//} from "@wasm-env/fs-js/errors";
-import { fileFrom, BlobDataItem } from "./fetch-blob/form.js";
-import { MyBlob } from "./fetch-blob/blob.js";
-//import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js/adapters/implements";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js";
+import { fileFrom } from "./fetch-blob/form.js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
 import type { MyFile } from "./fetch-blob/file.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
@@ -116,12 +110,17 @@ export class FileHandle implements ImpleFileHandle<Sink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    async createWritable() {
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
         const fileHandle = await fs.open(this.path, "r+").catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
         const { size } = await fileHandle.stat();
+        if (options && !options.keepExistingData) {
+            const s = new Sink(fileHandle, size);
+            await s.truncate(0);
+            return s;
+        }
         return new Sink(fileHandle, size);
     }
 

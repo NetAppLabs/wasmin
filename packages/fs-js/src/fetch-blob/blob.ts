@@ -1,5 +1,3 @@
-//import { ReadableStream } from "web-streams-polyfill";
-
 import { toIterator } from "./utils.js";
 
 export class MyBlob {

@@ -1,3 +1,4 @@
+import { FileSystemWritableFileStream } from "../FileSystemAccess.js";
 import {
     InvalidModificationError,
     InvalidStateError,
@@ -7,7 +8,7 @@ import {
     TypeMismatchError,
 } from "../errors.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
-
+import { FileSystemCreateWritableOptions } from "../index.js";
 export class Sink extends DefaultSink<FileHandle> {
     constructor(fileHandle: FileHandle) {
         super(fileHandle);
@@ -124,9 +125,14 @@ export class FileHandle implements ImpleFileHandle<Sink, File> {
         return this.file;
     }
 
-    public async createWritable() {
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
+        if (options && !options.keepExistingData ){
+            const s = new Sink(this);
+            await s.truncate(0);
+            return s;
+        }
         return new Sink(this);
     }
 

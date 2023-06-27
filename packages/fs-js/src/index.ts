@@ -55,6 +55,7 @@ import { FileSystemHandleKind } from "./FileSystemAccess.js";
 import { FileSystemWriteChunkType } from "./FileSystemAccess.js";
 import { PermissionState } from "./FileSystemAccess.js";
 import { FileSystemPermissionMode } from "./FileSystemAccess.js";
+import { FileSystemCreateWritableOptions } from "./FileSystemAccess.js";
 export type {
     FileSystemHandle,
     FileSystemDirectoryHandle,
@@ -66,4 +67,5 @@ export type {
     FileSystemWriteChunkType,
     PermissionState,
     FileSystemPermissionMode,
+    FileSystemCreateWritableOptions,
 };

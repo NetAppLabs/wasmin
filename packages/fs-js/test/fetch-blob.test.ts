@@ -1,12 +1,12 @@
 // from https://github.com/node-fetch/fetch-blob/blob/main/test.js
 
-import path from "path";
-import { promises as fs } from "fs";
-import buffer from "buffer";
-import { ReadableStream } from "web-streams-polyfill";
-//import { blobFrom, fileFrom } from "../src/fetch-blob/form";
+import path from "node:path";
+import { promises as fs } from "node:fs";
+import { utimesSync } from "node:fs";
+import buffer from "node:buffer";
 import { MyFile } from "../src/fetch-blob/file";
 import { MyBlob } from "../src/fetch-blob/blob";
+import { fileFrom, blobFrom } from "../src/fetch-blob/form";
 import { capture } from "./util";
 
 describe("fetch-blob", () => {
@@ -171,65 +171,59 @@ describe("fetch-blob", () => {
         expect(await blob.text()).toBe("b");
     });
 
-    /*
-  test("blob part backed up by filesystem", async () => {
-    const blob = await blobFrom(licensePath);
-    expect(await blob.slice(0, 3).text()).toStrictEqual(license.slice(0, 3));
-    expect(await blob.slice(4, 11).text()).toStrictEqual(license.slice(4, 11));
-  });
-  */
-
-    // test("Reading after modified should fail", async () => {
-    //   const blob = await blobFrom(licensePath);
-    //   // await fsClose((await fs.open(licensePath, "a")).fd);
-    //   closeSync(openSync(licensePath, "a"));
-    //   await new Promise((resolve) => {
-    //     setTimeout(resolve, 500);
-    //   });
-    //   const error = await capture(blob.text());
-    //   console.log(error);
-
-    //   expect(error.constructor).toBe("DOMException");
-    //   expect(error).toBeInstanceOf(Error);
-    //   expect(error.name).toBe("NotReadableError");
-
-    //   const file = await fileFrom(licensePath);
-    //   // Above test updates the last modified date to now
-    //   expect(typeof file.lastModified).toBe("number");
-    //   // The lastModifiedDate is deprecated and removed from spec
-    //   expect("lastModifiedDate" in file).toBeFalsy();
-    //   const mod = file.lastModified - Date.now();
-    //   expect(mod <= 0 && mod >= -500).toBeTruthy(); // Close to tolerance: 0.500m
-    // });
-
-    /*
-  test("Reading file after modified should fail", async () => {
-    const file = await fileFrom(licensePath);
-    await new Promise((resolve) => {
-      setTimeout(resolve, 100);
+    test("blob part backed up by filesystem", async () => {
+        const blob = await blobFrom(licensePath);
+        expect(await blob.slice(0, 3).text()).toStrictEqual(license.slice(0, 3));
+        expect(await blob.slice(4, 11).text()).toStrictEqual(license.slice(4, 11));
     });
-    const now = new Date();
-    // Change modified time
-    await fs.utimes(licensePath, now, now);
-    const error = await capture(file.text());
-    expect(error).toBeInstanceOf(Error);
-    expect(error.name).toBe("NotReadableError");
-  });
-  */
 
-    /*
-  test("create a blob from path asynchronous", async () => {
-    const blob = await blobFrom(licensePath);
-    const actual = await blob.text();
-    expect(actual).toBe(license);
-  });
+    test("Reading after modified should fail", async () => {
+      const blob = await blobFrom(licensePath);
+      // Change modified time
+      await new Promise((resolve) => {
+        setTimeout(resolve,500);
+      });
+      const now = new Date();
+      utimesSync(licensePath, now, now);
+      const error = await capture(blob.text());
+      console.log(error);
 
-  test("Reading empty blobs", async () => {
-    const blob = (await blobFrom(licensePath)).slice(0, 0);
-    const actual = await blob.text();
-    expect(actual).toBe("");
-  });
-  */
+      expect(error).toBeInstanceOf(Error);
+      expect(error.name).toBe("NotReadableError");
+
+      const file = await fileFrom(licensePath);
+      // Above test updates the last modified date to now
+      expect(typeof file.lastModified).toBe("number");
+      // The lastModifiedDate is deprecated and removed from spec
+      expect("lastModifiedDate" in file).toBeFalsy();
+      const mod = file.lastModified - Date.now();
+      expect(mod <= 0 && mod >= -1000).toBeTruthy(); // Close to tolerance: 0.500m
+    });
+
+    test("Reading file after modified should fail", async () => {
+        const file = await fileFrom(licensePath);
+        await new Promise((resolve) => {
+        setTimeout(resolve, 100);
+        });
+        const now = new Date();
+        // Change modified time
+        await fs.utimes(licensePath, now, now);
+        const error = await capture(file.text());
+        expect(error).toBeInstanceOf(Error);
+        expect(error.name).toBe("NotReadableError");
+    });
+
+    test("create a blob from path asynchronous", async () => {
+        const blob = await blobFrom(licensePath);
+        const actual = await blob.text();
+        expect(actual).toBe(license);
+    });
+
+    test("Reading empty blobs", async () => {
+        const blob = (await blobFrom(licensePath)).slice(0, 0);
+        const actual = await blob.text();
+        expect(actual).toBe("");
+    });
 
     /** @see https://github.com/w3c/FileAPI/issues/43 - important to keep boundary value */
     test("Dose not lowercase the blob values", () => {
@@ -275,19 +269,17 @@ describe("fetch-blob", () => {
         expect(new MyFile([], "")).toBeInstanceOf(MyBlob);
     });
 
-    /*
-  test("fileFrom returns the name", async () => {
-    expect((await fileFrom(licensePath)).name).toBe("LICENSE");
-  });
+    test("fileFrom returns the name", async () => {
+        expect((await fileFrom(licensePath)).name).toBe("LICENSE");
+    });
 
-  test("fileFrom(path, type) sets the type", async () => {
-    expect((await fileFrom(licensePath, "text/plain")).type).toBe("text/plain");
-  });
+    test("fileFrom(path, type) sets the type", async () => {
+        expect((await fileFrom(licensePath, "text/plain")).type).toBe("text/plain");
+    });
 
-  test("blobFrom(path, type) sets the type", async () => {
-    expect((await blobFrom(licensePath, "text/plain")).type).toBe("text/plain");
-  });
-  */
+    test("blobFrom(path, type) sets the type", async () => {
+        expect((await blobFrom(licensePath, "text/plain")).type).toBe("text/plain");
+    });
 
     test("new MyFile(,,{lastModified: 100})", () => {
         const mod = new MyFile([], "", { lastModified: 100 }).lastModified;
@@ -314,17 +306,15 @@ describe("fetch-blob", () => {
         expect(mod <= 0 && mod >= -20).toBeTruthy(); // Close to tolerance: 0.020ms
     });
 
-    /*
-  test("blobFrom(path, type) sets the type", async () => {
-    const blob = await blobFrom(licensePath, "text/plain");
-    expect(blob.type).toBe("text/plain");
-  });
+    test("blobFrom(path, type) sets the type", async () => {
+        const blob = await blobFrom(licensePath, "text/plain");
+        expect(blob.type).toBe("text/plain");
+    });
 
-  test("blobFrom(path) sets empty type", async () => {
-    const blob = await blobFrom(licensePath);
-    expect(blob.type).toBe("");
-  });
-  */
+    test("blobFrom(path) sets empty type", async () => {
+        const blob = await blobFrom(licensePath);
+        expect(blob.type).toBe("");
+    });
 
     test("can slice zero sized blobs", async () => {
         const blob = new MyBlob();

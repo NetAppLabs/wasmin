@@ -9,6 +9,7 @@ import { fileFrom, BlobDataItem } from "../fetch-blob/form";
 import { MyBlob } from "../fetch-blob/blob";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "./implements";
 import type { MyFile } from "../fetch-blob/file";
+import { FileSystemCreateWritableOptions } from "../index.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
@@ -108,12 +109,17 @@ export class FileHandle implements ImpleFileHandle<Sink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    async createWritable() {
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
         const fileHandle = await fs.open(this.path, "r+").catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
         const { size } = await fileHandle.stat();
+        if (options && !options.keepExistingData) {
+            const s = new Sink(fileHandle, size);
+            await s.truncate(0);
+            return s;
+        }
         return new Sink(fileHandle, size);
     }
 

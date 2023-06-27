@@ -1,4 +1,4 @@
-//import type { FileSystemDirectoryHandle, FileSystemFileHandle } from "../src";
+import { FileSystemDirectoryHandle, FileSystemFileHandle } from "../src";
 
 export function streamFromFetch(data: string) {
     return new ReadableStream<string>({
@@ -51,14 +51,14 @@ export async function createEmptyFile(name: string, parent: FileSystemDirectoryH
 
 export async function createFileWithContents(fileName: string, contents: string, parent: FileSystemDirectoryHandle) {
     const handle = await createEmptyFile(fileName, parent);
-    const Writable = await handle.createWritable();
-    await Writable.write(contents);
-    await Writable.close();
+    const writeable = await handle.createWritable();
+    await writeable.write(contents);
+    await writeable.close();
     return handle;
 }
 
 export async function getSortedDirectoryEntries(handle: FileSystemDirectoryHandle): Promise<string[]> {
-    const result = [];
+    const result: string[] = [];
     for await (const [name, entry] of handle) {
         result.push(name + (entry.kind === "directory" ? "/" : ""));
     }

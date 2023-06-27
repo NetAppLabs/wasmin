@@ -62,7 +62,7 @@
     "@types/url-parse": "^1.4.8",
     "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "*",
-    "web-file-polyfill": "^1.0.4"
+    "vitest": "^0.32.2"
   },
   "funding": [
     {
