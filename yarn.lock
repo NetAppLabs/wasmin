@@ -2796,6 +2796,11 @@ bun-types@^0.5.7:
   resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-0.5.7.tgz#331d5b8b495540bf7eac1c4727c5fe8dd1f1f5dd"
   integrity sha512-79ualR6PIZYTbALgsUxZXlAhkz0M7h7QMsXWn/eX+VOOCX3bPA9y0Pywu4MUEWOK8cK/JhnAODMqZfhCb911nw==
 
+bun-types@^0.6.11:
+  version "0.6.11"
+  resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-0.6.11.tgz#6db70e77f3614964f3a8388c3325d77232a87f6a"
+  integrity sha512-RghUk5N0VPhZrwFiatcZyBDalLc6LCNb+ZjY3RLoIvse7pLlzPjlLL2RinP6UPNfxedwhjmgXlucJJNjk5EB3w==
+
 bun-utilities@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/bun-utilities/-/bun-utilities-0.2.1.tgz#2cd7538cc8042bcd54591425b57e852444f88897"

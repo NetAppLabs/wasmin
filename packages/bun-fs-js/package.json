@@ -19,7 +19,8 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "echo test"
+    "test": "bun test",
+    "bun-test": "bun test"
   },
   "author": "tryggvil",
   "dependencies": {
@@ -27,7 +28,7 @@
   },
   "devDependencies": {
     "@wasm-env/tsconfig": "*",
-    "bun-types": "^0.5.7",
+    "bun-types": "^0.6.11",
     "eslint-config-custom": "*"
   }
 }

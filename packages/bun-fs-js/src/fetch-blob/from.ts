@@ -1,16 +1,8 @@
-/*
-import { createReadStream } from "node:fs";
-import { promises as fs } from "node:fs";
-import type { Stats } from "node:fs";
-import { basename } from "node:path";
-*/
-
-import { readableStreamToArray } from "bun";
 import * as fsSync from "fs";
 import * as fs from "fs/promises";
 import { basename } from "path";
 
-import { MyBlob } from "./blob";
+import { MyBlob, blobDebug } from "./blob";
 import { MyFile } from "./file";
 
 export const blobFrom = async (path: string, type?: string) => {
@@ -64,15 +56,17 @@ export class BlobDataItem {
      * Slicing arguments is first validated and formatted
      * to not be out of range by Blob.prototype.slice
      */
-    slice(start: number, end: number) {
-        //return new BlobDataItem(this.path, start, end - start, this.lastModified);
+    slice(sliceStart: number, end: number) {
+        blobDebug(`BlobDataItem slice start sliceStart: ${sliceStart} end: ${end}`);
+        //return new BlobDataItem(this.path, start, end, this.lastModified);
         const f = Bun.file(this.path);
-        const sl = f.slice(start, end);
+        const sl = f.slice(sliceStart, end);
+        blobDebug(`BlobDataItem slice this.path: ${this.path} sl:`, sl);
         return sl;
     }
 
     async *stream() {
-        //console.log("BlobDataItem stream: ");
+        blobDebug(`BlobDataItem stream: this.start: ${this.start}`);
         const s = fsSync.statSync(this.path);
         const mtime = s.mtime;
         const mtimeMsInt = Math.floor(mtime.getTime() / 1000);
@@ -85,13 +79,14 @@ export class BlobDataItem {
 
         const start = this.start;
         const end = Math.max(this.start + this.size - 1, 0);
+        blobDebug(`BlobDataItem stream: ${start} end: ${end}`);
 
         const readStream = fsSync.createReadStream(this.path, {
             start: start,
             end: end,
         });
-        //console.log("BlobDataItem stream path: ",this.path, " start: ",start, " end: ", end);
-        //console.log("BlobDataItem stream readStream: ",readStream);
+        blobDebug("BlobDataItem stream path: ", this.path, " start: ", start, " end: ", end);
+        blobDebug("BlobDataItem stream readStream: ", readStream);
         yield readStream;
     }
 

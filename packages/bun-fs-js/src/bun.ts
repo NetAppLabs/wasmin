@@ -10,9 +10,10 @@ import {
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
-import { fileFrom } from "./fetch-blob/from.js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
+
 import type { MyFile } from "./fetch-blob/file";
+import { fileFrom } from "./fetch-blob/from.js";
 
 const BUN_FS_DEBUG = false;
 
@@ -157,15 +158,22 @@ export class BunFileHandle implements ImpleFileHandle<Sink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    async createWritable() {
-        const fileHandle = await fs.open(this.path, "r+").catch((err) => {
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
+        let fSize = 0;
+        if (options && !options.keepExistingData) {
+            await fs.truncate(this.path).catch((err) => {
+                if (err.code === "ENOENT") throw new NotFoundError();
+                throw err;
+            });
+        }
+        let fileHandle = await fs.open(this.path, "r+").catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
-        //const { size } = await fileHandle.stat();
         const fhNumber = fileHandle as number;
         const { size } = fsSync.fstatSync(fhNumber);
-        return new Sink(fileHandle, size);
+        fSize = size;
+        return new Sink(fileHandle, fSize);
     }
 
     private getPath() {

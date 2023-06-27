@@ -5,7 +5,7 @@ const BLOG_DEBUG = false;
 
 export function blobDebug(msg?: any, ...optionalParams: any[]): void {
     if (BLOG_DEBUG) {
-        console.log(...msg);
+        console.log(msg, ...optionalParams);
     }
 }
 
