@@ -3,16 +3,14 @@ import * as fs from "node:fs/promises";
 import { join } from "node:path";
 
 import {
+    FileSystemWritableFileStream,
     InvalidModificationError,
     InvalidStateError,
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
-//} from "@wasm-env/fs-js/errors";
-import { fileFrom, BlobDataItem } from "./fetch-blob/from.js";
-import { MyBlob } from "./fetch-blob/blob.js";
-//import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js/adapters/implements";
+import { fileFrom } from "./fetch-blob/from.js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink } from "@wasm-env/fs-js";
 import type { MyFile } from "./fetch-blob/file";
 
@@ -27,12 +25,16 @@ export function bunFsDebug(msg?: any, ...optionalParams: any[]): void {
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
-//type SinkFileHandle = number;
 
-export class Sink extends DefaultSink<SinkFileHandle> {
+export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
         this.size = size;
+    }
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
     }
 
     get fileHandleNumber() {

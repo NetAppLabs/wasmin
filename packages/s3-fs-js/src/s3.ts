@@ -6,7 +6,13 @@ import {
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
-import { join, streamToBuffer, streamToBufferNode, substituteSecretValue } from "@wasm-env/fs-js";
+import {
+    join,
+    streamToBuffer,
+    streamToBufferNode,
+    substituteSecretValue,
+    FileSystemWritableFileStream,
+} from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 
 import { default as urlparse } from "url-parse";
@@ -35,7 +41,7 @@ function s3Debug(message?: any, ...optionalParams: any[]) {
     }
 }
 
-export class Sink extends DefaultSink<S3FileHandle> {
+export class Sink extends DefaultSink<S3FileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: S3FileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -48,6 +54,11 @@ export class Sink extends DefaultSink<S3FileHandle> {
     file: File;
     size: number;
     position: number;
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
+    }
 
     async abort() {
         await this.close();

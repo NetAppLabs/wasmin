@@ -178,32 +178,32 @@ describe("fetch-blob", () => {
     });
 
     test("Reading after modified should fail", async () => {
-      const blob = await blobFrom(licensePath);
-      // Change modified time
-      await new Promise((resolve) => {
-        setTimeout(resolve,500);
-      });
-      const now = new Date();
-      utimesSync(licensePath, now, now);
-      const error = await capture(blob.text());
-      console.log(error);
+        const blob = await blobFrom(licensePath);
+        // Change modified time
+        await new Promise((resolve) => {
+            setTimeout(resolve, 500);
+        });
+        const now = new Date();
+        utimesSync(licensePath, now, now);
+        const error = await capture(blob.text());
+        console.log(error);
 
-      expect(error).toBeInstanceOf(Error);
-      expect(error.name).toBe("NotReadableError");
+        expect(error).toBeInstanceOf(Error);
+        expect(error.name).toBe("NotReadableError");
 
-      const file = await fileFrom(licensePath);
-      // Above test updates the last modified date to now
-      expect(typeof file.lastModified).toBe("number");
-      // The lastModifiedDate is deprecated and removed from spec
-      expect("lastModifiedDate" in file).toBeFalsy();
-      const mod = file.lastModified - Date.now();
-      expect(mod <= 0 && mod >= -1000).toBeTruthy(); // Close to tolerance: 0.500m
+        const file = await fileFrom(licensePath);
+        // Above test updates the last modified date to now
+        expect(typeof file.lastModified).toBe("number");
+        // The lastModifiedDate is deprecated and removed from spec
+        expect("lastModifiedDate" in file).toBeFalsy();
+        const mod = file.lastModified - Date.now();
+        expect(mod <= 0 && mod >= -1000).toBeTruthy(); // Close to tolerance: 0.500m
     });
 
     test("Reading file after modified should fail", async () => {
         const file = await fileFrom(licensePath);
         await new Promise((resolve) => {
-        setTimeout(resolve, 100);
+            setTimeout(resolve, 100);
         });
         const now = new Date();
         // Change modified time

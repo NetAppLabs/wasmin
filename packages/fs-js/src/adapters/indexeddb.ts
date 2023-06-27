@@ -19,7 +19,7 @@ function indexedDBDebug(message?: any, ...optionalParams: any[]) {
         console.debug(message, optionalParams);
     }
 }
-export class Sink extends DefaultSink<FileHandle> {
+export class Sink extends DefaultSink<FileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: FileHandle, file: File) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -38,6 +38,11 @@ export class Sink extends DefaultSink<FileHandle> {
     size: number;
     position: number;
     file: File;
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
+    }
 
     //async write(data: FileSystemWriteChunkType): Promise<void> {
     async write(chunk: any): Promise<void> {

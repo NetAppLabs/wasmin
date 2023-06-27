@@ -9,10 +9,10 @@ import { TestsFileSystemHandle } from "@wasm-env/fs-js";
 let root: FileSystemDirectoryHandle;
 const testFolderPath = "./testfolder";
 
-const getNodeRoot = async() => {
+const getNodeRoot = async () => {
     root = await getOriginPrivateDirectory(node, testFolderPath);
     return root;
-}
+};
 
 const beforeAllFunc = async () => {
     if (!existsSync(testFolderPath)) {

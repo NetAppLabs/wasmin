@@ -38,7 +38,7 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
 
     abstract write(data: FileSystemWriteChunkType): Promise<void>;
 
-    //abstract getWriter(): Promise<WritableStreamDefaultWriter>;
+    abstract getWriter(): WritableStreamDefaultWriter;
 
     async abort(_reason?: any): Promise<void> {
         return;

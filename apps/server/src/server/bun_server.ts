@@ -25,10 +25,9 @@ export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
     const { appRouter } = await import("./router");
 
     const trpcHandler = createHTTPHandler({
-            router: appRouter,
-            createContext: () => ({}),
-        }
-    );
+        router: appRouter,
+        createContext: () => ({}),
+    });
 
     // create and listen to the server handler
     const server = http.createServer((req, res) => {

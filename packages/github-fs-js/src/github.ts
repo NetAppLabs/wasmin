@@ -5,11 +5,12 @@ import {
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
+    FileSystemWritableFileStream,
+    FileSystemHandlePermissionDescriptor,
 } from "@wasm-env/fs-js";
 import { join, substituteSecretValue } from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 import { default as urlparse } from "url-parse";
-import { FileSystemHandlePermissionDescriptor } from "@wasm-env/fs-js"
 
 const GITHUB_DEBUG = false;
 
@@ -19,7 +20,7 @@ function githubDebug(message?: any, ...optionalParams: any[]) {
     }
 }
 
-export class Sink extends DefaultSink<GithubFileHandle> {
+export class Sink extends DefaultSink<GithubFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: GithubFileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -35,6 +36,11 @@ export class Sink extends DefaultSink<GithubFileHandle> {
 
     async abort() {
         await this.close();
+    }
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
     }
 
     async write(chunk: any) {

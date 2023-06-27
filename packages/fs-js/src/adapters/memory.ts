@@ -9,7 +9,7 @@ import {
 } from "../errors.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
 import { FileSystemCreateWritableOptions } from "../index.js";
-export class Sink extends DefaultSink<FileHandle> {
+export class Sink extends DefaultSink<FileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: FileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -25,6 +25,11 @@ export class Sink extends DefaultSink<FileHandle> {
 
     async abort() {
         await this.close();
+    }
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
     }
 
     async write(chunk: any) {

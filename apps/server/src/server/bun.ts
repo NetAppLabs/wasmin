@@ -68,7 +68,7 @@ const restPort = DEFAULT_REST_PORT;
 export default {
     port: rpcPort,
     fetch: async (request: Request) => {
-    //fetch: liveReload(async (request: Request) => {
+        //fetch: liveReload(async (request: Request) => {
         if (request.method === "OPTIONS")
             return new Response("", {
                 status: 200,
@@ -87,7 +87,7 @@ export default {
         });
         response.headers.set("Access-Control-Allow-Origin", "*");
         return response;
-    //}),
+        //}),
     },
 };
 

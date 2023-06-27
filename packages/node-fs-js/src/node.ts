@@ -9,17 +9,28 @@ import {
     TypeMismatchError,
 } from "@wasm-env/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
+import {
+    ImpleFileHandle,
+    ImplFolderHandle,
+    DefaultSink,
+    FileSystemCreateWritableOptions,
+    FileSystemWritableFileStream,
+} from "@wasm-env/fs-js";
 import type { MyFile } from "./fetch-blob/file.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
-export class Sink extends DefaultSink<SinkFileHandle> {
+export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
         this.size = size;
+    }
+
+    getWriter(): WritableStreamDefaultWriter<any> {
+        const w = new WritableStreamDefaultWriter<any>(this);
+        return w;
     }
 
     async abort() {
