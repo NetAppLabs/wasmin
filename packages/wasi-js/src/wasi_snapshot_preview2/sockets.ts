@@ -285,6 +285,7 @@ export function IpSocketAddressToAddrInfo(sockAddr: IpSocketAddress): AddressInf
             port = ip4SockAddr.port;
             const ipv4 = ip4SockAddr.address as Ipv4Address;
             hostAddr = `${ipv4[0]}.${ipv4[1]}.${ipv4[2]}.${ipv4[3]}`;
+            break;
         }
         case "ipv6": {
             family = "IPv6";
@@ -300,6 +301,7 @@ export function IpSocketAddressToAddrInfo(sockAddr: IpSocketAddress): AddressInf
             const h2s = ipv6[6];
             const h3s = ipv6[7];
             hostAddr = `${n0s}:${n1s}:${n2s}}:${n3s}:${h0s}:${h1s}:${h2s}}:${h3s}`;
+            break;
         }
     }
     const addrinfo: AddressInfo = {

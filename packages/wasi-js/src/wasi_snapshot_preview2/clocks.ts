@@ -3,8 +3,9 @@ type ClocksMonotonicClockAsync = clockm.ClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace as clockw } from "@wasm-env/wasi-snapshot-preview2";
 type ClocksWallClockAsync = clockw.ClocksWallClockAsync;
 import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-preview2";
+import { Pollable as FSPollable } from "../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
-import { isNode } from "../wasiUtils.js";
+import { isNode, sleep } from "../wasiUtils.js";
 type ClocksTimezoneAsync = clockt.ClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
@@ -13,6 +14,24 @@ type TimezoneDisplay = clockt.TimezoneDisplay;
 type Pollable = clockm.Pollable;
 
 let hrTimeStart: bigint;
+
+export class ClocksMonotonicPollable implements FSPollable {
+    constructor(when: Instant) {
+        this._when = when;
+    }
+
+    private _when: Instant;
+
+    async done(): Promise<boolean> {
+        // XXX: mimic behavior of preview1 - waiting until done and, therefor, always returning true
+        const hrTimeNow = await getHrTime();
+        const ns = Number(this._when - hrTimeNow);
+        if (ns > 1_000_000) {
+            await sleep(ns / 1_000_000);
+        }
+        return true;
+    }
+}
 
 export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -32,7 +51,12 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         return 1n;
     }
     async subscribe(when: Instant, absolute: boolean): Promise<Pollable> {
-        throw new Error("Method not implemented.");
+        if (!absolute) {
+            const hrTimeNow = await getHrTime();
+            when += hrTimeNow;
+        }
+        const pollable = new ClocksMonotonicPollable(when);
+        return this._wasiEnv.openFiles.add(pollable);
     }
 }
 

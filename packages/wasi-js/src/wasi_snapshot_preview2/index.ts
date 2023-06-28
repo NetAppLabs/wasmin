@@ -42,6 +42,8 @@ import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/di
 import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp";
 import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost } from "./sockets.js";
 import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup";
+import { PollPollAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/poll-poll";
+import { PollPollAsyncHost } from "./poll.js";
 
 export type WasiSnapshotPreview2ImportObject = {
     "cli-base": {
@@ -55,13 +57,16 @@ export type WasiSnapshotPreview2ImportObject = {
     clocks: {
         clocksMonotonicClock: ClocksMonotonicClockAsync;
         clocksTimezone: ClocksTimezoneAsync;
-        clocksWallClck: ClocksWallClockAsync;
+        clocksWallClock: ClocksWallClockAsync;
     };
     filesystem: {
         filesystemFilesystem: FilesystemFilesystemAsync;
     };
     io: {
         ioStreams: IoStreamsAsync;
+    };
+    poll: {
+        pollPoll: PollPollAsync,
     };
     sockets: {
         socketsInstanceNetwork: SocketsInstanceNetworkAsync;
@@ -94,13 +99,16 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         clocks: {
             clocksMonotonicClock: new ClocksMonotonicClockAsyncHost(wasiOptions),
             clocksTimezone: new ClocksTimezoneAsyncHost(wasiOptions),
-            clocksWallClck: new ClocksWallClockAsyncHost(wasiOptions),
+            clocksWallClock: new ClocksWallClockAsyncHost(wasiOptions),
         },
         filesystem: {
             filesystemFilesystem: new FileSystemFileSystemAsyncHost(wasiOptions),
         },
         io: {
             ioStreams: new IoStreamsAsyncHost(wasiOptions),
+        },
+        poll: {
+            pollPoll: new PollPollAsyncHost(wasiOptions),
         },
         sockets: {
             socketsInstanceNetwork: socketsNetworkInstance,

@@ -111,7 +111,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             // TODO: gracefully handle bigint
             const lengthNumber = Number(length);
             const chunk = await input.read(lengthNumber);
-            this.openFiles.close(newFd);
+            this.openFiles.closeFileClone(newFd);
             let isEnd = false;
             if (chunk.length < length) {
                 isEnd = true;
@@ -127,7 +127,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             const out = this.openFiles.getAsWritable(newFd);
             await out.write(buffer);
             const readNo = buffer.length;
-            this.openFiles.close(newFd);
+            this.openFiles.closeFileClone(newFd);
             return BigInt(readNo);
         } catch (err: any) {
             throw translateError(err);

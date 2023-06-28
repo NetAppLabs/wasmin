@@ -29,6 +29,12 @@ import {
 } from "./wasi_snapshot_preview2/index.js";
 import { Worker } from "./vendored/web-worker/index.js";
 import { wasiWorkerDebug } from "./workerUtils.js";
+import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/wasi-experimental-sockets-wrapper.js";
+
+export interface WasiExperimentalSocketsNamespace {
+    package: string,
+    world: string,
+}
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -191,14 +197,14 @@ export class WASI {
     private _worker?: Worker;
     private _threadRemote?: comlink.Remote<WasmThreadRunner>;
     private _memory?: WebAssembly.Memory;
-    private _componentImportObject?: WasiSnapshotPreview2ImportObject;
-    public get componentImportObject(): WasiSnapshotPreview2ImportObject {
+    private _componentImportObject?: {};
+    public get componentImportObject(): {} {
         if (!this._componentImportObject) {
             throw new Error("component imports not set");
         }
         return this._componentImportObject;
     }
-    public set componentImportObject(value: WasiSnapshotPreview2ImportObject) {
+    public set componentImportObject(value: {}) {
         this._componentImportObject = value;
     }
 
@@ -207,12 +213,26 @@ export class WASI {
     }
 
     get moduleImports() {
-        // return this._multiModule ? this._multiModule._moduleImports : [this._moduleImports] as WebAssembly.Imports[];
         return this._moduleImports as WebAssembly.Imports;
     }
 
-    public async initializeComponentImports(): Promise<string[]> {
-        return this.initializeWasiSnapshotPreview2Imports();
+    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace): Promise<string[]> {
+        this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
+        if (wasiExperimentalSocketsNamespace) {
+            const componentImportObject = this.componentImportObject as WasiSnapshotPreview2ImportObject;
+            const filesystem = () => componentImportObject.filesystem;
+            const sockets = () => componentImportObject.sockets;
+            const componentImportObjectAny = this.componentImportObject as any;
+            const wasiExperimentalSocketsWrapper = {} as any;
+            wasiExperimentalSocketsWrapper[wasiExperimentalSocketsNamespace.world] = new WasiExperimentalSocketsPreview2Wrapper(filesystem, sockets);
+            componentImportObjectAny[wasiExperimentalSocketsNamespace.package] = wasiExperimentalSocketsWrapper;
+        }
+
+        const importNames: string[] = [];
+        for (const [importName, _importValue] of Object.entries(this.componentImportObject)) {
+            importNames.push(importName);
+        }
+        return importNames;
     }
 
     public async instantiate(
@@ -524,14 +544,8 @@ export class WASI {
         }
     }
 
-    private initializeWasiSnapshotPreview2Imports(): string[] {
-        this._componentImportObject = constructWasiSnapshotPreview2Imports(this._wasiEnv);
-
-        const importNames: string[] = [];
-        for (const [importName, _importValue] of Object.entries(this._componentImportObject)) {
-            importNames.push(importName);
-        }
-        return importNames;
+    private initializeWasiSnapshotPreview2Imports(): {} {
+        return constructWasiSnapshotPreview2Imports(this._wasiEnv);
     }
 
     private initializeImports(): WebAssembly.Imports {

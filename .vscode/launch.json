@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "nfs-rs-component",
+            "program": "${workspaceFolder}/apps/nfs-rs-component/component/run.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "name": "wasi-tester",
             "program": "${workspaceFolder}/packages/wasi-js/tests/tester.mjs",
             "request": "launch",

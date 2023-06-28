@@ -14,163 +14,242 @@ export function translateError(err: any) {
     switch (errCodeNo) {
         //case ErrnoN.SUCCESS:
         //    errCode = 'sucess';
+        //    break;
         //case ErrnoN.E_2_BIG:
         //    errCode = 'too-big';
+        //    break;
         case ErrnoN.ACCES:
             errCode = "access";
+            break;
         case ErrnoN.ADDRINUSE:
             errCode = "address-in-use";
+            break;
         case ErrnoN.ADDRNOTAVAIL:
             errCode = "invalid-remote-address";
+            break;
         case ErrnoN.AFNOSUPPORT:
             errCode = "address-family-not-supported";
+            break;
         case ErrnoN.AGAIN:
             errCode = "would-block";
+            break;
         case ErrnoN.ALREADY:
             errCode = "concurrency-conflict";
+            break;
         case ErrnoN.BADF:
             errCode = "bad-descriptor";
+            break;
         //case ErrnoN.BADMSG:
         //    errCode = 'bad-message';
+        //    break;
         case ErrnoN.BUSY:
             errCode = "busy";
+            break;
         //case ErrnoN.CANCELED:
         //    errCode = 'cancelled';
+        //    break;
         //case ErrnoN.CHILD:
         //    errCode = 'child';
+        //    break;
         //case ErrnoN.CONNABORTED:
         //    errCode = 'connection-aborted';
+        //    break;
         case ErrnoN.CONNREFUSED:
             errCode = "connection-refused";
+            break;
         case ErrnoN.CONNRESET:
             errCode = "connection-reset";
+            break;
         case ErrnoN.DEADLK:
             errCode = "deadlock";
+            break;
         case ErrnoN.DESTADDRREQ:
             errCode = "invalid-remote-address";
+            break;
         //case ErrnoN.DOM:
         //    errCode = 'out-of-domain-function';
+        //    break;
         case ErrnoN.DQUOT:
             errCode = "quota";
+            break;
         case ErrnoN.EXIST:
             errCode = "exist";
+            break;
         //case ErrnoN.FAULT:
         //    errCode = 'fault';
+        //    break;
         case ErrnoN.FBIG:
             errCode = "file-too-large";
+            break;
         case ErrnoN.HOSTUNREACH:
             errCode = "remote-unreachable";
+            break;
         //case ErrnoN.IDRM:
         //    errCode = 'id-removed';
+        //    break;
         case ErrnoN.ILSEQ:
             errCode = "illegal-byte-sequence";
+            break;
         case ErrnoN.INPROGRESS:
             errCode = "in-progress";
+            break;
         case ErrnoN.INTR:
             errCode = "interrupted";
+            break;
         case ErrnoN.INVAL:
             errCode = "invalid";
+            break;
         case ErrnoN.IO:
             errCode = "io";
+            break;
         case ErrnoN.ISCONN:
             errCode = "already-connected";
+            break;
         case ErrnoN.ISDIR:
             errCode = "is-directory";
+            break;
         case ErrnoN.LOOP:
             errCode = "loop";
+            break;
         case ErrnoN.MFILE:
             errCode = "new-socket-limit";
+            break;
         case ErrnoN.MFILE:
             errCode = "new-socket-limit";
+            break;
         case ErrnoN.MLINK:
             errCode = "too-many-links";
+            break;
         case ErrnoN.MSGSIZE:
             errCode = "message-size";
+            break;
         //case ErrnoN.MULTIHOP:
         //    errCode = 'multi-hop';
+        //    break;
         case ErrnoN.NAMETOOLONG:
             errCode = "name-too-long";
+            break;
         case ErrnoN.NETDOWN:
             errCode = "remote-unreachable";
+            break;
         case ErrnoN.NETDOWN:
             errCode = "remote-unreachable";
+            break;
         case ErrnoN.NETRESET:
             errCode = "remote-unreachable";
+            break;
         case ErrnoN.NETRESET:
             errCode = "remote-unreachable";
+            break;
         case ErrnoN.NFILE:
             errCode = "new-socket-limit";
+            break;
         case ErrnoN.NOBUFS:
             errCode = "new-socket-limit";
+            break;
         case ErrnoN.NODEV:
             errCode = "no-device";
+            break;
         case ErrnoN.NOENT:
             errCode = "no-entry";
+            break;
         //case ErrnoN.NOEXEC:
         //    errCode = 'no-exec';
+        //    break;
         case ErrnoN.NOLCK:
             errCode = "no-lock";
+            break;
         //case ErrnoN.NOLINK:
         //    errCode = 'no-link';
+        //    break;
         case ErrnoN.NOMEM:
             errCode = "insufficient-memory";
-        //errCode = 'out-of-memory';
+            //errCode = 'out-of-memory';
+            break;
         //case ErrnoN.NOMSG:
         //    errCode = 'no-message';
+        //    break;
         //case ErrnoN.NOPROTOOPT:
         //    errCode = 'protocol-unavailable';
+        //    break;
         case ErrnoN.NOSPC:
             errCode = "insufficient-space";
+            break;
         case ErrnoN.NOSYS:
             errCode = "unsupported";
+            break;
         case ErrnoN.NOTCONN:
             errCode = "not-connected";
+            break;
         case ErrnoN.NOTDIR:
             errCode = "not-directory";
+            break;
         case ErrnoN.NOTEMPTY:
             errCode = "not-empty";
+            break;
         case ErrnoN.NOTRECOVERABLE:
             errCode = "not-recoverable";
+            break;
         //case ErrnoN.NOTSOCK:
         //    errCode = 'not-socket';
+        //    break;
         case ErrnoN.NOTSUP:
             errCode = "not-supported";
+            break;
         case ErrnoN.NOTTY:
             errCode = "no-tty";
+            break;
         case ErrnoN.NXIO:
             errCode = "no-such-device";
+            break;
         case ErrnoN.OVERFLOW:
             errCode = "overflow";
+            break;
         //case ErrnoN.OWNERDEAD:
         //    errCode = 'owner-dead';
+        //    break;
         case ErrnoN.PERM:
             errCode = "not-permitted";
+            break;
         case ErrnoN.PIPE:
             errCode = "pipe";
+            break;
         //case ErrnoN.PROTO:
         //    errCode = 'protocol-error';
+        //    break;
         //case ErrnoN.PROTONOSUPPORT:
         //    errCode = 'unsupported-protocol';
+        //    break;
         //case ErrnoN.PROTOTYPE:
         //    errCode = 'wrong-protocol';
+        //    break;
         //case ErrnoN.RANGE:
         //    errCode = 'too-large';
+        //    break;
         case ErrnoN.ROFS:
             errCode = "read-only";
+            break;
         case ErrnoN.SPIPE:
             errCode = "invalid-seek";
+            break;
         //case ErrnoN.SRCH:
         //    errCode = 'no-process';
+        //    break;
         //case ErrnoN.STALE:
         //    errCode = 'stale';
+        //    break;
         case ErrnoN.TIMEDOUT:
             errCode = "timeout";
+            break;
         case ErrnoN.TXTBSY:
             errCode = "text-file-busy";
+            break;
         case ErrnoN.XDEV:
             errCode = "cross-device";
+            break;
         //case ErrnoN.NOTCAPABLE:
         //    errCode = 'not-capable';
+        //    break;
     }
     return errCode;
 }

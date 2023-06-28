@@ -48,9 +48,13 @@ export class Socket implements Writable, Readable {
     }
 }
 
+export interface Pollable {
+    done(): Promise<boolean>;
+}
+
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | Pollable;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -576,43 +580,50 @@ export class OpenFiles {
         }
     }
 
+    closeFileClone(fd: Fd) {
+        filesystemDebug("[closeFileClone]");
+        if (this.isFile(fd)) {
+            this._take(fd);
+        }
+    }
+
     async openReader(fd: Fd, offset?: bigint): Promise<Fd> {
         let reader: Readable;
-        if (this.isFile(fd)) {
-            const file = this.getAsFile(fd);
-            const path = file.path;
-            const handle = file.handle;
-            const fdFlags = file.fdFlags;
-            const newFile = new OpenFile(path, handle, fdFlags);
-            // TODO: safely handle bigint
-            newFile.position = Number(offset);
-            reader = newFile;
-        } else {
-            reader = this.getAsReadable(fd);
+        if (!this.isFile(fd)) {
+            return fd;
         }
+
+        const file = this.getAsFile(fd);
+        const path = file.path;
+        const handle = file.handle;
+        const fdFlags = file.fdFlags;
+        const newFile = new OpenFile(path, handle, fdFlags);
+        // TODO: safely handle bigint
+        newFile.position = Number(offset);
+        reader = newFile;
         const newFd = this.add(reader);
         return newFd;
     }
 
     async openWriter(fd: Fd, offset?: bigint, append?: boolean): Promise<Fd> {
         let writer: Writable;
-        if (this.isFile(fd)) {
-            const file = this.getAsFile(fd);
-            const path = file.path;
-            const handle = file.handle;
-            let fdFlags = file.fdFlags;
-            if (append) {
-                fdFlags = fdFlags & FdflagsN.APPEND;
-            }
-            const newFile = new OpenFile(path, handle, fdFlags);
-            // TODO: safely handle bigint
-            if (!append) {
-                newFile.position = Number(offset);
-            }
-            writer = newFile;
-        } else {
-            writer = this.getAsWritable(fd);
+        if (!this.isFile(fd)) {
+            return fd;
         }
+
+        const file = this.getAsFile(fd);
+        const path = file.path;
+        const handle = file.handle;
+        let fdFlags = file.fdFlags;
+        if (append) {
+            fdFlags = fdFlags & FdflagsN.APPEND;
+        }
+        const newFile = new OpenFile(path, handle, fdFlags);
+        // TODO: safely handle bigint
+        if (!append) {
+            newFile.position = Number(offset);
+        }
+        writer = newFile;
         const newFd = this.add(writer);
         return newFd;
     }
