@@ -56,15 +56,21 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const module2 = compileCore('component.core3.wasm');
   const module3 = compileCore('component.core4.wasm');
   
+  const { getEnvironment } = imports['wasi:cli-base/environment'];
+  const { exit } = imports['wasi:cli-base/exit'];
+  const { getDirectories } = imports['wasi:cli-base/preopens'];
+  const { getStderr } = imports['wasi:cli-base/stderr'];
+  const { getStdin } = imports['wasi:cli-base/stdin'];
+  const { getStdout } = imports['wasi:cli-base/stdout'];
+  const { appendViaStream, dropDescriptor, getType, writeViaStream } = imports['wasi:filesystem/filesystem'];
+  const { blockingWrite, dropInputStream, dropOutputStream, write } = imports['wasi:io/streams'];
   let exports0;
   let exports1;
-  const interface0 = imports.filesystem.filesystemFilesystem;
-  const lowering0Callee = interface0.dropDescriptor;
+  
   function lowering0(arg0) {
-    lowering0Callee(arg0 >>> 0);
+    dropDescriptor(arg0 >>> 0);
   }
-  const interface1 = imports['cli-base'].cliBaseExit;
-  const lowering1Callee = interface1.exit;
+  
   function lowering1(arg0) {
     let variant0;
     switch (arg0) {
@@ -86,42 +92,37 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    lowering1Callee(variant0);
+    exit(variant0);
   }
-  const interface2 = imports['cli-base'].cliBaseStdout;
-  const lowering2Callee = interface2.getStdout;
+  
   function lowering2() {
-    const ret = lowering2Callee();
+    const ret = getStdout();
     return toUint32(ret);
   }
-  const interface3 = imports['cli-base'].cliBaseStderr;
-  const lowering3Callee = interface3.getStderr;
+  
   function lowering3() {
-    const ret = lowering3Callee();
+    const ret = getStderr();
     return toUint32(ret);
   }
-  const interface4 = imports['cli-base'].cliBaseStdin;
-  const lowering4Callee = interface4.getStdin;
+  
   function lowering4() {
-    const ret = lowering4Callee();
+    const ret = getStdin();
     return toUint32(ret);
   }
-  const interface5 = imports.io.ioStreams;
-  const lowering5Callee = interface5.dropInputStream;
+  
   function lowering5(arg0) {
-    lowering5Callee(arg0 >>> 0);
+    dropInputStream(arg0 >>> 0);
   }
-  const lowering6Callee = interface5.dropOutputStream;
+  
   function lowering6(arg0) {
-    lowering6Callee(arg0 >>> 0);
+    dropOutputStream(arg0 >>> 0);
   }
   let exports2;
   let memory0;
   let realloc0;
-  const interface7 = imports['cli-base'].cliBasePreopens;
-  const lowering7Callee = interface7.getDirectories;
+  
   function lowering7(arg0) {
-    const ret = lowering7Callee();
+    const ret = getDirectories();
     const vec2 = ret;
     const len2 = vec2.length;
     const result2 = realloc0(0, 0, 4, len2 * 12);
@@ -137,11 +138,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 4, len2, true);
     dataView(memory0).setInt32(arg0 + 0, result2, true);
   }
-  const lowering8Callee = interface0.writeViaStream;
+  
   function lowering8(arg0, arg1, arg2) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering8Callee(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
+      ret = { tag: 'ok', val: writeViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -323,11 +324,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering9Callee = interface0.appendViaStream;
+  
   function lowering9(arg0, arg1) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering9Callee(arg0 >>> 0) };
+      ret = { tag: 'ok', val: appendViaStream(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -509,11 +510,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering10Callee = interface0.getType;
+  
   function lowering10(arg0, arg1) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering10Callee(arg0 >>> 0) };
+      ret = { tag: 'ok', val: getType(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -738,10 +739,9 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const interface11 = imports['cli-base'].cliBaseEnvironment;
-  const lowering11Callee = interface11.getEnvironment;
+  
   function lowering11(arg0) {
-    const ret = lowering11Callee();
+    const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
     const result3 = realloc0(0, 0, 4, len3 * 16);
@@ -760,14 +760,14 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 4, len3, true);
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
-  const lowering12Callee = interface5.write;
+  
   function lowering12(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering12Callee(arg0 >>> 0, result0) };
+      ret = { tag: 'ok', val: write(arg0 >>> 0, result0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -790,14 +790,14 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering13Callee = interface5.blockingWrite;
+  
   function lowering13(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering13Callee(arg0 >>> 0, result0) };
+      ret = { tag: 'ok', val: blockingWrite(arg0 >>> 0, result0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -916,6 +916,5 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return variant0.val;
   }
   
-  return { run }
-  ;
+  return { run };
 }

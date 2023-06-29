@@ -219,8 +219,17 @@ export class WASI {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
             const componentImportObject = this.componentImportObject as WasiSnapshotPreview2ImportObject;
-            const filesystem = () => componentImportObject.filesystem;
-            const sockets = () => componentImportObject.sockets;
+            const filesystem = () => componentImportObject['wasi:filesystem/filesystem'];
+            const sockets = () => {
+                let sock = {
+                    socketsInstanceNetwork: componentImportObject['wasi:sockets/instance-network'],
+                    socketsNetwork: componentImportObject['wasi:sockets/network'],
+                    socketsTcpCreateSocket: componentImportObject['wasi:sockets/tcp-create-socket'],
+                    socketsTcp: componentImportObject['wasi:sockets/tcp'],
+                    socketsIpNameLookup: componentImportObject['wasi:sockets/ip-name-lookup'],
+                };
+                return sock;
+            }
             const componentImportObjectAny = this.componentImportObject as any;
             const wasiExperimentalSocketsWrapper = {} as any;
             wasiExperimentalSocketsWrapper[wasiExperimentalSocketsNamespace.world] =
@@ -400,19 +409,17 @@ export class WASI {
         channel: Channel,
         messageId: string,
         importName: string,
-        sectionName: string,
         functionName: string,
         args: any[]
     ): Promise<void> {
         const componentImports = this.componentImportObject as any;
-        const sections = componentImports[importName];
-        const section = sections[sectionName];
-        const func = section[functionName] as Function;
+        const imp = componentImports[importName];
+        const func = imp[functionName] as Function;
 
         let funcReturn, funcThrownError;
         try {
             // Binding "this" to section object for fuction
-            const boundFunc = func.bind(section);
+            const boundFunc = func.bind(imp);
             funcReturn = await boundFunc(...args);
         } catch (err: any) {
             funcThrownError = err;
@@ -420,7 +427,7 @@ export class WASI {
         if (funcThrownError) {
             //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, ` funcThrownError: `, funcThrownError)
             wasiWorkerDebug(
-                `WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,
+                `WASI: handleComponentImport: importName: ${importName} functionName: ${functionName}: args: `,
                 args,
                 `funcThrownError: `,
                 funcThrownError
@@ -428,7 +435,7 @@ export class WASI {
         } else {
             //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
             wasiWorkerDebug(
-                `WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,
+                `WASI: handleComponentImport: importName: ${importName}, functionName: ${functionName}: args: `,
                 args,
                 `return: `,
                 funcReturn

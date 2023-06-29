@@ -1,55 +1,41 @@
-import { CliBaseEnvironment as CliBaseEnvironmentImports } from './imports/cli-base-environment';
-import { CliBasePreopens as CliBasePreopensImports } from './imports/cli-base-preopens';
-import { CliBaseExit as CliBaseExitImports } from './imports/cli-base-exit';
-import { CliBaseStdin as CliBaseStdinImports } from './imports/cli-base-stdin';
-import { CliBaseStdout as CliBaseStdoutImports } from './imports/cli-base-stdout';
-import { CliBaseStderr as CliBaseStderrImports } from './imports/cli-base-stderr';
-import { ClocksWallClock as ClocksWallClockImports } from './imports/clocks-wall-clock';
-import { ClocksMonotonicClock as ClocksMonotonicClockImports } from './imports/clocks-monotonic-clock';
-import { FilesystemFilesystem as FilesystemFilesystemImports } from './imports/filesystem-filesystem';
-import { IoStreams as IoStreamsImports } from './imports/io-streams';
-import { PollPoll as PollPollImports } from './imports/poll-poll';
-import { RandomRandom as RandomRandomImports } from './imports/random-random';
-import { SocketsNetwork as SocketsNetworkImports } from './imports/sockets-network';
-import { SocketsIpNameLookup as SocketsIpNameLookupImports } from './imports/sockets-ip-name-lookup';
-import { SocketsTcp as SocketsTcpImports } from './imports/sockets-tcp';
-import { SocketsTcpCreateSocket as SocketsTcpCreateSocketImports } from './imports/sockets-tcp-create-socket';
-import { NfsRsNfs as NfsRsNfsExports } from './exports/nfs-rs-nfs';
+import { ImportsEnvironment } from './imports/environment';
+import { ImportsExit } from './imports/exit';
+import { ImportsPreopens } from './imports/preopens';
+import { ImportsStderr } from './imports/stderr';
+import { ImportsStdin } from './imports/stdin';
+import { ImportsStdout } from './imports/stdout';
+import { ImportsMonotonicClock } from './imports/monotonic-clock';
+import { ImportsWallClock } from './imports/wall-clock';
+import { ImportsFilesystem } from './imports/filesystem';
+import { ImportsStreams } from './imports/streams';
+import { ImportsPoll } from './imports/poll';
+import { ImportsRandom } from './imports/random';
+import { ImportsIpNameLookup } from './imports/ip-name-lookup';
+import { ImportsNetwork } from './imports/network';
+import { ImportsTcp } from './imports/tcp';
+import { ImportsTcpCreateSocket } from './imports/tcp-create-socket';
+import { ExportsComponentNfsRsNfs } from './exports/component-nfs-rs-nfs';
 export interface ImportObject {
-  'cli-base': {
-    cliBaseEnvironment: typeof CliBaseEnvironmentImports,
-    cliBasePreopens: typeof CliBasePreopensImports,
-    cliBaseExit: typeof CliBaseExitImports,
-    cliBaseStdin: typeof CliBaseStdinImports,
-    cliBaseStdout: typeof CliBaseStdoutImports,
-    cliBaseStderr: typeof CliBaseStderrImports,
-  },
-  clocks: {
-    clocksWallClock: typeof ClocksWallClockImports,
-    clocksMonotonicClock: typeof ClocksMonotonicClockImports,
-  },
-  filesystem: {
-    filesystemFilesystem: typeof FilesystemFilesystemImports,
-  },
-  io: {
-    ioStreams: typeof IoStreamsImports,
-  },
-  poll: {
-    pollPoll: typeof PollPollImports,
-  },
-  random: {
-    randomRandom: typeof RandomRandomImports,
-  },
-  sockets: {
-    socketsNetwork: typeof SocketsNetworkImports,
-    socketsIpNameLookup: typeof SocketsIpNameLookupImports,
-    socketsTcp: typeof SocketsTcpImports,
-    socketsTcpCreateSocket: typeof SocketsTcpCreateSocketImports,
-  },
+  'wasi:cli-base/environment': typeof ImportsEnvironment,
+  'wasi:cli-base/exit': typeof ImportsExit,
+  'wasi:cli-base/preopens': typeof ImportsPreopens,
+  'wasi:cli-base/stderr': typeof ImportsStderr,
+  'wasi:cli-base/stdin': typeof ImportsStdin,
+  'wasi:cli-base/stdout': typeof ImportsStdout,
+  'wasi:clocks/monotonic-clock': typeof ImportsMonotonicClock,
+  'wasi:clocks/wall-clock': typeof ImportsWallClock,
+  'wasi:filesystem/filesystem': typeof ImportsFilesystem,
+  'wasi:io/streams': typeof ImportsStreams,
+  'wasi:poll/poll': typeof ImportsPoll,
+  'wasi:random/random': typeof ImportsRandom,
+  'wasi:sockets/ip-name-lookup': typeof ImportsIpNameLookup,
+  'wasi:sockets/network': typeof ImportsNetwork,
+  'wasi:sockets/tcp': typeof ImportsTcp,
+  'wasi:sockets/tcp-create-socket': typeof ImportsTcpCreateSocket,
 }
 export interface Root {
-  nfsRsNfs: typeof NfsRsNfsExports,
-  nfs: typeof NfsRsNfsExports,
+  'component:nfs-rs/nfs': typeof ExportsComponentNfsRsNfs,
+  nfs: typeof ExportsComponentNfsRsNfs,
 }
 
 /**

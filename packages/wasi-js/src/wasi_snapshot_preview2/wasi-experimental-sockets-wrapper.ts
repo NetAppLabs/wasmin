@@ -20,9 +20,7 @@ type WasiExperimentalSocketsSize = number;
 type WasiExperimentalSocketsRiflags = number;
 type WasiExperimentalSocketsAddrResolveStream = number;
 
-type WasiSnapshotPreview2FilesystemImportObject = {
-    filesystemFilesystem: FilesystemFilesystemAsync;
-};
+type WasiSnapshotPreview2FilesystemImportObject = FilesystemFilesystemAsync;
 
 type WasiSnapshotPreview2SocketsImportObject = {
     socketsInstanceNetwork: SocketsInstanceNetworkAsync;
@@ -267,7 +265,7 @@ export class WasiExperimentalSocketsPreview2Wrapper {
         _flags: WasiExperimentalSocketsRiflags
     ): Promise<number> {
         // TODO: len and flags ignored
-        const count = await this.filesystem.filesystemFilesystem.write(fd, buf, 0n);
+        const count = await this.filesystem.write(fd, buf, 0n);
         return Number(count);
     }
 
@@ -278,7 +276,7 @@ export class WasiExperimentalSocketsPreview2Wrapper {
     ): Promise<Uint8Array | ArrayBuffer> {
         // TODO: flags ignored
         try {
-            const [buf, _eof] = await this.filesystem.filesystemFilesystem.read(fd, BigInt(len), 0n);
+            const [buf, _eof] = await this.filesystem.read(fd, BigInt(len), 0n);
             // TODO: eof ignored
             return buf;
         } catch (e: any) {

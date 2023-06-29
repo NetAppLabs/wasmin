@@ -110,35 +110,28 @@ export class WASIWorker {
         const importDummy = {};
         return new Proxy(importDummy, {
             get: (_target, name, _receiver) => {
-                const sectionName = name as string;
-                const sectionDummy = {};
-                return new Proxy(sectionDummy, {
-                    get: (_target, name, _receiver) => {
-                        const functionName = name as string;
-                        return (...args: any) => {
-                            if (!wasiWorker.wasiWorkerThread) {
-                                throw new Error("worker thread not set");
-                            }
+                    const functionName = name as string;
+                    return (...args: any) => {
+                        if (!wasiWorker.wasiWorkerThread) {
+                            throw new Error("worker thread not set");
+                        }
 
-                            const workerThread = wasiWorker.wasiWorkerThread;
-                            const channel = wasiWorker.channel;
-                            const messageId = uuidv4();
-                            workerThread.handleComponentImport(
-                                channel,
-                                messageId,
-                                importName,
-                                sectionName,
-                                functionName,
-                                args
-                            );
-                            const ret = readMessage(channel, messageId);
-                            if (ret.error) {
-                                throw ret.error;
-                            }
-                            return ret.return;
-                        };
-                    },
-                });
+                        const workerThread = wasiWorker.wasiWorkerThread;
+                        const channel = wasiWorker.channel;
+                        const messageId = uuidv4();
+                        workerThread.handleComponentImport(
+                            channel,
+                            messageId,
+                            importName,
+                            functionName,
+                            args
+                        );
+                        const ret = readMessage(channel, messageId);
+                        if (ret.error) {
+                            throw ret.error;
+                        }
+                        return ret.return;
+                    };
             },
         });
     }
@@ -219,11 +212,10 @@ export class WasiWorkerThreadRunner {
         channel: Channel,
         messageId: string,
         importName: string,
-        sectionName: string,
         functionName: string,
         args: any[]
     ): Promise<any> {
-        await this.wasi?.handleComponentImport(channel, messageId, importName, sectionName, functionName, args);
+        await this.wasi?.handleComponentImport(channel, messageId, importName, functionName, args);
     }
 
     public async handleImport(

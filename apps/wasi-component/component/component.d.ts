@@ -1,26 +1,20 @@
-import { CliBaseEnvironment as CliBaseEnvironmentImports } from './imports/cli-base-environment';
-import { CliBasePreopens as CliBasePreopensImports } from './imports/cli-base-preopens';
-import { CliBaseExit as CliBaseExitImports } from './imports/cli-base-exit';
-import { CliBaseStdin as CliBaseStdinImports } from './imports/cli-base-stdin';
-import { CliBaseStdout as CliBaseStdoutImports } from './imports/cli-base-stdout';
-import { CliBaseStderr as CliBaseStderrImports } from './imports/cli-base-stderr';
-import { FilesystemFilesystem as FilesystemFilesystemImports } from './imports/filesystem-filesystem';
-import { IoStreams as IoStreamsImports } from './imports/io-streams';
+import { ImportsEnvironment } from './imports/environment';
+import { ImportsExit } from './imports/exit';
+import { ImportsPreopens } from './imports/preopens';
+import { ImportsStderr } from './imports/stderr';
+import { ImportsStdin } from './imports/stdin';
+import { ImportsStdout } from './imports/stdout';
+import { ImportsFilesystem } from './imports/filesystem';
+import { ImportsStreams } from './imports/streams';
 export interface ImportObject {
-  'cli-base': {
-    cliBaseEnvironment: typeof CliBaseEnvironmentImports,
-    cliBasePreopens: typeof CliBasePreopensImports,
-    cliBaseExit: typeof CliBaseExitImports,
-    cliBaseStdin: typeof CliBaseStdinImports,
-    cliBaseStdout: typeof CliBaseStdoutImports,
-    cliBaseStderr: typeof CliBaseStderrImports,
-  },
-  filesystem: {
-    filesystemFilesystem: typeof FilesystemFilesystemImports,
-  },
-  io: {
-    ioStreams: typeof IoStreamsImports,
-  },
+  'wasi:cli-base/environment': typeof ImportsEnvironment,
+  'wasi:cli-base/exit': typeof ImportsExit,
+  'wasi:cli-base/preopens': typeof ImportsPreopens,
+  'wasi:cli-base/stderr': typeof ImportsStderr,
+  'wasi:cli-base/stdin': typeof ImportsStdin,
+  'wasi:cli-base/stdout': typeof ImportsStdout,
+  'wasi:filesystem/filesystem': typeof ImportsFilesystem,
+  'wasi:io/streams': typeof ImportsStreams,
 }
 export interface Root {
   run(): void,

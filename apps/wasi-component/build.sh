@@ -8,11 +8,4 @@ wasm-tools component new foo.wasm --adapt wasi_snapshot_preview1.command.wasm -o
 wasm-tools validate component.wasm --features component-model
 wasm-tools component wit component.wasm
 
-
-/Users/tryggvil/Development/netapp/wasm/jco/jco2.sh transpile component.wasm -o component -I --no-wasi-shim
-
-#jco transpile component.wasm -o component --wasi-shim
-#jco transpile component.wasm -o component --map="@wasm-env/wasip2/*"
-#cd component
-#echo '{"type":"module"}' > package.json
-#npm install @bytecodealliance/preview2-shim
+jco transpile component.wasm -o component -I --no-wasi-shim

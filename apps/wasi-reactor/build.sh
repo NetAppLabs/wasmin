@@ -10,7 +10,8 @@
 cargo component build
 
 #jco transpile target/wasm32-wasi/debug/wasi_reactor.wasm -o component
-/Users/tryggvil/Development/netapp/wasm/jco/jco2.sh transpile target/wasm32-wasi/debug/wasi_reactor.wasm -o component -I --no-wasi-shim
+#/Users/tryggvil/Development/netapp/wasm/jco/jco2.sh transpile target/wasm32-wasi/debug/wasi_reactor.wasm -o component -I --no-wasi-shim
+jco transpile target/wasm32-wasi/debug/wasi_reactor.wasm -o component -I --no-wasi-shim
 #/Users/tryggvil/Development/netapp/wasm/jco/jco2.sh transpile target/wasm32-wasi/debug/wasi_reactor.wasm -o component 
 
 #cp /tmp/wasi_reactor.js component/wasi_reactor.js
