@@ -50,8 +50,8 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
             console.log("CliBaseExitAsyncHost exit ok: ", status.val);
         } else if (status.tag == "err") {
             console.log("CliBaseExitAsyncHost exit err: ", status.val);
-            // TODO: figure out if exit code should be other than 1 for error
-            rval = 1;
+            // TODO: figure out correct handling for status.val
+            rval = Number(status.val);
         }
         throw new ExitStatus(rval);
     }

@@ -384,10 +384,14 @@ export class WASI {
         }
     }
 
-    public async exportFunction(module: WebAssembly.Module): Promise<WebAssembly.Exports> {
-        const imports = this.initializeCoreImports();
-        const { exports } = await instantiate(module, imports);
-        this.initializeInstanceMemory(exports);
+    public async exportFunction(wasmModOrBufSource: WebAssembly.Module| BufferSource): Promise<WebAssembly.Exports> {
+        if (!this._coreModuleImports) {
+            this._coreModuleImports = this.initializeCoreImports();
+        }
+        if (!this._coreModuleInstance) {
+            this._coreModuleInstance = await this.instantiateCore(wasmModOrBufSource, this._coreModuleImports, true);
+        }
+        let exports = this._coreModuleInstance.exports;        
 
         return exports;
     }
@@ -527,7 +531,6 @@ export class WASI {
     }
 
     private initializeInstanceMemory(exports: WebAssembly.Exports): void {
-        //const { memory } = exports;
         if (this.wasiEnv.tty) {
             wasiDebug("WASI tty.setModuleInstanceExports");
             if (this.wasiEnv.tty.setModuleInstanceExports) {

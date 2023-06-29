@@ -77,5 +77,3 @@ export class WasmWorker {
         this.componentRunner = undefined;
     }
 }
-
-export { WasmCoreWorkerThreadRunner as WasmWorkerThreadRunner };

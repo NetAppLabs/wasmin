@@ -66,16 +66,14 @@ export class WasmCoreWorkerThreadRunner {
 
         const getMemoryForSendFuncLocal = (functionName: string) => {
             wasmWorkerThreadDebug("WasmThreadRunner calling getMemoryForSendFunc");
-            // console.log(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName}`);
             if (this && this.exportsMemory) {
-                // console.log(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} this.wasmInstance.exports.memory: ${this.wasmInstance.exports.memory}`);
                 const mem = this.exportsMemory as WebAssembly.Memory;
-                // console.log(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} mem: ${mem}`);
+                //wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} mem: ${mem}`);
                 if (mem.buffer instanceof SharedArrayBuffer) {
-                    // console.log(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`);
+                    wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`);
                     this._sharedMemory = mem.buffer as SharedArrayBuffer;
                 } else {
-                    // console.log(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`);
+                    wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`);
                     if (!this._sharedMemory) {
                         this._sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                     } else {
@@ -108,7 +106,7 @@ export class WasmCoreWorkerThreadRunner {
         if (moduleInstanceId) {
             this.wasmInstances[moduleInstanceId] = instantiatedSource.instance;
         } else {
-            console.log("Warning, moduleInstanceId is undefined for WasmThreadRunner.instantiate");
+            console.warn("Warning, moduleInstanceId is undefined for WasmThreadRunner.instantiate");
         }
         this._handleImportFunc = handleImportFunc;
         if (
@@ -121,12 +119,12 @@ export class WasmCoreWorkerThreadRunner {
     }
 
     public cleanup(): void {
-        console.log("WasmThreadRunner.cleanup");
+        wasmWorkerThreadDebug("WasmThreadRunner.cleanup");
         if (this.handleImportFunc) {
-            console.log("WasmThreadRunner.cleanup handleImportFunc: ", this.handleImportFunc);
+            wasmWorkerThreadDebug("WasmThreadRunner.cleanup handleImportFunc: ", this.handleImportFunc);
             // @ts-ignore
             if (this.handleImportFunc[comlink.releaseProxy]) {
-                console.log("WasmThreadRunner.cleanup handleImportFunc releaseProxy");
+                wasmWorkerThreadDebug("WasmThreadRunner.cleanup handleImportFunc releaseProxy");
                 // @ts-ignore
                 this.handleImportFunc[comlink.releaseProxy]();
             }
@@ -271,10 +269,10 @@ function threadWrapImportNamespace(
                     }
                 }
             }
-            wasmWorkerThreadDebug(`threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: ${functionName} `);
+            wasmWorkerThreadDebug(`threadWrapImportNamespace : ${functionName} `);
             const importReference = importValues[functionName];
             wasmWorkerThreadDebug(
-                `threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: ${functionName} importReference: `,
+                `threadWrapImportNamespace : ${functionName} importReference: `,
                 importReference
             );
             if (importReference) {
@@ -286,7 +284,7 @@ function threadWrapImportNamespace(
                     if (modInst) {
                         const exportedFunc = modInst.exports[exportRef];
                         wasmWorkerThreadDebug(
-                            `threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: ${functionName} exportedFunc: `,
+                            `threadWrapImportNamespace : ${functionName} exportedFunc: `,
                             exportedFunc
                         );
                         return exportedFunc;
@@ -294,7 +292,7 @@ function threadWrapImportNamespace(
                 }
             } else {
                 wasmWorkerThreadDebug(
-                    `threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: ${functionName} importReference else : `
+                    `threadWrapImportNamespace : ${functionName} importReference else : `
                 );
                 for (const [impKey, impValue] of Object.entries(importValues)) {
                     const importExportReference = impValue as ImportExportReference;
@@ -306,8 +304,8 @@ function threadWrapImportNamespace(
                             const modInst = wasmThreadRunner.wasmInstances[moduleInstanceId];
                             if (modInst) {
                                 const exportedFunc = modInst.exports[exportRef];
-                                console.log(
-                                    `threadWrapImportNamespace USE_SINGLE_THREAD_REMOTE: ${functionName} else exportedFunc2: `,
+                                wasmWorkerThreadDebug(
+                                    `threadWrapImportNamespace : ${functionName} else exportedFunc2: `,
                                     exportedFunc
                                 );
                                 return exportedFunc;

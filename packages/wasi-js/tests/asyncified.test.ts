@@ -69,7 +69,7 @@ const tests: (Test & { test: string })[] = [
     { test: "stdout", stdout: "42" },
     { test: "stdout_with_flush", stdout: `12${EOL}34` },
     { test: "stdout_with_setbuf", stdout: `42` },
-    { test: "async-export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
+    { test: "export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
 ];
 
 const textEncoder = new TextEncoder();
@@ -77,7 +77,7 @@ describe("all", () => {
     test.each(tests)(
         "$test",
         async ({ test, stdin, stdout = "", exitCode = 0 }) => {
-            const wasmPath = path.resolve(path.join("tests", "async-wasm", `${test}.wasm`));
+            const wasmPath = path.resolve(path.join("tests", "asyncified-wasm", `${test}.wasm`));
             const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 
             const rootHandle = await getRootHandle(backend);

@@ -30,6 +30,7 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
+    "compile-tests": "node tests/compile.mjs",
     "test": "vitest run --globals"
   },
   "repository": {

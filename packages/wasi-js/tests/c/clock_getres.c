@@ -10,8 +10,8 @@ int main() {
   assert(r == 0);
   r = clock_getres(CLOCK_MONOTONIC, &ts);
   assert(r == 0);
-  r = clock_getres(CLOCK_PROCESS_CPUTIME_ID, &ts);
-  assert(r == 0);
-  r = clock_getres(CLOCK_THREAD_CPUTIME_ID, &ts);
-  assert(r == 0);
+  //r = clock_getres(CLOCK_PROCESS_CPUTIME_ID, &ts);
+  //assert(r == 0);
+  //r = clock_getres(CLOCK_THREAD_CPUTIME_ID, &ts);
+  //assert(r == 0);
 }

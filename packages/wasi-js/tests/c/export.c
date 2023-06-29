@@ -1,9 +1,11 @@
 #include <stdio.h>
 
+__attribute__((export_name("sum")))
 int sum(int a, int b) {
   return a + b;
 }
 
+__attribute__((export_name("div")))
 float div(int a, int b) {
   return (float)a / (float)b;
 }

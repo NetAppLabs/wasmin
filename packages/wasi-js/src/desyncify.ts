@@ -4,7 +4,8 @@ import { isFunction, wasmHandlerDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
-import { WasmWorker, WasmWorkerThreadRunner } from "./wasmWorker.js";
+import { WasmWorker } from "./wasmWorker.js";
+import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js"
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -136,18 +137,24 @@ async function handlerInstanciateProxy(
     moduleSource: BufferSource,
     importObject?: WebAssembly.Imports,
     channel?: Channel,
-    threadRemote?: comlink.Remote<WasmWorkerThreadRunner>,
+    threadRemote?: comlink.Remote<WasmCoreWorkerThreadRunner>,
     handleImportFunc?: HandleWasmImportFunc,
     moduleInstanceId?: string
 ): Promise<WebAssembly.Instance> {
     wasmHandlerDebug("instantiateProxy");
 
-    let exportChannel: Channel | null;
-    exportChannel = makeChannel();
+    //let exportChannel: Channel | null;
+    //exportChannel = makeChannel();
 
     const exportsDummy: WebAssembly.Exports = {};
     const exportsProxy = new Proxy(exportsDummy, {
         get: (target, name, receiver) => {
+
+            // edge case when the Proxy is await-ed
+            if (name == "then") {
+                return undefined;
+            }
+
             // console.log("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
             // console.log("instantiateProxy get:", name);
             if (threadRemote && moduleInstanceId) {
@@ -175,16 +182,13 @@ async function handlerInstanciateProxy(
                 if (wrapExportFunctionSync) {
                     // In this case the wrappedExportFunction is synchronous
                     wrappedExportFunction = (...args: any[]) => {
-                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction synchronous");
-                        if (name == "6") {
-                            console.log("instantiateProxy calling wrappedExportFunction synchronous with name 6");
-                        }
                         wasmHandlerDebug(
                             "instantiateProxy calling wrappedExportFunction synchronous functionName: ",
                             functionName
                         );
                         const messageId = uuidv4();
                         const expFunc = threadRemote.executeExportedFunctionSync;
+                        const exportChannel = channel;
                         if (exportChannel) {
                             expFunc(moduleInstanceId, exportChannel, messageId, functionName, args);
                             //wasmHandlerDebug("threadWrapImportNamespace after : readMessage");
@@ -218,15 +222,17 @@ async function handlerInstanciateProxy(
                     wrappedExportFunction = async (...args: any[]) => {
                         wasmHandlerDebug("instantiateProxy calling wrappedExportFunction async");
                         const functionName = name as string;
-                        if (name == "6") {
-                            console.log("instantiateProxy calling wrappedExportFunction async with name 6");
-                        }
+                        const sargs = await args;
                         wasmHandlerDebug(
                             "instantiateProxy calling wrappedExportFunction async functionName: ",
-                            functionName
+                            functionName,
+                            ", sargs: ",
+                            sargs,
+                            "moduleInstanceId: ",
+                            moduleInstanceId,
                         );
                         const expFunc = threadRemote.executeExportedFunction;
-                        const retval = await expFunc(moduleInstanceId, functionName, args);
+                        const retval = await expFunc(moduleInstanceId, functionName, sargs);
                         return retval;
                     };
                 }
