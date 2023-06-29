@@ -66,7 +66,7 @@ export type WasiSnapshotPreview2ImportObject = {
         ioStreams: IoStreamsAsync;
     };
     poll: {
-        pollPoll: PollPollAsync,
+        pollPoll: PollPollAsync;
     };
     sockets: {
         socketsInstanceNetwork: SocketsInstanceNetworkAsync;

@@ -1,9 +1,44 @@
 import * as comlink from "comlink";
+import { isNode } from "./wasiUtils.js";
 
 declare let globalThis: any;
 globalThis.WASI_WORKER_DEBUG = false;
 
 globalThis.WASI_WORKER_SERIALIZE_DEBUG = false;
+globalThis.WASM_WORKER_THREAD_DEBUG = false;
+globalThis.WASM_HANDLER_DEBUG = false;
+
+export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASM_HANDLER_DEBUG) {
+        if (isNode()) {
+            workerDebugNode(msg, ...optionalParams);
+        } else {
+            console.debug(msg, ...optionalParams);
+        }
+    }
+}
+
+export async function workerDebugNode(msg?: any, ...optionalParams: any[]): Promise<void> {
+    const { parentPort } = await import("node:worker_threads");
+    if (parentPort) {
+        parentPort.postMessage(msg);
+        const message = { msg: msg, params: [...optionalParams] };
+        parentPort.postMessage(message);
+    } else {
+        console.debug(msg, ...optionalParams);
+    }
+}
+
+export function wasmWorkerThreadDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASM_WORKER_THREAD_DEBUG) {
+        if (isNode()) {
+            workerDebugNode(msg, ...optionalParams);
+        } else {
+            console.debug(msg, ...optionalParams);
+        }
+    }
+}
+
 
 export function wasiWorkerDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_WORKER_DEBUG) {
@@ -50,7 +85,7 @@ export async function getWasmBuffer(moduleUrl: string) {
     return { wasmBuf };
 }
 
-export function initializeHandlers() {
+export function initializeComlinkHandlers() {
     /*comlink.transferHandlers.set("FUNC", {
         canHandle: function (value: unknown): value is Function {
             wasiWorkerDebug("FUNC.canHandle on obj: ", value);

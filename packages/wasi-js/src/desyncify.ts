@@ -1,18 +1,10 @@
 import { Asyncify } from "./vendored/asyncify/asyncify.js";
-import {
-    Channel,
-    makeAtomicsChannel,
-    makeChannel,
-    readMessage,
-    syncSleep,
-    uuidv4,
-    writeMessage,
-} from "./vendored/sync-message/index.js";
-import { isFunction } from "./workerUtils.js";
+import { Channel, makeChannel, readMessage, syncSleep, uuidv4 } from "./vendored/sync-message/index.js";
+import { isFunction, wasmHandlerDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-import { copyBuffer, isNode, sleep } from "./wasiUtils.js";
-import { WasmThreadRunner } from "./wasmThreadRunner.js";
+import { isNode } from "./wasiUtils.js";
+import { WasmWorker, WasmWorkerThreadRunner } from "./wasmWorker.js";
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -21,48 +13,7 @@ import { WasmThreadRunner } from "./wasmThreadRunner.js";
 // If the WebAssembly.Instance exported memory is not shared it is copied over.
 //
 
-// If true uses a SharedArrayBuffer as memory passed between workers
-export const USE_SHARED_MEMORY = true;
-
-// Copies the SharedArrayBuffer if true over to ArrayBuffer
-// Workaround for issues such as with TextDecoder
-export const USE_SHARED_ARRAYBUFFER_WORKAROUND = false;
-
 declare let globalThis: any;
-globalThis.WASM_THREAD_DEBUG = false;
-
-export function wasmThreadDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASM_THREAD_DEBUG) {
-        if (isNode()) {
-            workerDebugNode(msg, ...optionalParams);
-        } else {
-            console.debug(msg, ...optionalParams);
-        }
-    }
-}
-
-globalThis.WASM_HANDLER_DEBUG = false;
-
-export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASM_HANDLER_DEBUG) {
-        if (isNode()) {
-            workerDebugNode(msg, ...optionalParams);
-        } else {
-            console.debug(msg, ...optionalParams);
-        }
-    }
-}
-
-export async function workerDebugNode(msg?: any, ...optionalParams: any[]): Promise<void> {
-    const { parentPort } = await import("node:worker_threads");
-    if (parentPort) {
-        parentPort.postMessage(msg);
-        const message = { msg: msg, params: [...optionalParams] };
-        parentPort.postMessage(message);
-    } else {
-        console.debug(msg, ...optionalParams);
-    }
-}
 
 export type ImportExportReference = {
     moduleInstanceId: string;
@@ -77,7 +28,10 @@ export type WrappedExportedFunction = {
 
 export type ImportReference = ImportExportReference | string | SharedArrayBuffer;
 
-export type ReciveMemoryFunc = (buf: ArrayBuffer) => void;
+// Function for storing memory for wasm instance received from worker
+export type StoreReceivedMemoryFunc = (buf: ArrayBuffer) => void;
+// Function for preparing memory to be sent over to worker
+export type GetMemoryForSendFunc = (functionName: string) => ArrayBuffer;
 
 export type HandleWasmImportFunc = (
     messageId: string,
@@ -87,18 +41,15 @@ export type HandleWasmImportFunc = (
     memory: ArrayBuffer
 ) => any;
 
-export type GetMemoryFunc = (functionName: string) => ArrayBuffer;
-
 export async function instantiateWithAsyncDetection(
     wasmModOrBufSource: WebAssembly.Module | BufferSource,
     imports: WebAssembly.Imports,
     handleImportFunc: HandleWasmImportFunc
 ): Promise<{
     instance: WebAssembly.Instance;
-    isAsync: boolean;
+    isAsyncified: boolean;
     channel?: Channel;
-    worker?: Worker;
-    threadRemote?: comlink.Remote<WasmThreadRunner>;
+    worker?: WasmWorker;
 }> {
     wasmHandlerDebug("instantiateWithAsyncDetection");
     let isAsyncified = false;
@@ -122,34 +73,27 @@ export async function instantiateWithAsyncDetection(
         const state = new Asyncify();
         const asyncifiedInstance = await WebAssembly.instantiate(wasmMod, state.wrapImports(imports));
         state.init(asyncifiedInstance, imports);
-        return { instance: asyncifiedInstance, isAsync: isAsyncified };
+        return { instance: asyncifiedInstance, isAsyncified: isAsyncified };
     }
 
-    return instantiateOnThreadRemote(sourceBuffer, imports, handleImportFunc);
+    return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);
 }
 
-export async function instantiateOnThreadRemote(
+export async function instantiateOnWasmWorker(
     sourceBuffer: BufferSource | null,
     imports: WebAssembly.Imports,
     handleImportFunc: HandleWasmImportFunc,
-    worker?: Worker,
-    threadRemote?: comlink.Remote<WasmThreadRunner>
+    worker?: WasmWorker
 ): Promise<{
     instance: WebAssembly.Instance;
-    isAsync: boolean;
+    isAsyncified: boolean;
     channel?: Channel;
-    worker?: Worker;
-    threadRemote?: comlink.Remote<WasmThreadRunner>;
+    worker?: WasmWorker;
     moduleInstanceId?: string;
 }> {
     wasmHandlerDebug("instantiate making channel");
     let channel: Channel | null;
-    if (USE_SHARED_MEMORY) {
-        channel = makeChannel();
-    } else {
-        const bufferSize = 64 * 1024 * 1024;
-        channel = makeAtomicsChannel({ bufferSize });
-    }
+    channel = makeChannel();
     wasmHandlerDebug("instantiate made channel: ", channel);
 
     if (channel) {
@@ -157,10 +101,12 @@ export async function instantiateOnThreadRemote(
             throw new Error("BufferSource must be set for non-asyncified wasm modules to work");
         }
 
-        if (!threadRemote) {
-            [worker, threadRemote] = await acquireThreadRemote();
+        if (!worker) {
+            worker = new WasmWorker();
+            await worker.createCoreWorker();
         }
 
+        const threadRemote = worker?.coreRunner;
         wasmHandlerDebug("instantiate wrapped threadRemote");
         const moduleInstanceId = uuidv4();
         wasmHandlerDebug("instantiate wrapped threadRemote moduleInstanceId: ", moduleInstanceId);
@@ -176,10 +122,9 @@ export async function instantiateOnThreadRemote(
 
         return {
             instance: proxiedInstance,
-            isAsync: false,
+            isAsyncified: false,
             channel: channel,
             worker: worker,
-            threadRemote: threadRemote,
             moduleInstanceId: moduleInstanceId,
         };
     } else {
@@ -187,60 +132,18 @@ export async function instantiateOnThreadRemote(
     }
 }
 
-export const USE_SINGLE_THREAD_REMOTE = true;
-
-async function acquireThreadRemote(): Promise<[Worker, comlink.Remote<WasmThreadRunner>]> {
-    const useNodeWorkerThreads = false;
-    let worker: Worker;
-    if (useNodeWorkerThreads) {
-        const workerPath =
-            "file:///Users/tryggvil/Development/netapp/wasm/wasm-env/packages/wasi-js/dist/wasmThread.js";
-        const workerUrl = new URL(workerPath);
-        worker = new Worker(workerUrl);
-    } else {
-        let workerUrlString = "./wasmThread.js";
-        if (isNode()) {
-            workerUrlString = "./wasmThreadNode.js";
-        }
-        const workerUrl = new URL(workerUrlString, import.meta.url);
-
-        wasmHandlerDebug("workerUrl:", workerUrl);
-        worker = await createWorker(workerUrl, { type: "module" });
-        wasmHandlerDebug("createWorker: ", worker);
-    }
-
-    if (worker) {
-        worker.addEventListener("message", (msg: MessageEvent<any>) => {
-            //worker.on("message", (msg: MessageEvent<any>) => {
-            if (globalThis.WASM_THREAD_DEBUG) {
-                // console.log("WasmThread worker message received: ", msg);
-            }
-        });
-        //worker.on("error", err => console.log("`Worker error:", err));
-        //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
-    }
-    wasmHandlerDebug("acquireWorker started worker");
-    const threadRemote = comlink.wrap<WasmThreadRunner>(worker);
-    return [worker, threadRemote];
-}
-
 async function handlerInstanciateProxy(
     moduleSource: BufferSource,
     importObject?: WebAssembly.Imports,
     channel?: Channel,
-    threadRemote?: comlink.Remote<WasmThreadRunner>,
+    threadRemote?: comlink.Remote<WasmWorkerThreadRunner>,
     handleImportFunc?: HandleWasmImportFunc,
     moduleInstanceId?: string
 ): Promise<WebAssembly.Instance> {
     wasmHandlerDebug("instantiateProxy");
 
     let exportChannel: Channel | null;
-    if (USE_SHARED_MEMORY) {
-        exportChannel = makeChannel();
-    } else {
-        const bufferSize = 64 * 1024 * 1024;
-        exportChannel = makeAtomicsChannel({ bufferSize });
-    }
+    exportChannel = makeChannel();
 
     const exportsDummy: WebAssembly.Exports = {};
     const exportsProxy = new Proxy(exportsDummy, {
@@ -284,7 +187,7 @@ async function handlerInstanciateProxy(
                         const expFunc = threadRemote.executeExportedFunctionSync;
                         if (exportChannel) {
                             expFunc(moduleInstanceId, exportChannel, messageId, functionName, args);
-                            wasmThreadDebug("threadWrapImportNamespace after : readMessage");
+                            //wasmHandlerDebug("threadWrapImportNamespace after : readMessage");
                             const checkInterrupt = function checkInterrupt(): boolean {
                                 return true;
                             };

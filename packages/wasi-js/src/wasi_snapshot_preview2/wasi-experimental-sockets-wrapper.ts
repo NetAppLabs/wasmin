@@ -1,14 +1,20 @@
 import { FilesystemFilesystemAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem";
 import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-instance-network";
 import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup";
-import { IpAddress, IpSocketAddress, Ipv4SocketAddress, Ipv6SocketAddress, SocketsNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network";
+import {
+    IpAddress,
+    IpSocketAddress,
+    Ipv4SocketAddress,
+    Ipv6SocketAddress,
+    SocketsNetworkAsync,
+} from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network";
 import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp";
 import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket";
 
 const ERRNO_AGAIN = 6;
 
-type WasiExperimentalSocketsAddressFamily = 'inet4' | 'inet6';
-type WasiExperimentalSocketsSocketType = 'dgram' | 'strm';
+type WasiExperimentalSocketsAddressFamily = "inet4" | "inet6";
+type WasiExperimentalSocketsSocketType = "dgram" | "strm";
 type WasiExperimentalSocketsFd = number;
 type WasiExperimentalSocketsSize = number;
 type WasiExperimentalSocketsRiflags = number;
@@ -16,7 +22,7 @@ type WasiExperimentalSocketsAddrResolveStream = number;
 
 type WasiSnapshotPreview2FilesystemImportObject = {
     filesystemFilesystem: FilesystemFilesystemAsync;
-}
+};
 
 type WasiSnapshotPreview2SocketsImportObject = {
     socketsInstanceNetwork: SocketsInstanceNetworkAsync;
@@ -24,62 +30,66 @@ type WasiSnapshotPreview2SocketsImportObject = {
     socketsTcpCreateSocket: SocketsTcpCreateSocketAsync;
     socketsTcp: SocketsTcpAsync;
     socketsIpNameLookup: SocketsIpNameLookupAsync;
-}
+};
 
-type WasiExperimentalSocketsAddressType = 'ip4' | 'ip6';
+type WasiExperimentalSocketsAddressType = "ip4" | "ip6";
 type WasiExperimentalSocketsIpPort = number;
 interface WasiExperimentalSocketsAddressIp4 {
-    n0: number,
-    n1: number,
-    h0: number,
-    h1: number,
-  }
+    n0: number;
+    n1: number;
+    h0: number;
+    h1: number;
+}
 interface WasiExperimentalSocketsAddressIp4Port {
-    addr: WasiExperimentalSocketsAddressIp4,
-    port: WasiExperimentalSocketsIpPort,
+    addr: WasiExperimentalSocketsAddressIp4;
+    port: WasiExperimentalSocketsIpPort;
 }
 interface WasiExperimentalSocketsAddressIp6 {
-    n0: number,
-    n1: number,
-    n2: number,
-    n3: number,
-    h0: number,
-    h1: number,
-    h2: number,
-    h3: number,
+    n0: number;
+    n1: number;
+    n2: number;
+    n3: number;
+    h0: number;
+    h1: number;
+    h2: number;
+    h3: number;
 }
 interface WasiExperimentalSocketsAddressIp6Port {
-    addr: WasiExperimentalSocketsAddressIp6,
-    port: WasiExperimentalSocketsIpPort,
+    addr: WasiExperimentalSocketsAddressIp6;
+    port: WasiExperimentalSocketsIpPort;
 }
 type WasiExperimentalSocketsAddressU = WasiExperimentalSocketsAddressU0 | WasiExperimentalSocketsAddressU1;
 interface WasiExperimentalSocketsAddressU0 {
-    tag: 0,
-    val: WasiExperimentalSocketsAddressIp4Port,
+    tag: 0;
+    val: WasiExperimentalSocketsAddressIp4Port;
 }
 export interface WasiExperimentalSocketsAddressU1 {
-    tag: 1,
-    val: WasiExperimentalSocketsAddressIp6Port,
+    tag: 1;
+    val: WasiExperimentalSocketsAddressIp6Port;
 }
 interface WasiExperimentalSocketsAddress {
-    tag: WasiExperimentalSocketsAddressType,
-    u: WasiExperimentalSocketsAddressU,
+    tag: WasiExperimentalSocketsAddressType;
+    u: WasiExperimentalSocketsAddressU;
 }
 
-function WasiExperimentalSocketsAddressToIpv4SocketAddress(a: WasiExperimentalSocketsAddress): Ipv4SocketAddress | undefined {
-    if (a.tag !== 'ip4') {
+function WasiExperimentalSocketsAddressToIpv4SocketAddress(
+    a: WasiExperimentalSocketsAddress
+): Ipv4SocketAddress | undefined {
+    if (a.tag !== "ip4") {
         return undefined;
     }
     const addr = a.u.val.addr as WasiExperimentalSocketsAddressIp4;
     const ip: Ipv4SocketAddress = {
         address: [addr.n0, addr.n1, addr.h0, addr.h1],
         port: a.u.val.port,
-    }
+    };
     return ip;
 }
 
-function WasiExperimentalSocketsAddressToIpv6SocketAddress(a: WasiExperimentalSocketsAddress): Ipv6SocketAddress | undefined {
-    if (a.tag !== 'ip6') {
+function WasiExperimentalSocketsAddressToIpv6SocketAddress(
+    a: WasiExperimentalSocketsAddress
+): Ipv6SocketAddress | undefined {
+    if (a.tag !== "ip6") {
         return undefined;
     }
     const addr = a.u.val.addr as WasiExperimentalSocketsAddressIp6;
@@ -88,7 +98,7 @@ function WasiExperimentalSocketsAddressToIpv6SocketAddress(a: WasiExperimentalSo
         port: a.u.val.port,
         flowInfo: 0,
         scopeId: 0,
-    }
+    };
     return ip;
 }
 
@@ -96,17 +106,19 @@ function WasiExperimentalSocketsAddressToIpSocketAddress(a: WasiExperimentalSock
     let ip: IpSocketAddress;
     const ip4 = WasiExperimentalSocketsAddressToIpv4SocketAddress(a);
     if (ip4) {
-        ip = { tag: 'ipv4', val: ip4 };
+        ip = { tag: "ipv4", val: ip4 };
     } else {
         const ip6 = WasiExperimentalSocketsAddressToIpv6SocketAddress(a);
         if (!ip6) throw new Error(`invalid address ${a}`);
-        ip = { tag: 'ipv6', val: ip6 };
+        ip = { tag: "ipv6", val: ip6 };
     }
     return ip;
 }
 
-function WasiExperimentalSocketsAddressIp4PortFromIpSocketAddress(ip: IpSocketAddress): WasiExperimentalSocketsAddressIp4Port | undefined {
-    if (ip.tag !== 'ipv4') {
+function WasiExperimentalSocketsAddressIp4PortFromIpSocketAddress(
+    ip: IpSocketAddress
+): WasiExperimentalSocketsAddressIp4Port | undefined {
+    if (ip.tag !== "ipv4") {
         return undefined;
     }
     const ip4 = ip.val as Ipv4SocketAddress;
@@ -118,12 +130,14 @@ function WasiExperimentalSocketsAddressIp4PortFromIpSocketAddress(ip: IpSocketAd
             h1: ip4.address[3],
         },
         port: ip4.port,
-    }
+    };
     return addr;
 }
 
-function WasiExperimentalSocketsAddressIp6PortFromIpSocketAddress(ip: IpSocketAddress): WasiExperimentalSocketsAddressIp6Port | undefined {
-    if (ip.tag !== 'ipv6') {
+function WasiExperimentalSocketsAddressIp6PortFromIpSocketAddress(
+    ip: IpSocketAddress
+): WasiExperimentalSocketsAddressIp6Port | undefined {
+    if (ip.tag !== "ipv6") {
         return undefined;
     }
     const ip6 = ip.val as Ipv6SocketAddress;
@@ -139,7 +153,7 @@ function WasiExperimentalSocketsAddressIp6PortFromIpSocketAddress(ip: IpSocketAd
             h3: ip6.address[7],
         },
         port: ip6.port,
-    }
+    };
     return addr;
 }
 
@@ -147,26 +161,27 @@ function WasiExperimentalSocketsAddressFromIpSocketAddress(ip: IpSocketAddress):
     let addr: WasiExperimentalSocketsAddress;
     const addr4 = WasiExperimentalSocketsAddressIp4PortFromIpSocketAddress(ip);
     if (addr4) {
-        addr = { tag: 'ip4', u: {tag: 0, val: addr4} };
+        addr = { tag: "ip4", u: { tag: 0, val: addr4 } };
     } else {
         const addr6 = WasiExperimentalSocketsAddressIp6PortFromIpSocketAddress(ip);
         if (!addr6) throw new Error(`invalid IP address ${ip}`);
-        addr = { tag: 'ip6', u: {tag: 1, val: addr6} };
+        addr = { tag: "ip6", u: { tag: 1, val: addr6 } };
     }
     return addr;
 }
 
 function WasiExperimentalSocketsAddressFromIpAddress(ip: IpAddress, port: number): WasiExperimentalSocketsAddress {
-    let ips: IpSocketAddress = ip.tag === 'ipv6'
-        ? { tag: ip.tag, val: { address: ip.val, port: port, flowInfo: 0, scopeId: 0 } }
-        : { tag: ip.tag, val: { address: ip.val, port: port } };
+    let ips: IpSocketAddress =
+        ip.tag === "ipv6"
+            ? { tag: ip.tag, val: { address: ip.val, port: port, flowInfo: 0, scopeId: 0 } }
+            : { tag: ip.tag, val: { address: ip.val, port: port } };
     return WasiExperimentalSocketsAddressFromIpSocketAddress(ips);
 }
 
 export class WasiExperimentalSocketsPreview2Wrapper {
     constructor(
         filesystem: () => WasiSnapshotPreview2FilesystemImportObject,
-        sockets: () => WasiSnapshotPreview2SocketsImportObject,
+        sockets: () => WasiSnapshotPreview2SocketsImportObject
     ) {
         this._filesystem = filesystem;
         this._sockets = sockets;
@@ -184,16 +199,26 @@ export class WasiExperimentalSocketsPreview2Wrapper {
         return this._sockets();
     }
 
-    async addrResolve(host: string, port: WasiExperimentalSocketsIpPort | null): Promise<WasiExperimentalSocketsAddrResolveStream> {
+    async addrResolve(
+        host: string,
+        port: WasiExperimentalSocketsIpPort | null
+    ): Promise<WasiExperimentalSocketsAddrResolveStream> {
         const network = -1; // TODO: network value (unused by preview2 implementation)
         const addressFamily = null; // TODO: address family (unused by preview2 implementation)
         const includeUnavailable = true; // TODO: include unavailable flag (unused by preview2 implementation)
-        const stream = await this.sockets.socketsIpNameLookup.resolveAddresses(network, host, addressFamily, includeUnavailable);
+        const stream = await this.sockets.socketsIpNameLookup.resolveAddresses(
+            network,
+            host,
+            addressFamily,
+            includeUnavailable
+        );
         this._addrResolutions[stream] = port;
         return stream;
     }
 
-    async addrResolveStreamNext(stream: WasiExperimentalSocketsAddrResolveStream): Promise<WasiExperimentalSocketsAddress | null> {
+    async addrResolveStreamNext(
+        stream: WasiExperimentalSocketsAddrResolveStream
+    ): Promise<WasiExperimentalSocketsAddress | null> {
         const ip = await this.sockets.socketsIpNameLookup.resolveNextAddress(stream);
         if (!ip) {
             return null;
@@ -208,7 +233,10 @@ export class WasiExperimentalSocketsPreview2Wrapper {
         delete this._addrResolutions[stream];
     }
 
-    async sockOpen(af: WasiExperimentalSocketsAddressFamily, _st: WasiExperimentalSocketsSocketType): Promise<WasiExperimentalSocketsFd> {
+    async sockOpen(
+        af: WasiExperimentalSocketsAddressFamily,
+        _st: WasiExperimentalSocketsSocketType
+    ): Promise<WasiExperimentalSocketsFd> {
         // TODO: socket type ignored
         return await this.sockets.socketsTcpCreateSocket.createTcpSocket(af as any);
     }
@@ -219,7 +247,7 @@ export class WasiExperimentalSocketsPreview2Wrapper {
 
     async sockConnect(fd: WasiExperimentalSocketsFd, addr: WasiExperimentalSocketsAddress): Promise<void> {
         const ip = WasiExperimentalSocketsAddressToIpSocketAddress(addr);
-        await this.sockets.socketsTcp.startConnect(fd, addr.tag === 'ip6' ? 6 : 4, ip);
+        await this.sockets.socketsTcp.startConnect(fd, addr.tag === "ip6" ? 6 : 4, ip);
     }
 
     async sockAddrRemote(fd: WasiExperimentalSocketsFd): Promise<WasiExperimentalSocketsAddress> {
@@ -232,20 +260,29 @@ export class WasiExperimentalSocketsPreview2Wrapper {
         return WasiExperimentalSocketsAddressFromIpSocketAddress(ip);
     }
 
-    async sockSend(fd: WasiExperimentalSocketsFd, buf: Uint8Array, _len: WasiExperimentalSocketsSize, _flags: WasiExperimentalSocketsRiflags): Promise<number> {
+    async sockSend(
+        fd: WasiExperimentalSocketsFd,
+        buf: Uint8Array,
+        _len: WasiExperimentalSocketsSize,
+        _flags: WasiExperimentalSocketsRiflags
+    ): Promise<number> {
         // TODO: len and flags ignored
         const count = await this.filesystem.filesystemFilesystem.write(fd, buf, 0n);
         return Number(count);
     }
 
-    async sockRecv(fd: WasiExperimentalSocketsFd, len: WasiExperimentalSocketsSize, _flags: WasiExperimentalSocketsRiflags): Promise<Uint8Array | ArrayBuffer> {
+    async sockRecv(
+        fd: WasiExperimentalSocketsFd,
+        len: WasiExperimentalSocketsSize,
+        _flags: WasiExperimentalSocketsRiflags
+    ): Promise<Uint8Array | ArrayBuffer> {
         // TODO: flags ignored
         try {
-            const [ buf, _eof ] = await this.filesystem.filesystemFilesystem.read(fd, BigInt(len), 0n);
+            const [buf, _eof] = await this.filesystem.filesystemFilesystem.read(fd, BigInt(len), 0n);
             // TODO: eof ignored
             return buf;
         } catch (e: any) {
-            if (e === 'would-block') {
+            if (e === "would-block") {
                 throw ERRNO_AGAIN;
             }
             throw e;

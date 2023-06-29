@@ -16,7 +16,7 @@ export class PollPollAsyncHost implements PollPollAsync {
         const out = new Uint8Array(in0.length);
         for (let i = 0; i < in0.length; i++) {
             const pollable = this._wasiEnv.openFiles.get(in0[i]) as Pollable;
-            out[i] = await pollable.done() ? 1 : 0;
+            out[i] = (await pollable.done()) ? 1 : 0;
         }
         return out;
     }

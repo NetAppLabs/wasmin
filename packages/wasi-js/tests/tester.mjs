@@ -2,14 +2,13 @@
 /* eslint-disable no-undef */
 
 import { spawn } from "node:child_process";
-import { resolve, join, dirname} from "node:path";
+import { resolve, join, dirname } from "node:path";
 import fs from "node:fs/promises";
 import { readFile } from "fs/promises";
 import { WASI, OpenFiles, stringOut, bufferIn } from "@wasm-env/wasi-js";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
-import { fileURLToPath } from 'node:url';
-
+import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 

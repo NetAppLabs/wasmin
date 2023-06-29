@@ -3,15 +3,8 @@
  */
 
 import { instantiate } from "./vendored/asyncify/asyncify.js";
-import {
-    HandleWasmImportFunc,
-    instantiateOnThreadRemote,
-    instantiateWithAsyncDetection,
-    USE_SHARED_ARRAYBUFFER_WORKAROUND,
-    USE_SHARED_MEMORY,
-    USE_SINGLE_THREAD_REMOTE,
-} from "./desyncify.js";
-import { WasmThreadRunner } from "./wasmThreadRunner.js";
+import { HandleWasmImportFunc, instantiateOnWasmWorker, instantiateWithAsyncDetection } from "./desyncify.js";
+import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
 
 import { TTY } from "./tty.js";
@@ -20,20 +13,19 @@ import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimen
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
 import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
-import { copyBuffer, CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
+import { CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, writeMessage } from "./vendored/sync-message/index.js";
 import {
     WasiSnapshotPreview2ImportObject,
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/index.js";
-import { Worker } from "./vendored/web-worker/index.js";
 import { wasiWorkerDebug } from "./workerUtils.js";
 import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiExperimentalSocketsNamespace {
-    package: string,
-    world: string,
+    package: string;
+    world: string;
 }
 
 export interface WasiOptions {
@@ -190,14 +182,19 @@ export class WASI {
         this._wasiEnv = wasiEnv;
     }
     public component = false;
+    public singleWasmWorker = true;
     private _wasiEnv: WasiEnv;
-    private _moduleInstance?: WebAssembly.Instance;
-    private _moduleImports?: WebAssembly.Imports;
-    private _channel?: Channel;
-    private _worker?: Worker;
-    private _threadRemote?: comlink.Remote<WasmThreadRunner>;
-    private _memory?: WebAssembly.Memory;
+
+    private _coreModuleInstance?: WebAssembly.Instance;
+    private _coreModuleMemory?: WebAssembly.Memory;
+    private _coreModuleImports?: WebAssembly.Imports;
+
     private _componentImportObject?: {};
+    private _componentInstance?: {};
+
+    private _channel?: Channel;
+    private _worker?: WasmWorker;
+
     public get componentImportObject(): {} {
         if (!this._componentImportObject) {
             throw new Error("component imports not set");
@@ -212,11 +209,13 @@ export class WASI {
         return this._wasiEnv;
     }
 
-    get moduleImports() {
-        return this._moduleImports as WebAssembly.Imports;
+    get coreModuleImports() {
+        return this._coreModuleImports as WebAssembly.Imports;
     }
 
-    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace): Promise<string[]> {
+    public async initializeComponentImports(
+        wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace
+    ): Promise<string[]> {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
             const componentImportObject = this.componentImportObject as WasiSnapshotPreview2ImportObject;
@@ -224,7 +223,8 @@ export class WASI {
             const sockets = () => componentImportObject.sockets;
             const componentImportObjectAny = this.componentImportObject as any;
             const wasiExperimentalSocketsWrapper = {} as any;
-            wasiExperimentalSocketsWrapper[wasiExperimentalSocketsNamespace.world] = new WasiExperimentalSocketsPreview2Wrapper(filesystem, sockets);
+            wasiExperimentalSocketsWrapper[wasiExperimentalSocketsNamespace.world] =
+                new WasiExperimentalSocketsPreview2Wrapper(filesystem, sockets);
             componentImportObjectAny[wasiExperimentalSocketsNamespace.package] = wasiExperimentalSocketsWrapper;
         }
 
@@ -236,8 +236,27 @@ export class WASI {
     }
 
     public async instantiate(
-        wasmModOrBufSource: BufferSource,
+        wasmModOrBufSource: WebAssembly.Module | BufferSource,
         imports: WebAssembly.Imports
+    ): Promise<WebAssembly.Instance> {
+        if (this.component) {
+            return await this.instantiateComponent(wasmModOrBufSource, imports);
+        } else {
+            return await this.instantiateCore(wasmModOrBufSource, imports);
+        }
+    }
+
+    public async instantiateComponent(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource,
+        componentImports: any,
+    ): Promise<WebAssembly.Instance|any> {
+        return null;
+    }
+
+    public async instantiateCore(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource,
+        imports: WebAssembly.Imports,
+        withAsyncDetection = false,
     ): Promise<WebAssembly.Instance> {
         // console.log("WASI instantiate:");
         let handleImportFunc: HandleWasmImportFunc | undefined;
@@ -252,7 +271,7 @@ export class WASI {
             ) => {
                 const moduleImports = imports;
                 try {
-                    return await this.handleImport(messageId, importName, functionName, args, buf, moduleImports);
+                    return await this.handleCoreImport(messageId, importName, functionName, args, buf, moduleImports);
                 } catch (err: any) {
                     console.log("WASI.handleImportFuncLocal err: ", err);
                     throw err;
@@ -264,21 +283,29 @@ export class WASI {
             } else {
                 wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
             }
-            const instRes = await instantiateOnThreadRemote(
-                wasmModOrBufSource,
-                imports,
-                handleImportFunc,
-                this._worker,
-                this._threadRemote
-            );
-            wasiDebug("[run] got instRes: ", instRes);
-            if (!this._moduleImports && imports) {
-                this._moduleImports = imports;
+            let instRes: {
+                instance: WebAssembly.Instance;
+                isAsyncified: boolean;
+                channel?: Channel;
+                worker?: WasmWorker;
+                moduleInstanceId?: string;
+            };
+            if (withAsyncDetection) {
+                instRes = await instantiateWithAsyncDetection(wasmModOrBufSource, imports, handleImportFunc);
+            } else {
+                let sourceBuffer: BufferSource | null = null;
+                if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
+                    sourceBuffer = wasmModOrBufSource as BufferSource;
+                }
+                instRes = await instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc, this._worker);
             }
-            this._moduleInstance = instRes.instance;
+            wasiDebug("[run] got instRes: ", instRes);
+            if (!this._coreModuleImports && imports) {
+                this._coreModuleImports = imports;
+            }
+            this._coreModuleInstance = instRes.instance;
             this._channel = instRes.channel;
-            if (USE_SINGLE_THREAD_REMOTE) {
-                this._threadRemote = instRes.threadRemote;
+            if (this.singleWasmWorker) {
                 this._worker = instRes.worker;
             }
             wasiDebug("[run] setting channel: ", this._channel);
@@ -290,9 +317,9 @@ export class WASI {
             } else {
                 wasmMod = wasmModOrBufSource as WebAssembly.Module;
             }
-            this._moduleInstance = await instantiate(wasmMod, imports);
+            this._coreModuleInstance = await instantiate(wasmMod, imports);
         }
-        return this._moduleInstance;
+        return this._coreModuleInstance;
     }
 
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
@@ -311,59 +338,13 @@ export class WASI {
 
     public async runCore(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
         wasiDebug("WASI.run:");
-        this._moduleImports = this.initializeImports();
-        let handleImportFunc: HandleWasmImportFunc | undefined;
-        let threadRemote: comlink.Remote<WasmThreadRunner> | undefined;
-        const useAsyncDetection = true;
-        if (useAsyncDetection) {
-            const handleImportFuncLocal: HandleWasmImportFunc = async (
-                messageId: string,
-                importName: string,
-                functionName: string,
-                args: any[],
-                buf: ArrayBuffer
-            ) => {
-                try {
-                    const moduleImports = this.moduleImports;
-                    return await this.handleImport(messageId, importName, functionName, args, buf, moduleImports);
-                } catch (err: any) {
-                    wasiDebug("WASI.handleImportFuncLocal err: ", err);
-                    throw err;
-                }
-            };
-            handleImportFunc = comlink.proxy(handleImportFuncLocal);
-            if (handleImportFunc) {
-                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
-            } else {
-                wasiDebug("WASI: handleImportFunc: ", handleImportFunc);
-            }
-            const instRes = await instantiateWithAsyncDetection(
-                wasmModOrBufSource,
-                this._moduleImports,
-                handleImportFunc
-            );
-            wasiDebug("[run] got instRes: ", instRes);
-            this._worker = instRes.worker;
-            this._threadRemote = instRes.threadRemote;
-            this._moduleInstance = instRes.instance;
-            this._channel = instRes.channel;
-            threadRemote = instRes.threadRemote;
-            wasiDebug("[run] setting channel: ", this._channel);
-        } else {
-            let wasmMod: WebAssembly.Module;
-            if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
-                const modSource = wasmModOrBufSource as ArrayBufferView;
-                wasmMod = WebAssembly.compile(modSource);
-            } else {
-                wasmMod = wasmModOrBufSource as WebAssembly.Module;
-            }
-            this._moduleInstance = await instantiate(wasmMod, this._moduleImports);
-        }
-        wasiDebug("[run] after instantiate , _moduleInstance: ", this._moduleInstance);
-        const exports = this._moduleInstance.exports;
+        this._coreModuleImports = this.initializeCoreImports();
+        this._coreModuleInstance = await this.instantiateCore(wasmModOrBufSource, this._coreModuleImports, true);
+        wasiDebug("[run] after instantiate , _moduleInstance: ", this._coreModuleInstance);
+        const exports = this._coreModuleInstance.exports;
         wasiDebug("[run] exports: ", exports);
         //@ts-ignore
-        const originalExports: WebAssembly.Exports = this._moduleInstance.originalExports;
+        const originalExports: WebAssembly.Exports = this._coreModuleInstance.originalExports;
         wasiDebug("[run] originalExports: ", originalExports);
 
         const { _start } = exports;
@@ -385,11 +366,14 @@ export class WASI {
             wasiDebug("WASI.run in catch for _start , err: ", err);
             if (isExitStatus(err)) {
                 wasiDebug("WASI.run in catch for _start: is ExitStatus");
-                if (threadRemote) {
-                    wasiDebug("WASI.run threadRemote in exit:", threadRemote);
-                    threadRemote[comlink.releaseProxy]();
+                if (this._worker) {
+                    if (this._worker.coreRunner) {
+                        let workerThreadRunner = this._worker.coreRunner;
+                        wasiDebug("WASI.run workerThreadRunner in exit:", workerThreadRunner);
+                        workerThreadRunner[comlink.releaseProxy]();
+                    }
                 }
-                this._moduleInstance = undefined;
+                this._coreModuleInstance = undefined;
                 this._channel = undefined;
                 return err.code;
             } else {
@@ -401,7 +385,7 @@ export class WASI {
     }
 
     public async exportFunction(module: WebAssembly.Module): Promise<WebAssembly.Exports> {
-        const imports = this.initializeImports();
+        const imports = this.initializeCoreImports();
         const { exports } = await instantiate(module, imports);
         this.initializeInstanceMemory(exports);
 
@@ -453,7 +437,7 @@ export class WASI {
         writeMessage(channel, response, messageId);
     }
 
-    public async handleImport(
+    public async handleCoreImport(
         messageId: string,
         importName: string,
         functionName: string,
@@ -472,14 +456,8 @@ export class WASI {
         if (channel) {
             if (moduleImports) {
                 let wasmBuf: ArrayBuffer;
-                if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
-                    wasiDebug("wasi.handleIimport is SharedArrayBuffer buf: ", buf);
-                    wasmBuf = new ArrayBuffer(buf.byteLength);
-                    copyBuffer(buf, wasmBuf);
-                } else {
-                    wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
-                    wasmBuf = buf;
-                }
+                wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
+                wasmBuf = buf;
                 const mem: WebAssembly.Memory = {
                     buffer: wasmBuf,
                     grow: function (delta: number): number {
@@ -487,9 +465,9 @@ export class WASI {
                     },
                 };
 
-                this._memory = mem;
+                this._coreModuleMemory = mem;
                 wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
-                wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._memory);
+                wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} memory: `, this._coreModuleMemory);
 
                 const modImport = moduleImports[importName];
                 const importedFunc = modImport[functionName] as any;
@@ -518,22 +496,7 @@ export class WASI {
                     );
                 }
                 let response: any;
-                if (USE_SHARED_MEMORY) {
-                    if (USE_SHARED_ARRAYBUFFER_WORKAROUND && buf instanceof SharedArrayBuffer) {
-                        copyBuffer(wasmBuf, buf);
-                    }
-                    response = { return: funcReturn, error: funcThrownError };
-                } else {
-                    const newBuf = this._memory.buffer;
-                    const newTypedArray = new Uint8Array(newBuf);
-                    const newNumberArray = Array.from(newTypedArray);
-                    response = {
-                        memory: newNumberArray,
-                        return: funcReturn,
-                        error: funcThrownError,
-                    };
-                    this._memory = undefined;
-                }
+                response = { return: funcReturn, error: funcThrownError };
 
                 writeMessage(channel, response, messageId);
             } else {
@@ -548,7 +511,7 @@ export class WASI {
         return constructWasiSnapshotPreview2Imports(this._wasiEnv);
     }
 
-    private initializeImports(): WebAssembly.Imports {
+    private initializeCoreImports(): WebAssembly.Imports {
         const wasmImports = {};
         const get_export_func = (name: string) => {
             return this.get_export(name);
@@ -583,15 +546,15 @@ export class WASI {
             // special case for memory:
             if (name == "memory") {
                 //wasiDebug("WASI getting memory")
-                if (this._memory) {
+                if (this._coreModuleMemory) {
                     wasiDebug("WASI getting memory, this._memory is set");
-                    return this._memory;
+                    return this._coreModuleMemory;
                 } else {
                     wasiDebug("WASI getting memory, this._memory is not set");
                 }
             }
-            if (this._moduleInstance) {
-                return this._moduleInstance.exports[name];
+            if (this._coreModuleInstance) {
+                return this._coreModuleInstance.exports[name];
             } else {
                 throw new Error(`WebAssembly moduleInstance not initialized, export ${name} not found`);
             }
@@ -603,6 +566,5 @@ export class WASI {
     public stopWorker(): void {
         this._worker?.terminate();
         this._worker = undefined;
-        this._threadRemote = undefined;
     }
 }

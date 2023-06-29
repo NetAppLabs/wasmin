@@ -1,7 +1,7 @@
 import { WASI, WasiExperimentalSocketsNamespace, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-import { getWasmBuffer, initializeHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { ReciveMemoryFunc, USE_SHARED_MEMORY } from "./desyncify.js";
+import { getWasmBuffer, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
 import { In, Out, isNode } from "./wasiUtils.js";
 import {
@@ -32,7 +32,7 @@ export interface WasiWorkerOptions {
 
 export class WASIWorker {
     constructor(wasiOptions: WasiWorkerOptions) {
-        initializeHandlers();
+        initializeComlinkHandlers();
         this._wasiOptions = wasiOptions;
     }
     wasiWorkerThread?: comlink.Remote<WasiWorkerThreadRunner>;
@@ -156,7 +156,7 @@ export class WASIWorker {
 
 export class WasiWorkerThreadRunner {
     constructor() {
-        initializeHandlers();
+        initializeComlinkHandlers();
     }
     private wasiWorkerOptions?: WasiWorkerOptions;
     private wasi?: WASI;
@@ -206,7 +206,9 @@ export class WasiWorkerThreadRunner {
         }
     }
 
-    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace): Promise<string[]> {
+    public async initializeComponentImports(
+        wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace
+    ): Promise<string[]> {
         if (!this.wasi) {
             this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
         }
@@ -236,10 +238,10 @@ export class WasiWorkerThreadRunner {
         );
         const wasi = this.wasi;
         if (wasi) {
-            const moduleImports = this.wasi?.moduleImports;
+            const moduleImports = this.wasi?.coreModuleImports;
             if (moduleImports) {
                 wasiWorkerDebug(`WasiWorkerThreadRunner: handleImport: wasi is set`);
-                return await wasi.handleImport(messageId, importName, functionName, args, buf, moduleImports);
+                return await wasi.handleCoreImport(messageId, importName, functionName, args, buf, moduleImports);
             } else {
                 console.error("no moduleImports set");
             }
@@ -272,12 +274,7 @@ export class WasiWorkerThreadRunner {
 
 function createChannel(): Channel {
     let channel: Channel | null;
-    if (USE_SHARED_MEMORY) {
-        channel = makeChannel();
-    } else {
-        const bufferSize = 64 * 1024 * 1024;
-        channel = makeAtomicsChannel({ bufferSize });
-    }
+    channel = makeChannel();
     if (!channel) {
         throw new Error("could not create channel");
     }
