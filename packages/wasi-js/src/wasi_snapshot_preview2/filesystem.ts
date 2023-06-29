@@ -31,7 +31,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     async readViaStream(fd: Descriptor, offset: FileSize): Promise<InputStream> {
         try {
             const newFd = await this.openFiles.openReader(fd, offset);
-            console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
+            // console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);
@@ -40,7 +40,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     async writeViaStream(fd: Descriptor, offset: FileSize): Promise<OutputStream> {
         try {
             const newFd = await this.openFiles.openWriter(fd, offset);
-            console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
+            // console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);

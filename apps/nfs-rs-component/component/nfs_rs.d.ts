@@ -10,6 +10,7 @@ import { FilesystemFilesystem as FilesystemFilesystemImports } from './imports/f
 import { IoStreams as IoStreamsImports } from './imports/io-streams';
 import { NfsRsComponentWasiExperimentalSockets as NfsRsComponentWasiExperimentalSocketsImports } from './imports/nfs-rs-component-wasi-experimental-sockets';
 import { PollPoll as PollPollImports } from './imports/poll-poll';
+import { RandomRandom as RandomRandomImports } from './imports/random-random';
 import { NfsRsComponentNfs as NfsRsComponentNfsExports } from './exports/nfs-rs-component-nfs';
 export interface ImportObject {
   'cli-base': {
@@ -35,6 +36,9 @@ export interface ImportObject {
   },
   poll: {
     pollPoll: typeof PollPollImports,
+  },
+  random: {
+    randomRandom: typeof RandomRandomImports,
   },
 }
 export interface Root {

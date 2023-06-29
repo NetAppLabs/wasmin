@@ -22,13 +22,13 @@ await wasi.createWorker(wasiExperimentalSocketsNamespace)
   .then((componentImports) => instantiate(compileCore, componentImports))
   .then((instance) => {
     const nfs = instance.nfs;
-    nfs.parseUrlAndMount("nfs://localhost/Users/Shared/nfs/?nfsport=20490&mountport=20490");
-    console.log("root fh:", nfs.lookup("/"));
-    const entries = nfs.readdirplusPath("/");
+    const mount = nfs.parseUrlAndMount("nfs://localhost/Users/Shared/nfs/?nfsport=20490&mountport=20490");
+    console.log("root fh:", nfs.lookup(mount, "/"));
+    const entries = nfs.readdirplusPath(mount, "/");
     for (const entry of entries) {
-        console.log(entry);
+        console.log(`/${entry.fileName} =`, entry);
     }
-    nfs.umount();
+    nfs.umount(mount);
   })
   .finally(() => {
     wasi.stopWorker();

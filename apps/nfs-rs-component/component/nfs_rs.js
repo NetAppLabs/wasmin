@@ -1771,10 +1771,22 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 4, len1, true);
     dataView(memory0).setInt32(arg2 + 0, ptr1, true);
   }
-  const interface31 = imports['cli-base'].cliBaseEnvironment;
-  const lowering31Callee = interface31.getEnvironment;
-  function lowering31(arg0) {
-    const ret = lowering31Callee();
+  const interface31 = imports.random.randomRandom;
+  const lowering31Callee = interface31.getRandomBytes;
+  function lowering31(arg0, arg1) {
+    const ret = lowering31Callee(BigInt.asUintN(64, arg0));
+    const val0 = ret;
+    const len0 = val0.byteLength;
+    const ptr0 = realloc1(0, 0, 1, len0 * 1);
+    const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
+    (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+    dataView(memory0).setInt32(arg1 + 4, len0, true);
+    dataView(memory0).setInt32(arg1 + 0, ptr0, true);
+  }
+  const interface32 = imports['cli-base'].cliBaseEnvironment;
+  const lowering32Callee = interface32.getEnvironment;
+  function lowering32(arg0) {
+    const ret = lowering32Callee();
     const vec3 = ret;
     const len3 = vec3.length;
     const result3 = realloc1(0, 0, 4, len3 * 16);
@@ -1824,12 +1836,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       'sock-send': exports0['8'],
     },
     wasi_snapshot_preview1: {
-      clock_time_get: exports0['20'],
-      environ_get: exports0['23'],
-      environ_sizes_get: exports0['24'],
-      fd_write: exports0['21'],
-      poll_oneoff: exports0['22'],
-      proc_exit: exports0['25'],
+      clock_time_get: exports0['22'],
+      environ_get: exports0['25'],
+      environ_sizes_get: exports0['26'],
+      fd_write: exports0['23'],
+      poll_oneoff: exports0['24'],
+      proc_exit: exports0['27'],
+      random_get: exports0['21'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -1840,7 +1853,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli-base/environment': {
-      'get-environment': exports0['19'],
+      'get-environment': exports0['20'],
     },
     'wasi:cli-base/exit': {
       exit: lowering6,
@@ -1884,6 +1897,9 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       'drop-pollable': lowering4,
       'poll-oneoff': exports0['18'],
     },
+    'wasi:random/random': {
+      'get-random-bytes': exports0['19'],
+    },
   }));
   memory0 = exports1.memory;
   realloc0 = exports1.cabi_realloc;
@@ -1904,12 +1920,14 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '18': lowering30,
       '19': lowering31,
       '2': lowering14,
-      '20': exports2.clock_time_get,
-      '21': exports2.fd_write,
-      '22': exports2.poll_oneoff,
-      '23': exports2.environ_get,
-      '24': exports2.environ_sizes_get,
-      '25': exports2.proc_exit,
+      '20': lowering32,
+      '21': exports2.random_get,
+      '22': exports2.clock_time_get,
+      '23': exports2.fd_write,
+      '24': exports2.poll_oneoff,
+      '25': exports2.environ_get,
+      '26': exports2.environ_sizes_get,
+      '27': exports2.proc_exit,
       '3': lowering15,
       '4': lowering16,
       '5': lowering17,
@@ -1940,11 +1958,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const len0 = utf8EncodedLen;
       const ret = exports1['component:nfs-rs-component/nfs#parse-url-and-mount'](ptr0, len0);
       let variant1;
-      switch (ret) {
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           variant1= {
             tag: 'ok',
-            val: undefined
+            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
           };
           break;
         }
@@ -1964,8 +1982,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    null() {
-      const ret = exports1['component:nfs-rs-component/nfs#null']();
+    null(arg0) {
+      const ret = exports1['component:nfs-rs-component/nfs#null'](toUint32(arg0));
       let variant0;
       switch (ret) {
         case 0: {
@@ -1991,13 +2009,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant0.val;
     },
-    access(arg0, arg1) {
-      const val0 = arg0;
+    access(arg0, arg1, arg2) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#access'](ptr0, len0, toUint32(arg1));
+      const ret = exports1['component:nfs-rs-component/nfs#access'](toUint32(arg0), ptr0, len0, toUint32(arg2));
       let variant1;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2023,10 +2041,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    accessPath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    accessPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#access-path'](ptr0, len0, toUint32(arg1));
+      const ret = exports1['component:nfs-rs-component/nfs#access-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
       let variant1;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2052,8 +2070,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    close(arg0, arg1) {
-      const ret = exports1['component:nfs-rs-component/nfs#close'](toUint32(arg0), toUint64(arg1));
+    close(arg0, arg1, arg2) {
+      const ret = exports1['component:nfs-rs-component/nfs#close'](toUint32(arg0), toUint32(arg1), toUint64(arg2));
       let variant0;
       switch (ret) {
         case 0: {
@@ -2079,13 +2097,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant0.val;
     },
-    commit(arg0, arg1, arg2) {
-      const val0 = arg0;
+    commit(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#commit'](ptr0, len0, toUint64(arg1), toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#commit'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
       let variant1;
       switch (ret) {
         case 0: {
@@ -2111,10 +2129,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    commitPath(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    commitPath(arg0, arg1, arg2, arg3) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#commit-path'](ptr0, len0, toUint64(arg1), toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#commit-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
       let variant1;
       switch (ret) {
         case 0: {
@@ -2140,15 +2158,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    create(arg0, arg1, arg2) {
-      const val0 = arg0;
+    create(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#create'](ptr0, len0, ptr1, len1, toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#create'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2178,10 +2196,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    createPath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    createPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#create-path'](ptr0, len0, toUint32(arg1));
+      const ret = exports1['component:nfs-rs-component/nfs#create-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2211,8 +2229,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    delegpurge(arg0) {
-      const ret = exports1['component:nfs-rs-component/nfs#delegpurge'](toUint64(arg0));
+    delegpurge(arg0, arg1) {
+      const ret = exports1['component:nfs-rs-component/nfs#delegpurge'](toUint32(arg0), toUint64(arg1));
       let variant0;
       switch (ret) {
         case 0: {
@@ -2238,8 +2256,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant0.val;
     },
-    delegreturn(arg0) {
-      const ret = exports1['component:nfs-rs-component/nfs#delegreturn'](toUint64(arg0));
+    delegreturn(arg0, arg1) {
+      const ret = exports1['component:nfs-rs-component/nfs#delegreturn'](toUint32(arg0), toUint64(arg1));
       let variant0;
       switch (ret) {
         case 0: {
@@ -2265,13 +2283,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant0.val;
     },
-    getattr(arg0) {
-      const val0 = arg0;
+    getattr(arg0, arg1) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#getattr'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#getattr'](toUint32(arg0), ptr0, len0);
       let variant1;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2320,10 +2338,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    getattrPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    getattrPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#getattr-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#getattr-path'](toUint32(arg0), ptr0, len0);
       let variant1;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2372,50 +2390,51 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    setattr(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+    setattr(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       const ptr0 = realloc0(0, 0, 8, 88);
-      const val1 = arg0;
+      dataView(memory0).setInt32(ptr0 + 0, toUint32(arg0), true);
+      const val1 = arg1;
       const len1 = val1.byteLength;
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      dataView(memory0).setInt32(ptr0 + 4, len1, true);
-      dataView(memory0).setInt32(ptr0 + 0, ptr1, true);
-      const variant3 = arg1;
+      dataView(memory0).setInt32(ptr0 + 8, len1, true);
+      dataView(memory0).setInt32(ptr0 + 4, ptr1, true);
+      const variant3 = arg2;
       if (variant3 === null || variant3=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 8, 0, true);
+        dataView(memory0).setInt8(ptr0 + 12, 0, true);
       } else {
         const e = variant3;
-        dataView(memory0).setInt8(ptr0 + 8, 1, true);
+        dataView(memory0).setInt8(ptr0 + 12, 1, true);
         const {seconds: v2_0, nseconds: v2_1 } = e;
-        dataView(memory0).setInt32(ptr0 + 12, toUint32(v2_0), true);
-        dataView(memory0).setInt32(ptr0 + 16, toUint32(v2_1), true);
+        dataView(memory0).setInt32(ptr0 + 16, toUint32(v2_0), true);
+        dataView(memory0).setInt32(ptr0 + 20, toUint32(v2_1), true);
       }
-      const variant4 = arg2;
+      const variant4 = arg3;
       if (variant4 === null || variant4=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 20, 0, true);
+        dataView(memory0).setInt8(ptr0 + 24, 0, true);
       } else {
         const e = variant4;
-        dataView(memory0).setInt8(ptr0 + 20, 1, true);
-        dataView(memory0).setInt32(ptr0 + 24, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 24, 1, true);
+        dataView(memory0).setInt32(ptr0 + 28, toUint32(e), true);
       }
-      const variant5 = arg3;
+      const variant5 = arg4;
       if (variant5 === null || variant5=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 28, 0, true);
+        dataView(memory0).setInt8(ptr0 + 32, 0, true);
       } else {
         const e = variant5;
-        dataView(memory0).setInt8(ptr0 + 28, 1, true);
-        dataView(memory0).setInt32(ptr0 + 32, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 32, 1, true);
+        dataView(memory0).setInt32(ptr0 + 36, toUint32(e), true);
       }
-      const variant6 = arg4;
+      const variant6 = arg5;
       if (variant6 === null || variant6=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 36, 0, true);
+        dataView(memory0).setInt8(ptr0 + 40, 0, true);
       } else {
         const e = variant6;
-        dataView(memory0).setInt8(ptr0 + 36, 1, true);
-        dataView(memory0).setInt32(ptr0 + 40, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 40, 1, true);
+        dataView(memory0).setInt32(ptr0 + 44, toUint32(e), true);
       }
-      const variant7 = arg5;
+      const variant7 = arg6;
       if (variant7 === null || variant7=== undefined) {
         dataView(memory0).setInt8(ptr0 + 48, 0, true);
       } else {
@@ -2423,7 +2442,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt8(ptr0 + 48, 1, true);
         dataView(memory0).setBigInt64(ptr0 + 56, toUint64(e), true);
       }
-      const variant9 = arg6;
+      const variant9 = arg7;
       if (variant9 === null || variant9=== undefined) {
         dataView(memory0).setInt8(ptr0 + 64, 0, true);
       } else {
@@ -2433,7 +2452,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt32(ptr0 + 68, toUint32(v8_0), true);
         dataView(memory0).setInt32(ptr0 + 72, toUint32(v8_1), true);
       }
-      const variant11 = arg7;
+      const variant11 = arg8;
       if (variant11 === null || variant11=== undefined) {
         dataView(memory0).setInt8(ptr0 + 76, 0, true);
       } else {
@@ -2469,38 +2488,39 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant12.val;
     },
-    setattrPath(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+    setattrPath(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       const ptr0 = realloc0(0, 0, 8, 80);
-      const ptr1 = utf8Encode(arg0, realloc0, memory0);
+      dataView(memory0).setInt32(ptr0 + 0, toUint32(arg0), true);
+      const ptr1 = utf8Encode(arg1, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      dataView(memory0).setInt32(ptr0 + 4, len1, true);
-      dataView(memory0).setInt32(ptr0 + 0, ptr1, true);
-      dataView(memory0).setInt8(ptr0 + 8, arg1 ? 1 : 0, true);
-      const variant2 = arg2;
+      dataView(memory0).setInt32(ptr0 + 8, len1, true);
+      dataView(memory0).setInt32(ptr0 + 4, ptr1, true);
+      dataView(memory0).setInt8(ptr0 + 12, arg2 ? 1 : 0, true);
+      const variant2 = arg3;
       if (variant2 === null || variant2=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 12, 0, true);
+        dataView(memory0).setInt8(ptr0 + 16, 0, true);
       } else {
         const e = variant2;
-        dataView(memory0).setInt8(ptr0 + 12, 1, true);
-        dataView(memory0).setInt32(ptr0 + 16, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 16, 1, true);
+        dataView(memory0).setInt32(ptr0 + 20, toUint32(e), true);
       }
-      const variant3 = arg3;
+      const variant3 = arg4;
       if (variant3 === null || variant3=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 20, 0, true);
+        dataView(memory0).setInt8(ptr0 + 24, 0, true);
       } else {
         const e = variant3;
-        dataView(memory0).setInt8(ptr0 + 20, 1, true);
-        dataView(memory0).setInt32(ptr0 + 24, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 24, 1, true);
+        dataView(memory0).setInt32(ptr0 + 28, toUint32(e), true);
       }
-      const variant4 = arg4;
+      const variant4 = arg5;
       if (variant4 === null || variant4=== undefined) {
-        dataView(memory0).setInt8(ptr0 + 28, 0, true);
+        dataView(memory0).setInt8(ptr0 + 32, 0, true);
       } else {
         const e = variant4;
-        dataView(memory0).setInt8(ptr0 + 28, 1, true);
-        dataView(memory0).setInt32(ptr0 + 32, toUint32(e), true);
+        dataView(memory0).setInt8(ptr0 + 32, 1, true);
+        dataView(memory0).setInt32(ptr0 + 36, toUint32(e), true);
       }
-      const variant5 = arg5;
+      const variant5 = arg6;
       if (variant5 === null || variant5=== undefined) {
         dataView(memory0).setInt8(ptr0 + 40, 0, true);
       } else {
@@ -2508,7 +2528,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt8(ptr0 + 40, 1, true);
         dataView(memory0).setBigInt64(ptr0 + 48, toUint64(e), true);
       }
-      const variant7 = arg6;
+      const variant7 = arg7;
       if (variant7 === null || variant7=== undefined) {
         dataView(memory0).setInt8(ptr0 + 56, 0, true);
       } else {
@@ -2518,7 +2538,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt32(ptr0 + 60, toUint32(v6_0), true);
         dataView(memory0).setInt32(ptr0 + 64, toUint32(v6_1), true);
       }
-      const variant9 = arg7;
+      const variant9 = arg8;
       if (variant9 === null || variant9=== undefined) {
         dataView(memory0).setInt8(ptr0 + 68, 0, true);
       } else {
@@ -2554,8 +2574,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant10.val;
     },
-    getfh() {
-      const ret = exports1['component:nfs-rs-component/nfs#getfh']();
+    getfh(arg0) {
+      const ret = exports1['component:nfs-rs-component/nfs#getfh'](toUint32(arg0));
       let variant0;
       switch (ret) {
         case 0: {
@@ -2581,20 +2601,20 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant0.val;
     },
-    link(arg0, arg1, arg2) {
-      const val0 = arg0;
+    link(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const val1 = arg1;
+      const val1 = arg2;
       const len1 = val1.byteLength;
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ptr2 = utf8Encode(arg2, realloc0, memory0);
+      const ptr2 = utf8Encode(arg3, realloc0, memory0);
       const len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#link'](ptr0, len0, ptr1, len1, ptr2, len2);
+      const ret = exports1['component:nfs-rs-component/nfs#link'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2643,12 +2663,12 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    linkPath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    linkPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#link-path'](ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#link-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2697,17 +2717,17 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    symlink(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    symlink(arg0, arg1, arg2, arg3) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const val1 = arg1;
+      const val1 = arg2;
       const len1 = val1.byteLength;
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ptr2 = utf8Encode(arg2, realloc0, memory0);
+      const ptr2 = utf8Encode(arg3, realloc0, memory0);
       const len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#symlink'](ptr0, len0, ptr1, len1, ptr2, len2);
+      const ret = exports1['component:nfs-rs-component/nfs#symlink'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2737,12 +2757,12 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant4.val;
     },
-    symlinkPath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    symlinkPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#symlink-path'](ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#symlink-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2772,13 +2792,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    readlink(arg0) {
-      const val0 = arg0;
+    readlink(arg0, arg1) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readlink'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readlink'](toUint32(arg0), ptr0, len0);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2808,10 +2828,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    readlinkPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    readlinkPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readlink-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readlink-path'](toUint32(arg0), ptr0, len0);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2841,10 +2861,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    lookup(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    lookup(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#lookup'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#lookup'](toUint32(arg0), ptr0, len0);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2874,13 +2894,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    pathconf(arg0) {
-      const val0 = arg0;
+    pathconf(arg0, arg1) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#pathconf'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#pathconf'](toUint32(arg0), ptr0, len0);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -2955,10 +2975,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant6.val;
     },
-    pathconfPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    pathconfPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#pathconf-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#pathconf-path'](toUint32(arg0), ptr0, len0);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3033,13 +3053,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant6.val;
     },
-    read(arg0, arg1, arg2) {
-      const val0 = arg0;
+    read(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#read'](ptr0, len0, toUint64(arg1), toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#read'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3069,10 +3089,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    readPath(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    readPath(arg0, arg1, arg2, arg3) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#read-path'](ptr0, len0, toUint64(arg1), toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#read-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3102,18 +3122,18 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    write(arg0, arg1, arg2) {
-      const val0 = arg0;
+    write(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const val1 = arg2;
+      const val1 = arg3;
       const len1 = val1.byteLength;
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ret = exports1['component:nfs-rs-component/nfs#write'](ptr0, len0, toUint64(arg1), ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#write'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3139,15 +3159,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    writePath(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    writePath(arg0, arg1, arg2, arg3) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const val1 = arg2;
+      const val1 = arg3;
       const len1 = val1.byteLength;
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ret = exports1['component:nfs-rs-component/nfs#write-path'](ptr0, len0, toUint64(arg1), ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#write-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3173,13 +3193,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    readdir(arg0) {
-      const val0 = arg0;
+    readdir(arg0, arg1) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readdir'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readdir'](toUint32(arg0), ptr0, len0);
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3220,10 +3240,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    readdirPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    readdirPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readdir-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readdir-path'](toUint32(arg0), ptr0, len0);
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3264,13 +3284,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    readdirplus(arg0) {
-      const val0 = arg0;
+    readdirplus(arg0, arg1) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readdirplus'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readdirplus'](toUint32(arg0), ptr0, len0);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3353,10 +3373,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant5.val;
     },
-    readdirplusPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    readdirplusPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readdirplus-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#readdirplus-path'](toUint32(arg0), ptr0, len0);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3439,15 +3459,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant5.val;
     },
-    mkdir(arg0, arg1, arg2) {
-      const val0 = arg0;
+    mkdir(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#mkdir'](ptr0, len0, ptr1, len1, toUint32(arg2));
+      const ret = exports1['component:nfs-rs-component/nfs#mkdir'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3477,10 +3497,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    mkdirPath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    mkdirPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#mkdir-path'](ptr0, len0, toUint32(arg1));
+      const ret = exports1['component:nfs-rs-component/nfs#mkdir-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3510,15 +3530,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    remove(arg0, arg1) {
-      const val0 = arg0;
+    remove(arg0, arg1, arg2) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#remove'](ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#remove'](toUint32(arg0), ptr0, len0, ptr1, len1);
       let variant2;
       switch (ret) {
         case 0: {
@@ -3544,10 +3564,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    removePath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    removePath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#remove-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#remove-path'](toUint32(arg0), ptr0, len0);
       let variant1;
       switch (ret) {
         case 0: {
@@ -3573,15 +3593,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    rmdir(arg0, arg1) {
-      const val0 = arg0;
+    rmdir(arg0, arg1, arg2) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rmdir'](ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#rmdir'](toUint32(arg0), ptr0, len0, ptr1, len1);
       let variant2;
       switch (ret) {
         case 0: {
@@ -3607,10 +3627,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    rmdirPath(arg0) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    rmdirPath(arg0, arg1) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rmdir-path'](ptr0, len0);
+      const ret = exports1['component:nfs-rs-component/nfs#rmdir-path'](toUint32(arg0), ptr0, len0);
       let variant1;
       switch (ret) {
         case 0: {
@@ -3636,22 +3656,22 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant1.val;
     },
-    rename(arg0, arg1, arg2, arg3) {
-      const val0 = arg0;
+    rename(arg0, arg1, arg2, arg3, arg4) {
+      const val0 = arg1;
       const len0 = val0.byteLength;
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const val2 = arg2;
+      const val2 = arg3;
       const len2 = val2.byteLength;
       const ptr2 = realloc0(0, 0, 1, len2 * 1);
       const src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ptr3 = utf8Encode(arg3, realloc0, memory0);
+      const ptr3 = utf8Encode(arg4, realloc0, memory0);
       const len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rename'](ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+      const ret = exports1['component:nfs-rs-component/nfs#rename'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
       let variant4;
       switch (ret) {
         case 0: {
@@ -3677,12 +3697,12 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant4.val;
     },
-    renamePath(arg0, arg1) {
-      const ptr0 = utf8Encode(arg0, realloc0, memory0);
+    renamePath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ptr1 = utf8Encode(arg1, realloc0, memory0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rename-path'](ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs-component/nfs#rename-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
       let variant2;
       switch (ret) {
         case 0: {
@@ -3708,8 +3728,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    umount() {
-      const ret = exports1['component:nfs-rs-component/nfs#umount']();
+    umount(arg0) {
+      const ret = exports1['component:nfs-rs-component/nfs#umount'](toUint32(arg0));
       let variant0;
       switch (ret) {
         case 0: {
