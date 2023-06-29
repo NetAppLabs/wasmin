@@ -80,43 +80,53 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const module3 = compileCore('nfs_rs.core4.wasm');
   
   let exports0;
+  const interface0 = imports.sockets.socketsTcp;
+  const lowering0Callee = interface0.dropTcpSocket;
+  function lowering0(arg0) {
+    lowering0Callee(arg0 >>> 0);
+  }
+  const interface1 = imports.sockets.socketsIpNameLookup;
+  const lowering1Callee = interface1.dropResolveAddressStream;
+  function lowering1(arg0) {
+    lowering1Callee(arg0 >>> 0);
+  }
   let exports1;
-  const interface0 = imports.clocks.clocksMonotonicClock;
-  const lowering0Callee = interface0.now;
-  function lowering0() {
-    const ret = lowering0Callee();
+  const interface2 = imports.clocks.clocksMonotonicClock;
+  const lowering2Callee = interface2.now;
+  function lowering2() {
+    const ret = lowering2Callee();
     return toUint64(ret);
   }
-  const interface1 = imports.io.ioStreams;
-  const lowering1Callee = interface1.subscribeToOutputStream;
-  function lowering1(arg0) {
-    const ret = lowering1Callee(arg0 >>> 0);
+  const interface3 = imports.io.ioStreams;
+  const lowering3Callee = interface3.subscribeToOutputStream;
+  function lowering3(arg0) {
+    const ret = lowering3Callee(arg0 >>> 0);
     return toUint32(ret);
   }
-  const lowering2Callee = interface1.subscribeToInputStream;
-  function lowering2(arg0) {
-    const ret = lowering2Callee(arg0 >>> 0);
-    return toUint32(ret);
-  }
-  const lowering3Callee = interface0.subscribe;
-  function lowering3(arg0, arg1) {
-    const bool0 = arg1;
-    const ret = lowering3Callee(BigInt.asUintN(64, arg0), bool0 == 0 ? false : (bool0 == 1 ? true : throwInvalidBool()));
-    return toUint32(ret);
-  }
-  const interface4 = imports.poll.pollPoll;
-  const lowering4Callee = interface4.dropPollable;
+  const lowering4Callee = interface3.subscribeToInputStream;
   function lowering4(arg0) {
-    lowering4Callee(arg0 >>> 0);
+    const ret = lowering4Callee(arg0 >>> 0);
+    return toUint32(ret);
   }
-  const interface5 = imports.filesystem.filesystemFilesystem;
-  const lowering5Callee = interface5.dropDescriptor;
-  function lowering5(arg0) {
-    lowering5Callee(arg0 >>> 0);
+  const lowering5Callee = interface2.subscribe;
+  function lowering5(arg0, arg1) {
+    const bool0 = arg1;
+    const ret = lowering5Callee(BigInt.asUintN(64, arg0), bool0 == 0 ? false : (bool0 == 1 ? true : throwInvalidBool()));
+    return toUint32(ret);
   }
-  const interface6 = imports['cli-base'].cliBaseExit;
-  const lowering6Callee = interface6.exit;
+  const interface6 = imports.poll.pollPoll;
+  const lowering6Callee = interface6.dropPollable;
   function lowering6(arg0) {
+    lowering6Callee(arg0 >>> 0);
+  }
+  const interface7 = imports.filesystem.filesystemFilesystem;
+  const lowering7Callee = interface7.dropDescriptor;
+  function lowering7(arg0) {
+    lowering7Callee(arg0 >>> 0);
+  }
+  const interface8 = imports['cli-base'].cliBaseExit;
+  const lowering8Callee = interface8.exit;
+  function lowering8(arg0) {
     let variant0;
     switch (arg0) {
       case 0: {
@@ -137,59 +147,69 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    lowering6Callee(variant0);
+    lowering8Callee(variant0);
   }
-  const interface7 = imports['cli-base'].cliBaseStderr;
-  const lowering7Callee = interface7.getStderr;
-  function lowering7() {
-    const ret = lowering7Callee();
-    return toUint32(ret);
-  }
-  const interface8 = imports['cli-base'].cliBaseStdin;
-  const lowering8Callee = interface8.getStdin;
-  function lowering8() {
-    const ret = lowering8Callee();
-    return toUint32(ret);
-  }
-  const interface9 = imports['cli-base'].cliBaseStdout;
-  const lowering9Callee = interface9.getStdout;
+  const interface9 = imports['cli-base'].cliBaseStderr;
+  const lowering9Callee = interface9.getStderr;
   function lowering9() {
     const ret = lowering9Callee();
     return toUint32(ret);
   }
-  const lowering10Callee = interface1.dropInputStream;
-  function lowering10(arg0) {
-    lowering10Callee(arg0 >>> 0);
+  const interface10 = imports['cli-base'].cliBaseStdin;
+  const lowering10Callee = interface10.getStdin;
+  function lowering10() {
+    const ret = lowering10Callee();
+    return toUint32(ret);
   }
-  const lowering11Callee = interface1.dropOutputStream;
-  function lowering11(arg0) {
-    lowering11Callee(arg0 >>> 0);
+  const interface11 = imports['cli-base'].cliBaseStdout;
+  const lowering11Callee = interface11.getStdout;
+  function lowering11() {
+    const ret = lowering11Callee();
+    return toUint32(ret);
+  }
+  const lowering12Callee = interface3.dropInputStream;
+  function lowering12(arg0) {
+    lowering12Callee(arg0 >>> 0);
+  }
+  const lowering13Callee = interface3.dropOutputStream;
+  function lowering13(arg0) {
+    lowering13Callee(arg0 >>> 0);
   }
   let exports2;
   let memory0;
-  const interface12 = imports['nfs-rs-component'].nfsRsComponentWasiExperimentalSockets;
-  const lowering12Callee = interface12.addrResolve;
-  function lowering12(arg0, arg1, arg2, arg3, arg4) {
-    const ptr0 = arg0;
-    const len0 = arg1;
-    const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
-    let variant1;
+  const lowering14Callee = interface0.startConnect;
+  function lowering14(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+    let variant0;
     switch (arg2) {
       case 0: {
-        variant1 = null;
+        variant0= {
+          tag: 'ipv4',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            address: [clampGuest(arg4, 0, 255), clampGuest(arg5, 0, 255), clampGuest(arg6, 0, 255), clampGuest(arg7, 0, 255)],
+          }
+        };
         break;
       }
       case 1: {
-        variant1 = clampGuest(arg3, 0, 65535);
+        variant0= {
+          tag: 'ipv6',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            flowInfo: arg4 >>> 0,
+            address: [clampGuest(arg5, 0, 65535), clampGuest(arg6, 0, 65535), clampGuest(arg7, 0, 65535), clampGuest(arg8, 0, 65535), clampGuest(arg9, 0, 65535), clampGuest(arg10, 0, 65535), clampGuest(arg11, 0, 65535), clampGuest(arg12, 0, 65535)],
+            scopeId: arg13 >>> 0,
+          }
+        };
         break;
       }
       default: {
-        throw new TypeError('invalid variant discriminant for option');
+        throw new TypeError('invalid variant discriminant for IpSocketAddress');
       }
     }
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering12Callee(result0, variant1) };
+      ret = { tag: 'ok', val: lowering14Callee(arg0 >>> 0, arg1 >>> 0, variant0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -197,104 +217,152 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     switch (variant2.tag) {
       case 'ok': {
         const e = variant2.val;
-        dataView(memory0).setInt8(arg4 + 0, 0, true);
-        dataView(memory0).setInt32(arg4 + 4, toUint32(e), true);
+        dataView(memory0).setInt8(arg14 + 0, 0, true);
         break;
       }
       case 'err': {
         const e = variant2.val;
-        dataView(memory0).setInt8(arg4 + 0, 1, true);
-        dataView(memory0).setInt16(arg4 + 4, toUint16(e), true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering13Callee = interface12.addrResolveStreamNext;
-  function lowering13(arg0, arg1) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering13Callee(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant8 = ret;
-    switch (variant8.tag) {
-      case 'ok': {
-        const e = variant8.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const variant7 = e;
-        if (variant7 === null || variant7=== undefined) {
-          dataView(memory0).setInt8(arg1 + 2, 0, true);
-        } else {
-          const e = variant7;
-          dataView(memory0).setInt8(arg1 + 2, 1, true);
-          const {tag: v0_0, u: v0_1 } = e;
-          const val1 = v0_0;
-          let enum1;
-          switch (val1) {
-            case 'ip4': {
-              enum1 = 0;
-              break;
-            }
-            case 'ip6': {
-              enum1 = 1;
-              break;
-            }
-            default: {
-              if ((v0_0) instanceof Error) {
-                console.error(v0_0);
-              }
-              
-              throw new TypeError(`"${val1}" is not one of the cases of addr-type`);
-            }
+        dataView(memory0).setInt8(arg14 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
           }
-          dataView(memory0).setInt8(arg1 + 4, enum1, true);
-          const union6 = v0_1;
-          switch (union6.tag) {
-            case 0: {
-              const e = union6.val;
-              dataView(memory0).setInt8(arg1 + 6, 0, true);
-              const {addr: v2_0, port: v2_1 } = e;
-              const {n0: v3_0, n1: v3_1, h0: v3_2, h1: v3_3 } = v2_0;
-              dataView(memory0).setInt8(arg1 + 8, toUint8(v3_0), true);
-              dataView(memory0).setInt8(arg1 + 9, toUint8(v3_1), true);
-              dataView(memory0).setInt8(arg1 + 10, toUint8(v3_2), true);
-              dataView(memory0).setInt8(arg1 + 11, toUint8(v3_3), true);
-              dataView(memory0).setInt16(arg1 + 12, toUint16(v2_1), true);
-              
-              break;
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
             }
-            case 1: {
-              const e = union6.val;
-              dataView(memory0).setInt8(arg1 + 6, 1, true);
-              const {addr: v4_0, port: v4_1 } = e;
-              const {n0: v5_0, n1: v5_1, n2: v5_2, n3: v5_3, h0: v5_4, h1: v5_5, h2: v5_6, h3: v5_7 } = v4_0;
-              dataView(memory0).setInt16(arg1 + 8, toUint16(v5_0), true);
-              dataView(memory0).setInt16(arg1 + 10, toUint16(v5_1), true);
-              dataView(memory0).setInt16(arg1 + 12, toUint16(v5_2), true);
-              dataView(memory0).setInt16(arg1 + 14, toUint16(v5_3), true);
-              dataView(memory0).setInt16(arg1 + 16, toUint16(v5_4), true);
-              dataView(memory0).setInt16(arg1 + 18, toUint16(v5_5), true);
-              dataView(memory0).setInt16(arg1 + 20, toUint16(v5_6), true);
-              dataView(memory0).setInt16(arg1 + 22, toUint16(v5_7), true);
-              dataView(memory0).setInt16(arg1 + 24, toUint16(v4_1), true);
-              
-              break;
-            }
-            default: {
-              throw new TypeError('invalid union specified for AddrU');
-            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
           }
         }
-        break;
-      }
-      case 'err': {
-        const e = variant8.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        dataView(memory0).setInt16(arg1 + 2, toUint16(e), true);
+        dataView(memory0).setInt8(arg14 + 1, enum1, true);
         break;
       }
       default: {
@@ -302,65 +370,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering14Callee = interface12.addrResolveStreamDispose;
-  function lowering14(arg0, arg1) {
+  const lowering15Callee = interface0.finishConnect;
+  function lowering15(arg0, arg1) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering14Callee(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant0 = ret;
-    switch (variant0.tag) {
-      case 'ok': {
-        const e = variant0.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant0.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        dataView(memory0).setInt16(arg1 + 2, toUint16(e), true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering15Callee = interface12.sockOpen;
-  function lowering15(arg0, arg1, arg2) {
-    let enum0;
-    switch (arg0) {
-      case 0: {
-        enum0 = 'inet4';
-        break;
-      }
-      case 1: {
-        enum0 = 'inet6';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for AddressFamily');
-      }
-    }
-    let enum1;
-    switch (arg1) {
-      case 0: {
-        enum1 = 'dgram';
-        break;
-      }
-      case 1: {
-        enum1 = 'strm';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for SocketType');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering15Callee(enum0, enum1) };
+      ret = { tag: 'ok', val: lowering15Callee(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -368,14 +382,155 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     switch (variant2.tag) {
       case 'ok': {
         const e = variant2.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        dataView(memory0).setInt32(arg2 + 4, toUint32(e), true);
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const [tuple0_0, tuple0_1] = e;
+        dataView(memory0).setInt32(arg1 + 4, toUint32(tuple0_0), true);
+        dataView(memory0).setInt32(arg1 + 8, toUint32(tuple0_1), true);
         break;
       }
       case 'err': {
         const e = variant2.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        dataView(memory0).setInt16(arg2 + 4, toUint16(e), true);
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum1, true);
         break;
       }
       default: {
@@ -383,7 +538,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering16Callee = interface12.sockClose;
+  const lowering16Callee = interface0.remoteAddress;
   function lowering16(arg0, arg1) {
     let ret;
     try {
@@ -391,183 +546,192 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant0 = ret;
-    switch (variant0.tag) {
+    const variant6 = ret;
+    switch (variant6.tag) {
       case 'ok': {
-        const e = variant0.val;
+        const e = variant6.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant0.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        dataView(memory0).setInt16(arg1 + 2, toUint16(e), true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering17Callee = interface12.sockConnect;
-  function lowering17(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12) {
-    let enum0;
-    switch (arg1) {
-      case 0: {
-        enum0 = 'ip4';
-        break;
-      }
-      case 1: {
-        enum0 = 'ip6';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for AddrType');
-      }
-    }
-    let union1;
-    switch (arg2) {
-      case 0: {
-        union1= {
-          tag: 0,
-          val: {
-            addr: {
-              n0: clampGuest(arg3, 0, 255),
-              n1: clampGuest(arg4, 0, 255),
-              h0: clampGuest(arg5, 0, 255),
-              h1: clampGuest(arg6, 0, 255),
-            },
-            port: clampGuest(arg7, 0, 65535),
-          },
-        };
-        break;
-      }
-      case 1: {
-        union1= {
-          tag: 1,
-          val: {
-            addr: {
-              n0: clampGuest(arg3, 0, 65535),
-              n1: clampGuest(arg4, 0, 65535),
-              n2: clampGuest(arg5, 0, 65535),
-              n3: clampGuest(arg6, 0, 65535),
-              h0: clampGuest(arg7, 0, 65535),
-              h1: clampGuest(arg8, 0, 65535),
-              h2: clampGuest(arg9, 0, 65535),
-              h3: clampGuest(arg10, 0, 65535),
-            },
-            port: clampGuest(arg11, 0, 65535),
-          },
-        };
-        break;
-      }
-      default: {
-        throw new TypeError('invalid union discriminant for AddrU');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering17Callee(arg0 >>> 0, {
-        tag: enum0,
-        u: union1,
-      }) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg12 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg12 + 0, 1, true);
-        dataView(memory0).setInt16(arg12 + 2, toUint16(e), true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering18Callee = interface12.sockAddrRemote;
-  function lowering18(arg0, arg1) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering18Callee(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant7 = ret;
-    switch (variant7.tag) {
-      case 'ok': {
-        const e = variant7.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const {tag: v0_0, u: v0_1 } = e;
-        const val1 = v0_0;
-        let enum1;
-        switch (val1) {
-          case 'ip4': {
-            enum1 = 0;
+        const variant4 = e;
+        switch (variant4.tag) {
+          case 'ipv4': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            const {port: v0_0, address: v0_1 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v0_0), true);
+            const [tuple1_0, tuple1_1, tuple1_2, tuple1_3] = v0_1;
+            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple1_0), true);
+            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple1_1), true);
+            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple1_2), true);
+            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple1_3), true);
             break;
           }
-          case 'ip6': {
-            enum1 = 1;
+          case 'ipv6': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            const {port: v2_0, flowInfo: v2_1, address: v2_2, scopeId: v2_3 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v2_0), true);
+            dataView(memory0).setInt32(arg1 + 12, toUint32(v2_1), true);
+            const [tuple3_0, tuple3_1, tuple3_2, tuple3_3, tuple3_4, tuple3_5, tuple3_6, tuple3_7] = v2_2;
+            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple3_0), true);
+            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple3_1), true);
+            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple3_2), true);
+            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple3_3), true);
+            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple3_4), true);
+            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple3_5), true);
+            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple3_6), true);
+            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple3_7), true);
+            dataView(memory0).setInt32(arg1 + 32, toUint32(v2_3), true);
             break;
           }
           default: {
-            if ((v0_0) instanceof Error) {
-              console.error(v0_0);
+            throw new TypeError('invalid variant specified for IpSocketAddress');
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val5 = e;
+        let enum5;
+        switch (val5) {
+          case 'unknown': {
+            enum5 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum5 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum5 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum5 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum5 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum5 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum5 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum5 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum5 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum5 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum5 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum5 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum5 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum5 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum5 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum5 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum5 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum5 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum5 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum5 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum5 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum5 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum5 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum5 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum5 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum5 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum5 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum5 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum5 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum5 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum5 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum5 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
             }
             
-            throw new TypeError(`"${val1}" is not one of the cases of addr-type`);
+            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 2, enum1, true);
-        const union6 = v0_1;
-        switch (union6.tag) {
-          case 0: {
-            const e = union6.val;
-            dataView(memory0).setInt8(arg1 + 4, 0, true);
-            const {addr: v2_0, port: v2_1 } = e;
-            const {n0: v3_0, n1: v3_1, h0: v3_2, h1: v3_3 } = v2_0;
-            dataView(memory0).setInt8(arg1 + 6, toUint8(v3_0), true);
-            dataView(memory0).setInt8(arg1 + 7, toUint8(v3_1), true);
-            dataView(memory0).setInt8(arg1 + 8, toUint8(v3_2), true);
-            dataView(memory0).setInt8(arg1 + 9, toUint8(v3_3), true);
-            dataView(memory0).setInt16(arg1 + 10, toUint16(v2_1), true);
-            
-            break;
-          }
-          case 1: {
-            const e = union6.val;
-            dataView(memory0).setInt8(arg1 + 4, 1, true);
-            const {addr: v4_0, port: v4_1 } = e;
-            const {n0: v5_0, n1: v5_1, n2: v5_2, n3: v5_3, h0: v5_4, h1: v5_5, h2: v5_6, h3: v5_7 } = v4_0;
-            dataView(memory0).setInt16(arg1 + 6, toUint16(v5_0), true);
-            dataView(memory0).setInt16(arg1 + 8, toUint16(v5_1), true);
-            dataView(memory0).setInt16(arg1 + 10, toUint16(v5_2), true);
-            dataView(memory0).setInt16(arg1 + 12, toUint16(v5_3), true);
-            dataView(memory0).setInt16(arg1 + 14, toUint16(v5_4), true);
-            dataView(memory0).setInt16(arg1 + 16, toUint16(v5_5), true);
-            dataView(memory0).setInt16(arg1 + 18, toUint16(v5_6), true);
-            dataView(memory0).setInt16(arg1 + 20, toUint16(v5_7), true);
-            dataView(memory0).setInt16(arg1 + 22, toUint16(v4_1), true);
-            
-            break;
-          }
-          default: {
-            throw new TypeError('invalid union specified for AddrU');
-          }
-        }
-        break;
-      }
-      case 'err': {
-        const e = variant7.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        dataView(memory0).setInt16(arg1 + 2, toUint16(e), true);
+        dataView(memory0).setInt8(arg1 + 4, enum5, true);
         break;
       }
       default: {
@@ -576,32 +740,34 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   let realloc0;
-  const lowering19Callee = interface12.sockRecv;
-  function lowering19(arg0, arg1, arg2, arg3) {
+  const lowering17Callee = interface3.blockingRead;
+  function lowering17(arg0, arg1, arg2) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering19Callee(arg0 >>> 0, arg1 >>> 0, clampGuest(arg2, 0, 65535)) };
+      ret = { tag: 'ok', val: lowering17Callee(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant3 = ret;
+    switch (variant3.tag) {
       case 'ok': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg3 + 0, 0, true);
-        const val0 = e;
-        const len0 = val0.byteLength;
-        const ptr0 = realloc0(0, 0, 1, len0 * 1);
-        const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-        (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-        dataView(memory0).setInt32(arg3 + 8, len0, true);
-        dataView(memory0).setInt32(arg3 + 4, ptr0, true);
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        const [tuple0_0, tuple0_1] = e;
+        const val1 = tuple0_0;
+        const len1 = val1.byteLength;
+        const ptr1 = realloc0(0, 0, 1, len1 * 1);
+        const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
+        (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
+        dataView(memory0).setInt32(arg2 + 8, len1, true);
+        dataView(memory0).setInt32(arg2 + 4, ptr1, true);
+        dataView(memory0).setInt8(arg2 + 12, tuple0_1 ? 1 : 0, true);
         break;
       }
       case 'err': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg3 + 0, 1, true);
-        dataView(memory0).setInt16(arg3 + 4, toUint16(e), true);
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const { } = e;
         break;
       }
       default: {
@@ -609,29 +775,610 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering20Callee = interface12.sockSend;
-  function lowering20(arg0, arg1, arg2, arg3, arg4, arg5) {
+  const lowering18Callee = interface3.blockingWrite;
+  function lowering18(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering20Callee(arg0 >>> 0, result0, arg3 >>> 0, clampGuest(arg4, 0, 65535)) };
+      ret = { tag: 'ok', val: lowering18Callee(arg0 >>> 0, result0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant2 = ret;
+    switch (variant2.tag) {
       case 'ok': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg5 + 0, 0, true);
-        dataView(memory0).setInt32(arg5 + 4, toUint32(e), true);
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        dataView(memory0).setBigInt64(arg3 + 8, toUint64(e), true);
         break;
       }
       case 'err': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg5 + 0, 1, true);
-        dataView(memory0).setInt16(arg5 + 4, toUint16(e), true);
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg3 + 0, 1, true);
+        const { } = e;
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  const interface19 = imports.sockets.socketsTcpCreateSocket;
+  const lowering19Callee = interface19.createTcpSocket;
+  function lowering19(arg0, arg1) {
+    let enum0;
+    switch (arg0) {
+      case 0: {
+        enum0 = 'ipv4';
+        break;
+      }
+      case 1: {
+        enum0 = 'ipv6';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for IpAddressFamily');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: lowering19Callee(enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        dataView(memory0).setInt32(arg1 + 4, toUint32(e), true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  const lowering20Callee = interface1.resolveAddresses;
+  function lowering20(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+    const ptr0 = arg1;
+    const len0 = arg2;
+    const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
+    let variant2;
+    switch (arg3) {
+      case 0: {
+        variant2 = null;
+        break;
+      }
+      case 1: {
+        let enum1;
+        switch (arg4) {
+          case 0: {
+            enum1 = 'ipv4';
+            break;
+          }
+          case 1: {
+            enum1 = 'ipv6';
+            break;
+          }
+          default: {
+            throw new TypeError('invalid discriminant specified for IpAddressFamily');
+          }
+        }
+        variant2 = enum1;
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for option');
+      }
+    }
+    const bool3 = arg5;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: lowering20Callee(arg0 >>> 0, result0, variant2, bool3 == 0 ? false : (bool3 == 1 ? true : throwInvalidBool())) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg6 + 0, 0, true);
+        dataView(memory0).setInt32(arg6 + 4, toUint32(e), true);
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg6 + 0, 1, true);
+        const val4 = e;
+        let enum4;
+        switch (val4) {
+          case 'unknown': {
+            enum4 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum4 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum4 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum4 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum4 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum4 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum4 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum4 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum4 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum4 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum4 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum4 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum4 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum4 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum4 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum4 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum4 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum4 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum4 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum4 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum4 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum4 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum4 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum4 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum4 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum4 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum4 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum4 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum4 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum4 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum4 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum4 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg6 + 4, enum4, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  const lowering21Callee = interface1.resolveNextAddress;
+  function lowering21(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: lowering21Callee(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const variant3 = e;
+        if (variant3 === null || variant3=== undefined) {
+          dataView(memory0).setInt8(arg1 + 2, 0, true);
+        } else {
+          const e = variant3;
+          dataView(memory0).setInt8(arg1 + 2, 1, true);
+          const variant2 = e;
+          switch (variant2.tag) {
+            case 'ipv4': {
+              const e = variant2.val;
+              dataView(memory0).setInt8(arg1 + 4, 0, true);
+              const [tuple0_0, tuple0_1, tuple0_2, tuple0_3] = e;
+              dataView(memory0).setInt8(arg1 + 6, toUint8(tuple0_0), true);
+              dataView(memory0).setInt8(arg1 + 7, toUint8(tuple0_1), true);
+              dataView(memory0).setInt8(arg1 + 8, toUint8(tuple0_2), true);
+              dataView(memory0).setInt8(arg1 + 9, toUint8(tuple0_3), true);
+              break;
+            }
+            case 'ipv6': {
+              const e = variant2.val;
+              dataView(memory0).setInt8(arg1 + 4, 1, true);
+              const [tuple1_0, tuple1_1, tuple1_2, tuple1_3, tuple1_4, tuple1_5, tuple1_6, tuple1_7] = e;
+              dataView(memory0).setInt16(arg1 + 6, toUint16(tuple1_0), true);
+              dataView(memory0).setInt16(arg1 + 8, toUint16(tuple1_1), true);
+              dataView(memory0).setInt16(arg1 + 10, toUint16(tuple1_2), true);
+              dataView(memory0).setInt16(arg1 + 12, toUint16(tuple1_3), true);
+              dataView(memory0).setInt16(arg1 + 14, toUint16(tuple1_4), true);
+              dataView(memory0).setInt16(arg1 + 16, toUint16(tuple1_5), true);
+              dataView(memory0).setInt16(arg1 + 18, toUint16(tuple1_6), true);
+              dataView(memory0).setInt16(arg1 + 20, toUint16(tuple1_7), true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant specified for IpAddress');
+            }
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val4 = e;
+        let enum4;
+        switch (val4) {
+          case 'unknown': {
+            enum4 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum4 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum4 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum4 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum4 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum4 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum4 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum4 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum4 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum4 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum4 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum4 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum4 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum4 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum4 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum4 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum4 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum4 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum4 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum4 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum4 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum4 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum4 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum4 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum4 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum4 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum4 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum4 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum4 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum4 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum4 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum4 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 2, enum4, true);
         break;
       }
       default: {
@@ -640,10 +1387,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   let realloc1;
-  const interface21 = imports['cli-base'].cliBasePreopens;
-  const lowering21Callee = interface21.getDirectories;
-  function lowering21(arg0) {
-    const ret = lowering21Callee();
+  const interface22 = imports['cli-base'].cliBasePreopens;
+  const lowering22Callee = interface22.getDirectories;
+  function lowering22(arg0) {
+    const ret = lowering22Callee();
     const vec2 = ret;
     const len2 = vec2.length;
     const result2 = realloc1(0, 0, 4, len2 * 12);
@@ -659,201 +1406,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 4, len2, true);
     dataView(memory0).setInt32(arg0 + 0, result2, true);
   }
-  const interface22 = imports.clocks.clocksWallClock;
-  const lowering22Callee = interface22.now;
-  function lowering22(arg0) {
-    const ret = lowering22Callee();
+  const interface23 = imports.clocks.clocksWallClock;
+  const lowering23Callee = interface23.now;
+  function lowering23(arg0) {
+    const ret = lowering23Callee();
     const {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
-  const lowering23Callee = interface5.readViaStream;
-  function lowering23(arg0, arg1, arg2) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering23Callee(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant1 = ret;
-    switch (variant1.tag) {
-      case 'ok': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        dataView(memory0).setInt32(arg2 + 4, toUint32(e), true);
-        break;
-      }
-      case 'err': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
-          case 'access': {
-            enum0 = 0;
-            break;
-          }
-          case 'would-block': {
-            enum0 = 1;
-            break;
-          }
-          case 'already': {
-            enum0 = 2;
-            break;
-          }
-          case 'bad-descriptor': {
-            enum0 = 3;
-            break;
-          }
-          case 'busy': {
-            enum0 = 4;
-            break;
-          }
-          case 'deadlock': {
-            enum0 = 5;
-            break;
-          }
-          case 'quota': {
-            enum0 = 6;
-            break;
-          }
-          case 'exist': {
-            enum0 = 7;
-            break;
-          }
-          case 'file-too-large': {
-            enum0 = 8;
-            break;
-          }
-          case 'illegal-byte-sequence': {
-            enum0 = 9;
-            break;
-          }
-          case 'in-progress': {
-            enum0 = 10;
-            break;
-          }
-          case 'interrupted': {
-            enum0 = 11;
-            break;
-          }
-          case 'invalid': {
-            enum0 = 12;
-            break;
-          }
-          case 'io': {
-            enum0 = 13;
-            break;
-          }
-          case 'is-directory': {
-            enum0 = 14;
-            break;
-          }
-          case 'loop': {
-            enum0 = 15;
-            break;
-          }
-          case 'too-many-links': {
-            enum0 = 16;
-            break;
-          }
-          case 'message-size': {
-            enum0 = 17;
-            break;
-          }
-          case 'name-too-long': {
-            enum0 = 18;
-            break;
-          }
-          case 'no-device': {
-            enum0 = 19;
-            break;
-          }
-          case 'no-entry': {
-            enum0 = 20;
-            break;
-          }
-          case 'no-lock': {
-            enum0 = 21;
-            break;
-          }
-          case 'insufficient-memory': {
-            enum0 = 22;
-            break;
-          }
-          case 'insufficient-space': {
-            enum0 = 23;
-            break;
-          }
-          case 'not-directory': {
-            enum0 = 24;
-            break;
-          }
-          case 'not-empty': {
-            enum0 = 25;
-            break;
-          }
-          case 'not-recoverable': {
-            enum0 = 26;
-            break;
-          }
-          case 'unsupported': {
-            enum0 = 27;
-            break;
-          }
-          case 'no-tty': {
-            enum0 = 28;
-            break;
-          }
-          case 'no-such-device': {
-            enum0 = 29;
-            break;
-          }
-          case 'overflow': {
-            enum0 = 30;
-            break;
-          }
-          case 'not-permitted': {
-            enum0 = 31;
-            break;
-          }
-          case 'pipe': {
-            enum0 = 32;
-            break;
-          }
-          case 'read-only': {
-            enum0 = 33;
-            break;
-          }
-          case 'invalid-seek': {
-            enum0 = 34;
-            break;
-          }
-          case 'text-file-busy': {
-            enum0 = 35;
-            break;
-          }
-          case 'cross-device': {
-            enum0 = 36;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val0}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg2 + 4, enum0, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering24Callee = interface5.writeViaStream;
+  const lowering24Callee = interface7.readViaStream;
   function lowering24(arg0, arg1, arg2) {
     let ret;
     try {
@@ -1039,11 +1600,197 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering25Callee = interface5.appendViaStream;
-  function lowering25(arg0, arg1) {
+  const lowering25Callee = interface7.writeViaStream;
+  function lowering25(arg0, arg1, arg2) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering25Callee(arg0 >>> 0) };
+      ret = { tag: 'ok', val: lowering25Callee(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant1 = ret;
+    switch (variant1.tag) {
+      case 'ok': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        dataView(memory0).setInt32(arg2 + 4, toUint32(e), true);
+        break;
+      }
+      case 'err': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val0 = e;
+        let enum0;
+        switch (val0) {
+          case 'access': {
+            enum0 = 0;
+            break;
+          }
+          case 'would-block': {
+            enum0 = 1;
+            break;
+          }
+          case 'already': {
+            enum0 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum0 = 3;
+            break;
+          }
+          case 'busy': {
+            enum0 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum0 = 5;
+            break;
+          }
+          case 'quota': {
+            enum0 = 6;
+            break;
+          }
+          case 'exist': {
+            enum0 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum0 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum0 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum0 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum0 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum0 = 12;
+            break;
+          }
+          case 'io': {
+            enum0 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum0 = 14;
+            break;
+          }
+          case 'loop': {
+            enum0 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum0 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum0 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum0 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum0 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum0 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum0 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum0 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum0 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum0 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum0 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum0 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum0 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum0 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum0 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum0 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum0 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum0 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum0 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum0 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum0 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum0 = 36;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val0}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 4, enum0, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  const lowering26Callee = interface7.appendViaStream;
+  function lowering26(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: lowering26Callee(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -1225,11 +1972,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering26Callee = interface5.getType;
-  function lowering26(arg0, arg1) {
+  const lowering27Callee = interface7.getType;
+  function lowering27(arg0, arg1) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering26Callee(arg0 >>> 0) };
+      ret = { tag: 'ok', val: lowering27Callee(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -1454,11 +2201,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering27Callee = interface5.stat;
-  function lowering27(arg0, arg1) {
+  const lowering28Callee = interface7.stat;
+  function lowering28(arg0, arg1) {
     let ret;
     try {
-      ret = { tag: 'ok', val: lowering27Callee(arg0 >>> 0) };
+      ret = { tag: 'ok', val: lowering28Callee(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -1697,37 +2444,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering28Callee = interface1.write;
-  function lowering28(arg0, arg1, arg2, arg3) {
-    const ptr0 = arg1;
-    const len0 = arg2;
-    const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
-    let ret;
-    try {
-      ret = { tag: 'ok', val: lowering28Callee(arg0 >>> 0, result0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg3 + 0, 0, true);
-        dataView(memory0).setBigInt64(arg3 + 8, toUint64(e), true);
-        break;
-      }
-      case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const { } = e;
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const lowering29Callee = interface1.blockingWrite;
+  const lowering29Callee = interface3.write;
   function lowering29(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
@@ -1757,7 +2474,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  const lowering30Callee = interface4.pollOneoff;
+  const lowering30Callee = interface6.pollOneoff;
   function lowering30(arg0, arg1, arg2) {
     const ptr0 = arg0;
     const len0 = arg1;
@@ -1821,28 +2538,62 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let postReturn12;
   let postReturn13;
   let postReturn14;
+  let postReturn15;
+  let postReturn16;
+  let postReturn17;
+  let postReturn18;
+  let postReturn19;
+  let postReturn20;
+  let postReturn21;
+  let postReturn22;
+  let postReturn23;
+  let postReturn24;
+  let postReturn25;
+  let postReturn26;
+  let postReturn27;
+  let postReturn28;
+  let postReturn29;
+  let postReturn30;
+  let postReturn31;
+  let postReturn32;
+  let postReturn33;
+  let postReturn34;
+  let postReturn35;
+  let postReturn36;
+  let postReturn37;
+  let postReturn38;
+  let postReturn39;
+  let postReturn40;
+  let postReturn41;
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
-    'component:nfs-rs-component/wasi-experimental-sockets': {
-      'addr-resolve': exports0['0'],
-      'addr-resolve-stream-dispose': exports0['2'],
-      'addr-resolve-stream-next': exports0['1'],
-      'sock-addr-remote': exports0['6'],
-      'sock-close': exports0['4'],
-      'sock-connect': exports0['5'],
-      'sock-open': exports0['3'],
-      'sock-recv': exports0['7'],
-      'sock-send': exports0['8'],
+    'wasi:io/streams': {
+      'blocking-read': exports0['3'],
+      'blocking-write': exports0['4'],
+    },
+    'wasi:sockets/ip-name-lookup': {
+      'drop-resolve-address-stream': lowering1,
+      'resolve-addresses': exports0['6'],
+      'resolve-next-address': exports0['7'],
+    },
+    'wasi:sockets/tcp': {
+      'drop-tcp-socket': lowering0,
+      'finish-connect': exports0['1'],
+      'remote-address': exports0['2'],
+      'start-connect': exports0['0'],
+    },
+    'wasi:sockets/tcp-create-socket': {
+      'create-tcp-socket': exports0['5'],
     },
     wasi_snapshot_preview1: {
-      clock_time_get: exports0['22'],
-      environ_get: exports0['25'],
-      environ_sizes_get: exports0['26'],
-      fd_write: exports0['23'],
-      poll_oneoff: exports0['24'],
-      proc_exit: exports0['27'],
-      random_get: exports0['21'],
+      clock_time_get: exports0['21'],
+      environ_get: exports0['24'],
+      environ_sizes_get: exports0['25'],
+      fd_write: exports0['22'],
+      poll_oneoff: exports0['23'],
+      proc_exit: exports0['26'],
+      random_get: exports0['20'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -1853,52 +2604,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli-base/environment': {
-      'get-environment': exports0['20'],
+      'get-environment': exports0['19'],
     },
     'wasi:cli-base/exit': {
-      exit: lowering6,
+      exit: lowering8,
     },
     'wasi:cli-base/preopens': {
-      'get-directories': exports0['9'],
+      'get-directories': exports0['8'],
     },
     'wasi:cli-base/stderr': {
-      'get-stderr': lowering7,
+      'get-stderr': lowering9,
     },
     'wasi:cli-base/stdin': {
-      'get-stdin': lowering8,
+      'get-stdin': lowering10,
     },
     'wasi:cli-base/stdout': {
-      'get-stdout': lowering9,
+      'get-stdout': lowering11,
     },
     'wasi:clocks/monotonic-clock': {
-      now: lowering0,
-      subscribe: lowering3,
+      now: lowering2,
+      subscribe: lowering5,
     },
     'wasi:clocks/wall-clock': {
-      now: exports0['10'],
+      now: exports0['9'],
     },
     'wasi:filesystem/filesystem': {
-      'append-via-stream': exports0['13'],
-      'drop-descriptor': lowering5,
-      'get-type': exports0['14'],
-      'read-via-stream': exports0['11'],
-      stat: exports0['15'],
-      'write-via-stream': exports0['12'],
+      'append-via-stream': exports0['12'],
+      'drop-descriptor': lowering7,
+      'get-type': exports0['13'],
+      'read-via-stream': exports0['10'],
+      stat: exports0['14'],
+      'write-via-stream': exports0['11'],
     },
     'wasi:io/streams': {
-      'blocking-write': exports0['17'],
-      'drop-input-stream': lowering10,
-      'drop-output-stream': lowering11,
-      'subscribe-to-input-stream': lowering2,
-      'subscribe-to-output-stream': lowering1,
-      write: exports0['16'],
+      'blocking-write': exports0['16'],
+      'drop-input-stream': lowering12,
+      'drop-output-stream': lowering13,
+      'subscribe-to-input-stream': lowering4,
+      'subscribe-to-output-stream': lowering3,
+      write: exports0['15'],
     },
     'wasi:poll/poll': {
-      'drop-pollable': lowering4,
-      'poll-oneoff': exports0['18'],
+      'drop-pollable': lowering6,
+      'poll-oneoff': exports0['17'],
     },
     'wasi:random/random': {
-      'get-random-bytes': exports0['19'],
+      'get-random-bytes': exports0['18'],
     },
   }));
   memory0 = exports1.memory;
@@ -1907,282 +2658,115 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,
-      '0': lowering12,
-      '1': lowering13,
-      '10': lowering22,
-      '11': lowering23,
-      '12': lowering24,
-      '13': lowering25,
-      '14': lowering26,
-      '15': lowering27,
-      '16': lowering28,
-      '17': lowering29,
-      '18': lowering30,
-      '19': lowering31,
-      '2': lowering14,
-      '20': lowering32,
-      '21': exports2.random_get,
-      '22': exports2.clock_time_get,
-      '23': exports2.fd_write,
-      '24': exports2.poll_oneoff,
-      '25': exports2.environ_get,
-      '26': exports2.environ_sizes_get,
-      '27': exports2.proc_exit,
-      '3': lowering15,
-      '4': lowering16,
-      '5': lowering17,
-      '6': lowering18,
-      '7': lowering19,
-      '8': lowering20,
-      '9': lowering21,
+      '0': lowering14,
+      '1': lowering15,
+      '10': lowering24,
+      '11': lowering25,
+      '12': lowering26,
+      '13': lowering27,
+      '14': lowering28,
+      '15': lowering29,
+      '16': lowering18,
+      '17': lowering30,
+      '18': lowering31,
+      '19': lowering32,
+      '2': lowering16,
+      '20': exports2.random_get,
+      '21': exports2.clock_time_get,
+      '22': exports2.fd_write,
+      '23': exports2.poll_oneoff,
+      '24': exports2.environ_get,
+      '25': exports2.environ_sizes_get,
+      '26': exports2.proc_exit,
+      '3': lowering17,
+      '4': lowering18,
+      '5': lowering19,
+      '6': lowering20,
+      '7': lowering21,
+      '8': lowering22,
+      '9': lowering23,
     },
   }));
-  postReturn0 = exports1['cabi_post_component:nfs-rs-component/nfs#create'];
-  postReturn1 = exports1['cabi_post_component:nfs-rs-component/nfs#create-path'];
-  postReturn2 = exports1['cabi_post_component:nfs-rs-component/nfs#symlink'];
-  postReturn3 = exports1['cabi_post_component:nfs-rs-component/nfs#symlink-path'];
-  postReturn4 = exports1['cabi_post_component:nfs-rs-component/nfs#readlink'];
-  postReturn5 = exports1['cabi_post_component:nfs-rs-component/nfs#readlink-path'];
-  postReturn6 = exports1['cabi_post_component:nfs-rs-component/nfs#lookup'];
-  postReturn7 = exports1['cabi_post_component:nfs-rs-component/nfs#read'];
-  postReturn8 = exports1['cabi_post_component:nfs-rs-component/nfs#read-path'];
-  postReturn9 = exports1['cabi_post_component:nfs-rs-component/nfs#readdir'];
-  postReturn10 = exports1['cabi_post_component:nfs-rs-component/nfs#readdir-path'];
-  postReturn11 = exports1['cabi_post_component:nfs-rs-component/nfs#readdirplus'];
-  postReturn12 = exports1['cabi_post_component:nfs-rs-component/nfs#readdirplus-path'];
-  postReturn13 = exports1['cabi_post_component:nfs-rs-component/nfs#mkdir'];
-  postReturn14 = exports1['cabi_post_component:nfs-rs-component/nfs#mkdir-path'];
-  const nfsRsComponentNfs = {
+  postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#parse-url-and-mount'];
+  postReturn1 = exports1['cabi_post_component:nfs-rs/nfs#null'];
+  postReturn2 = exports1['cabi_post_component:nfs-rs/nfs#access'];
+  postReturn3 = exports1['cabi_post_component:nfs-rs/nfs#access-path'];
+  postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#close'];
+  postReturn5 = exports1['cabi_post_component:nfs-rs/nfs#commit'];
+  postReturn6 = exports1['cabi_post_component:nfs-rs/nfs#commit-path'];
+  postReturn7 = exports1['cabi_post_component:nfs-rs/nfs#create'];
+  postReturn8 = exports1['cabi_post_component:nfs-rs/nfs#create-path'];
+  postReturn9 = exports1['cabi_post_component:nfs-rs/nfs#delegpurge'];
+  postReturn10 = exports1['cabi_post_component:nfs-rs/nfs#delegreturn'];
+  postReturn11 = exports1['cabi_post_component:nfs-rs/nfs#getattr'];
+  postReturn12 = exports1['cabi_post_component:nfs-rs/nfs#getattr-path'];
+  postReturn13 = exports1['cabi_post_component:nfs-rs/nfs#setattr'];
+  postReturn14 = exports1['cabi_post_component:nfs-rs/nfs#setattr-path'];
+  postReturn15 = exports1['cabi_post_component:nfs-rs/nfs#getfh'];
+  postReturn16 = exports1['cabi_post_component:nfs-rs/nfs#link'];
+  postReturn17 = exports1['cabi_post_component:nfs-rs/nfs#link-path'];
+  postReturn18 = exports1['cabi_post_component:nfs-rs/nfs#symlink'];
+  postReturn19 = exports1['cabi_post_component:nfs-rs/nfs#symlink-path'];
+  postReturn20 = exports1['cabi_post_component:nfs-rs/nfs#readlink'];
+  postReturn21 = exports1['cabi_post_component:nfs-rs/nfs#readlink-path'];
+  postReturn22 = exports1['cabi_post_component:nfs-rs/nfs#lookup'];
+  postReturn23 = exports1['cabi_post_component:nfs-rs/nfs#pathconf'];
+  postReturn24 = exports1['cabi_post_component:nfs-rs/nfs#pathconf-path'];
+  postReturn25 = exports1['cabi_post_component:nfs-rs/nfs#read'];
+  postReturn26 = exports1['cabi_post_component:nfs-rs/nfs#read-path'];
+  postReturn27 = exports1['cabi_post_component:nfs-rs/nfs#write'];
+  postReturn28 = exports1['cabi_post_component:nfs-rs/nfs#write-path'];
+  postReturn29 = exports1['cabi_post_component:nfs-rs/nfs#readdir'];
+  postReturn30 = exports1['cabi_post_component:nfs-rs/nfs#readdir-path'];
+  postReturn31 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus'];
+  postReturn32 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus-path'];
+  postReturn33 = exports1['cabi_post_component:nfs-rs/nfs#mkdir'];
+  postReturn34 = exports1['cabi_post_component:nfs-rs/nfs#mkdir-path'];
+  postReturn35 = exports1['cabi_post_component:nfs-rs/nfs#remove'];
+  postReturn36 = exports1['cabi_post_component:nfs-rs/nfs#remove-path'];
+  postReturn37 = exports1['cabi_post_component:nfs-rs/nfs#rmdir'];
+  postReturn38 = exports1['cabi_post_component:nfs-rs/nfs#rmdir-path'];
+  postReturn39 = exports1['cabi_post_component:nfs-rs/nfs#rename'];
+  postReturn40 = exports1['cabi_post_component:nfs-rs/nfs#rename-path'];
+  postReturn41 = exports1['cabi_post_component:nfs-rs/nfs#umount'];
+  const nfsRsNfs = {
     parseUrlAndMount(arg0) {
       const ptr0 = utf8Encode(arg0, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#parse-url-and-mount'](ptr0, len0);
-      let variant1;
-      switch (dataView(memory0).getUint8(ret + 0, true)) {
-        case 0: {
-          variant1= {
-            tag: 'ok',
-            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
-          };
-          break;
-        }
-        case 1: {
-          variant1= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
-      }
-      return variant1.val;
-    },
-    null(arg0) {
-      const ret = exports1['component:nfs-rs-component/nfs#null'](toUint32(arg0));
-      let variant0;
-      switch (ret) {
-        case 0: {
-          variant0= {
-            tag: 'ok',
-            val: undefined
-          };
-          break;
-        }
-        case 1: {
-          variant0= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
-      }
-      return variant0.val;
-    },
-    access(arg0, arg1, arg2) {
-      const val0 = arg1;
-      const len0 = val0.byteLength;
-      const ptr0 = realloc0(0, 0, 1, len0 * 1);
-      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#access'](toUint32(arg0), ptr0, len0, toUint32(arg2));
-      let variant1;
-      switch (dataView(memory0).getUint8(ret + 0, true)) {
-        case 0: {
-          variant1= {
-            tag: 'ok',
-            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
-          };
-          break;
-        }
-        case 1: {
-          variant1= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
-      }
-      return variant1.val;
-    },
-    accessPath(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg1, realloc0, memory0);
-      const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#access-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
-      let variant1;
-      switch (dataView(memory0).getUint8(ret + 0, true)) {
-        case 0: {
-          variant1= {
-            tag: 'ok',
-            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
-          };
-          break;
-        }
-        case 1: {
-          variant1= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
-      }
-      return variant1.val;
-    },
-    close(arg0, arg1, arg2) {
-      const ret = exports1['component:nfs-rs-component/nfs#close'](toUint32(arg0), toUint32(arg1), toUint64(arg2));
-      let variant0;
-      switch (ret) {
-        case 0: {
-          variant0= {
-            tag: 'ok',
-            val: undefined
-          };
-          break;
-        }
-        case 1: {
-          variant0= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
-      }
-      return variant0.val;
-    },
-    commit(arg0, arg1, arg2, arg3) {
-      const val0 = arg1;
-      const len0 = val0.byteLength;
-      const ptr0 = realloc0(0, 0, 1, len0 * 1);
-      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#commit'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
-      let variant1;
-      switch (ret) {
-        case 0: {
-          variant1= {
-            tag: 'ok',
-            val: undefined
-          };
-          break;
-        }
-        case 1: {
-          variant1= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
-      }
-      return variant1.val;
-    },
-    commitPath(arg0, arg1, arg2, arg3) {
-      const ptr0 = utf8Encode(arg1, realloc0, memory0);
-      const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#commit-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
-      let variant1;
-      switch (ret) {
-        case 0: {
-          variant1= {
-            tag: 'ok',
-            val: undefined
-          };
-          break;
-        }
-        case 1: {
-          variant1= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
-      }
-      return variant1.val;
-    },
-    create(arg0, arg1, arg2, arg3) {
-      const val0 = arg1;
-      const len0 = val0.byteLength;
-      const ptr0 = realloc0(0, 0, 1, len0 * 1);
-      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
-      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ptr1 = utf8Encode(arg2, realloc0, memory0);
-      const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#create'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
+      const ret = exports1['component:nfs-rs/nfs#parse-url-and-mount'](ptr0, len0);
       let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          const ptr2 = dataView(memory0).getInt32(ret + 4, true);
-          const len2 = dataView(memory0).getInt32(ret + 8, true);
-          const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
           variant3= {
             tag: 'ok',
-            val: result2
+            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
           };
           break;
         }
         case 1: {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
           variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -2196,26 +2780,41 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant3.val;
     },
-    createPath(arg0, arg1, arg2) {
-      const ptr0 = utf8Encode(arg1, realloc0, memory0);
-      const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#create-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
+    null(arg0) {
+      const ret = exports1['component:nfs-rs/nfs#null'](toUint32(arg0));
       let variant2;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          const ptr1 = dataView(memory0).getInt32(ret + 4, true);
-          const len1 = dataView(memory0).getInt32(ret + 8, true);
-          const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
           variant2= {
             tag: 'ok',
-            val: result1
+            val: undefined
           };
           break;
         }
         case 1: {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
           variant2= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
           };
           break;
         }
@@ -2229,21 +2828,46 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
       return variant2.val;
     },
-    delegpurge(arg0, arg1) {
-      const ret = exports1['component:nfs-rs-component/nfs#delegpurge'](toUint32(arg0), toUint64(arg1));
-      let variant0;
-      switch (ret) {
+    access(arg0, arg1, arg2) {
+      const val0 = arg1;
+      const len0 = val0.byteLength;
+      const ptr0 = realloc0(0, 0, 1, len0 * 1);
+      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
+      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+      const ret = exports1['component:nfs-rs/nfs#access'](toUint32(arg0), ptr0, len0, toUint32(arg2));
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant0= {
+          variant3= {
             tag: 'ok',
-            val: undefined
+            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
           };
           break;
         }
         case 1: {
-          variant0= {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -2251,26 +2875,407 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
+      postReturn2(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
       }
-      return variant0.val;
+      return variant3.val;
+    },
+    accessPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
+      const len0 = utf8EncodedLen;
+      const ret = exports1['component:nfs-rs/nfs#access-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant3= {
+            tag: 'ok',
+            val: dataView(memory0).getInt32(ret + 4, true) >>> 0
+          };
+          break;
+        }
+        case 1: {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn3(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
+      }
+      return variant3.val;
+    },
+    close(arg0, arg1, arg2) {
+      const ret = exports1['component:nfs-rs/nfs#close'](toUint32(arg0), toUint32(arg1), toUint64(arg2));
+      let variant2;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant2= {
+            tag: 'ok',
+            val: undefined
+          };
+          break;
+        }
+        case 1: {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+          variant2= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn4(ret);
+      if (variant2.tag === 'err') {
+        throw new ComponentError(variant2.val);
+      }
+      return variant2.val;
+    },
+    commit(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
+      const len0 = val0.byteLength;
+      const ptr0 = realloc0(0, 0, 1, len0 * 1);
+      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
+      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+      const ret = exports1['component:nfs-rs/nfs#commit'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant3= {
+            tag: 'ok',
+            val: undefined
+          };
+          break;
+        }
+        case 1: {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn5(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
+      }
+      return variant3.val;
+    },
+    commitPath(arg0, arg1, arg2, arg3) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
+      const len0 = utf8EncodedLen;
+      const ret = exports1['component:nfs-rs/nfs#commit-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant3= {
+            tag: 'ok',
+            val: undefined
+          };
+          break;
+        }
+        case 1: {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn6(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
+      }
+      return variant3.val;
+    },
+    create(arg0, arg1, arg2, arg3) {
+      const val0 = arg1;
+      const len0 = val0.byteLength;
+      const ptr0 = realloc0(0, 0, 1, len0 * 1);
+      const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
+      (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+      const ptr1 = utf8Encode(arg2, realloc0, memory0);
+      const len1 = utf8EncodedLen;
+      const ret = exports1['component:nfs-rs/nfs#create'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
+      let variant5;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          const ptr2 = dataView(memory0).getInt32(ret + 4, true);
+          const len2 = dataView(memory0).getInt32(ret + 8, true);
+          const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
+          variant5= {
+            tag: 'ok',
+            val: result2
+          };
+          break;
+        }
+        case 1: {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+          const len4 = dataView(memory0).getInt32(ret + 16, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn7(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
+      }
+      return variant5.val;
+    },
+    createPath(arg0, arg1, arg2) {
+      const ptr0 = utf8Encode(arg1, realloc0, memory0);
+      const len0 = utf8EncodedLen;
+      const ret = exports1['component:nfs-rs/nfs#create-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
+      let variant4;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          const ptr1 = dataView(memory0).getInt32(ret + 4, true);
+          const len1 = dataView(memory0).getInt32(ret + 8, true);
+          const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
+          variant4= {
+            tag: 'ok',
+            val: result1
+          };
+          break;
+        }
+        case 1: {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn8(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
+      }
+      return variant4.val;
+    },
+    delegpurge(arg0, arg1) {
+      const ret = exports1['component:nfs-rs/nfs#delegpurge'](toUint32(arg0), toUint64(arg1));
+      let variant2;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant2= {
+            tag: 'ok',
+            val: undefined
+          };
+          break;
+        }
+        case 1: {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+          variant2= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn9(ret);
+      if (variant2.tag === 'err') {
+        throw new ComponentError(variant2.val);
+      }
+      return variant2.val;
     },
     delegreturn(arg0, arg1) {
-      const ret = exports1['component:nfs-rs-component/nfs#delegreturn'](toUint32(arg0), toUint64(arg1));
-      let variant0;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#delegreturn'](toUint32(arg0), toUint64(arg1));
+      let variant2;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant0= {
+          variant2= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant0= {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+          variant2= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
           };
           break;
         }
@@ -2278,10 +3283,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
+      postReturn10(ret);
+      if (variant2.tag === 'err') {
+        throw new ComponentError(variant2.val);
       }
-      return variant0.val;
+      return variant2.val;
     },
     getattr(arg0, arg1) {
       const val0 = arg1;
@@ -2289,11 +3295,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#getattr'](toUint32(arg0), ptr0, len0);
-      let variant1;
+      const ret = exports1['component:nfs-rs/nfs#getattr'](toUint32(arg0), ptr0, len0);
+      let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant1= {
+          variant3= {
             tag: 'ok',
             val: {
               attrType: dataView(memory0).getInt32(ret + 8, true) >>> 0,
@@ -2323,9 +3329,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant1= {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 16, true);
+          const len2 = dataView(memory0).getInt32(ret + 20, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -2333,19 +3359,20 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
+      postReturn11(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
       }
-      return variant1.val;
+      return variant3.val;
     },
     getattrPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#getattr-path'](toUint32(arg0), ptr0, len0);
-      let variant1;
+      const ret = exports1['component:nfs-rs/nfs#getattr-path'](toUint32(arg0), ptr0, len0);
+      let variant3;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant1= {
+          variant3= {
             tag: 'ok',
             val: {
               attrType: dataView(memory0).getInt32(ret + 8, true) >>> 0,
@@ -2375,9 +3402,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant1= {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 16, true);
+          const len2 = dataView(memory0).getInt32(ret + 20, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -2385,10 +3432,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
+      postReturn12(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
       }
-      return variant1.val;
+      return variant3.val;
     },
     setattr(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       const ptr0 = realloc0(0, 0, 8, 88);
@@ -2462,20 +3510,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt32(ptr0 + 80, toUint32(v10_0), true);
         dataView(memory0).setInt32(ptr0 + 84, toUint32(v10_1), true);
       }
-      const ret = exports1['component:nfs-rs-component/nfs#setattr'](ptr0);
-      let variant12;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#setattr'](ptr0);
+      let variant14;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant12= {
+          variant14= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant12= {
+          let variant12;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant12 = null;
+              break;
+            }
+            case 1: {
+              variant12 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr13 = dataView(memory0).getInt32(ret + 12, true);
+          const len13 = dataView(memory0).getInt32(ret + 16, true);
+          const result13 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr13, len13));
+          variant14= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant12,
+              message: result13,
+            }
           };
           break;
         }
@@ -2483,10 +3551,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant12.tag === 'err') {
-        throw new ComponentError(variant12.val);
+      postReturn13(ret);
+      if (variant14.tag === 'err') {
+        throw new ComponentError(variant14.val);
       }
-      return variant12.val;
+      return variant14.val;
     },
     setattrPath(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       const ptr0 = realloc0(0, 0, 8, 80);
@@ -2548,20 +3617,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         dataView(memory0).setInt32(ptr0 + 72, toUint32(v8_0), true);
         dataView(memory0).setInt32(ptr0 + 76, toUint32(v8_1), true);
       }
-      const ret = exports1['component:nfs-rs-component/nfs#setattr-path'](ptr0);
-      let variant10;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#setattr-path'](ptr0);
+      let variant12;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant10= {
+          variant12= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant10= {
+          let variant10;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant10 = null;
+              break;
+            }
+            case 1: {
+              variant10 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr11 = dataView(memory0).getInt32(ret + 12, true);
+          const len11 = dataView(memory0).getInt32(ret + 16, true);
+          const result11 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr11, len11));
+          variant12= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant10,
+              message: result11,
+            }
           };
           break;
         }
@@ -2569,26 +3658,47 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant10.tag === 'err') {
-        throw new ComponentError(variant10.val);
+      postReturn14(ret);
+      if (variant12.tag === 'err') {
+        throw new ComponentError(variant12.val);
       }
-      return variant10.val;
+      return variant12.val;
     },
     getfh(arg0) {
-      const ret = exports1['component:nfs-rs-component/nfs#getfh'](toUint32(arg0));
-      let variant0;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#getfh'](toUint32(arg0));
+      let variant2;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant0= {
+          variant2= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant0= {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+          variant2= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
           };
           break;
         }
@@ -2596,10 +3706,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
+      postReturn15(ret);
+      if (variant2.tag === 'err') {
+        throw new ComponentError(variant2.val);
       }
-      return variant0.val;
+      return variant2.val;
     },
     link(arg0, arg1, arg2, arg3) {
       const val0 = arg1;
@@ -2614,11 +3725,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
       const ptr2 = utf8Encode(arg3, realloc0, memory0);
       const len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#link'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
-      let variant3;
+      const ret = exports1['component:nfs-rs/nfs#link'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
+      let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant3= {
+          variant5= {
             tag: 'ok',
             val: {
               attrType: dataView(memory0).getInt32(ret + 8, true) >>> 0,
@@ -2648,9 +3759,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant3= {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 16, true);
+          const len4 = dataView(memory0).getInt32(ret + 20, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
           };
           break;
         }
@@ -2658,21 +3789,22 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant3.tag === 'err') {
-        throw new ComponentError(variant3.val);
+      postReturn16(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
       }
-      return variant3.val;
+      return variant5.val;
     },
     linkPath(arg0, arg1, arg2) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#link-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#link-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: {
               attrType: dataView(memory0).getInt32(ret + 8, true) >>> 0,
@@ -2702,9 +3834,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 16, true);
+          const len3 = dataView(memory0).getInt32(ret + 20, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -2712,10 +3864,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn17(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     symlink(arg0, arg1, arg2, arg3) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
@@ -2727,23 +3880,43 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
       const ptr2 = utf8Encode(arg3, realloc0, memory0);
       const len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#symlink'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
-      let variant4;
+      const ret = exports1['component:nfs-rs/nfs#symlink'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2);
+      let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr3 = dataView(memory0).getInt32(ret + 4, true);
           const len3 = dataView(memory0).getInt32(ret + 8, true);
           const result3 = new Uint8Array(memory0.buffer.slice(ptr3, ptr3 + len3 * 1));
-          variant4= {
+          variant6= {
             tag: 'ok',
             val: result3
           };
           break;
         }
         case 1: {
-          variant4= {
+          let variant4;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant4 = null;
+              break;
+            }
+            case 1: {
+              variant4 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr5 = dataView(memory0).getInt32(ret + 12, true);
+          const len5 = dataView(memory0).getInt32(ret + 16, true);
+          const result5 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr5, len5));
+          variant6= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant4,
+              message: result5,
+            }
           };
           break;
         }
@@ -2751,34 +3924,54 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn2(ret);
-      if (variant4.tag === 'err') {
-        throw new ComponentError(variant4.val);
+      postReturn18(ret);
+      if (variant6.tag === 'err') {
+        throw new ComponentError(variant6.val);
       }
-      return variant4.val;
+      return variant6.val;
     },
     symlinkPath(arg0, arg1, arg2) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#symlink-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
-      let variant3;
+      const ret = exports1['component:nfs-rs/nfs#symlink-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr2 = dataView(memory0).getInt32(ret + 4, true);
           const len2 = dataView(memory0).getInt32(ret + 8, true);
           const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
-          variant3= {
+          variant5= {
             tag: 'ok',
             val: result2
           };
           break;
         }
         case 1: {
-          variant3= {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+          const len4 = dataView(memory0).getInt32(ret + 16, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
           };
           break;
         }
@@ -2786,11 +3979,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn3(ret);
-      if (variant3.tag === 'err') {
-        throw new ComponentError(variant3.val);
+      postReturn19(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
       }
-      return variant3.val;
+      return variant5.val;
     },
     readlink(arg0, arg1) {
       const val0 = arg1;
@@ -2798,23 +3991,43 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readlink'](toUint32(arg0), ptr0, len0);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#readlink'](toUint32(arg0), ptr0, len0);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -2822,32 +4035,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn4(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn20(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     readlinkPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readlink-path'](toUint32(arg0), ptr0, len0);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#readlink-path'](toUint32(arg0), ptr0, len0);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -2855,32 +4088,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn5(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn21(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     lookup(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#lookup'](toUint32(arg0), ptr0, len0);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#lookup'](toUint32(arg0), ptr0, len0);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -2888,11 +4141,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn6(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn22(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     pathconf(arg0, arg1) {
       const val0 = arg1;
@@ -2900,8 +4153,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#pathconf'](toUint32(arg0), ptr0, len0);
-      let variant6;
+      const ret = exports1['component:nfs-rs/nfs#pathconf'](toUint32(arg0), ptr0, len0);
+      let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           let variant1;
@@ -2945,7 +4198,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           const bool3 = dataView(memory0).getUint8(ret + 113, true);
           const bool4 = dataView(memory0).getUint8(ret + 114, true);
           const bool5 = dataView(memory0).getUint8(ret + 115, true);
-          variant6= {
+          variant8= {
             tag: 'ok',
             val: {
               attr: variant1,
@@ -2960,9 +4213,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant6= {
+          let variant6;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant6 = null;
+              break;
+            }
+            case 1: {
+              variant6 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr7 = dataView(memory0).getInt32(ret + 16, true);
+          const len7 = dataView(memory0).getInt32(ret + 20, true);
+          const result7 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr7, len7));
+          variant8= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant6,
+              message: result7,
+            }
           };
           break;
         }
@@ -2970,16 +4243,17 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant6.tag === 'err') {
-        throw new ComponentError(variant6.val);
+      postReturn23(ret);
+      if (variant8.tag === 'err') {
+        throw new ComponentError(variant8.val);
       }
-      return variant6.val;
+      return variant8.val;
     },
     pathconfPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#pathconf-path'](toUint32(arg0), ptr0, len0);
-      let variant6;
+      const ret = exports1['component:nfs-rs/nfs#pathconf-path'](toUint32(arg0), ptr0, len0);
+      let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           let variant1;
@@ -3023,7 +4297,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           const bool3 = dataView(memory0).getUint8(ret + 113, true);
           const bool4 = dataView(memory0).getUint8(ret + 114, true);
           const bool5 = dataView(memory0).getUint8(ret + 115, true);
-          variant6= {
+          variant8= {
             tag: 'ok',
             val: {
               attr: variant1,
@@ -3038,9 +4312,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
-          variant6= {
+          let variant6;
+          switch (dataView(memory0).getUint8(ret + 8, true)) {
+            case 0: {
+              variant6 = null;
+              break;
+            }
+            case 1: {
+              variant6 = dataView(memory0).getInt32(ret + 12, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr7 = dataView(memory0).getInt32(ret + 16, true);
+          const len7 = dataView(memory0).getInt32(ret + 20, true);
+          const result7 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr7, len7));
+          variant8= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant6,
+              message: result7,
+            }
           };
           break;
         }
@@ -3048,10 +4342,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant6.tag === 'err') {
-        throw new ComponentError(variant6.val);
+      postReturn24(ret);
+      if (variant8.tag === 'err') {
+        throw new ComponentError(variant8.val);
       }
-      return variant6.val;
+      return variant8.val;
     },
     read(arg0, arg1, arg2, arg3) {
       const val0 = arg1;
@@ -3059,23 +4354,43 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#read'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#read'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3083,32 +4398,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn7(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn25(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     readPath(arg0, arg1, arg2, arg3) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#read-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#read-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), toUint32(arg3));
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3116,11 +4451,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn8(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn26(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     write(arg0, arg1, arg2, arg3) {
       const val0 = arg1;
@@ -3133,20 +4468,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ret = exports1['component:nfs-rs-component/nfs#write'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#write'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: dataView(memory0).getInt32(ret + 4, true) >>> 0
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3154,10 +4509,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn27(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     writePath(arg0, arg1, arg2, arg3) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
@@ -3167,20 +4523,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr1 = realloc0(0, 0, 1, len1 * 1);
       const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
       (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-      const ret = exports1['component:nfs-rs-component/nfs#write-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#write-path'](toUint32(arg0), ptr0, len0, toUint64(arg2), ptr1, len1);
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: dataView(memory0).getInt32(ret + 4, true) >>> 0
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3188,10 +4564,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn28(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     readdir(arg0, arg1) {
       const val0 = arg1;
@@ -3199,8 +4576,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readdir'](toUint32(arg0), ptr0, len0);
-      let variant3;
+      const ret = exports1['component:nfs-rs/nfs#readdir'](toUint32(arg0), ptr0, len0);
+      let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const len2 = dataView(memory0).getInt32(ret + 8, true);
@@ -3217,16 +4594,36 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
             });
           }
-          variant3= {
+          variant5= {
             tag: 'ok',
             val: result2
           };
           break;
         }
         case 1: {
-          variant3= {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+          const len4 = dataView(memory0).getInt32(ret + 16, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
           };
           break;
         }
@@ -3234,17 +4631,17 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn9(ret);
-      if (variant3.tag === 'err') {
-        throw new ComponentError(variant3.val);
+      postReturn29(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
       }
-      return variant3.val;
+      return variant5.val;
     },
     readdirPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readdir-path'](toUint32(arg0), ptr0, len0);
-      let variant3;
+      const ret = exports1['component:nfs-rs/nfs#readdir-path'](toUint32(arg0), ptr0, len0);
+      let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const len2 = dataView(memory0).getInt32(ret + 8, true);
@@ -3261,16 +4658,36 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
             });
           }
-          variant3= {
+          variant5= {
             tag: 'ok',
             val: result2
           };
           break;
         }
         case 1: {
-          variant3= {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+          const len4 = dataView(memory0).getInt32(ret + 16, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
           };
           break;
         }
@@ -3278,11 +4695,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn10(ret);
-      if (variant3.tag === 'err') {
-        throw new ComponentError(variant3.val);
+      postReturn30(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
       }
-      return variant3.val;
+      return variant5.val;
     },
     readdirplus(arg0, arg1) {
       const val0 = arg1;
@@ -3290,8 +4707,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       const ptr0 = realloc0(0, 0, 1, len0 * 1);
       const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
-      const ret = exports1['component:nfs-rs-component/nfs#readdirplus'](toUint32(arg0), ptr0, len0);
-      let variant5;
+      const ret = exports1['component:nfs-rs/nfs#readdirplus'](toUint32(arg0), ptr0, len0);
+      let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const len4 = dataView(memory0).getInt32(ret + 8, true);
@@ -3350,16 +4767,36 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               handle: result3,
             });
           }
-          variant5= {
+          variant7= {
             tag: 'ok',
             val: result4
           };
           break;
         }
         case 1: {
-          variant5= {
+          let variant5;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant5 = null;
+              break;
+            }
+            case 1: {
+              variant5 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr6 = dataView(memory0).getInt32(ret + 12, true);
+          const len6 = dataView(memory0).getInt32(ret + 16, true);
+          const result6 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr6, len6));
+          variant7= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant5,
+              message: result6,
+            }
           };
           break;
         }
@@ -3367,17 +4804,17 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn11(ret);
-      if (variant5.tag === 'err') {
-        throw new ComponentError(variant5.val);
+      postReturn31(ret);
+      if (variant7.tag === 'err') {
+        throw new ComponentError(variant7.val);
       }
-      return variant5.val;
+      return variant7.val;
     },
     readdirplusPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#readdirplus-path'](toUint32(arg0), ptr0, len0);
-      let variant5;
+      const ret = exports1['component:nfs-rs/nfs#readdirplus-path'](toUint32(arg0), ptr0, len0);
+      let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const len4 = dataView(memory0).getInt32(ret + 8, true);
@@ -3436,16 +4873,36 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               handle: result3,
             });
           }
-          variant5= {
+          variant7= {
             tag: 'ok',
             val: result4
           };
           break;
         }
         case 1: {
-          variant5= {
+          let variant5;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant5 = null;
+              break;
+            }
+            case 1: {
+              variant5 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr6 = dataView(memory0).getInt32(ret + 12, true);
+          const len6 = dataView(memory0).getInt32(ret + 16, true);
+          const result6 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr6, len6));
+          variant7= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant5,
+              message: result6,
+            }
           };
           break;
         }
@@ -3453,11 +4910,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn12(ret);
-      if (variant5.tag === 'err') {
-        throw new ComponentError(variant5.val);
+      postReturn32(ret);
+      if (variant7.tag === 'err') {
+        throw new ComponentError(variant7.val);
       }
-      return variant5.val;
+      return variant7.val;
     },
     mkdir(arg0, arg1, arg2, arg3) {
       const val0 = arg1;
@@ -3467,23 +4924,43 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#mkdir'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
-      let variant3;
+      const ret = exports1['component:nfs-rs/nfs#mkdir'](toUint32(arg0), ptr0, len0, ptr1, len1, toUint32(arg3));
+      let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr2 = dataView(memory0).getInt32(ret + 4, true);
           const len2 = dataView(memory0).getInt32(ret + 8, true);
           const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
-          variant3= {
+          variant5= {
             tag: 'ok',
             val: result2
           };
           break;
         }
         case 1: {
-          variant3= {
+          let variant3;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant3 = null;
+              break;
+            }
+            case 1: {
+              variant3 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+          const len4 = dataView(memory0).getInt32(ret + 16, true);
+          const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+          variant5= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant3,
+              message: result4,
+            }
           };
           break;
         }
@@ -3491,32 +4968,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn13(ret);
-      if (variant3.tag === 'err') {
-        throw new ComponentError(variant3.val);
+      postReturn33(ret);
+      if (variant5.tag === 'err') {
+        throw new ComponentError(variant5.val);
       }
-      return variant3.val;
+      return variant5.val;
     },
     mkdirPath(arg0, arg1, arg2) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#mkdir-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
-      let variant2;
+      const ret = exports1['component:nfs-rs/nfs#mkdir-path'](toUint32(arg0), ptr0, len0, toUint32(arg2));
+      let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           const ptr1 = dataView(memory0).getInt32(ret + 4, true);
           const len1 = dataView(memory0).getInt32(ret + 8, true);
           const result1 = new Uint8Array(memory0.buffer.slice(ptr1, ptr1 + len1 * 1));
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: result1
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3524,11 +5021,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      postReturn14(ret);
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn34(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     remove(arg0, arg1, arg2) {
       const val0 = arg1;
@@ -3538,20 +5035,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#remove'](toUint32(arg0), ptr0, len0, ptr1, len1);
-      let variant2;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#remove'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      let variant4;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3559,28 +5076,49 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn35(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     removePath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#remove-path'](toUint32(arg0), ptr0, len0);
-      let variant1;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#remove-path'](toUint32(arg0), ptr0, len0);
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant1= {
+          variant3= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant1= {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -3588,10 +5126,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
+      postReturn36(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
       }
-      return variant1.val;
+      return variant3.val;
     },
     rmdir(arg0, arg1, arg2) {
       const val0 = arg1;
@@ -3601,20 +5140,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rmdir'](toUint32(arg0), ptr0, len0, ptr1, len1);
-      let variant2;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#rmdir'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      let variant4;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant2= {
+          variant4= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant2= {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
           };
           break;
         }
@@ -3622,28 +5181,49 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant2.tag === 'err') {
-        throw new ComponentError(variant2.val);
+      postReturn37(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
       }
-      return variant2.val;
+      return variant4.val;
     },
     rmdirPath(arg0, arg1) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rmdir-path'](toUint32(arg0), ptr0, len0);
-      let variant1;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#rmdir-path'](toUint32(arg0), ptr0, len0);
+      let variant3;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant1= {
+          variant3= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant1= {
+          let variant1;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant1 = null;
+              break;
+            }
+            case 1: {
+              variant1 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr2 = dataView(memory0).getInt32(ret + 12, true);
+          const len2 = dataView(memory0).getInt32(ret + 16, true);
+          const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
+          variant3= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant1,
+              message: result2,
+            }
           };
           break;
         }
@@ -3651,10 +5231,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant1.tag === 'err') {
-        throw new ComponentError(variant1.val);
+      postReturn38(ret);
+      if (variant3.tag === 'err') {
+        throw new ComponentError(variant3.val);
       }
-      return variant1.val;
+      return variant3.val;
     },
     rename(arg0, arg1, arg2, arg3, arg4) {
       const val0 = arg1;
@@ -3671,20 +5252,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       const ptr3 = utf8Encode(arg4, realloc0, memory0);
       const len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rename'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
-      let variant4;
-      switch (ret) {
+      const ret = exports1['component:nfs-rs/nfs#rename'](toUint32(arg0), ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+      let variant6;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
-          variant4= {
+          variant6= {
             tag: 'ok',
             val: undefined
           };
           break;
         }
         case 1: {
-          variant4= {
+          let variant4;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant4 = null;
+              break;
+            }
+            case 1: {
+              variant4 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr5 = dataView(memory0).getInt32(ret + 12, true);
+          const len5 = dataView(memory0).getInt32(ret + 16, true);
+          const result5 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr5, len5));
+          variant6= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant4,
+              message: result5,
+            }
           };
           break;
         }
@@ -3692,19 +5293,68 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
-      if (variant4.tag === 'err') {
-        throw new ComponentError(variant4.val);
+      postReturn39(ret);
+      if (variant6.tag === 'err') {
+        throw new ComponentError(variant6.val);
       }
-      return variant4.val;
+      return variant6.val;
     },
     renamePath(arg0, arg1, arg2) {
       const ptr0 = utf8Encode(arg1, realloc0, memory0);
       const len0 = utf8EncodedLen;
       const ptr1 = utf8Encode(arg2, realloc0, memory0);
       const len1 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs-component/nfs#rename-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      const ret = exports1['component:nfs-rs/nfs#rename-path'](toUint32(arg0), ptr0, len0, ptr1, len1);
+      let variant4;
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
+        case 0: {
+          variant4= {
+            tag: 'ok',
+            val: undefined
+          };
+          break;
+        }
+        case 1: {
+          let variant2;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant2 = null;
+              break;
+            }
+            case 1: {
+              variant2 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr3 = dataView(memory0).getInt32(ret + 12, true);
+          const len3 = dataView(memory0).getInt32(ret + 16, true);
+          const result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
+          variant4= {
+            tag: 'err',
+            val: {
+              osErrorCode: variant2,
+              message: result3,
+            }
+          };
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant discriminant for expected');
+        }
+      }
+      postReturn40(ret);
+      if (variant4.tag === 'err') {
+        throw new ComponentError(variant4.val);
+      }
+      return variant4.val;
+    },
+    umount(arg0) {
+      const ret = exports1['component:nfs-rs/nfs#umount'](toUint32(arg0));
       let variant2;
-      switch (ret) {
+      switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
           variant2= {
             tag: 'ok',
@@ -3713,9 +5363,29 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           break;
         }
         case 1: {
+          let variant0;
+          switch (dataView(memory0).getUint8(ret + 4, true)) {
+            case 0: {
+              variant0 = null;
+              break;
+            }
+            case 1: {
+              variant0 = dataView(memory0).getInt32(ret + 8, true);
+              break;
+            }
+            default: {
+              throw new TypeError('invalid variant discriminant for option');
+            }
+          }
+          const ptr1 = dataView(memory0).getInt32(ret + 12, true);
+          const len1 = dataView(memory0).getInt32(ret + 16, true);
+          const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
           variant2= {
             tag: 'err',
-            val: undefined
+            val: {
+              osErrorCode: variant0,
+              message: result1,
+            }
           };
           break;
         }
@@ -3723,41 +5393,15 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           throw new TypeError('invalid variant discriminant for expected');
         }
       }
+      postReturn41(ret);
       if (variant2.tag === 'err') {
         throw new ComponentError(variant2.val);
       }
       return variant2.val;
     },
-    umount(arg0) {
-      const ret = exports1['component:nfs-rs-component/nfs#umount'](toUint32(arg0));
-      let variant0;
-      switch (ret) {
-        case 0: {
-          variant0= {
-            tag: 'ok',
-            val: undefined
-          };
-          break;
-        }
-        case 1: {
-          variant0= {
-            tag: 'err',
-            val: undefined
-          };
-          break;
-        }
-        default: {
-          throw new TypeError('invalid variant discriminant for expected');
-        }
-      }
-      if (variant0.tag === 'err') {
-        throw new ComponentError(variant0.val);
-      }
-      return variant0.val;
-    },
     
   };
   
-  return { nfs: nfsRsComponentNfs, nfsRsComponentNfs }
+  return { nfs: nfsRsNfs, nfsRsNfs }
   ;
 }

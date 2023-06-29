@@ -16,13 +16,13 @@ async function compileCore(url) {
   return await fetchCompile(new URL(url, import.meta.url));
 }
 
-const wasiExperimentalSocketsNamespace = { package: "nfs-rs-component", world: "nfsRsComponentWasiExperimentalSockets" };
 const wasi = new WASIWorker({});
-await wasi.createWorker(wasiExperimentalSocketsNamespace)
+await wasi.createWorker()
   .then((componentImports) => instantiate(compileCore, componentImports))
   .then((instance) => {
     const nfs = instance.nfs;
     const mount = nfs.parseUrlAndMount("nfs://localhost/Users/Shared/nfs/?nfsport=20490&mountport=20490");
+    console.log("mount identifier:", mount);
     console.log("root fh:", nfs.lookup(mount, "/"));
     const entries = nfs.readdirplusPath(mount, "/");
     for (const entry of entries) {

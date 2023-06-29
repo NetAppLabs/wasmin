@@ -8,10 +8,13 @@ import { ClocksWallClock as ClocksWallClockImports } from './imports/clocks-wall
 import { ClocksMonotonicClock as ClocksMonotonicClockImports } from './imports/clocks-monotonic-clock';
 import { FilesystemFilesystem as FilesystemFilesystemImports } from './imports/filesystem-filesystem';
 import { IoStreams as IoStreamsImports } from './imports/io-streams';
-import { NfsRsComponentWasiExperimentalSockets as NfsRsComponentWasiExperimentalSocketsImports } from './imports/nfs-rs-component-wasi-experimental-sockets';
 import { PollPoll as PollPollImports } from './imports/poll-poll';
 import { RandomRandom as RandomRandomImports } from './imports/random-random';
-import { NfsRsComponentNfs as NfsRsComponentNfsExports } from './exports/nfs-rs-component-nfs';
+import { SocketsNetwork as SocketsNetworkImports } from './imports/sockets-network';
+import { SocketsIpNameLookup as SocketsIpNameLookupImports } from './imports/sockets-ip-name-lookup';
+import { SocketsTcp as SocketsTcpImports } from './imports/sockets-tcp';
+import { SocketsTcpCreateSocket as SocketsTcpCreateSocketImports } from './imports/sockets-tcp-create-socket';
+import { NfsRsNfs as NfsRsNfsExports } from './exports/nfs-rs-nfs';
 export interface ImportObject {
   'cli-base': {
     cliBaseEnvironment: typeof CliBaseEnvironmentImports,
@@ -31,19 +34,22 @@ export interface ImportObject {
   io: {
     ioStreams: typeof IoStreamsImports,
   },
-  'nfs-rs-component': {
-    nfsRsComponentWasiExperimentalSockets: typeof NfsRsComponentWasiExperimentalSocketsImports,
-  },
   poll: {
     pollPoll: typeof PollPollImports,
   },
   random: {
     randomRandom: typeof RandomRandomImports,
   },
+  sockets: {
+    socketsNetwork: typeof SocketsNetworkImports,
+    socketsIpNameLookup: typeof SocketsIpNameLookupImports,
+    socketsTcp: typeof SocketsTcpImports,
+    socketsTcpCreateSocket: typeof SocketsTcpCreateSocketImports,
+  },
 }
 export interface Root {
-  nfsRsComponentNfs: typeof NfsRsComponentNfsExports,
-  nfs: typeof NfsRsComponentNfsExports,
+  nfsRsNfs: typeof NfsRsNfsExports,
+  nfs: typeof NfsRsNfsExports,
 }
 
 /**
