@@ -23,11 +23,6 @@ import {
 import { wasiWorkerDebug } from "./workerUtils.js";
 import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
-export interface WasiExperimentalSocketsNamespace {
-    package: string;
-    world: string;
-}
-
 export interface WasiOptions {
     openFiles?: OpenFiles;
     stdin?: In;
@@ -219,7 +214,7 @@ export class WASI {
     }
 
     public async initializeComponentImports(
-        wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace
+        wasiExperimentalSocketsNamespace?: string
     ): Promise<string[]> {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
@@ -236,10 +231,8 @@ export class WASI {
                 return sock;
             };
             const componentImportObjectAny = this.componentImportObject as any;
-            const wasiExperimentalSocketsWrapper = {} as any;
-            wasiExperimentalSocketsWrapper[wasiExperimentalSocketsNamespace.world] =
+            componentImportObjectAny[wasiExperimentalSocketsNamespace] = 
                 new WasiExperimentalSocketsPreview2Wrapper(filesystem, sockets);
-            componentImportObjectAny[wasiExperimentalSocketsNamespace.package] = wasiExperimentalSocketsWrapper;
         }
 
         const importNames: string[] = [];

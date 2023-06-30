@@ -1,4 +1,4 @@
-import { WASI, WasiExperimentalSocketsNamespace, WasiOptions } from "./wasi.js";
+import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
 import { HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
@@ -82,7 +82,7 @@ export class WASIWorker {
         }
     }
 
-    public async createWorker(wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace): Promise<{}> {
+    public async createWorker(wasiExperimentalSocketsNamespace?: string): Promise<{}> {
         let workerUrlString = "./wasiWorkerThread.js";
         if (isNode()) {
             workerUrlString = "./wasiWorkerThreadNode.js";
@@ -177,7 +177,7 @@ export class WasiWorkerThreadRunner {
     }
 
     public async initializeComponentImports(
-        wasiExperimentalSocketsNamespace?: WasiExperimentalSocketsNamespace
+        wasiExperimentalSocketsNamespace?: string
     ): Promise<string[]> {
         if (!this.wasi) {
             this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
