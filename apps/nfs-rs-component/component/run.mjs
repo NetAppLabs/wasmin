@@ -1,9 +1,9 @@
-import { instantiate  } from "./nfs_rs.js";
+import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@wasm-env/wasi-js";
 
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 let _fs;
-async function fetchCompile (url) {
+async function fetchCompile(url) {
   if (isNode) {
     _fs = _fs || await import('fs/promises');
     return WebAssembly.compile(await _fs.readFile(url));
@@ -26,9 +26,19 @@ await wasi.createWorker()
     console.log("root fh:", nfs.lookup(mount, "/"));
     const entries = nfs.readdirplusPath(mount, "/");
     for (const entry of entries) {
-        console.log(`/${entry.fileName} =`, entry);
+      console.log(`/${entry.fileName} =`, entry);
     }
     nfs.umount(mount);
+    try {
+      nfs.lookup(mount, "/");
+    } catch (e) {
+      console.log("error performing lookup using previously unmounted mount:", e.payload);
+    }
+    try {
+      nfs.umount(mount);
+    } catch (e) {
+      console.log("error unmounting previously unmounted mount:", e.payload);
+    }
   })
   .finally(() => {
     wasi.stopWorker();
