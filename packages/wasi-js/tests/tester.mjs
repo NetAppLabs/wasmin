@@ -32,11 +32,12 @@ let actualStdout = "";
 let actualStderr = "";
 
 //let test = "getentropy";
-let test = "exitcode";
-//let test = "stdout";
+//let test = "exitcode";
+let test = "stdout";
 //let test = "stdin";
 
-let oneWasmPath = resolve(join(baseDir, "shared-wasm", `${test}.wasm`));
+let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
+//let oneWasmPath = resolve(join(baseDir, "component.core.wasm"));
 //const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 const wasmMod = readFile(oneWasmPath);
 
@@ -62,8 +63,13 @@ const w = new WASI({
         NODE_PLATFORM: "win32",
     },
 });
-let actualExitCode = await w.run(await wasmMod);
-
+w.component = true;
+let actualExitCode = 0;
+try {
+    actualExitCode = await w.run(await wasmMod);
+} catch(err) {
+    console.log("run err: ", err);
+}
 console.log("stdin:", stdin);
 console.log("stdout:", actualStdout);
 console.log("stderr:", actualStderr);

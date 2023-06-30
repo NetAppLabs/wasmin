@@ -21,7 +21,7 @@ type RandomInsecureAsync = RandomInsecureNamespace.RandomInsecureAsync;
 import { RandomInsecureSeedNamespace } from "@wasm-env/wasi-snapshot-preview2/dist/index.js";
 type RandomInsecureSeedAsync = RandomInsecureSeedNamespace.RandomInsecureSeedAsync;
 
-import { WasiOptions } from "../wasi";
+import { WasiOptions } from "../../wasi.js";
 import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
 import { IoStreamsAsyncHost } from "./io.js";
 import { RandomInsecureSeedAsyncHost, RandomRandomAsynHost } from "./random.js";
@@ -45,54 +45,54 @@ import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/
 import { PollPollAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/poll-poll";
 import { PollPollAsyncHost } from "./poll.js";
 
-export type WasiSnapshotPreview2ImportObject = {
-    'wasi:cli-base/environment': CliBaseEnvironmentAsync,
-    'wasi:cli-base/preopens': CliBasePreopensAsync,
-    'wasi:cli-base/exit': CliBaseExitAsync,
-    'wasi:cli-base/stdin': CliBaseStdinAsync,
-    'wasi:cli-base/stdout': CliBaseStdoutAsync,
-    'wasi:cli-base/stderr': CliBaseStderrAsync
-    'wasi:clocks/monotonic-clock': ClocksMonotonicClockAsync,
-    'wasi:clocks/timezone': ClocksTimezoneAsync,
-    'wasi:clocks/wall-clock': ClocksWallClockAsync,
-    'wasi:filesystem/filesystem': FilesystemFilesystemAsync,
-    'wasi:io/streams': IoStreamsAsync,
-    'wasi:poll/poll': PollPollAsync,
-    'wasi:sockets/instance-network': SocketsInstanceNetworkAsync,
-    'wasi:sockets/network': SocketsNetworkAsync,
-    'wasi:sockets/tcp': SocketsTcpAsync,
-    'wasi:sockets/tcp-create-socket': SocketsTcpCreateSocketAsync,
-    'wasi:sockets/ip-name-lookup': SocketsIpNameLookupAsync,
-    'wasi:random/random': RandomRandomAsync,
-    'wasi:random/insecure': RandomInsecureAsync,
-    'wasi:random/insecure-seed': RandomInsecureSeedAsync,
-  }
+export type WasiSnapshotPreview2AsyncImportObject = {
+    "wasi:cli-base/environment": CliBaseEnvironmentAsync;
+    "wasi:cli-base/preopens": CliBasePreopensAsync;
+    "wasi:cli-base/exit": CliBaseExitAsync;
+    "wasi:cli-base/stdin": CliBaseStdinAsync;
+    "wasi:cli-base/stdout": CliBaseStdoutAsync;
+    "wasi:cli-base/stderr": CliBaseStderrAsync;
+    "wasi:clocks/monotonic-clock": ClocksMonotonicClockAsync;
+    "wasi:clocks/timezone": ClocksTimezoneAsync;
+    "wasi:clocks/wall-clock": ClocksWallClockAsync;
+    "wasi:filesystem/filesystem": FilesystemFilesystemAsync;
+    "wasi:io/streams": IoStreamsAsync;
+    "wasi:poll/poll": PollPollAsync;
+    "wasi:sockets/instance-network": SocketsInstanceNetworkAsync;
+    "wasi:sockets/network": SocketsNetworkAsync;
+    "wasi:sockets/tcp": SocketsTcpAsync;
+    "wasi:sockets/tcp-create-socket": SocketsTcpCreateSocketAsync;
+    "wasi:sockets/ip-name-lookup": SocketsIpNameLookupAsync;
+    "wasi:random/random": RandomRandomAsync;
+    "wasi:random/insecure": RandomInsecureAsync;
+    "wasi:random/insecure-seed": RandomInsecureSeedAsync;
+};
 
-export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2ImportObject {
+export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2AsyncImportObject {
     const socketsNetworkInstance = new SocketsNetworkAsyncHost(wasiOptions);
     const socketsTcpInstance = new SocketsTcpAsyncHost(wasiOptions);
     const socketsIpNameLookupInstance = new SocketsIpNameLookupAsyncHost(wasiOptions);
-    const wasiPreview2Imports: WasiSnapshotPreview2ImportObject = {
-        'wasi:cli-base/environment': new CliBaseEnvironmentAsyncHost(wasiOptions),
-        'wasi:cli-base/preopens': new CliBasePreopensAsyncHost(wasiOptions),
-        'wasi:cli-base/exit': new CliBaseExitAsyncHost(wasiOptions),
-        'wasi:cli-base/stdin': new CliBaseStdinAsyncHost(wasiOptions),
-        'wasi:cli-base/stdout': new CliBaseStdoutAsyncHost(wasiOptions),
-        'wasi:cli-base/stderr': new CliBaseStderrAsyncHost(wasiOptions),
-        'wasi:clocks/monotonic-clock': new ClocksMonotonicClockAsyncHost(wasiOptions),
-        'wasi:clocks/timezone': new ClocksTimezoneAsyncHost(wasiOptions),
-        'wasi:clocks/wall-clock': new ClocksWallClockAsyncHost(wasiOptions),
-        'wasi:filesystem/filesystem': new FileSystemFileSystemAsyncHost(wasiOptions),
-        'wasi:io/streams': new IoStreamsAsyncHost(wasiOptions),
-        'wasi:poll/poll': new PollPollAsyncHost(wasiOptions),
-        'wasi:sockets/instance-network': socketsNetworkInstance,
-        'wasi:sockets/network': socketsNetworkInstance,
-        'wasi:sockets/tcp': socketsTcpInstance,
-        'wasi:sockets/tcp-create-socket': socketsTcpInstance,
-        'wasi:sockets/ip-name-lookup': socketsIpNameLookupInstance,
-        'wasi:random/random': new RandomRandomAsynHost(wasiOptions),
-        'wasi:random/insecure': new RandomInsecureAsyncHost(wasiOptions),
-        'wasi:random/insecure-seed': new RandomInsecureSeedAsyncHost(wasiOptions),
+    const wasiPreview2Imports: WasiSnapshotPreview2AsyncImportObject = {
+        "wasi:cli-base/environment": new CliBaseEnvironmentAsyncHost(wasiOptions),
+        "wasi:cli-base/preopens": new CliBasePreopensAsyncHost(wasiOptions),
+        "wasi:cli-base/exit": new CliBaseExitAsyncHost(wasiOptions),
+        "wasi:cli-base/stdin": new CliBaseStdinAsyncHost(wasiOptions),
+        "wasi:cli-base/stdout": new CliBaseStdoutAsyncHost(wasiOptions),
+        "wasi:cli-base/stderr": new CliBaseStderrAsyncHost(wasiOptions),
+        "wasi:clocks/monotonic-clock": new ClocksMonotonicClockAsyncHost(wasiOptions),
+        "wasi:clocks/timezone": new ClocksTimezoneAsyncHost(wasiOptions),
+        "wasi:clocks/wall-clock": new ClocksWallClockAsyncHost(wasiOptions),
+        "wasi:filesystem/filesystem": new FileSystemFileSystemAsyncHost(wasiOptions),
+        "wasi:io/streams": new IoStreamsAsyncHost(wasiOptions),
+        "wasi:poll/poll": new PollPollAsyncHost(wasiOptions),
+        "wasi:sockets/instance-network": socketsNetworkInstance,
+        "wasi:sockets/network": socketsNetworkInstance,
+        "wasi:sockets/tcp": socketsTcpInstance,
+        "wasi:sockets/tcp-create-socket": socketsTcpInstance,
+        "wasi:sockets/ip-name-lookup": socketsIpNameLookupInstance,
+        "wasi:random/random": new RandomRandomAsynHost(wasiOptions),
+        "wasi:random/insecure": new RandomInsecureAsyncHost(wasiOptions),
+        "wasi:random/insecure-seed": new RandomInsecureSeedAsyncHost(wasiOptions),
     };
     return wasiPreview2Imports;
 }

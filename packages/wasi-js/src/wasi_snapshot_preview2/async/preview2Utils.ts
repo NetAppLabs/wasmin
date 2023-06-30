@@ -1,6 +1,6 @@
-import { SystemError } from "../errors.js";
-import { translateErrorToErrorno } from "../wasiUtils.js";
-import { ErrnoN } from "../wasi_snapshot_preview1/bindings.js";
+import { SystemError } from "../../errors.js";
+import { translateErrorToErrorno } from "../../wasiUtils.js";
+import { ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
 import { SocketsNetworkNamespace as sock } from "@wasm-env/wasi-snapshot-preview2";
 type ErrorCodeFS = fs.ErrorCode;

@@ -1,4 +1,3 @@
-
 import {
     GetMemoryForSendFunc,
     HandleWasmImportFunc,
@@ -70,10 +69,14 @@ export class WasmCoreWorkerThreadRunner {
                 const mem = this.exportsMemory as WebAssembly.Memory;
                 //wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} mem: ${mem}`);
                 if (mem.buffer instanceof SharedArrayBuffer) {
-                    wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`);
+                    wasmWorkerThreadDebug(
+                        `WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`
+                    );
                     this._sharedMemory = mem.buffer as SharedArrayBuffer;
                 } else {
-                    wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`);
+                    wasmWorkerThreadDebug(
+                        `WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`
+                    );
                     if (!this._sharedMemory) {
                         this._sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                     } else {
@@ -89,7 +92,7 @@ export class WasmCoreWorkerThreadRunner {
             throw new Error(`Coud not get WebAssembly instance memory - functionName: ${functionName}`);
         };
 
-        // Imports are wrapped to be handled on remote worker 
+        // Imports are wrapped to be handled on remote worker
         // imports are processed by the handleImportFunc proxy
         const wrappedImports = threadWrapAllImports(
             this,
@@ -271,10 +274,7 @@ function threadWrapImportNamespace(
             }
             wasmWorkerThreadDebug(`threadWrapImportNamespace : ${functionName} `);
             const importReference = importValues[functionName];
-            wasmWorkerThreadDebug(
-                `threadWrapImportNamespace : ${functionName} importReference: `,
-                importReference
-            );
+            wasmWorkerThreadDebug(`threadWrapImportNamespace : ${functionName} importReference: `, importReference);
             if (importReference) {
                 const importExportReference = importReference as ImportExportReference;
                 if (importExportReference.exportRef) {
@@ -291,9 +291,7 @@ function threadWrapImportNamespace(
                     }
                 }
             } else {
-                wasmWorkerThreadDebug(
-                    `threadWrapImportNamespace : ${functionName} importReference else : `
-                );
+                wasmWorkerThreadDebug(`threadWrapImportNamespace : ${functionName} importReference else : `);
                 for (const [impKey, impValue] of Object.entries(importValues)) {
                     const importExportReference = impValue as ImportExportReference;
                     if (importExportReference.exportRef) {

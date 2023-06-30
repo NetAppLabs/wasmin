@@ -39,7 +39,6 @@ export function wasmWorkerThreadDebug(msg?: any, ...optionalParams: any[]): void
     }
 }
 
-
 export function wasiWorkerDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_WORKER_DEBUG) {
         console.debug(msg, ...optionalParams);

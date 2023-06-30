@@ -1,13 +1,13 @@
 import { CliBaseEnvironmentNamespace as clibe } from "@wasm-env/wasi-snapshot-preview2";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 type CliBaseEnvironmentAsync = clibe.CliBaseEnvironmentAsync;
 import { CliBaseExitNamespace as clib } from "@wasm-env/wasi-snapshot-preview2";
-import { ExitStatus } from "../wasiUtils.js";
+import { ExitStatus } from "../../wasiUtils.js";
 type Result<T, E> = clib.Result<T, E>;
 import { CliBasePreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
 import { CliBasePreopensAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-preopens";
-import { FIRST_PREOPEN_FD } from "../wasiFileSystem.js";
-import { wasiError } from "../wasiUtils.js";
+import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
+import { wasiError } from "../../wasiUtils.js";
 type Descriptor = clibp.Descriptor;
 import { CliBaseStderrNamespace } from "@wasm-env/wasi-snapshot-preview2";
 import { CliBaseStderrAsync, OutputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-stderr";
@@ -69,7 +69,7 @@ export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
         const preopen_fd = FIRST_PREOPEN_FD;
         try {
             for (let i = preopen_fd; i++; true) {
-                const openDir = this._wasiEnv.openFiles.getPreOpen(preopen_fd);
+                const openDir = this._wasiEnv.openFiles.getPreOpen(i);
                 const path = openDir.path;
                 preopens.push([preopen_fd, path]);
             }

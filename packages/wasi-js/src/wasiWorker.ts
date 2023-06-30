@@ -1,7 +1,7 @@
 import { WASI, WasiExperimentalSocketsNamespace, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { StoreReceivedMemoryFunc } from "./desyncify.js";
+import { HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
 import { In, Out, isNode } from "./wasiUtils.js";
 import {
@@ -16,6 +16,7 @@ import { OpenFiles } from "./wasiFileSystem.js";
 import { getDirectoryHandleByURL } from "@wasm-env/fs-js";
 import { TTY } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
 
 export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
@@ -93,11 +94,8 @@ export class WASIWorker {
 
         this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(this.worker);
         this._channel = createChannel();
-        this._componentImports = {};
         const importNames = await this.wasiWorkerThread.initializeComponentImports(wasiExperimentalSocketsNamespace);
-        for (const importName of importNames) {
-            this._componentImports[importName] = this.createComponentModuleImportProxy(importName);
-        }
+        this._componentImports = this.createComponentModuleImportProxy(importNames);
         return this._componentImports;
     }
 
@@ -105,44 +103,23 @@ export class WASIWorker {
         this.worker?.terminate();
     }
 
-    private createComponentModuleImportProxy(importName: string): {} {
-        const wasiWorker = this;
-        const importDummy = {};
-        return new Proxy(importDummy, {
-            get: (_target, name, _receiver) => {
-                    const functionName = name as string;
-                    return (...args: any) => {
-                        if (!wasiWorker.wasiWorkerThread) {
-                            throw new Error("worker thread not set");
-                        }
-
-                        const workerThread = wasiWorker.wasiWorkerThread;
-                        const channel = wasiWorker.channel;
-                        const messageId = uuidv4();
-                        workerThread.handleComponentImport(
-                            channel,
-                            messageId,
-                            importName,
-                            functionName,
-                            args
-                        );
-                        const ret = readMessage(channel, messageId);
-                        if (ret.error) {
-                            throw ret.error;
-                        }
-                        return ret.return;
-                    };
-            },
-        });
+    private createComponentModuleImportProxy(importNames: string[]): {} {
+        this._componentImports = {};
+        for (const importName of importNames) {
+            this._componentImports[importName] = this.createComponentModuleImportProxyPerImport(importName);
+        }
+        return this._componentImports;
     }
 
-    public handleImport(importName: string, functionName: string, args: any[], buf: ArrayBuffer): any {
-        if (this.wasiWorkerThread) {
-            const channel = undefined;
-            const messageId = uuidv4();
-            this.wasiWorkerThread.handleImport(messageId, importName, functionName, args, buf);
-            // @ts-ignore
-            const retMsg = readMessage(channel, messageId);
+    private createComponentModuleImportProxyPerImport(importName: string): {} {
+        const wasiWorker = this;
+        const channel = wasiWorker.channel;
+        const workerThread = wasiWorker.wasiWorkerThread;
+        if (workerThread) {
+            const handleComponentImportFunc = workerThread.handleComponentImport;
+            return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
+        } else {
+            throw new Error("WasiWorkerThread not set");
         }
     }
 }
@@ -218,7 +195,7 @@ export class WasiWorkerThreadRunner {
         await this.wasi?.handleComponentImport(channel, messageId, importName, functionName, args);
     }
 
-    public async handleImport(
+    public async handleCoreImport(
         messageId: string,
         importName: string,
         functionName: string,

@@ -4,8 +4,12 @@ import { ImportsPreopens } from './imports/preopens';
 import { ImportsStderr } from './imports/stderr';
 import { ImportsStdin } from './imports/stdin';
 import { ImportsStdout } from './imports/stdout';
+import { ImportsMonotonicClock } from './imports/monotonic-clock';
+import { ImportsWallClock } from './imports/wall-clock';
 import { ImportsFilesystem } from './imports/filesystem';
 import { ImportsStreams } from './imports/streams';
+import { ImportsPoll } from './imports/poll';
+import { ImportsRandom } from './imports/random';
 export interface ImportObject {
   'wasi:cli-base/environment': typeof ImportsEnvironment,
   'wasi:cli-base/exit': typeof ImportsExit,
@@ -13,8 +17,12 @@ export interface ImportObject {
   'wasi:cli-base/stderr': typeof ImportsStderr,
   'wasi:cli-base/stdin': typeof ImportsStdin,
   'wasi:cli-base/stdout': typeof ImportsStdout,
+  'wasi:clocks/monotonic-clock': typeof ImportsMonotonicClock,
+  'wasi:clocks/wall-clock': typeof ImportsWallClock,
   'wasi:filesystem/filesystem': typeof ImportsFilesystem,
   'wasi:io/streams': typeof ImportsStreams,
+  'wasi:poll/poll': typeof ImportsPoll,
+  'wasi:random/random': typeof ImportsRandom,
 }
 export interface Root {
   run(): void,

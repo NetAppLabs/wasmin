@@ -1,15 +1,15 @@
-import { FilesystemFilesystemAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem";
-import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-instance-network";
-import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup";
+import { FilesystemFilesystemAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
+import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-instance-network.js";
+import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup.js";
 import {
     IpAddress,
     IpSocketAddress,
     Ipv4SocketAddress,
     Ipv6SocketAddress,
     SocketsNetworkAsync,
-} from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network";
-import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp";
-import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket";
+} from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network.js";
+import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp.js";
+import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket.js";
 
 const ERRNO_AGAIN = 6;
 

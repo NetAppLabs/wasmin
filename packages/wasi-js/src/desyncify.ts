@@ -5,7 +5,7 @@ import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
 import { WasmWorker } from "./wasmWorker.js";
-import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js"
+import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -40,6 +40,14 @@ export type HandleWasmImportFunc = (
     functionName: string,
     args: any[],
     memory: ArrayBuffer
+) => any;
+
+export type HandleWasmComponentImportFunc = (
+    channel: Channel,
+    messageId: string,
+    importName: string,
+    functionName: string,
+    args: any[],
 ) => any;
 
 export async function instantiateWithAsyncDetection(
@@ -102,6 +110,7 @@ export async function instantiateOnWasmWorker(
             throw new Error("BufferSource must be set for non-asyncified wasm modules to work");
         }
 
+        // Create a worker if it is not passed in
         if (!worker) {
             worker = new WasmWorker();
             await worker.createCoreWorker();
@@ -149,7 +158,6 @@ async function handlerInstanciateProxy(
     const exportsDummy: WebAssembly.Exports = {};
     const exportsProxy = new Proxy(exportsDummy, {
         get: (target, name, receiver) => {
-
             // edge case when the Proxy is await-ed
             if (name == "then") {
                 return undefined;
@@ -229,7 +237,7 @@ async function handlerInstanciateProxy(
                             ", sargs: ",
                             sargs,
                             "moduleInstanceId: ",
-                            moduleInstanceId,
+                            moduleInstanceId
                         );
                         const expFunc = threadRemote.executeExportedFunction;
                         const retval = await expFunc(moduleInstanceId, functionName, sargs);

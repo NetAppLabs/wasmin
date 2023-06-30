@@ -24,7 +24,9 @@
     "src"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "run-p build:*",
+    "build:tsc": "tsc -p .",
+    "build:wasm": "cpy src/**/*.wasm dist/",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsc -p . --watch",
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
@@ -71,6 +73,7 @@
     "@vitest/coverage-c8": "^0.32.2",
     "@wasm-env/node-fs-js": "*",
     "@wasm-env/tsconfig": "*",
+    "cpy-cli": "^5.0.0",
     "eslint-config-custom": "^0.0.0",
     "jest-extended": "^4.0.0",
     "vitest": "^0.32.2",

@@ -64,7 +64,7 @@ const w = new WASI({});
 
 //let actualExitCode = await w.instantiate(await wasmMod);
 
-let actualExitCode = 0 ;
+let actualExitCode = 0;
 
 /*
 let coreModuleImports = w.initializeCoreImports();
@@ -73,9 +73,9 @@ let exports = instance.exports;
 */
 const exports = await w.exportFunction(await wasmMod);
 
-let { sum } = exports
+let { sum } = exports;
 
-let sumRet = await sum(1,2);
+let sumRet = await sum(1, 2);
 console.log("sumRet:", sumRet);
 w.stopWorker();
 

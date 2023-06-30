@@ -493,6 +493,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     ): Promise<Errno> {
         const pathString = string.get(this.buffer, path_ptr, path_len);
         wasiDebug(`[path_filestat_get] fd: ${fd} _flags: ${flags} pathString: ${pathString} result_ptr: ${result_ptr}`);
+        //const handle = await this.openFiles.getPreOpen(fd).getFileOrDir(pathString, FileOrDir.Any);
         const openDir = this.openFiles.getAsDir(fd);
         const handle = await openDir.getFileOrDir(pathString, FileOrDir.Any);
 

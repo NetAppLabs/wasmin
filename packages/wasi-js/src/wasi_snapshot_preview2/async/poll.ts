@@ -1,6 +1,6 @@
 import { PollPollAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/poll-poll.js";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
-import { Pollable } from "../wasiFileSystem.js";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
+import { Pollable } from "../../wasiFileSystem.js";
 
 export class PollPollAsyncHost implements PollPollAsync {
     constructor(wasiOptions: WasiOptions) {

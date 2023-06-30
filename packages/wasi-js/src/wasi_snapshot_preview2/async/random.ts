@@ -1,5 +1,5 @@
 import { RandomRandomAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-random.js";
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../wasi.js";
+import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { RandomInsecureAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-insecure.js";
 import { RandomInsecureSeedAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/random-insecure-seed.js";
 

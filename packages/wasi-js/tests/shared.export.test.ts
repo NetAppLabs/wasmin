@@ -35,15 +35,7 @@ describe("export", () => {
 
     test("export function", async () => {
         const wasmName = "export.wasm";
-        const module = readFile(
-            path.resolve(
-                path.join(
-                    "tests",
-                    "shared-wasm",
-                    wasmName
-                )
-            )
-        );
+        const module = readFile(path.resolve(path.join("tests", "shared-wasm", wasmName)));
 
         let stdout = "";
 
@@ -51,7 +43,6 @@ describe("export", () => {
             openFiles: new OpenFiles({}),
             stdout: stringOut((s) => (stdout += s)),
         });
-
 
         const exports = await wasi.exportFunction(await module);
         const sumf = exports.sum;
@@ -69,6 +60,5 @@ describe("export", () => {
         //expect(await div(1, 0)).not.toBeFinite();
         expect(await div(0, 1)).toBe(0);
         expect(await div(0, 0)).toBeNaN();
-
     });
 });

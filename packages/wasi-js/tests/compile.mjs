@@ -21,18 +21,17 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
     const asyncifiedWasmPath = path.resolve(path.join(scriptDir, "asyncified-wasm"));
     const sharedWasmPath = path.resolve(path.join(scriptDir, "shared-wasm"));
 
-    if (!fs.existsSync(wasmPath)){
+    if (!fs.existsSync(wasmPath)) {
         fs.mkdirSync(wasmPath);
     }
 
-    if (!fs.existsSync(asyncifiedWasmPath)){
+    if (!fs.existsSync(asyncifiedWasmPath)) {
         fs.mkdirSync(asyncifiedWasmPath);
     }
 
-    if (!fs.existsSync(sharedWasmPath)){
+    if (!fs.existsSync(sharedWasmPath)) {
         fs.mkdirSync(sharedWasmPath);
     }
-    
 
     const srcList = (await fsp.readdir(srcPath))
         .filter((filenameWithExt) => path.extname(filenameWithExt) === ".c")
@@ -84,7 +83,6 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
         })
     );
 
-
     console.log("[shared-wasm]");
 
     await Promise.all(
@@ -102,6 +100,4 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
             });
         })
     );
-
-
 })();

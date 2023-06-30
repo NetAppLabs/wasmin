@@ -71,17 +71,22 @@ export default Worker;
 export async function createWorker(scriptURL: string | URL, options?: WorkerOptions): Promise<Worker> {
     const forNode = isNode();
     if (forNode) {
-        const nodeImport = await import("./node.js");
-        const nodeWorker = nodeImport.default;
-        let stringScriptUrl: string;
-        if (scriptURL instanceof URL) {
-            const sUrl = scriptURL as URL;
-            stringScriptUrl = sUrl.toString();
-        } else {
-            stringScriptUrl = scriptURL;
+        try {
+            const nodeImport = await import("./node.js");
+            const nodeWorker = nodeImport.default;
+            let stringScriptUrl: string;
+            if (scriptURL instanceof URL) {
+                const sUrl = scriptURL as URL;
+                stringScriptUrl = sUrl.toString();
+            } else {
+                stringScriptUrl = scriptURL;
+            }
+            const w = new nodeWorker(stringScriptUrl, options);
+            return w;
+        } catch (err: any) {
+            console.log("createWorker err: ", err);
+            throw err;
         }
-        const w = new nodeWorker(stringScriptUrl, options);
-        return w;
     } else {
         return new Worker(scriptURL, options);
     }
