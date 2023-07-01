@@ -9,7 +9,7 @@ import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
-let backend: backendType = "memory";
+let backend: backendType = "fs-js";
 switch (process.env.TEST_WASI_USING_BACKEND) {
     case "memory":
         backend = "memory";
@@ -45,31 +45,31 @@ const tests: (Test & { test: string })[] = [
     //{ test: "link" },
     // ---
     { test: "getentropy" },
-    // //{ test: "stat", stdout: `---500${EOL}` },
-    // { test: "cant_dotdot" },
-    // { test: "clock_getres" },
+    { test: "stat", stdout: `---500${EOL}` },
+    //{ test: "cant_dotdot" },
+    { test: "clock_getres" },
     // { test: "exitcode", exitCode: 120 },
-    // { test: "fd_prestat_get_refresh" },
+    { test: "fd_prestat_get_refresh" },
     // { test: "freopen", stdout: `hello from input2.txt${EOL}` },
     // { test: "ftruncate" },
-    // { test: "getrusage" },
-    // { test: "gettimeofday" },
-    // { test: "main_args" },
+    { test: "getrusage" },
+    { test: "gettimeofday" },
+    { test: "main_args" },
     // { test: "notdir" },
-    // { test: "poll" },
-    // { test: "preopen_populates" },
+    { test: "poll" },
+    { test: "preopen_populates" },
     // { test: "read_file", stdout: `hello from input.txt${EOL}` },
     // {
     //     test: "read_file_twice",
     //     stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
     // },
-    // { test: "readdir" },
-    // { test: "write_file" },
-    // { test: "stdin", stdin: "hello world", stdout: "hello world" },
-    // { test: "stdout", stdout: "42" },
-    // { test: "stdout_with_flush", stdout: `12${EOL}34` },
-    // { test: "stdout_with_setbuf", stdout: `42` },
-    // { test: "export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
+    //{ test: "readdir" },
+    //{ test: "write_file" },
+    { test: "stdin", stdin: "hello world", stdout: "hello world" },
+    { test: "stdout", stdout: "42" },
+    { test: "stdout_with_flush", stdout: `12${EOL}34` },
+    { test: "stdout_with_setbuf", stdout: `42` },
+    { test: "export", stdout: `10 + 3 = 13${EOL}10 / 3 = 3.33${EOL}` },
 ];
 
 const textEncoder = new TextEncoder();

@@ -33,8 +33,9 @@ let actualStderr = "";
 
 //let test = "getentropy";
 //let test = "exitcode";
-let test = "stdout";
+//let test = "stdout";
 //let test = "stdin";
+let test = "readdir";
 
 let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
 //let oneWasmPath = resolve(join(baseDir, "component.core.wasm"));
@@ -63,7 +64,7 @@ const w = new WASI({
         NODE_PLATFORM: "win32",
     },
 });
-w.component = true;
+//w.component = true;
 let actualExitCode = 0;
 try {
     actualExitCode = await w.run(await wasmMod);
