@@ -174,7 +174,9 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     }
     async statAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string): Promise<DescriptorStat> {
         try {
-            const handle = await this.openFiles.getPreOpen(fd).getFileOrDir(path, FileOrDir.Any);
+            wasiDebug(`statAt: fd: ${fd} path: ${path}`)
+            const openDir = this.openFiles.getAsDir(fd);
+            const handle = await openDir.getFileOrDir(path, FileOrDir.Any);
             const stat = populateDescriptorStat(handle.kind === "file" ? await handle.getFile() : undefined);
             return stat;
         } catch (err: any) {
@@ -323,6 +325,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             const next = await dirIter.next();
             return next;
         } catch (err: any) {
+            //console.log("readDirectoryEntry err:", err);
             throw translateError(err);
         }
     }

@@ -468,7 +468,9 @@ export class OpenFiles {
         if (preOpen.path != "/") {
             prefix = preOpen.path;
         }
-        return this._add(`${prefix}/${path}`, await preOpen.getFileOrDir(path, FileOrDir.Any, openFlags), fdFlags);
+        const pathWithPrefix = `${prefix}/${path}`;
+        const fileOrDir = await preOpen.getFileOrDir(path, FileOrDir.Any, openFlags);
+        return this._add(pathWithPrefix, fileOrDir, fdFlags);
     }
 
     get(fd: Fd): OpenResource {
