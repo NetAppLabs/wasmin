@@ -14,18 +14,20 @@ async function getRootFS(): Promise<FileSystemDirectoryHandle> {
     if (!nodePath || nodePath == "") {
         nodePath = process.cwd();
     }
-    let rootfs: NFileSystemDirectoryHandle;
+    let rootfs: FileSystemDirectoryHandle;
     if (USE_MEMORY) {
         rootfs = await getOriginPrivateDirectory(memory, nodePath);
     } else {
         rootfs = await getOriginPrivateDirectory(node, nodePath);
     }
-    const secretStore = getSecretStore();
-    rootfs.secretStore = secretStore;
-    const procfs = await getProcFsHandle();
-    rootfs.insertHandle(procfs);
-    const hostsfs = await getHostsFsHandle();
-    rootfs.insertHandle(hostsfs);
+    if (rootfs instanceof NFileSystemDirectoryHandle) {
+        const secretStore = getSecretStore();
+        rootfs.secretStore = secretStore;
+        const procfs = await getProcFsHandle();
+        rootfs.insertHandle(procfs);
+        const hostsfs = await getHostsFsHandle();
+        rootfs.insertHandle(hostsfs);
+    }
     return rootfs;
 }
 

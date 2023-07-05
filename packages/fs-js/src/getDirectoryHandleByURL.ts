@@ -14,18 +14,8 @@ export function RegisterProvider(prefix: string, provFunc: providerFunc) {
     providersRegistry[prefix] = provFunc;
 }
 
-export async function getDirectoryHandleByURL(url: string, secretStore?: any): Promise<NFileSystemDirectoryHandle> {
-    /*
-  //@ts-ignore
-  registerProvider("s3", s3);
-  //@ts-ignore
-  providersRegistry["github"] = github;
-  */
+export async function getDirectoryHandleByURL(url: string, secretStore?: any, wrapped=true): Promise<FileSystemDirectoryHandle> {
     //@ts-ignore
-    //providersRegistry["memory"] = memory;
-    //@ts-ignore
-    //providersRegistry["indexeddb"] = indexeddb;
-
     RegisterProvider("memory", memory);
     //@ts-ignore
     RegisterProvider("indexeddb", indexeddb);
@@ -36,7 +26,11 @@ export async function getDirectoryHandleByURL(url: string, secretStore?: any): P
 
     if (provFunc) {
         const adapterHandle = await provFunc(url, secretStore);
-        return new NFileSystemDirectoryHandle(adapterHandle);
+        if (wrapped) {
+            return new NFileSystemDirectoryHandle(adapterHandle);
+        } else {
+            return adapterHandle;
+        }
     } else {
         throw new Error(`url not handled: ${url}`);
     }

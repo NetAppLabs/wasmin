@@ -6,7 +6,9 @@ import {
     FileSystemWritableFileStream,
     InvalidModificationError,
     InvalidStateError,
+    NFileSystemWritableFileStream,
     NotFoundError,
+    PreNameCheck,
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
@@ -27,7 +29,7 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
-export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
+export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
         this.size = size;
@@ -143,7 +145,7 @@ export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWrita
     }
 }
 
-export class BunFileHandle implements ImpleFileHandle<Sink, MyFile> {
+export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile> {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;
@@ -158,7 +160,7 @@ export class BunFileHandle implements ImpleFileHandle<Sink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    public async createWritable(options?: FileSystemCreateWritableOptions) {
+    public async createWritableSink(options?: FileSystemCreateWritableOptions) {
         let fSize = 0;
         if (options && !options.keepExistingData) {
             await fs.truncate(this.path).catch((err) => {
@@ -173,7 +175,15 @@ export class BunFileHandle implements ImpleFileHandle<Sink, MyFile> {
         const fhNumber = fileHandle as number;
         const { size } = fsSync.fstatSync(fhNumber);
         fSize = size;
-        return new Sink(fileHandle, fSize);
+        const sink = new BunSink(fileHandle, fSize);
+        return sink;
+    }
+
+    // @ts-ignore
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
+        const sink = await this.createWritableSink(options);
+        const fstream = new NFileSystemWritableFileStream(sink);
+        return fstream;
     }
 
     private getPath() {
@@ -185,6 +195,14 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
     constructor(public path: string, public name = "") {}
     public writable = true;
     public kind = "directory" as const;
+
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
+
+    get [Symbol.toStringTag]() {
+        return "FileSystemDirectoryHandle";
+    }
 
     resolve(_possibleDescendant: BunFileHandle | BunFolderHandle): Promise<string[] | null> {
         throw new Error("Method not implemented.");
@@ -212,6 +230,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
     }
 
     public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code !== "ENOENT") throw err;
@@ -228,6 +247,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
     }
 
     public async getFileHandle(name: string, opts: { create?: boolean } = {}) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code !== "ENOENT") throw err;
@@ -250,14 +270,15 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         return "granted" as const;
     }
 
-    public async removeEntry(name: string, opts: { recursive?: boolean }) {
+    public async removeEntry(name: string, opts?: { recursive?: boolean }) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
         if (stat && stat.isDirectory()) {
-            if (opts.recursive) {
+            if (opts && opts.recursive) {
                 await fs.rm(path, { recursive: true }).catch((err) => {
                     if (err.code === "ENOTEMPTY") throw new InvalidModificationError();
                     throw err;

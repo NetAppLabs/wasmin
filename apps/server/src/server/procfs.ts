@@ -7,6 +7,7 @@ import { Host, Process } from "./types";
 
 import {
     PermissionState,
+    FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemSyncAccessHandle,

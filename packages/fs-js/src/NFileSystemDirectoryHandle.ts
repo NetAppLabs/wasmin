@@ -2,7 +2,8 @@ import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemFileHandle } from "./NFileSystemFileHandle.js";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL.js";
 import { TypeMismatchError } from "./errors.js";
-import { FileSystemDirectoryHandle, FileSystemFileHandle } from "./index.js";
+import { FileSystemHandle } from "./FileSystemAccess.js";
+import { FileSystemDirectoryHandle, FileSystemFileHandle, PreNameCheck } from "./index.js";
 
 const FILESYSTEM_DEBUG = false;
 
@@ -30,10 +31,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
         name: string,
         options?: FileSystemGetDirectoryOptions
     ): Promise<FileSystemDirectoryHandle> {
-        if (name === "") throw new TypeError(`Name can't be an empty string.`);
-        if (name === "." || name === ".." || name.includes("/"))
-            throw new TypeError(`Name contains invalid characters.`);
-
+        PreNameCheck(name);
         try {
             const f = new NFileSystemDirectoryHandle(
                 await this.adapter.getDirectoryHandle(name, options),
@@ -115,9 +113,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
     }
 
     async getFileHandle(name: string, options = { create: false }): Promise<FileSystemFileHandle> {
-        if (name === "") throw new TypeError(`Name can't be an empty string.`);
-        if (name === "." || name === ".." || name.includes("/"))
-            throw new TypeError(`Name contains invalid characters.`);
+        PreNameCheck(name)
         try {
             const f = new NFileSystemFileHandle(await this.adapter.getFileHandle(name, options));
             return f;
@@ -143,9 +139,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
     }
 
     async removeEntry(name: string, options = { recursive: false }): Promise<void> {
-        if (name === "") throw new TypeError(`Name can't be an empty string.`);
-        if (name === "." || name === ".." || name.includes("/"))
-            throw new TypeError(`Name contains invalid characters.`);
+        PreNameCheck(name);
         return this.adapter.removeEntry(name, options);
     }
 

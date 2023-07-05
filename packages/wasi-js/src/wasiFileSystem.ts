@@ -18,8 +18,8 @@ import type { Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-import { openDirectoryHandle } from "@wasm-env/fs-js";
-import { FileSystemDirectoryHandle, FileSystemFileHandle, FileSystemWritableFileStream } from "@wasm-env/fs-js";
+import { Inodable, openDirectoryHandle } from "@wasm-env/fs-js";
+import { FileSystemHandle, FileSystemDirectoryHandle, FileSystemFileHandle, FileSystemWritableFileStream } from "@wasm-env/fs-js";
 import { Descriptor } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
 
 declare let globalThis: any;
@@ -314,14 +314,17 @@ export class OpenDirectoryIterator {
 
     async next(): Promise<DirectoryEntry | null> {
         let count = 0;
-        //const inode = undefined;
         
         const iterator = this.openDir.handle.values();
         for await (const handle of iterator) {
             // TODO handle abort
             //this._checkAbort();
             const descriptorNum = this._descriptor + count;
-            const inode = 0n
+            let inode = 0n
+            if ((handle as any).inode) {
+                const inodable = handle as unknown as Inodable;
+                inode = inodable.inode;
+            }
             //const inode = BigInt(descriptorNum);
             let ftype: DescriptorType = "unknown";
             const { name } = handle;

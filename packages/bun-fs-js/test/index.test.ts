@@ -15,21 +15,37 @@ import { bun } from "../src/index.js";
 import { TestsFileSystemHandle } from "@wasm-env/fs-js";
 
 let root: FileSystemDirectoryHandle;
-const testFolderPath = "./testfolder";
+const testFolderPath1 = "./testfolder1";
+const testFolderPath2 = "./testfolder2";
 
 const getBunRoot = async () => {
-    root = await getOriginPrivateDirectory(bun, testFolderPath);
+    root = await getOriginPrivateDirectory(bun, testFolderPath1, false);
     return root;
 };
 
-const beforeAllFunc = async () => {
-    if (!existsSync(testFolderPath)) {
-        await mkdir(testFolderPath);
+const getBunRootWrapped = async () => {
+    root = await getOriginPrivateDirectory(bun, testFolderPath2, true);
+    return root;
+};
+
+const beforeAllFunc1 = async () => {
+    if (!existsSync(testFolderPath1)) {
+        await mkdir(testFolderPath1);
     }
 };
 
-const afterAllFunc = async () => {
-    await rm(testFolderPath, { force: true, recursive: true });
+const beforeAllFunc2 = async () => {
+    if (!existsSync(testFolderPath2)) {
+        await mkdir(testFolderPath2);
+    }};
+
+const afterAllFunc1 = async () => {
+    await rm(testFolderPath1, { force: true, recursive: true });
 };
 
-TestsFileSystemHandle("bun", getBunRoot, beforeAllFunc, afterAllFunc);
+const afterAllFunc2 = async () => {
+    await rm(testFolderPath2, { force: true, recursive: true });
+};
+
+TestsFileSystemHandle("bun", getBunRoot, beforeAllFunc1, afterAllFunc1);
+TestsFileSystemHandle("bun", getBunRootWrapped, beforeAllFunc2, afterAllFunc2);

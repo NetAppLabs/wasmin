@@ -1,4 +1,4 @@
-import { FolderHandle as MemoryFolderHandle, FileHandle as MemoryFileHandle } from "./adapters/memory.js";
+import { MemoryFolderHandle as MemoryFolderHandle, MemoryFileHandle as MemoryFileHandle } from "./adapters/memory.js";
 import { FolderHandle as SandboxFolderHandle, FileHandle as SandboxFileHandle } from "./adapters/sandbox.js";
 import { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";
 import { FileSystemDirectoryHandle } from "./index.js";
@@ -34,4 +34,11 @@ export async function fromInput(input: HTMLInputElement): Promise<NFileSystemDir
     });
     const adapterHandle = root as unknown as FileSystemDirectoryHandle;
     return new NFileSystemDirectoryHandle(adapterHandle);
+}
+
+
+export function PreNameCheck(name: string) {
+    if (name === "") throw new TypeError(`Name can't be an empty string.`);
+    if (name === "." || name === ".." || name.includes("/"))
+        throw new TypeError(`Name contains invalid characters.`);
 }

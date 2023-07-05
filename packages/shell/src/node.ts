@@ -108,14 +108,16 @@ export async function getRootFS(): Promise<FileSystemDirectoryHandle> {
     if (!nodePath || nodePath == "") {
         nodePath = process.cwd();
     }
-    let rootfs: NFileSystemDirectoryHandle;
+    let rootfs: FileSystemDirectoryHandle;
     if (USE_MEMORY) {
         rootfs = await getOriginPrivateDirectory(memory, nodePath);
     } else {
         rootfs = await getOriginPrivateDirectory(node, nodePath);
     }
     const secretStore = getSecretStore();
-    rootfs.secretStore = secretStore;
+    if (rootfs instanceof NFileSystemDirectoryHandle) {
+        rootfs.secretStore = secretStore;
+    }
     return rootfs;
 }
 

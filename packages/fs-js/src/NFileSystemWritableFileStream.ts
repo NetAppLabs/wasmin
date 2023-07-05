@@ -11,14 +11,6 @@ export function fileSystemWritableDebug(msg?: any, ...optionalParams: any[]): vo
     }
 }
 
-const awaitTimeout = (delay: number, reason: string) =>
-    new Promise<void>((resolve, reject) =>
-        setTimeout(() => (reason === undefined ? resolve() : reject(reason)), delay)
-    );
-
-const wrapPromise = (promise: Promise<any>, delay: number, reason: string) =>
-    Promise.race([promise, awaitTimeout(delay, reason)]);
-
 export class NFileSystemWritableFileStream extends WritableStream implements FileSystemWritableFileStream {
     constructor(...args: any[]) {
         super(...args);
@@ -26,7 +18,6 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
     }
 
     private _closed = false;
-    //private writer: null | WritableStreamDefaultWriter;
 
     async close(): Promise<void> {
         fileSystemWritableDebug("NFileSystemWritableFileStream: close start");
@@ -37,7 +28,6 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
         try {
             //console.trace();
             const p = w.close();
-            //const closePromise = wrapPromise(p, 1000, "didtimeout");
             const closePromise = p;
             fileSystemWritableDebug("NFileSystemWritableFileStream: closePromise: ", closePromise);
             await closePromise;

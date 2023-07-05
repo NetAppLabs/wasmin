@@ -7,21 +7,37 @@ import { node } from "../src/index.js";
 import { TestsFileSystemHandle } from "@wasm-env/fs-js";
 
 let root: FileSystemDirectoryHandle;
-const testFolderPath = "./testfolder";
+const testFolderPath1 = "./testfolder1";
+const testFolderPath2 = "./testfolder2";
 
 const getNodeRoot = async () => {
-    root = await getOriginPrivateDirectory(node, testFolderPath);
+    root = await getOriginPrivateDirectory(node, testFolderPath1, false);
     return root;
 };
 
-const beforeAllFunc = async () => {
-    if (!existsSync(testFolderPath)) {
-        await mkdir(testFolderPath);
+const getNodeRootWrapped = async () => {
+    root = await getOriginPrivateDirectory(node, testFolderPath2, true);
+    return root;
+};
+
+const beforeAllFunc1 = async () => {
+    if (!existsSync(testFolderPath1)) {
+        await mkdir(testFolderPath1);
     }
 };
 
-const afterAllFunc = async () => {
-    await rm(testFolderPath, { force: true, recursive: true });
+const beforeAllFunc2 = async () => {
+    if (!existsSync(testFolderPath2)) {
+        await mkdir(testFolderPath2);
+    }};
+
+const afterAllFunc1 = async () => {
+    await rm(testFolderPath1, { force: true, recursive: true });
 };
 
-TestsFileSystemHandle("node", getNodeRoot, beforeAllFunc, afterAllFunc);
+const afterAllFunc2 = async () => {
+    await rm(testFolderPath2, { force: true, recursive: true });
+};
+
+TestsFileSystemHandle("node", getNodeRoot, beforeAllFunc1, afterAllFunc1);
+TestsFileSystemHandle("node", getNodeRootWrapped, beforeAllFunc2, afterAllFunc2);

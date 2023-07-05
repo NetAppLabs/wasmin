@@ -1,3 +1,4 @@
+import { Timestampable } from "./ExtHandles.js";
 import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 import { FileSystemFileHandle } from "./index.js";
@@ -18,6 +19,11 @@ export class NFileSystemFileHandle extends NFileSystemHandle implements FileSyst
     }
 
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        const inner = this.adapter as any;
+        if (inner.createSyncAccessHandle) {
+            const ah = await inner.createSyncAccessHandle();
+            return ah;
+        }
         throw new Error("Method not implemented.");
     }
 

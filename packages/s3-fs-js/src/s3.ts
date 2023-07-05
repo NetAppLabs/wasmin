@@ -1,6 +1,7 @@
 import {
     InvalidModificationError,
     InvalidStateError,
+    NFileSystemWritableFileStream,
     NotAllowedError,
     NotFoundError,
     SyntaxError,
@@ -318,11 +319,17 @@ export class S3FileHandle implements ImpleFileHandle<Sink, File> {
         return this.file;
     }
 
-    public async createWritable() {
+    public async createWritableSink(opts?: any) {
         s3Debug("createWritable: ");
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
         return new Sink(this);
+    }
+
+    public async createWritable(opts?: any) {
+        const sink = this.createWritableSink(opts);
+        const fstream = new NFileSystemWritableFileStream(sink);
+        return sink;
     }
 
     public async isSameEntry(other: any): Promise<boolean> {
@@ -485,6 +492,14 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
     writable: boolean;
     public kind = "directory" as const;
     public path = "";
+
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
+
+    get [Symbol.toStringTag]() {
+        return "FileSystemDirectoryHandle";
+    }
 
     // List the entries in the bucket
     async populateEntries() {

@@ -1,4 +1,5 @@
 import { NotFoundError } from "../errors.js";
+import { FileSystemHandle, FileSystemFileHandle, FileSystemDirectoryHandle } from "../FileSystemAccess.js";
 
 declare let globalThis: any;
 globalThis.FSJS_UTIL_DEBUG = false;

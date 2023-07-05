@@ -56,7 +56,8 @@ export interface ImpleFileHandle<T = any, U = any> {
 
     getFile: () => Promise<U>;
     isSameEntry: (other: any) => Promise<boolean>;
-    createWritable: (options?: { keepExistingData?: boolean }) => Promise<T>;
+    createWritableSink: (options?: FileSystemCreateWritableOptions) => Promise<T>;
+    createWritable: (options?: FileSystemCreateWritableOptions) => Promise<FileSystemWritableFileStream>;
 }
 
 export interface ImplFolderHandle<T = any, U = any> {

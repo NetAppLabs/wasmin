@@ -61,6 +61,7 @@ import {
     isNode,
 } from "../wasiUtils.js";
 import { WasiEnv } from "../wasi.js";
+import { Inodable } from "@wasm-env/fs-js";
 
 export function initializeWasiSnapshotPreview1AsyncToImports(
     imports: any,
@@ -426,6 +427,12 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         const initialBufPtr = buf;
         const initialBufLen = buf_len;
         const openDir = this.openFiles.getAsDir(fd);
+        const dirfh = openDir.handle;
+        let dot_inode = 0n;
+        /*if ((dirfh as any).inode) {
+            const inodable = dirfh as unknown as Inodable;
+            dot_inode = inodable.inode;
+        }*/
         // type conversion because buf is ptr<u8> but expects ptr<Dirent>
         let dirent_buf_ptr = buf as unknown as ptr<Dirent>;
 
@@ -441,7 +448,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             }*/
             const newDirent: Dirent = {
                 d_next: ++cookie,
-                d_ino: 0n, // TODO
+                d_ino: dot_inode,
                 d_namlen: nameLen,
                 d_type: FiletypeN.DIRECTORY,
             };
@@ -462,7 +469,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             }*/
             const newDirent: Dirent = {
                 d_next: ++cookie,
-                d_ino: 0n, // TODO
+                d_ino: 0n, // TODO how can we get parent inode ?
                 d_namlen: nameLen,
                 d_type: FiletypeN.DIRECTORY,
             };
@@ -480,7 +487,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         let hasMoreinIterator = false;
         for await (const handle of entries) {
             this._checkAbort();
-            const { name } = handle;
+            const name = handle.name;
             const nameAsBytes = textEncoder.encode(name);
             const nameLen = nameAsBytes.byteLength;
             const itemSize = Dirent.size + nameLen;

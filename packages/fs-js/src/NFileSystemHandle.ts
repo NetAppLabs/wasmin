@@ -1,7 +1,7 @@
 const FileSystemHandlePermissionRead = "read";
 const FileSystemHandlePermissionReadWrite = "readwrite";
 
-import { FileSystemHandle, FileSystemHandlePermissionDescriptor } from "./index.js";
+import { FileSystemHandle, FileSystemHandlePermissionDescriptor, FileSystemHandleKind } from "./index.js";
 
 const FS_DEBUG = false;
 export class NFileSystemHandle implements FileSystemHandle {
@@ -10,7 +10,7 @@ export class NFileSystemHandle implements FileSystemHandle {
         this.name = adapter.name;
     }
     name: string;
-    kind: "file" | "directory";
+    kind: FileSystemHandleKind;
 
     fsDebug(message?: any, ...optionalParams: any[]) {
         if (FS_DEBUG) {

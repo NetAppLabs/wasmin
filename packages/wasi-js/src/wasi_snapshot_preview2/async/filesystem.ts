@@ -6,6 +6,8 @@ import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1
 import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
 import { translateError } from "./preview2Utils.js";
 import { toDateTimeFromMs } from "./clocks.js";
+import { FileSystemHandle, FileSystemFileHandle, Inodable } from "@wasm-env/fs-js";
+
 import { bigint } from "typeson-registry";
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
@@ -358,8 +360,11 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
         seconds: timeSeconds,
         nanoseconds: timeNanoSeconds,
     }
-    const inode = 0n;
-    //const inode = BigInt(fd);
+    let inode = 0n;
+    if ((fHandle as any).inode) {
+        const inodable = fHandle as unknown as Inodable;
+        inode = inodable.inode;
+    }
     const newStat: DescriptorStat = {
         device: 0n,
         inode: inode,

@@ -52,11 +52,11 @@ export async function getRootHandle(backend: string, rootPath: string ): Promise
     let dirHandle: FileSystemDirectoryHandle;
     switch (backend) {
         case "memory":
-            dirHandle = await getOriginPrivateDirectory(memory);
+            dirHandle = await getOriginPrivateDirectory(memory, "", false);
             await copyFsInto(rootPath, dirHandle);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default:
-            dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath));
+            dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
     }
     return dirHandle;
 }

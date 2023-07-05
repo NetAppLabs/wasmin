@@ -1,5 +1,5 @@
 // types already exported from typescript lib.dom.d.ts
-export type FileSystemHandleKind = "directory" | "file";
+export type FileSystemHandleKind = "directory" | "file" | "link";
 export type FileSystemWriteChunkType = BufferSource | Blob | string | WriteParams;
 export type PermissionState = "denied" | "granted" | "prompt";
 export type FileSystemPermissionMode = "read" | "readwrite";

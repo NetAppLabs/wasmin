@@ -7,6 +7,7 @@ import {
     TypeMismatchError,
     FileSystemWritableFileStream,
     FileSystemHandlePermissionDescriptor,
+    NFileSystemWritableFileStream,
 } from "@wasm-env/fs-js";
 import { join, substituteSecretValue } from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
@@ -255,10 +256,16 @@ export class GithubFileHandle implements ImpleFileHandle<Sink, File> {
         return this.file;
     }
 
-    public async createWritable() {
+    public async createWritableSink(opts?: any) {
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
         return new Sink(this);
+    }
+
+    public async createWritable(opts?: any) {
+        const sink = await this.createWritableSink(opts);
+        const fstream = new NFileSystemWritableFileStream(sink);
+        return sink;
     }
 
     public async isSameEntry(other: any): Promise<boolean> {
@@ -420,6 +427,14 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
     writable: boolean;
     public kind = "directory" as const;
     public path = "";
+
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
+
+    get [Symbol.toStringTag]() {
+        return "FileSystemDirectoryHandle";
+    }
 
     public async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState> {
         return "granted" as const;

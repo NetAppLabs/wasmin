@@ -8,9 +8,9 @@ import {
     TypeMismatchError,
 } from "../errors.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
-import { FileSystemCreateWritableOptions } from "../index.js";
-export class Sink extends DefaultSink<FileHandle> implements FileSystemWritableFileStream {
-    constructor(fileHandle: FileHandle) {
+import { FileSystemCreateWritableOptions, NFileSystemWritableFileStream, PreNameCheck } from "../index.js";
+export class MemorySink extends DefaultSink<MemoryFileHandle> implements FileSystemWritableFileStream {
+    constructor(fileHandle: MemoryFileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
         this.file = fileHandle.file;
@@ -18,9 +18,9 @@ export class Sink extends DefaultSink<FileHandle> implements FileSystemWritableF
         this.position = 0;
     }
 
-    fileHandle: FileHandle;
-    file: FileHandle["file"];
-    size: FileHandle["file"]["size"];
+    fileHandle: MemoryFileHandle;
+    file: MemoryFileHandle["file"];
+    size: MemoryFileHandle["file"]["size"];
     position: number;
 
     async abort() {
@@ -108,7 +108,7 @@ export class Sink extends DefaultSink<FileHandle> implements FileSystemWritableF
     }
 }
 
-export class FileHandle implements ImpleFileHandle<Sink, File> {
+export class MemoryFileHandle implements ImpleFileHandle<MemorySink, File> {
     constructor(name = "", file = new File([], name), writable = true) {
         this.file = file;
         this.name = name;
@@ -130,15 +130,21 @@ export class FileHandle implements ImpleFileHandle<Sink, File> {
         return this.file;
     }
 
-    public async createWritable(options?: FileSystemCreateWritableOptions) {
+    public async createWritableSink(options?: FileSystemCreateWritableOptions) {
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
         if (options && !options.keepExistingData) {
-            const s = new Sink(this);
+            const s = new MemorySink(this);
             await s.truncate(0);
             return s;
         }
-        return new Sink(this);
+        return new MemorySink(this);
+    }
+
+    public async createWritable(options?: FileSystemCreateWritableOptions) {
+        const sink = await this.createWritableSink(options);
+        const fstream = new NFileSystemWritableFileStream(sink);
+        return fstream;
     }
 
     public async isSameEntry(other: any): Promise<boolean> {
@@ -152,7 +158,7 @@ export class FileHandle implements ImpleFileHandle<Sink, File> {
     }
 }
 
-export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> {
+export class MemoryFolderHandle implements ImplFolderHandle<MemoryFileHandle, MemoryFolderHandle> {
     constructor(name: string, writable = true) {
         this.name = name;
         this.deleted = false;
@@ -160,14 +166,21 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
         this.writable = writable;
         this.readable = true;
     }
-
-    _entries: Record<string, FolderHandle | FileHandle>;
+    _entries: Record<string, MemoryFolderHandle | MemoryFileHandle>;
     name: string;
     deleted: boolean;
     readable: boolean;
     writable: boolean;
     public kind = "directory" as const;
     public path = "";
+
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
+
+    get [Symbol.toStringTag]() {
+        return "FileSystemDirectoryHandle";
+    }
 
     public async *entries() {
         if (this.deleted) throw new NotFoundError();
@@ -177,7 +190,7 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
     async insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
         return new Promise<FileSystemHandle>((resolve, _reject) => {
             const subDir = handle.name;
-            const subHandle = handle as unknown as FolderHandle | FileHandle;
+            const subHandle = handle as unknown as MemoryFolderHandle | MemoryFileHandle;
             this._entries[subDir] = subHandle;
             const fsHandle = subHandle as unknown as FileSystemHandle;
             resolve(fsHandle);
@@ -189,18 +202,19 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
     }
 
     public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+        PreNameCheck(name);
         if (this.deleted) throw new NotFoundError();
         const entry = this._entries[name];
         if (entry) {
             // entry exist
-            if (entry instanceof FileHandle) {
+            if (entry instanceof MemoryFileHandle) {
                 throw new TypeMismatchError();
             } else {
                 return entry;
             }
         } else {
             if (options.create) {
-                return (this._entries[name] = new FolderHandle(name));
+                return (this._entries[name] = new MemoryFolderHandle(name));
             } else {
                 throw new NotFoundError();
             }
@@ -208,7 +222,8 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
     }
 
     // @ts-ignore
-    public async getFileHandle(name: string, options?: { create?: boolean }): Promise<FileHandle | undefined> {
+    public async getFileHandle(name: string, options?: { create?: boolean }): Promise<MemoryFileHandle | undefined> {
+        PreNameCheck(name);
         let do_create = false;
         if (options) {
             if (options.create) {
@@ -216,21 +231,26 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
             }
         }
         const entry = this._entries[name];
-        const isFile = entry instanceof FileHandle;
+        const isFile = entry instanceof MemoryFileHandle;
         if (entry && isFile) return entry;
         if (entry && !isFile) throw new TypeMismatchError();
         if (!entry && !do_create) throw new NotFoundError();
         if (!entry && do_create) {
-            return (this._entries[name] = new FileHandle(name));
+            return (this._entries[name] = new MemoryFileHandle(name));
         } else {
             return undefined;
         }
     }
 
-    public async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+    public async removeEntry(name: string, opts?: { recursive?: boolean }): Promise<void> {
+        PreNameCheck(name);
         const entry = this._entries[name];
         if (!entry) throw new NotFoundError();
-        entry.destroy(opts.recursive);
+        if (opts) {
+            entry.destroy(opts.recursive);
+        } else {
+            entry.destroy();
+        }
         delete this._entries[name];
     }
 
@@ -242,6 +262,10 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
         this._entries = {};
         this.deleted = true;
     }
+
+    public async queryPermission() {
+        return "granted" as const;
+    }
 }
 
-export default (_path: string) => new FolderHandle("");
+export default (_path: string) => new MemoryFolderHandle("");

@@ -1,15 +1,18 @@
 #!/usr/bin/env zx
 /* eslint-disable no-undef */
 
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
 import { constructOneTestForTestSuite, constructWasiForTest} from "@wasm-env/wasi-js/tests/utils.js"
 
-const WASI_TESTSUITE_PATH="./wasi-testsuite/tests/rust/testsuite";
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const WASI_TESTSUITE_PATH= join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
 //const testFile = "dangling_fd.json";
-//const testFile = "fd_readdir.json";
+const testFile = "fd_readdir.json";
 //const testFile = "fdopendir-with-access.json"
 //const testFile = "fopen-with-no-access.wasm"
-const testFile = "interesting_paths.json"
+//const testFile = "interesting_paths.json"
 
 const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
 

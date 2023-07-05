@@ -1,12 +1,16 @@
 import { promises as fs } from "node:fs";
+
 import { join } from "node:path";
 
 import {
     InvalidModificationError,
     InvalidStateError,
+    NFileSystemWritableFileStream,
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
+    PreNameCheck,
+    Inodable,
 } from "@wasm-env/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
 import {
@@ -22,7 +26,7 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
-export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
+export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
         this.size = size;
@@ -98,8 +102,8 @@ export class Sink extends DefaultSink<SinkFileHandle> implements FileSystemWrita
     }
 }
 
-export class FileHandle implements ImpleFileHandle<Sink, MyFile> {
-    constructor(public path: string, public name: string) {}
+export class NodeFileHandle implements ImpleFileHandle<NodeSink, MyFile>, Inodable {
+    constructor(public path: string, public name: string, public inode = 0n) {}
 
     public kind = "file" as const;
 
@@ -121,18 +125,24 @@ export class FileHandle implements ImpleFileHandle<Sink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    public async createWritable(options?: FileSystemCreateWritableOptions) {
+    public async createWritable(options?: FileSystemCreateWritableOptions): Promise<FileSystemWritableFileStream>{
+        const sink = await this.createWritableSink(options);
+        const fstream = new NFileSystemWritableFileStream(sink);
+        return fstream;
+    }
+    
+    public async createWritableSink(options?: FileSystemCreateWritableOptions) {
         const fileHandle = await fs.open(this.path, "r+").catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
         const { size } = await fileHandle.stat();
         if (options && !options.keepExistingData) {
-            const s = new Sink(fileHandle, size);
+            const s = new NodeSink(fileHandle, size);
             await s.truncate(0);
             return s;
         }
-        return new Sink(fileHandle, size);
+        return new NodeSink(fileHandle, size);
     }
 
     private getPath() {
@@ -140,12 +150,20 @@ export class FileHandle implements ImpleFileHandle<Sink, MyFile> {
     }
 }
 
-export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> {
-    constructor(public path: string, public name = "") {}
+export class NodeFolderHandle implements ImplFolderHandle<NodeFileHandle, NodeFolderHandle>, Inodable{
+    constructor(public path: string, public name = "", public inode=0n) {}
     public writable = true;
     public kind = "directory" as const;
 
-    resolve(_possibleDescendant: FileHandle | FolderHandle): Promise<string[] | null> {
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
+
+    get [Symbol.toStringTag]() {
+        return "FileSystemDirectoryHandle";
+    }
+    
+    resolve(_possibleDescendant: NodeFileHandle | NodeFolderHandle): Promise<string[] | null> {
         throw new Error("Method not implemented.");
     }
 
@@ -153,7 +171,38 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
         return this.path === other.path;
     }
 
-    public async *entries(): AsyncGenerator<readonly [string, FileHandle | FolderHandle], void, unknown> {
+    /*
+    async *entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]> {
+        for await (const [, entry] of this.entriesInner()) {
+            const entryName = entry.name;
+                yield [
+                    entryName,
+                    entry.kind === "file"
+                        ? new NFileSystemFileHandle(entry)
+                        : new NFileSystemDirectoryHandle(entry, this.secretStore),
+                ];
+        }
+    }
+    */
+
+    public async *entries(): AsyncGenerator<[string, NodeFileHandle | NodeFolderHandle]> {
+        const dir = this.path;
+        const items = fs.readdir(dir).catch((err) => {
+            if (err.code === "ENOENT") throw new NotFoundError();
+            throw err;
+        });
+        for (const name of await items) {
+            const path = join(dir, name);
+            const stat = await fs.lstat(path);
+            if (stat.isFile()) {
+                yield [name, new NodeFileHandle(path, name, BigInt(stat.ino))];
+            } else if (stat.isDirectory()) {
+                yield [name, new NodeFolderHandle(path, name, BigInt(stat.ino))];
+            }
+        }
+    }
+
+    public async *values(): AsyncGenerator<NodeFileHandle | NodeFolderHandle> {
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -163,52 +212,75 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
             const path = join(dir, name);
             const stat = await fs.lstat(path);
             if (stat.isFile()) {
-                yield [name, new FileHandle(path, name)] as const;
+                yield new NodeFileHandle(path, name, BigInt(stat.ino));
             } else if (stat.isDirectory()) {
-                yield [name, new FolderHandle(path, name)] as const;
+                yield new NodeFolderHandle(path, name, BigInt(stat.ino));
             }
         }
     }
 
+    public async *keys(): AsyncGenerator<string> {
+        const dir = this.path;
+        const items = await fs.readdir(dir).catch((err) => {
+            if (err.code === "ENOENT") throw new NotFoundError();
+            throw err;
+        });
+        for (const name of items) {
+            yield name;
+        }
+    }
+
     public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code !== "ENOENT") throw err;
         });
         const isDirectory = stat?.isDirectory();
-        if (stat && isDirectory) return new FolderHandle(path, name);
+        if (stat && isDirectory) return new NodeFolderHandle(path, name, BigInt(stat.ino));
         if (stat && !isDirectory) throw new TypeMismatchError();
         if (!options.create) throw new NotFoundError();
         await fs.mkdir(path);
-        return new FolderHandle(path, name);
+        const stat2 = await fs.lstat(path).catch((err) => {
+            if (err.code !== "ENOENT") throw err;
+        });
+        let newinode = 0;
+        if (stat2) {
+            newinode = stat2.ino;
+        }
+        return new NodeFolderHandle(path, name, BigInt(newinode));
     }
 
     public async getFileHandle(name: string, opts: { create?: boolean } = {}) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code !== "ENOENT") throw err;
         });
         if (stat) {
-            if (stat.isFile()) return new FileHandle(path, name);
+            if (stat.isFile()) return new NodeFileHandle(path, name, BigInt(stat.ino));
             else throw new TypeMismatchError();
         }
         if (!opts.create) throw new NotFoundError();
-        await (await fs.open(path, "w")).close();
-        return new FileHandle(path, name);
+        const fhandle = await fs.open(path, "w");
+        const stat2 = await fhandle.stat();
+        await fhandle.close();
+        return new NodeFileHandle(path, name, BigInt(stat2.ino));
     }
 
     public async queryPermission() {
         return "granted" as const;
     }
 
-    public async removeEntry(name: string, opts: { recursive?: boolean }) {
+    public async removeEntry(name: string, opts?: { recursive?: boolean }) {
+        PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
         if (stat && stat.isDirectory()) {
-            if (opts.recursive) {
+            if (opts && opts.recursive) {
                 await fs.rm(path, { recursive: true }).catch((err) => {
                     if (err.code === "ENOTEMPTY") throw new InvalidModificationError();
                     throw err;
@@ -225,4 +297,4 @@ export class FolderHandle implements ImplFolderHandle<FileHandle, FolderHandle> 
     }
 }
 
-export default (path: string) => new FolderHandle(path);
+export default (path: string) => new NodeFolderHandle(path);
