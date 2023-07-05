@@ -24,6 +24,16 @@
             "type": "node"
         },
         {
+            "name": "wasi-tester-suite",
+            "program": "${workspaceFolder}/packages/wasi-js/tests/tester.suite.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {},
+            "type": "node"
+        },
+        {
             "name": "wasi-worker-run",
             "program": "${workspaceFolder}/apps/node-shell/dist/index.js",
             "request": "launch",

@@ -96,6 +96,11 @@ export class WasiEnv implements WasiOptions {
         } else {
             this._args = args;
         }
+        // TODO find more correct value for args[0]
+        const execNameWasm = "wasm";
+        // prefix argument list for first argument for executable itself
+        this._args.splice(0, 0, execNameWasm);
+
         this._cargs = new CStringArray(this._args);
         if (!env) {
             env = {};
@@ -284,7 +289,7 @@ export class WASI {
             try {
                 return await this.handleComponentImport(channel, messageId, importName, functionName, args);
             } catch (err: any) {
-                console.log("WASI.handleImportFuncLocal err: ", err);
+                wasiDebug("WASI.handleImportFuncLocal err: ", err);
                 throw err;
             }
         };
@@ -368,7 +373,7 @@ export class WASI {
                 try {
                     return await this.handleCoreImport(messageId, importName, functionName, args, buf, moduleImports);
                 } catch (err: any) {
-                    console.log("WASI.handleImportFuncLocal err: ", err);
+                    wasiDebug("WASI.handleCoreImport err: ", err);
                     throw err;
                 }
             };
@@ -440,7 +445,7 @@ export class WASI {
                 }
                 return 0;
             } catch(err: any) {
-                console.log("runComponent err:", err);
+                wasiDebug("runComponent err:", err);
                 return 1;
             } finally {
                 this._worker.terminate();

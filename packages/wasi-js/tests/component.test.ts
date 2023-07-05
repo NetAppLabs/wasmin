@@ -46,7 +46,7 @@ const tests: (Test & { test: string })[] = [
     // ---
     { test: "getentropy" },
     { test: "stat", stdout: `---500${EOL}` },
-    //{ test: "cant_dotdot" },
+    { test: "cant_dotdot" },
     { test: "clock_getres" },
     // { test: "exitcode", exitCode: 120 },
     { test: "fd_prestat_get_refresh" },
@@ -63,7 +63,7 @@ const tests: (Test & { test: string })[] = [
          test: "read_file_twice",
          stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
     },
-    //{ test: "readdir" },
+    { test: "readdir" },
     { test: "write_file" },
     { test: "stdin", stdin: "hello world", stdout: "hello world" },
     { test: "stdout", stdout: "42" },

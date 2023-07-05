@@ -35,9 +35,9 @@ let actualStderr = "";
 //let test = "exitcode";
 //let test = "stdout";
 //let test = "stdin";
-//let test = "readdir";
+let test = "readdir";
 //let test = "write_file";
-let test = "cant_dotdot";
+//let test = "cant_dotdot";
 
 
 let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));

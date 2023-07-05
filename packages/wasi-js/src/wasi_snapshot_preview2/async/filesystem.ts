@@ -5,6 +5,8 @@ import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
 import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
 import { translateError } from "./preview2Utils.js";
+import { toDateTimeFromMs } from "./clocks.js";
+import { bigint } from "typeson-registry";
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
 type DescriptorType = fs.DescriptorType;
@@ -158,27 +160,26 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     }
     async stat(fd: Descriptor): Promise<DescriptorStat> {
         try {
-            const fdhandle = this.openFiles.get(fd);
-            let stat: DescriptorStat;
-            if (fdhandle instanceof OpenFile) {
-                const handle = fdhandle.handle;
-                stat = populateDescriptorStat(handle.kind === "file" ? await handle.getFile() : undefined);
+            const resource = this.openFiles.get(fd);
+            if (resource instanceof OpenFile || resource instanceof OpenDirectory) {
+                const handle = resource.handle;
+                let stat = await populateDescriptorStat(fd, handle);
                 return stat;
-            } else {
-                stat = populateDescriptorStat(undefined);
             }
-            return stat;
         } catch (err: any) {
             throw translateError(err);
         }
+        throw 'bad-descriptor';
     }
     async statAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string): Promise<DescriptorStat> {
         try {
+            //const resource = this.openFiles.get(fd);
             wasiDebug(`statAt: fd: ${fd} path: ${path}`)
             const openDir = this.openFiles.getAsDir(fd);
             const handle = await openDir.getFileOrDir(path, FileOrDir.Any);
-            const stat = populateDescriptorStat(handle.kind === "file" ? await handle.getFile() : undefined);
+            let stat = await populateDescriptorStat(fd, handle);
             return stat;
+
         } catch (err: any) {
             throw translateError(err);
         }
@@ -338,23 +339,31 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
     }
 }
 
-function populateDescriptorStat(file: File | undefined): DescriptorStat {
+async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle): Promise<DescriptorStat> {
     let size = 0n;
     let timeSeconds = 0n;
     let timeNanoSeconds = 0;
-    if (file) {
-        size = BigInt(file.size);
-        timeSeconds = BigInt(file.lastModified) / 1000n;
-        timeNanoSeconds = file.lastModified * 1000;
-    }
+    let ftype = "directory" as DescriptorType;
+    if (fHandle.kind == "file") {
+        const ffHandle = fHandle as FileSystemFileHandle;
+        const file = await ffHandle.getFile();
+        if (file) {
+            size = BigInt(file.size);
+            timeSeconds = BigInt(file.lastModified) / 1000n;
+            timeNanoSeconds = file.lastModified * 1000;
+        }
+        ftype = "regular-file";
+    } 
     const time: Datetime = {
         seconds: timeSeconds,
         nanoseconds: timeNanoSeconds,
-    };
+    }
+    const inode = 0n;
+    //const inode = BigInt(fd);
     const newStat: DescriptorStat = {
         device: 0n,
-        inode: 0n,
-        type: file ? "regular-file" : "directory",
+        inode: inode,
+        type: ftype,
         linkCount: 0n,
         statusChangeTimestamp: time,
         dataModificationTimestamp: time,

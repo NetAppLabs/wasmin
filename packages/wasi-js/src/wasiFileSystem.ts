@@ -20,6 +20,7 @@ type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
 import { openDirectoryHandle } from "@wasm-env/fs-js";
 import { FileSystemDirectoryHandle, FileSystemFileHandle, FileSystemWritableFileStream } from "@wasm-env/fs-js";
+import { Descriptor } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
 
 declare let globalThis: any;
 globalThis.WASI_FS_DEBUG = false;
@@ -122,6 +123,9 @@ export class OpenDirectory {
                 const res = await currentIter.iter.next();
                 if (!res.done) {
                     currentIter.pos++;
+                } else {
+                    // null the currentIter if done
+                    this._currentIter = undefined;
                 }
                 return res;
             },
@@ -266,7 +270,7 @@ export class OpenDirectory {
         for (const item of parts) {
             if (item === "..") {
                 if (resolvedParts.pop() === undefined) {
-                    throw new SystemError(ErrnoN.NOTCAPABLE);
+                    throw new SystemError(ErrnoN.PERM);
                 }
             } else if (item !== ".") {
                 if (item !== "") {
@@ -287,10 +291,12 @@ export class OpenDirectory {
 }
 
 export class OpenDirectoryIterator {
-    constructor(openDir: OpenDirectory) {
+    constructor(fd: Descriptor, openDir: OpenDirectory) {
+        this._descriptor = fd;
         this._openDir = openDir;
     }
     private _openDir: OpenDirectory;
+    private _descriptor: Descriptor;
     private _cursor = 0;
 
     public get cursor(): number {
@@ -308,10 +314,15 @@ export class OpenDirectoryIterator {
 
     async next(): Promise<DirectoryEntry | null> {
         let count = 0;
+        //const inode = undefined;
+        
         const iterator = this.openDir.handle.values();
         for await (const handle of iterator) {
             // TODO handle abort
             //this._checkAbort();
+            const descriptorNum = this._descriptor + count;
+            const inode = 0n
+            //const inode = BigInt(descriptorNum);
             let ftype: DescriptorType = "unknown";
             const { name } = handle;
             if (handle.kind == "file") {
@@ -323,6 +334,7 @@ export class OpenDirectoryIterator {
             const ret: DirectoryEntry = {
                 type: ftype,
                 name: name,
+                inode: inode,
             };
             if (count == this.cursor) {
                 this.cursor++;
@@ -464,12 +476,20 @@ export class OpenFiles {
 
     async open(preOpen: OpenDirectory, path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
         filesystemDebug(`[open] path: ${path} openFlags: ${openFlags} fsFlags: ${fdFlags}`);
+        if (path.startsWith("/")) {
+            throw new SystemError(ErrnoN.PERM);
+        }
         let prefix = "";
         if (preOpen.path != "/") {
             prefix = preOpen.path;
         }
         const pathWithPrefix = `${prefix}/${path}`;
         const fileOrDir = await preOpen.getFileOrDir(path, FileOrDir.Any, openFlags);
+        if (path.endsWith("/")) {
+            if (fileOrDir.kind == "file") {
+                throw new SystemError(ErrnoN.NOTDIR);
+            }
+        }
         return this._add(pathWithPrefix, fileOrDir, fdFlags);
     }
 
@@ -632,7 +652,7 @@ export class OpenFiles {
 
     async openOpenDirectoryIterator(fd: Fd): Promise<Fd> {
         const openDir = this.getAsDir(fd);
-        const iter = new OpenDirectoryIterator(openDir);
+        const iter = new OpenDirectoryIterator(fd, openDir);
         const iterFd = this.add(iter);
         return iterFd;
     }

@@ -44,7 +44,8 @@ int main() {
   }
 
   assert(errno == 0);
-  assert(cnt == 4);
+  // includes also . and ..
+  assert(cnt == 6);
   closedir(dir);
   return 0;
 }

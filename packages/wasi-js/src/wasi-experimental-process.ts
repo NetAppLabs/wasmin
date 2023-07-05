@@ -130,10 +130,10 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 }
             }
 
-            if (moduleOrSource) {
-                args.splice(0, 0, nameWasm);
-                break;
-            }
+            //if (moduleOrSource) {
+            //    args.splice(0, 0, nameWasm);
+            //    break;
+            //}
         }
 
         if (!moduleOrSource) {

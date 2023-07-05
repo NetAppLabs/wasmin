@@ -51,9 +51,7 @@ export class CommandRunner {
 
         try{
             this.commandComponent = await instantiate(boundCompilerFunc, importObject, instantiateCore);
-            console.log("commandComponent: ", this.commandComponent);
         } catch(err: any) {
-            console.log("instantiate err: ",err);
             throw err;
         }
         return this.commandComponent;

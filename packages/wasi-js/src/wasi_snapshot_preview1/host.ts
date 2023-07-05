@@ -313,18 +313,43 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
         wasiDebug("[fdPread]");
-        unimplemented("fd_pread");
-        return ErrnoN.NOSYS;
+        const newFd = await this.openFiles.openWriter(fd, offset);
+        const input = this.openFiles.getAsReadable(newFd);
+        try {
+            await forEachIoVec(
+                this.buffer,
+                iovs_ptr,
+                iovs_len,
+                result_ptr,
+                async (buf) => {
+                    const bufLen = buf.length;
+                    wasiFdDebug(`[fd_read] forEachIoVec bufLen: ${bufLen} input: `, input);
+                    const chunk = await input.read(bufLen);
+                    buf.set(chunk);
+                    return chunk.length;
+                },
+                () => {
+                    this._checkAbort();
+                }
+            );    
+        } finally {
+            this.openFiles.close(newFd);
+        }
+        return ErrnoN.SUCCESS;
     }
     async fdPrestatGet(fd: Fd, result_ptr: mutptr<Prestat>): Promise<Errno> {
         wasiDebug("[fd_prestat_get] fd: ", fd);
-        const newPrestat: Prestat = {
-            tag: PreopentypeN.DIR,
-            data: {
-                pr_name_len: this.openFiles.getPreOpen(fd).path.length,
-            },
-        };
-        Prestat.set(this.buffer, result_ptr, newPrestat);
+        try{
+            const newPrestat: Prestat = {
+                tag: PreopentypeN.DIR,
+                data: {
+                    pr_name_len: this.openFiles.getPreOpen(fd).path.length,
+                },
+            };
+            Prestat.set(this.buffer, result_ptr, newPrestat);
+        } catch (err: any) {
+            return ErrnoN.BADF;
+        }
         return ErrnoN.SUCCESS;
     }
     async fdPrestatDirName(fd: Fd, path: mutptr<u8>, path_len: Size): Promise<Errno> {
@@ -343,8 +368,28 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         offset: Filesize,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        unimplemented("fd_pwrite");
-        return ErrnoN.NOSYS;
+
+        wasiFdDebug("[fd_write]", fd, iovs_ptr, iovs_len, result_ptr);
+        const newFd = await this.openFiles.openWriter(fd, offset);
+        const out = this.openFiles.getAsWritable(newFd);
+        try {
+            await forEachIoVec(
+                this.buffer,
+                iovs_ptr,
+                iovs_len,
+                result_ptr,
+                async (data) => {
+                    await out.write(data);
+                    return data.length;
+                },
+                () => {
+                    this._checkAbort();
+                }
+            );
+        } finally {
+            this.openFiles.close(newFd);
+        }
+        return ErrnoN.SUCCESS;
     }
     async fdRead(fd: Fd, iovs_ptr: ptr<Iovec>, iovs_len: usize, result_ptr: mutptr<Size>): Promise<Errno> {
         wasiFdDebug(`[fd_read] fd: ${fd} iovsLen: ${iovs_len}`);
@@ -376,22 +421,71 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
         wasiDebug("[fd_readdir]");
+        const textEncoder = new TextEncoder();
+
         const initialBufPtr = buf;
+        const initialBufLen = buf_len;
         const openDir = this.openFiles.getAsDir(fd);
-        const pos = Number(cookie);
-        const entries = openDir.getEntries(pos);
         // type conversion because buf is ptr<u8> but expects ptr<Dirent>
         let dirent_buf_ptr = buf as unknown as ptr<Dirent>;
 
+        // Adding . and ..
+        if (cookie < 1n ){
+            const name = ".";
+            const nameAsBytes = textEncoder.encode(name);
+            const nameLen = nameAsBytes.byteLength;
+            const itemSize = Dirent.size + nameLen;
+            /*if (buf_len < itemSize) {
+                entries.revert(handle);
+                break;
+            }*/
+            const newDirent: Dirent = {
+                d_next: ++cookie,
+                d_ino: 0n, // TODO
+                d_namlen: nameLen,
+                d_type: FiletypeN.DIRECTORY,
+            };
+            Dirent.set(this.buffer, dirent_buf_ptr, newDirent);
+            string.set(this.buffer, (dirent_buf_ptr + Dirent.size) as ptr<string>, name);
+            dirent_buf_ptr = (dirent_buf_ptr + itemSize) as ptr<Dirent>;
+            buf_len -= itemSize;
+        }
+
+        if (cookie < 2n ){
+            const name = "..";
+            const nameAsBytes = textEncoder.encode(name);
+            const nameLen = nameAsBytes.byteLength;
+            const itemSize = Dirent.size + nameLen;
+            /*if (buf_len < itemSize) {
+                entries.revert(handle);
+                break;
+            }*/
+            const newDirent: Dirent = {
+                d_next: ++cookie,
+                d_ino: 0n, // TODO
+                d_namlen: nameLen,
+                d_type: FiletypeN.DIRECTORY,
+            };
+            Dirent.set(this.buffer, dirent_buf_ptr, newDirent);
+            string.set(this.buffer, (dirent_buf_ptr + Dirent.size) as ptr<string>, name);
+            dirent_buf_ptr = (dirent_buf_ptr + itemSize) as ptr<Dirent>;
+            buf_len -= itemSize;
+        }
+
+        // cookie is numbered including . and ..
+        // pos is therefore indexed by cookie starting with cookie = 2
+        // so pos needs to be decreased by 2
+        const pos = Number(cookie-2n);
+        const entries = openDir.getEntries(pos);
+        let hasMoreinIterator = false;
         for await (const handle of entries) {
             this._checkAbort();
             const { name } = handle;
-            //const nameLen = name.length;
-            const textEncoder = new TextEncoder();
             const nameAsBytes = textEncoder.encode(name);
             const nameLen = nameAsBytes.byteLength;
             const itemSize = Dirent.size + nameLen;
             if (buf_len < itemSize) {
+                hasMoreinIterator = true;
                 entries.revert(handle);
                 break;
             }
@@ -406,8 +500,15 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             dirent_buf_ptr = (dirent_buf_ptr + itemSize) as ptr<Dirent>;
             buf_len -= itemSize;
         }
-        Size.set(this.buffer, result_ptr, dirent_buf_ptr - initialBufPtr);
-        return ErrnoN.SUCCESS;
+        if (hasMoreinIterator) {
+            // result_ptr is written with size wual to buf_len
+            // indicating that there is more in the directory
+            Size.set(this.buffer, result_ptr, initialBufLen);
+            return ErrnoN.SUCCESS;
+        } else {
+            Size.set(this.buffer, result_ptr, dirent_buf_ptr - initialBufPtr);
+            return ErrnoN.SUCCESS;
+        }
     }
     async fdRenumber(fd: Fd, to: Fd): Promise<Errno> {
         wasiDebug("[fd_renumber]");
@@ -479,7 +580,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         wasiDebug(`[path_create_directory] pathString: ${pathString} on fd: ${fd}`);
         const cMode = FileOrDir.Dir;
         const openFlags = OflagsN.CREAT | OflagsN.DIRECTORY | OflagsN.EXCL;
-        const preOpenDir = this.openFiles.getPreOpen(fd);
+        const preOpenDir = this.openFiles.getAsDir(fd);
         await preOpenDir.getFileOrDir(pathString, cMode, openFlags);
 
         return ErrnoN.SUCCESS;
@@ -608,7 +709,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             await dir.delete(path);
         } else if (resource instanceof OpenFile) {
             const f = resource as OpenFile;
-            console.log("unexpected file fd in pathUnlinkFile");
+            wasiDebug("unexpected file fd in pathUnlinkFile");
             return ErrnoN.BADF;
         } else {
             return ErrnoN.BADF;
