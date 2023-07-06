@@ -67,7 +67,7 @@ const w = new WASI({
         NODE_PLATFORM: "win32",
     },
 });
-w.component = true;
+//w.component = true;
 let actualExitCode = 0;
 try {
     actualExitCode = await w.run(await wasmMod);

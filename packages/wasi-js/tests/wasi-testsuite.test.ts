@@ -18,9 +18,7 @@ async function constructTestsWithSkip(){
     const testSkipRemoved: Test[] = [];
     const skips: string[] = [
         "dangling_symlink",
-        "fdopendir-with-access",
         "fopen-with-no-access",
-        "stat-dev-ino",
         "fd_advise",
         "fd_filestat_set"
     ];

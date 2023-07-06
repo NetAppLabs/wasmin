@@ -291,9 +291,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         } else {
             const openFile = this.openFiles.get(fd);
             wasiDebug(`[fd_filestat_get fd: ${fd}] openFile: `, openFile);
-            const f = this.openFiles.isFile(fd) ? await (openFile as OpenFile).getFile() : undefined;
-            wasiDebug(`[fd_filestat_get fd: ${fd}] f: `, f);
-            populateFileStat(this.buffer, f, filestat_ptr);
+            const openHandle = this.openFiles.getAsFileOrDir(fd);
+            const handle = openHandle.handle;
+            await populateFileStat(this.buffer, handle, filestat_ptr);
         }
         return ErrnoN.SUCCESS;
     }
@@ -429,10 +429,10 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         const openDir = this.openFiles.getAsDir(fd);
         const dirfh = openDir.handle;
         let dot_inode = 0n;
-        /*if ((dirfh as any).inode) {
+        if ((dirfh as any).inode) {
             const inodable = dirfh as unknown as Inodable;
             dot_inode = inodable.inode;
-        }*/
+        }
         // type conversion because buf is ptr<u8> but expects ptr<Dirent>
         let dirent_buf_ptr = buf as unknown as ptr<Dirent>;
 
@@ -442,10 +442,6 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             const nameAsBytes = textEncoder.encode(name);
             const nameLen = nameAsBytes.byteLength;
             const itemSize = Dirent.size + nameLen;
-            /*if (buf_len < itemSize) {
-                entries.revert(handle);
-                break;
-            }*/
             const newDirent: Dirent = {
                 d_next: ++cookie,
                 d_ino: dot_inode,
@@ -462,14 +458,15 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             const name = "..";
             const nameAsBytes = textEncoder.encode(name);
             const nameLen = nameAsBytes.byteLength;
+
+            let dotdot_inode = 0n;
+            if (dot_inode>0n) {
+                dotdot_inode = dot_inode - 1n;
+            }
             const itemSize = Dirent.size + nameLen;
-            /*if (buf_len < itemSize) {
-                entries.revert(handle);
-                break;
-            }*/
             const newDirent: Dirent = {
                 d_next: ++cookie,
-                d_ino: 0n, // TODO how can we get parent inode ?
+                d_ino: dotdot_inode, // TODO get correct parent inode ?
                 d_namlen: nameLen,
                 d_type: FiletypeN.DIRECTORY,
             };
@@ -490,15 +487,22 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             const name = handle.name;
             const nameAsBytes = textEncoder.encode(name);
             const nameLen = nameAsBytes.byteLength;
+            
+            let entry_inode = 0n;
+            if ((handle as any).inode) {
+                const inodable = handle as unknown as Inodable;
+                entry_inode = inodable.inode;
+            }
             const itemSize = Dirent.size + nameLen;
             if (buf_len < itemSize) {
                 hasMoreinIterator = true;
                 entries.revert(handle);
                 break;
             }
+
             const newDirent: Dirent = {
                 d_next: ++cookie,
-                d_ino: 0n, // TODO
+                d_ino: entry_inode,
                 d_namlen: nameLen,
                 d_type: handle.kind === "file" ? FiletypeN.REGULAR_FILE : FiletypeN.DIRECTORY,
             };
@@ -517,7 +521,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             return ErrnoN.SUCCESS;
         }
     }
-    async fdRenumber(fd: Fd, to: Fd): Promise<Errno> {
+    async fdRenumber(fd: Fd, to: Fd): Promise<Errno> {''
         wasiDebug("[fd_renumber]");
         this.openFiles.renumber(fd, to);
         return ErrnoN.SUCCESS;
@@ -601,11 +605,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     ): Promise<Errno> {
         const pathString = string.get(this.buffer, path_ptr, path_len);
         wasiDebug(`[path_filestat_get] fd: ${fd} _flags: ${flags} pathString: ${pathString} result_ptr: ${result_ptr}`);
-        //const handle = await this.openFiles.getPreOpen(fd).getFileOrDir(pathString, FileOrDir.Any);
-        const openDir = this.openFiles.getAsDir(fd);
-        const handle = await openDir.getFileOrDir(pathString, FileOrDir.Any);
-
-        populateFileStat(this.buffer, handle.kind === "file" ? await handle.getFile() : undefined, result_ptr);
+        const handle = await this.openFiles.getAsDir(fd).getFileOrDir(pathString, FileOrDir.Any);
+        await populateFileStat(this.buffer, handle, result_ptr);
         return ErrnoN.SUCCESS;
     }
     async pathFilestatSetTimes(

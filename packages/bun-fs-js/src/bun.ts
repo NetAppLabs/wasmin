@@ -212,7 +212,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         return this.path === other.path;
     }
 
-    public async *entries(): AsyncGenerator<readonly [string, BunFileHandle | BunFolderHandle], void, unknown> {
+    public async *entries(): AsyncGenerator<[string, BunFileHandle | BunFolderHandle]> {
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -222,9 +222,43 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
             const path = join(dir, name);
             const stat = await fs.lstat(path);
             if (stat.isFile()) {
-                yield [name, new BunFileHandle(path, name)] as const;
+                yield [name, new BunFileHandle(path, name)];
             } else if (stat.isDirectory()) {
-                yield [name, new BunFolderHandle(path, name)] as const;
+                yield [name, new BunFolderHandle(path, name)];
+            }
+        }
+    }
+
+    public async *values(): AsyncGenerator<BunFileHandle | BunFolderHandle> {
+        const dir = this.path;
+        const items = await fs.readdir(dir).catch((err) => {
+            if (err.code === "ENOENT") throw new NotFoundError();
+            throw err;
+        });
+        for (const name of items) {
+            const path = join(dir, name);
+            const stat = await fs.lstat(path);
+            if (stat.isFile()) {
+                yield new BunFileHandle(path, name);
+            } else if (stat.isDirectory()) {
+                yield new BunFolderHandle(path, name);
+            }
+        }
+    }
+
+    public async *keys(): AsyncGenerator<string> {
+        const dir = this.path;
+        const items = await fs.readdir(dir).catch((err) => {
+            if (err.code === "ENOENT") throw new NotFoundError();
+            throw err;
+        });
+        for (const name of items) {
+            const path = join(dir, name);
+            const stat = await fs.lstat(path);
+            if (stat.isFile()) {
+                yield name;
+            } else if (stat.isDirectory()) {
+                yield name;
             }
         }
     }

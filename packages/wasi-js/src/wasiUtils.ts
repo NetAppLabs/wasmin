@@ -1,5 +1,7 @@
+import { FileSystemFileHandle, Inodable } from "@wasm-env/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
+import { Handle } from "./wasiFileSystem.js";
 import {
     Errno,
     ErrnoN,
@@ -93,16 +95,28 @@ export const bufferIn = (buffer: Uint8Array): In => {
     };
 };
 
-export function populateFileStat(buffer: ArrayBuffer, file: File | undefined, filestat_ptr: ptr<Filestat>) {
+export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, filestat_ptr: ptr<Filestat>) {
+    
+    let file: File|undefined = undefined;
+    if ((handle as any).getFile) {
+        const fhandle = handle as unknown as FileSystemFileHandle;
+        file = await fhandle.getFile();
+    }
+
+    let inode = 0n;
     let size = 0n;
     let time = 0n;
     if (file) {
         size = BigInt(file.size);
         time = BigInt(file.lastModified) * 1_000_000n;
     }
+    if ((handle as any).inode) {
+        const inodable = handle as unknown as Inodable;
+        inode = inodable.inode;
+    }
     const newFstat: Filestat = {
         dev: 0n,
-        ino: 0n, // TODO inode
+        ino: inode,
         filetype: file ? FiletypeN.REGULAR_FILE : FiletypeN.DIRECTORY,
         nlink: 0n,
         size,
