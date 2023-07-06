@@ -187,6 +187,16 @@ export class MemoryFolderHandle implements ImplFolderHandle<MemoryFileHandle, Me
         yield* Object.entries(this._entries);
     }
 
+    public async *values() {
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.values(this._entries);
+    }
+
+    public async *keys() {
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.keys(this._entries);
+    }
+
     async insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
         return new Promise<FileSystemHandle>((resolve, _reject) => {
             const subDir = handle.name;

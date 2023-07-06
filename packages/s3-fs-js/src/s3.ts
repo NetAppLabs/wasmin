@@ -569,6 +569,18 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         yield* Object.entries(this._entries);
     }
 
+    public async *values() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.values(this._entries);
+    }
+
+    public async *keys() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.keys(this._entries);
+    }
+
     public isSameEntry(other: any) {
         return this === other;
     }
@@ -774,6 +786,18 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
         yield* Object.entries(this._entries);
+    }
+
+    public async *values() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.values(this._entries);
+    }
+
+    public async *keys() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.keys(this._entries);
     }
 
     public isSameEntry(other: any) {

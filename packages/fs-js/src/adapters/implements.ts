@@ -1,6 +1,5 @@
 import { FileSystemHandlePermissionDescriptor } from "../index.js";
 
-/* eslint-disable @typescript-eslint/member-ordering */
 export interface ImpleSink<T> {
     fileHandle: T;
     size: number;
@@ -71,7 +70,11 @@ export interface ImplFolderHandle<T = any, U = any> {
 
     isSameEntry: (other: any) => boolean;
 
-    entries: () => AsyncGenerator<readonly [string, T | U], void, unknown>;
+    entries: () => AsyncGenerator<[string, T | U]>;
+
+    values: () => AsyncGenerator<T | U>;
+
+    keys: () => AsyncGenerator<string>;
 
     getDirectoryHandle: (name: string, options?: { create?: boolean; capture?: boolean }) => Promise<U>;
 

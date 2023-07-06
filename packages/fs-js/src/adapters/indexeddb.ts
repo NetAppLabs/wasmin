@@ -10,7 +10,7 @@ import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js"
 import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
 import { openFileHandle } from "./util.js";
 import { default as yaml } from "js-yaml";
-import { FileSystemDirectoryHandle, FileSystemHandlePermissionDescriptor, NFileSystemWritableFileStream } from "../index.js";
+import { FileSystemDirectoryHandle, FileSystemHandlePermissionDescriptor, NFileSystemWritableFileStream, PreNameCheck } from "../index.js";
 import { FileSystemHandle } from "../index.js";
 
 const INDEXEDDB_DEBUG = false;
@@ -264,11 +264,47 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         }
     }
 
+    public async *values() {
+        const req = store(this._db)[1].get(this._id);
+        await new Promise<void>((rs, rj) => {
+            req.onsuccess = () => rs();
+            req.onerror = () => rj(req.error);
+        });
+        const entries = req.result as IndexeddbFileHandle | IndexeddbFolderHandle[];
+        if (!entries) throw new NotFoundError();
+        for (const [name, [id, isFile, isExternal]] of Object.entries(entries)) {
+            if (isFile) {
+                yield new IndexeddbFileHandle(this._db, id, name);
+            } else if (isExternal) {
+                const extHandle = await this.getExternalFolderHandle(name, id, isFile, isExternal);
+                yield extHandle;
+            } else {
+                const fh = new IndexeddbFolderHandle(this._db, id, name);
+                fh._rootFolderHandle = this._rootFolderHandle;
+                yield fh;
+            }
+        }
+    }
+
+    public async *keys() {
+        const req = store(this._db)[1].get(this._id);
+        await new Promise<void>((rs, rj) => {
+            req.onsuccess = () => rs();
+            req.onerror = () => rj(req.error);
+        });
+        const entries = req.result as IndexeddbFileHandle | IndexeddbFolderHandle[];
+        if (!entries) throw new NotFoundError();
+        for (const [name, [id, isFile, isExternal]] of Object.entries(entries)) {
+            yield name;
+        }
+    }
+
     isSameEntry(other: IndexeddbFolderHandle): boolean {
         return this._id === other._id;
     }
 
     async getDirectoryHandle(name: string, options?: { create?: boolean }): Promise<IndexeddbFolderHandle> {
+        PreNameCheck(name);
         return new Promise((resolve, reject) => {
             const table = store(this._db)[1];
             const req = table.get(this._id);
@@ -388,6 +424,7 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
      */
     async getFileHandle(name: string, options?: { create?: boolean }): Promise<IndexeddbFileHandle> {
         indexedDBDebug(`indexeddb.getFileHandle name: ${name}`);
+        PreNameCheck(name);
         return new Promise<IndexeddbFileHandle>((resolve, reject) => {
             const table = store(this._db)[1];
             const query = table.get(this._id);
@@ -419,6 +456,7 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
     }
 
     async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+        PreNameCheck(name);
         return new Promise<void>((resolve, reject) => {
             const [tx, table] = store(this._db);
             const cwdQ = table.get(this._id);

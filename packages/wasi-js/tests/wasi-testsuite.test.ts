@@ -71,6 +71,7 @@ describe("all", () => {
                 ret = await constructWasiForTest(testCase);
                 const w = ret.wasi;
                 if (w) {
+                    //w.component = true;
                     actualExitCode = await w.run(await wasmMod);
                 }
             } catch (err: any) {

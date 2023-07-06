@@ -1,22 +1,10 @@
 import { MemoryFolderHandle as MemoryFolderHandle, MemoryFileHandle as MemoryFileHandle } from "./adapters/memory.js";
-import { FolderHandle as SandboxFolderHandle, FileHandle as SandboxFileHandle } from "./adapters/sandbox.js";
 import { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";
 import { FileSystemDirectoryHandle } from "./index.js";
 
 export const config = {
     writable: WritableStream,
 };
-
-export async function fromDataTransfer(entries: any) {
-    console.warn("deprecated fromDataTransfer - use `dt.items[0].getAsFileSystemHandle()` instead");
-
-    const folder = new MemoryFolderHandle("", false);
-    folder._entries = entries.map((entry: any) =>
-        entry.isFile ? new SandboxFileHandle(entry, false) : new SandboxFolderHandle(entry, false)
-    );
-    const adapterHandle = folder as unknown as FileSystemDirectoryHandle;
-    return new NFileSystemDirectoryHandle(adapterHandle);
-}
 
 export async function fromInput(input: HTMLInputElement): Promise<NFileSystemDirectoryHandle> {
     const files = Array.from(input.files!) as any[];

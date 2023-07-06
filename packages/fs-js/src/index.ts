@@ -1,7 +1,4 @@
 export { showDirectoryPicker } from "./showDirectoryPicker.js";
-export { showOpenFilePicker } from "./showOpenFilePicker.js";
-export { showSaveFilePicker } from "./showSaveFilePicker.js";
-
 export { getOriginPrivateDirectory } from "./getOriginPrivateDirectory.js";
 export { getDirectoryHandleByURL, RegisterProvider } from "./getDirectoryHandleByURL.js";
 export { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";

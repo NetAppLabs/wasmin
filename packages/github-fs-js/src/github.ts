@@ -493,6 +493,18 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
         yield* Object.entries(this._entries);
     }
 
+    public async *values() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.values(this._entries);
+    }
+
+    public async *keys() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.keys(this._entries);
+    }
+
     public isSameEntry(other: any) {
         return this === other;
     }
@@ -632,6 +644,18 @@ export class GithubRepoListHandle implements ImplFolderHandle<GithubFileHandle, 
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
         yield* Object.entries(this._entries);
+    }
+
+    public async *values() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.values(this._entries);
+    }
+
+    public async *keys() {
+        await this.populateEntries();
+        if (this.deleted) throw new NotFoundError();
+        yield* Object.keys(this._entries);
     }
 
     public isSameEntry(other: any) {

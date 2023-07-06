@@ -45,7 +45,6 @@ import {
 } from "./bindings.js";
 import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./bindings.js";
 import {
-    Out,
     wasiDebug,
     wasiFdDebug,
     populateFileStat,
@@ -191,7 +190,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async clockResGet(id: ClockidN, result_ptr: mutptr<Timestamp>): Promise<Errno> {
-        Timestamp.set(this.buffer, result_ptr, /* 1ms */ 1_000_000n);
+        // 1 ms
+        Timestamp.set(this.buffer, result_ptr, 1_000_000n);
         return ErrnoN.SUCCESS;
     }
     async clockTimeGet(id: ClockidN, precision: Timestamp, result_ptr: mutptr<Timestamp>): Promise<Errno> {
