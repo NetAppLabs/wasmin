@@ -8,7 +8,7 @@ const termGetRows = bun_console.termGetRows;
 //import { termSetRawMode, termGetColumns, termGetRows } from "@wasm-env/bun-console";
 
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, RegisterProvider } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 import { readFileSync } from "fs";
 
@@ -119,7 +119,7 @@ const startShell = async () => {
     }
     //const rootfs = await getOriginPrivateDirectory(node, nodePath);
     //const rootfs = await getOriginPrivateDirectory(memory);
-    const rootfs = await getOriginPrivateDirectory(bunFs, nodePath);
+    const rootfs = await getOriginPrivateDirectory(bunFs, nodePath, true);
 
     const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
     const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
@@ -138,7 +138,9 @@ const startShell = async () => {
         },
     };
 
-    rootfs.secretStore = secretStore;
+    if (rootfs instanceof NFileSystemDirectoryHandle) {
+        rootfs.secretStore = secretStore;
+    }
     const rootDir = "/";
     const init_pwd = "/";
     preOpens[rootDir] = rootfs;

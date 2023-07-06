@@ -14,7 +14,11 @@ export function RegisterProvider(prefix: string, provFunc: providerFunc) {
     providersRegistry[prefix] = provFunc;
 }
 
-export async function getDirectoryHandleByURL(url: string, secretStore?: any, wrapped=true): Promise<FileSystemDirectoryHandle> {
+export async function getDirectoryHandleByURL(
+    url: string,
+    secretStore?: any,
+    wrapped = true
+): Promise<FileSystemDirectoryHandle> {
     //@ts-ignore
     RegisterProvider("memory", memory);
     //@ts-ignore

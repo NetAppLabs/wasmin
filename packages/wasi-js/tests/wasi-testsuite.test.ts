@@ -4,7 +4,7 @@ import "jest-extended";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { Test, constructTestsForTestSuites, constructWasiForTest} from "@wasm-env/wasi-js/tests/utils.js"
+import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasm-env/wasi-js/tests/utils.js";
 import { WASI } from "@wasm-env/wasi-js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -13,19 +13,18 @@ const WASI_TESTSUITE_PATH_RUST = join(scriptDir, "wasi-testsuite/tests/rust/test
 const WASI_TESTSUITE_PATH_C = join(scriptDir, "wasi-testsuite/tests/c/testsuite");
 const WASI_TESTSUITE_PATH_AS = join(scriptDir, "wasi-testsuite/tests/assemblyscript/testsuite");
 
-async function constructTestsWithSkip(){
-    const tests: Test[] = await constructTestsForTestSuites([WASI_TESTSUITE_PATH_C, WASI_TESTSUITE_PATH_RUST, WASI_TESTSUITE_PATH_AS]);
+async function constructTestsWithSkip() {
+    const tests: Test[] = await constructTestsForTestSuites([
+        WASI_TESTSUITE_PATH_C,
+        WASI_TESTSUITE_PATH_RUST,
+        WASI_TESTSUITE_PATH_AS,
+    ]);
     const testSkipRemoved: Test[] = [];
-    const skips: string[] = [
-        "dangling_symlink",
-        "fopen-with-no-access",
-        "fd_advise",
-        "fd_filestat_set"
-    ];
+    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fd_advise", "fd_filestat_set"];
 
     for (const t of tests) {
         let skip = false;
-        for (const sk of skips){
+        for (const sk of skips) {
             if (t.test.includes(sk)) {
                 console.log(`skipping ${sk}`);
                 skip = true;
@@ -45,13 +44,13 @@ describe("all", () => {
         "$test",
         async (testCase: Test) => {
             let ret: {
-                stdout: string
-                stderr: string
-                wasi?: WASI
+                stdout: string;
+                stderr: string;
+                wasi?: WASI;
             } = {
                 stdout: "",
                 stderr: "",
-            }
+            };
             const wasmPath = testCase.wasmPath;
             const stdout = testCase.stdout;
             let actualExitCode = 0;

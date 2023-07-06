@@ -44,11 +44,7 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
                     if (Number.isInteger(chunk.position) && chunk.position >= 0) {
                         this.position = chunk.position;
                         if (this.size < chunk.position) {
-                            file = new File(
-                                [file, new ArrayBuffer(chunk.position - this.size)],
-                                file.name,
-                                file
-                            );
+                            file = new File([file, new ArrayBuffer(chunk.position - this.size)], file.name, file);
                         }
                     }
                     if (!("data" in chunk)) {
@@ -104,7 +100,6 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
             this.file = blob;
         }
     }
-
 
     abstract write(data: FileSystemWriteChunkType): Promise<void>;
 

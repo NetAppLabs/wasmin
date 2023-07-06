@@ -213,6 +213,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
     }
 
     public async *entries(): AsyncGenerator<[string, BunFileHandle | BunFolderHandle]> {
+        bunFsDebug("bunfs: entries");
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -230,6 +231,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
     }
 
     public async *values(): AsyncGenerator<BunFileHandle | BunFolderHandle> {
+        bunFsDebug("bunfs: values");
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -238,6 +240,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         for (const name of items) {
             const path = join(dir, name);
             const stat = await fs.lstat(path);
+            bunFsDebug("bunfs: values name: ", name);
             if (stat.isFile()) {
                 yield new BunFileHandle(path, name);
             } else if (stat.isDirectory()) {

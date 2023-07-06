@@ -47,7 +47,7 @@ export async function copyFsInto(rootPath: string, rootHandle: FileSystemDirecto
     }
 }
 
-export async function getRootHandle(backend: string, rootPath: string ): Promise<FileSystemDirectoryHandle> {
+export async function getRootHandle(backend: string, rootPath: string): Promise<FileSystemDirectoryHandle> {
     //const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     let dirHandle: FileSystemDirectoryHandle;
     switch (backend) {
@@ -63,17 +63,17 @@ export async function getRootHandle(backend: string, rootPath: string ): Promise
 
 export type Test = Partial<{
     test: string;
-    args: string[],
-    env: Record<string,string>,
-    dirs: string[],
+    args: string[];
+    env: Record<string, string>;
+    dirs: string[];
     exitCode: number;
     stdin: string;
     stdout: string;
-    wasmPath: string,
-    rootPath: string,
+    wasmPath: string;
+    rootPath: string;
 }>;
 
-export async function constructTestsForTestSuites(testsuitePaths: string[]): Promise<Test[]>{
+export async function constructTestsForTestSuites(testsuitePaths: string[]): Promise<Test[]> {
     const tests: Test[] = [];
     for (const tsuite of testsuitePaths) {
         const testsforsuite = await constructTestsForTestSuite(tsuite);
@@ -84,18 +84,18 @@ export async function constructTestsForTestSuites(testsuitePaths: string[]): Pro
     return tests;
 }
 
-export async function constructTestsForTestSuite(testsuitePath: string): Promise<Test[]>{
+export async function constructTestsForTestSuite(testsuitePath: string): Promise<Test[]> {
     const tests: Test[] = [];
-    const files = await readdir( testsuitePath );
+    const files = await readdir(testsuitePath);
 
-    for( const fileName of files ) {
+    for (const fileName of files) {
         const newTest = await constructOneTestForTestSuite(testsuitePath, fileName);
         let skipThisWasm = false;
         if (newTest) {
             // Filter out if it already contains:
             for (const t of tests) {
-                if (t.wasmPath ) {
-                    if (t.wasmPath == newTest?.wasmPath ){
+                if (t.wasmPath) {
+                    if (t.wasmPath == newTest?.wasmPath) {
                         skipThisWasm = true;
                     }
                 }
@@ -108,10 +108,10 @@ export async function constructTestsForTestSuite(testsuitePath: string): Promise
     return tests;
 }
 
-export async function constructOneTestForTestSuite(testsuitePath: string, fileName: string): Promise<Test|undefined>{
+export async function constructOneTestForTestSuite(testsuitePath: string, fileName: string): Promise<Test | undefined> {
     const skipList = ["manifest"];
     if (fileName.endsWith(".json")) {
-        const testName = fileName.substring(0,fileName.length-".json".length);
+        const testName = fileName.substring(0, fileName.length - ".json".length);
         if (skipList.includes(testName)) {
             return undefined;
         }
@@ -123,31 +123,31 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
 
         const test = "wasi-testsuite-" + testName;
         let args: string[] = [];
-        if (vars.args){
+        if (vars.args) {
             args = vars.args;
         }
-        let env: Record<string,string>  = {};
-        if (vars.env){
+        let env: Record<string, string> = {};
+        if (vars.env) {
             env = vars.env;
         }
         let dirs: string[] = [];
-        if (vars.dirs){
+        if (vars.dirs) {
             dirs = vars.dirs;
         }
         let exitCode: number = 0;
-        if (vars.exit_code){
+        if (vars.exit_code) {
             exitCode = vars.exit_code;
         }
         let stdin: string = "";
-        if (vars.stdin){
+        if (vars.stdin) {
             stdin = vars.stdin;
         }
         let stdout: string = "";
-        if (vars.stdout){
+        if (vars.stdout) {
             stdout = vars.stdout;
         }
 
-        const addedTest: Test  = {
+        const addedTest: Test = {
             test: test,
             args: args,
             env: env,
@@ -157,10 +157,10 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
             stdout: stdout,
             wasmPath: wasmPath,
             rootPath: testsuitePath,
-        }
+        };
         return addedTest;
     } else if (fileName.endsWith(".wasm")) {
-        const testName = fileName.substring(0,fileName.length-".wasm".length);
+        const testName = fileName.substring(0, fileName.length - ".wasm".length);
         const wasmPath = path.resolve(path.join(testsuitePath, `${testName}.wasm`));
         let skipThisWasm = false;
         if (!skipThisWasm) {
@@ -171,7 +171,7 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
             const exitCode = 0;
             const stdin = "";
             const stdout = "";
-            const addedTest: Test  = {
+            const addedTest: Test = {
                 test: test,
                 args: args,
                 env: env,
@@ -181,7 +181,7 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
                 stdout: stdout,
                 wasmPath: wasmPath,
                 rootPath: testsuitePath,
-            }
+            };
             return addedTest;
         }
     }
@@ -198,10 +198,10 @@ export async function constructWasiForTest(testCase: Test) {
     //let actualStdout = "";
     //let actualStderr = "";
     const ret: {
-        wasi?: WASI,
-        stdout: string,
-        stderr: string,
-    } =  {
+        wasi?: WASI;
+        stdout: string;
+        stderr: string;
+    } = {
         stdout: "",
         stderr: "",
     };
@@ -216,7 +216,7 @@ export async function constructWasiForTest(testCase: Test) {
 
     if (dirs) {
         for (const dir of dirs) {
-            const dirHandle = await rootHandle.getDirectoryHandle(dir)
+            const dirHandle = await rootHandle.getDirectoryHandle(dir);
             //const mountDirName = "/" + dir;
             const mountDirName = dir;
             dirHandles[mountDirName] = dirHandle;

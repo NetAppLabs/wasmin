@@ -10,7 +10,12 @@ import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js"
 import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
 import { openFileHandle } from "./util.js";
 import { default as yaml } from "js-yaml";
-import { FileSystemDirectoryHandle, FileSystemHandlePermissionDescriptor, NFileSystemWritableFileStream, PreNameCheck } from "../index.js";
+import {
+    FileSystemDirectoryHandle,
+    FileSystemHandlePermissionDescriptor,
+    NFileSystemWritableFileStream,
+    PreNameCheck,
+} from "../index.js";
 import { FileSystemHandle } from "../index.js";
 
 const INDEXEDDB_DEBUG = false;

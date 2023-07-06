@@ -176,9 +176,7 @@ export class WasiWorkerThreadRunner {
         }
     }
 
-    public async initializeComponentImports(
-        wasiExperimentalSocketsNamespace?: string
-    ): Promise<string[]> {
+    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
         if (!this.wasi) {
             this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
         }

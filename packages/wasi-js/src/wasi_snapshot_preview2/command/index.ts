@@ -49,9 +49,9 @@ export class CommandRunner {
         const compileFunc = this.compileCore;
         const boundCompilerFunc = compileFunc.bind(this);
 
-        try{
+        try {
             this.commandComponent = await instantiate(boundCompilerFunc, importObject, instantiateCore);
-        } catch(err: any) {
+        } catch (err: any) {
             throw err;
         }
         return this.commandComponent;

@@ -68,7 +68,7 @@ export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
         const preopens: [Descriptor, string][] = [];
         const preopen_fd = FIRST_PREOPEN_FD;
         try {
-            for (let i = preopen_fd;  true ; i++) {
+            for (let i = preopen_fd; true; i++) {
                 const openDir = this._wasiEnv.openFiles.getPreOpen(i);
                 const path = openDir.path;
                 preopens.push([i, path]);

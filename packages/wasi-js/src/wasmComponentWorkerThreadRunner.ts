@@ -13,11 +13,16 @@ export class WasmComponentWorkerThreadRunner {
         initializeComlinkHandlers();
     }
 
-    async instantiate(channel: Channel, wasmBuf: BufferSource, importNames: string[], handleComponentImportFunc: HandleWasmComponentImportFunc){
+    async instantiate(
+        channel: Channel,
+        wasmBuf: BufferSource,
+        importNames: string[],
+        handleComponentImportFunc: HandleWasmComponentImportFunc
+    ) {
         this._channel = channel;
-        const impObject = this.createComponentModuleImportProxy(importNames, handleComponentImportFunc)
+        const impObject = this.createComponentModuleImportProxy(importNames, handleComponentImportFunc);
         this.commandRunner = new CommandRunner(impObject);
-        await this.commandRunner.instantiate(wasmBuf)
+        await this.commandRunner.instantiate(wasmBuf);
     }
 
     async run() {
@@ -28,15 +33,24 @@ export class WasmComponentWorkerThreadRunner {
         }
     }
 
-    private createComponentModuleImportProxy(importNames: string[],handleComponentImportFunc: HandleWasmComponentImportFunc): {} {
-        const componentImports: Record<string,any> = {};
+    private createComponentModuleImportProxy(
+        importNames: string[],
+        handleComponentImportFunc: HandleWasmComponentImportFunc
+    ): {} {
+        const componentImports: Record<string, any> = {};
         for (const importName of importNames) {
-            componentImports[importName] = this.createComponentModuleImportProxyPerImport(importName, handleComponentImportFunc);
+            componentImports[importName] = this.createComponentModuleImportProxyPerImport(
+                importName,
+                handleComponentImportFunc
+            );
         }
         return componentImports;
     }
 
-    private createComponentModuleImportProxyPerImport(importName: string, handleComponentImportFunc: HandleWasmComponentImportFunc): {} {
+    private createComponentModuleImportProxyPerImport(
+        importName: string,
+        handleComponentImportFunc: HandleWasmComponentImportFunc
+    ): {} {
         const wasiWorker = this;
         const channel = this._channel;
         if (channel) {
@@ -45,6 +59,4 @@ export class WasmComponentWorkerThreadRunner {
             throw new Error("Channel not set");
         }
     }
-
 }
-

@@ -19,16 +19,9 @@ export {
     join,
 } from "./adapters/util.js";
 
-export {
-    PreNameCheck
-} from "./util.js"
+export { PreNameCheck } from "./util.js";
 
-export type {
-    Inodable,
-    Timestampable,
-    Linkable,
-    FileSystemLinkHandle,
-} from "./ExtHandles.js"
+export type { Inodable, Timestampable, Linkable, FileSystemLinkHandle } from "./ExtHandles.js";
 
 import {
     InvalidModificationError,

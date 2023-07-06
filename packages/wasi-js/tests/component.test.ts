@@ -60,8 +60,8 @@ const tests: (Test & { test: string })[] = [
     { test: "preopen_populates" },
     { test: "read_file", stdout: `hello from input.txt${EOL}` },
     {
-         test: "read_file_twice",
-         stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
+        test: "read_file_twice",
+        stdout: `hello from input.txt${EOL}hello from input.txt${EOL}`,
     },
     { test: "readdir" },
     { test: "write_file" },

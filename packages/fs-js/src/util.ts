@@ -24,9 +24,7 @@ export async function fromInput(input: HTMLInputElement): Promise<NFileSystemDir
     return new NFileSystemDirectoryHandle(adapterHandle);
 }
 
-
 export function PreNameCheck(name: string) {
     if (name === "") throw new TypeError(`Name can't be an empty string.`);
-    if (name === "." || name === ".." || name.includes("/"))
-        throw new TypeError(`Name contains invalid characters.`);
+    if (name === "." || name === ".." || name.includes("/")) throw new TypeError(`Name contains invalid characters.`);
 }

@@ -28,7 +28,7 @@ export class InvalidModificationError extends Error {
 
 export class SyntaxError extends Error {
     constructor(m: string) {
-        super(`Failed to execute 'write' on 'UnderlyingSinkBase': Invalid params passed. ${m}`);
+        super(m);
         this.name = "SyntaxError";
     }
 }

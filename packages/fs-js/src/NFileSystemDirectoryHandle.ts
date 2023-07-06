@@ -113,7 +113,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
     }
 
     async getFileHandle(name: string, options = { create: false }): Promise<FileSystemFileHandle> {
-        PreNameCheck(name)
+        PreNameCheck(name);
         try {
             const f = new NFileSystemFileHandle(await this.adapter.getFileHandle(name, options));
             return f;

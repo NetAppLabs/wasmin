@@ -748,9 +748,7 @@ export const TestsFileSystemHandle = (
         const wfs = await handle.createWritable();
         const err = await capture(wfs.write({ type: "truncate" }));
         expect(err.name).toBe("SyntaxError");
-        expect(err.message).toBe(
-            "truncate requires a size argument"
-        );
+        expect(err.message).toBe("truncate requires a size argument");
     });
 
     test("WriteParams: write missing data param", async () => {
@@ -758,9 +756,7 @@ export const TestsFileSystemHandle = (
         const wfs = await handle.createWritable();
         const err = await capture(wfs.write({ type: "write" }));
         expect(err.name).toBe("SyntaxError");
-        expect(err.message).toBe(
-            "write requires a data argument"
-        );
+        expect(err.message).toBe("write requires a data argument");
     });
 
     test("WriteParams: seek missing position param", async () => {
@@ -768,9 +764,7 @@ export const TestsFileSystemHandle = (
         const wfs = await handle.createWritable();
         const err = await capture(wfs.write({ type: "seek" }));
         expect(err.name).toBe("SyntaxError");
-        expect(err.message).toBe(
-            "seek requires a position argument"
-        );
+        expect(err.message).toBe("seek requires a position argument");
     });
 
     test("truncate() to shrink a file", async () => {

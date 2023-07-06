@@ -1,13 +1,12 @@
-
 import { FileSystemHandle } from "./FileSystemAccess.js";
 
 export interface FileSystemLinkHandle extends FileSystemHandle {
     kind: "link";
-    destination: string
+    destination: string;
 }
 
 export interface Linkable {
-     createSymbolicLink(name: string, destination: string): void;
+    createSymbolicLink(name: string, destination: string): void;
 }
 
 export interface Inodable {

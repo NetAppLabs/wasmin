@@ -96,8 +96,8 @@ export const bufferIn = (buffer: Uint8Array): In => {
 };
 
 export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, filestat_ptr: ptr<Filestat>) {
-    
-    let file: File|undefined = undefined;
+    wasiDebug("populateFileStat:");
+    let file: File | undefined = undefined;
     if ((handle as any).getFile) {
         const fhandle = handle as unknown as FileSystemFileHandle;
         file = await fhandle.getFile();

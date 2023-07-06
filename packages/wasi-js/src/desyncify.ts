@@ -47,7 +47,7 @@ export type HandleWasmComponentImportFunc = (
     messageId: string,
     importName: string,
     functionName: string,
-    args: any[],
+    args: any[]
 ) => any;
 
 export async function instantiateWithAsyncDetection(

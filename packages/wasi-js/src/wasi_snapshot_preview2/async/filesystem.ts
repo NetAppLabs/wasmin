@@ -171,17 +171,16 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         } catch (err: any) {
             throw translateError(err);
         }
-        throw 'bad-descriptor';
+        throw "bad-descriptor";
     }
     async statAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string): Promise<DescriptorStat> {
         try {
             //const resource = this.openFiles.get(fd);
-            wasiDebug(`statAt: fd: ${fd} path: ${path}`)
+            wasiDebug(`statAt: fd: ${fd} path: ${path}`);
             const openDir = this.openFiles.getAsDir(fd);
             const handle = await openDir.getFileOrDir(path, FileOrDir.Any);
             let stat = await populateDescriptorStat(fd, handle);
             return stat;
-
         } catch (err: any) {
             throw translateError(err);
         }
@@ -355,11 +354,11 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
             timeNanoSeconds = file.lastModified * 1000;
         }
         ftype = "regular-file";
-    } 
+    }
     const time: Datetime = {
         seconds: timeSeconds,
         nanoseconds: timeNanoSeconds,
-    }
+    };
     let inode = 0n;
     if ((fHandle as any).inode) {
         const inodable = fHandle as unknown as Inodable;

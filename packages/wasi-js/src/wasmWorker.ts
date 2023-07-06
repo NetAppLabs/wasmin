@@ -81,15 +81,20 @@ export class WasmWorker {
     }
 }
 
-
-export function createComponentModuleImportProxyPerImportForChannel(importName: string, channel: Channel, handleComponentImportFunc: HandleWasmComponentImportFunc): {} {
+export function createComponentModuleImportProxyPerImportForChannel(
+    importName: string,
+    channel: Channel,
+    handleComponentImportFunc: HandleWasmComponentImportFunc
+): {} {
     const importDummy = {};
     return new Proxy(importDummy, {
         get: (_target, name, _receiver) => {
             const functionName = name as string;
             return (...args: any) => {
                 const messageId = uuidv4();
-                wasmHandlerDebug(`Proxy handleComponentImportFunc: importName: ${importName} functionName: ${functionName}`)
+                wasmHandlerDebug(
+                    `Proxy handleComponentImportFunc: importName: ${importName} functionName: ${functionName}`
+                );
                 handleComponentImportFunc(channel, messageId, importName, functionName, args);
                 const ret = readMessage(channel, messageId);
                 if (ret.error) {

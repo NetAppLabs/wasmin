@@ -197,7 +197,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     const modResponse = await getWasmModuleBufer();
     const wasmBuf = modResponse.buffer;
     const wasmBinary = modResponse.path;
-    const args: string[] = [wasmBinary];
+    const args: string[] = [];
 
     const workerEnv = process.env.NODE_SHELL_WORKER;
 

@@ -39,7 +39,6 @@ let test = "readdir";
 //let test = "write_file";
 //let test = "cant_dotdot";
 
-
 let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
 //let oneWasmPath = resolve(join(baseDir, "component.core.wasm"));
 //const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
@@ -71,7 +70,7 @@ const w = new WASI({
 let actualExitCode = 0;
 try {
     actualExitCode = await w.run(await wasmMod);
-} catch(err) {
+} catch (err) {
     console.log("run err: ", err);
 }
 console.log("stdin:", stdin);
