@@ -1,10 +1,7 @@
 import {
-    InvalidModificationError,
-    InvalidStateError,
     NFileSystemWritableFileStream,
     NotAllowedError,
     NotFoundError,
-    SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
 import {
@@ -19,15 +16,9 @@ import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js"
 import { default as urlparse } from "url-parse";
 
 import * as AWS from "@aws-sdk/client-s3";
-//import { Endpoint } from "@aws-sdk/types";
-
-//import { NodeHttpHandler } from "@aws-sdk/node-http-handler"
-//import { FetchHttpHandler } from "@aws-sdk/fetch-http-handler"
 
 import {
-    DeleteBucketCommand,
     DeleteObjectCommand,
-    DeleteObjectsCommand,
     GetObjectCommand,
     ListBucketsCommand,
     ListObjectsV2Command,
@@ -42,7 +33,7 @@ function s3Debug(message?: any, ...optionalParams: any[]) {
     }
 }
 
-export class Sink extends DefaultSink<S3FileHandle> implements FileSystemWritableFileStream {
+export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: S3FileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -52,9 +43,6 @@ export class Sink extends DefaultSink<S3FileHandle> implements FileSystemWritabl
     }
 
     fileHandle: S3FileHandle;
-    file: File;
-    size: number;
-    position: number;
 
     getWriter(): WritableStreamDefaultWriter<any> {
         const w = new WritableStreamDefaultWriter<any>(this);
@@ -70,92 +58,37 @@ export class Sink extends DefaultSink<S3FileHandle> implements FileSystemWritabl
         const bucketName = this.fileHandle.config.bucketName;
         const s3client = this.fileHandle.config.getS3Client();
 
-        let file = this.file;
-
-        if (typeof chunk === "object") {
-            if (chunk.type === "write") {
-                s3Debug("is object write");
-                if (Number.isInteger(chunk.position) && chunk.position >= 0) {
-                    this.position = chunk.position;
-                    if (this.size < chunk.position) {
-                        this.file = new File(
-                            [this.file, new ArrayBuffer(chunk.position - this.size)],
-                            this.file.name,
-                            this.file
-                        );
-                    }
-                }
-                if (!("data" in chunk)) {
-                    throw new SyntaxError("write requires a data argument");
-                }
-                chunk = chunk.data;
-            } else if (chunk.type === "seek") {
-                s3Debug("is object seek");
-                if (Number.isInteger(chunk.position) && chunk.position >= 0) {
-                    if (this.size < chunk.position) {
-                        throw new InvalidStateError();
-                    }
-                    this.position = chunk.position;
-                    return;
-                } else {
-                    throw new SyntaxError("seek requires a position argument");
-                }
-            } else if (chunk.type === "truncate") {
-                s3Debug("is object truncate");
-                if (Number.isInteger(chunk.size) && chunk.size >= 0) {
-                    file =
-                        chunk.size < this.size
-                            ? new File([file.slice(0, chunk.size)], file.name, file)
-                            : new File([file, new Uint8Array(chunk.size - this.size)], file.name);
-
-                    this.size = file.size;
-                    if (this.position > file.size) {
-                        this.position = file.size;
-                    }
-                    this.file = file;
-                    return;
-                } else {
-                    throw new SyntaxError("truncate requires a size argument");
-                }
+        const preFile = this.file;
+        try {
+            await this.genericWrite(chunk);
+            let file = this.file;
+            if (file) {
+                const path = this.fileHandle.path;
+                const body = await file.arrayBuffer();
+                const abody = new Uint8Array(body);
+                const params = {
+                    Bucket: bucketName,
+                    Key: path,
+                    Body: abody,
+                };
+                const command = new PutObjectCommand(params);
+                const _s3obj = await s3client.send(command);
+            } else {
+                throw new Error("Unexpected error, file is not set");
             }
+        } catch(err: any) {
+            this.file = preFile;
+            throw err;
         }
-
-        chunk = new Blob([chunk]);
-
-        let blob = this.file;
-        // Calc the head and tail fragments
-        const head = blob.slice(0, this.position);
-        const tail = blob.slice(this.position + chunk.size);
-
-        // Calc the padding
-        let padding = this.position - head.size;
-        if (padding < 0) {
-            padding = 0;
-        }
-        blob = new File([head, new Uint8Array(padding), chunk, tail], blob.name);
-
-        this.size = blob.size;
-        this.position += chunk.size;
-
-        const path = this.fileHandle.path;
-        const body = await blob.arrayBuffer();
-        const abody = new Uint8Array(body);
-        //const _s3obj = await s3client.putObject({
-        const params = {
-            Bucket: bucketName,
-            Key: path,
-            Body: abody,
-        };
-        const command = new PutObjectCommand(params);
-        const _s3obj = await s3client.send(command);
-        this.file = blob;
     }
 
     async close() {
         if (this.fileHandle.deleted) throw new NotFoundError();
-        this.fileHandle.file = this.file;
-        // @ts-ignore
-        this.file = this.position = this.size = null;
+        if (this.file) {
+            this.fileHandle.file = this.file;
+        }
+        this.file = undefined;
+        this.position = this.size = 0;
     }
 }
 
@@ -294,7 +227,7 @@ export class S3File {
     }
 }
 
-export class S3FileHandle implements ImpleFileHandle<Sink, File> {
+export class S3FileHandle implements ImpleFileHandle<S3Sink, File> {
     constructor(config: S3Config, path = "", name = "", file = new File([], name), writable = true) {
         this.config = config;
         this.file = file;
@@ -323,7 +256,7 @@ export class S3FileHandle implements ImpleFileHandle<Sink, File> {
         s3Debug("createWritable: ");
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
-        return new Sink(this);
+        return new S3Sink(this);
     }
 
     public async createWritable(opts?: any) {

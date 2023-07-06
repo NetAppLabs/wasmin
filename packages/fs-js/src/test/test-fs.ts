@@ -749,7 +749,7 @@ export const TestsFileSystemHandle = (
         const err = await capture(wfs.write({ type: "truncate" }));
         expect(err.name).toBe("SyntaxError");
         expect(err.message).toBe(
-            "Failed to execute 'write' on 'UnderlyingSinkBase': Invalid params passed. truncate requires a size argument"
+            "truncate requires a size argument"
         );
     });
 
@@ -759,7 +759,7 @@ export const TestsFileSystemHandle = (
         const err = await capture(wfs.write({ type: "write" }));
         expect(err.name).toBe("SyntaxError");
         expect(err.message).toBe(
-            "Failed to execute 'write' on 'UnderlyingSinkBase': Invalid params passed. write requires a data argument"
+            "write requires a data argument"
         );
     });
 
@@ -769,7 +769,7 @@ export const TestsFileSystemHandle = (
         const err = await capture(wfs.write({ type: "seek" }));
         expect(err.name).toBe("SyntaxError");
         expect(err.message).toBe(
-            "Failed to execute 'write' on 'UnderlyingSinkBase': Invalid params passed. seek requires a position argument"
+            "seek requires a position argument"
         );
     });
 
