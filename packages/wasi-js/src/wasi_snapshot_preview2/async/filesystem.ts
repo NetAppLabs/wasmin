@@ -8,7 +8,6 @@ import { translateError } from "./preview2Utils.js";
 import { toDateTimeFromMs } from "./clocks.js";
 import { FileSystemHandle, FileSystemFileHandle, Inodable } from "@wasm-env/fs-js";
 
-import { bigint } from "typeson-registry";
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
 type DescriptorType = fs.DescriptorType;
@@ -17,7 +16,6 @@ type DescriptorFlags = fs.DescriptorFlags;
 type InputStream = fs.InputStream;
 type OutputStream = fs.OutputStream;
 type DirectoryEntryStream = fs.DirectoryEntryStream;
-type Datetime = fs.Datetime;
 
 export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -342,23 +340,18 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
 
 async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle): Promise<DescriptorStat> {
     let size = 0n;
-    let timeSeconds = 0n;
-    let timeNanoSeconds = 0;
+    let timeMilliseconds = 0;
     let ftype = "directory" as DescriptorType;
     if (fHandle.kind == "file") {
         const ffHandle = fHandle as FileSystemFileHandle;
         const file = await ffHandle.getFile();
         if (file) {
             size = BigInt(file.size);
-            timeSeconds = BigInt(file.lastModified) / 1000n;
-            timeNanoSeconds = file.lastModified * 1000;
+            timeMilliseconds = file.lastModified;
         }
         ftype = "regular-file";
     }
-    const time: Datetime = {
-        seconds: timeSeconds,
-        nanoseconds: timeNanoSeconds,
-    };
+    const time = toDateTimeFromMs(timeMilliseconds);
     let inode = 0n;
     if ((fHandle as any).inode) {
         const inodable = fHandle as unknown as Inodable;
