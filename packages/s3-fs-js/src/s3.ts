@@ -1,17 +1,18 @@
 import {
+    FileSystemHandlePermissionDescriptor,
     NFileSystemWritableFileStream,
     NotAllowedError,
     NotFoundError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
-import {
-    join,
-    streamToBuffer,
-    streamToBufferNode,
-    substituteSecretValue,
-    FileSystemWritableFileStream,
-} from "@wasm-env/fs-js";
+import { join, streamToBuffer, streamToBufferNode, substituteSecretValue } from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
+import {
+    FileSystemWritableFileStream,
+    FileSystemHandle,
+    FileSystemDirectoryHandle,
+    FileSystemFileHandle,
+} from "@wasm-env/fs-js";
 
 import { default as urlparse } from "url-parse";
 
@@ -76,7 +77,7 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
             } else {
                 throw new Error("Unexpected error, file is not set");
             }
-        } catch(err: any) {
+        } catch (err: any) {
             this.file = preFile;
             throw err;
         }
@@ -227,7 +228,7 @@ export class S3File {
     }
 }
 
-export class S3FileHandle implements ImpleFileHandle<S3Sink, File> {
+export class S3FileHandle implements ImpleFileHandle<File, S3Sink>, FileSystemFileHandle {
     constructor(config: S3Config, path = "", name = "", file = new File([], name), writable = true) {
         this.config = config;
         this.file = file;
@@ -247,29 +248,29 @@ export class S3FileHandle implements ImpleFileHandle<S3Sink, File> {
     path: string;
     public kind = "file" as const;
 
-    public async getFile() {
+    async getFile() {
         if (this.deleted) throw new NotFoundError();
         return this.file;
     }
 
-    public async createWritableSink(opts?: any) {
+    async createWritableSink(opts?: any) {
         s3Debug("createWritable: ");
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
         return new S3Sink(this);
     }
 
-    public async createWritable(opts?: any) {
+    async createWritable(opts?: any) {
         const sink = this.createWritableSink(opts);
         const fstream = new NFileSystemWritableFileStream(sink);
         return sink;
     }
 
-    public async isSameEntry(other: any): Promise<boolean> {
+    async isSameEntry(other: any): Promise<boolean> {
         return this === other;
     }
 
-    public async destroy() {
+    async destroy() {
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const params = {
@@ -282,6 +283,18 @@ export class S3FileHandle implements ImpleFileHandle<S3Sink, File> {
         this.deleted = true;
         // @ts-ignore
         this.file = null;
+    }
+
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("createSyncAccessHandle not implemented");
+    }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
     }
 }
 
@@ -406,7 +419,7 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
     }
 }
 
-export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHandle> {
+export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHandle>, FileSystemDirectoryHandle {
     constructor(config: S3Config, path: string, name: string, writable = true) {
         this.config = config;
         this.name = name;
@@ -496,29 +509,35 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         }
     }
 
-    public async *entries() {
+    async *entries(): AsyncGenerator<[string, S3FileHandle | S3FolderHandle]> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.entries(this._entries);
+        for (const [k, v] of Object.entries(this._entries)) {
+            yield [k, v];
+        }
     }
 
-    public async *values() {
+    async *values(): AsyncGenerator<S3FileHandle | S3FolderHandle> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.values(this._entries);
+        for (const v of Object.values(this._entries)) {
+            yield v;
+        }
     }
 
-    public async *keys() {
+    async *keys(): AsyncGenerator<string> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.keys(this._entries);
+        for (const k of Object.keys(this._entries)) {
+            yield k;
+        }
     }
 
-    public isSameEntry(other: any) {
+    async isSameEntry(other: any) {
         return this === other;
     }
 
-    public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+    async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
         if (this.deleted) throw new NotFoundError();
         await this.populateEntries();
         const entry = this._entries[name];
@@ -540,7 +559,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         }
     }
 
-    public async createS3Folder(name: string): Promise<S3FolderHandle> {
+    async createS3Folder(name: string): Promise<S3FolderHandle> {
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const dirPath = join(this.path, name, true);
@@ -558,7 +577,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         return f;
     }
 
-    public async createS3File(name: string): Promise<S3FileHandle> {
+    async createS3File(name: string): Promise<S3FileHandle> {
         s3Debug("createS3File", name);
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
@@ -584,7 +603,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         throw new Error("Unable to create file");
     }
 
-    public async getFileHandle(name: string, options?: { create?: boolean }): Promise<S3FileHandle | undefined> {
+    async getFileHandle(name: string, options?: { create?: boolean }): Promise<S3FileHandle> {
         s3Debug("getFileHandle: ", name, options);
         await this.populateEntries();
         const entry = this._entries[name];
@@ -608,9 +627,10 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
             const s3filehandle = await this.createS3File(name);
             return (this._entries[name] = s3filehandle);
         }
+        throw new NotFoundError();
     }
 
-    public async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+    async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
         s3Debug("removeEntry: ", name, opts);
 
         const entry = this._entries[name];
@@ -623,7 +643,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         }
     }
 
-    public async destroy(recursive?: boolean) {
+    async destroy(recursive?: boolean) {
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const path = this.path;
@@ -647,6 +667,18 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         this._entries = {};
         this.deleted = true;
     }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    resolve(_possibleDescendant: S3FileHandle | S3FolderHandle): Promise<string[] | null> {
+        throw new Error("Method not implemented.");
+    }
 }
 
 export class S3BucketHandle extends S3FolderHandle {
@@ -661,7 +693,7 @@ export class S3BucketHandle extends S3FolderHandle {
     config: S3Config;
 }
 
-export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3BucketHandle> {
+export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3BucketHandle>, FileSystemDirectoryHandle {
     constructor(s3Url: string, secretStore?: any) {
         const { s3config: config, newUrl: newUrl } = parseS3Url(s3Url, secretStore);
         const name = "s3";
@@ -684,6 +716,10 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     public kind = "directory" as const;
     public path = "";
     secretStore: any;
+
+    [Symbol.asyncIterator]() {
+        return this.entries();
+    }
 
     // List the entries in the bucket
     async populateEntries() {
@@ -715,29 +751,29 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         }
     }
 
-    public async *entries() {
+    async *entries() {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
         yield* Object.entries(this._entries);
     }
 
-    public async *values() {
+    async *values() {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
         yield* Object.values(this._entries);
     }
 
-    public async *keys() {
+    async *keys() {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
         yield* Object.keys(this._entries);
     }
 
-    public isSameEntry(other: any) {
+    async isSameEntry(other: any) {
         return this === other;
     }
 
-    public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+    async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
         if (this.deleted) throw new NotFoundError();
         const entry = this._entries[name];
         if (entry) {
@@ -757,16 +793,28 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         }
     }
 
-    public async getFileHandle(_name: string, _opts?: { create?: boolean }): Promise<undefined> {
+    async getFileHandle(_name: string, _opts?: { create?: boolean }): Promise<S3FileHandle> {
         throw new TypeMismatchError();
     }
 
-    public async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+    async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
         throw new Error("remove not supported");
     }
 
-    public async destroy(recursive?: boolean) {
+    async destroy(recursive?: boolean) {
         throw new Error("destroy not supported");
+    }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    resolve(_possibleDescendant: S3FileHandle | S3FolderHandle): Promise<string[] | null> {
+        throw new Error("Method not implemented.");
     }
 }
 

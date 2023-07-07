@@ -5,11 +5,16 @@ import {
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
-    FileSystemWritableFileStream,
     FileSystemHandlePermissionDescriptor,
     NFileSystemWritableFileStream,
 } from "@wasm-env/fs-js";
 import { join, substituteSecretValue } from "@wasm-env/fs-js";
+import {
+    FileSystemWritableFileStream,
+    FileSystemHandle,
+    FileSystemDirectoryHandle,
+    FileSystemFileHandle,
+} from "@wasm-env/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
 import { default as urlparse } from "url-parse";
 
@@ -21,7 +26,7 @@ function githubDebug(message?: any, ...optionalParams: any[]) {
     }
 }
 
-export class Sink extends DefaultSink<GithubFileHandle> implements FileSystemWritableFileStream {
+export class GithubFileSink extends DefaultSink<GithubFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: GithubFileHandle) {
         super(fileHandle);
         this.fileHandle = fileHandle;
@@ -149,7 +154,7 @@ export class GithubFile {
     }
 }
 
-export class GithubFileHandle implements ImpleFileHandle<Sink, File> {
+export class GithubFileHandle implements ImpleFileHandle<File, GithubFileSink>,FileSystemFileHandle {
     constructor(
         config: GithubConfig,
         blobUrl: string,
@@ -186,7 +191,7 @@ export class GithubFileHandle implements ImpleFileHandle<Sink, File> {
     public async createWritableSink(opts?: any) {
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
-        return new Sink(this);
+        return new GithubFileSink(this);
     }
 
     public async createWritable(opts?: any) {
@@ -201,6 +206,18 @@ export class GithubFileHandle implements ImpleFileHandle<Sink, File> {
 
     public destroy() {
         throw new Error("unimplemented");
+    }
+
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("createSyncAccessHandle not implemented");
+    }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
     }
 }
 
@@ -336,7 +353,9 @@ export const encodeFilePath = (filePath: string): string => {
         .join("/");
 };
 
-export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, GithubFolderHandle> {
+export class GithubFolderHandle
+    implements ImplFolderHandle<GithubFileHandle, GithubFolderHandle>, FileSystemDirectoryHandle
+{
     constructor(config: GithubConfig, path: string, name: string, writable = true) {
         this.config = config;
         this.name = name;
@@ -414,25 +433,31 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
         }
     }
 
-    public async *entries() {
+    async *entries(): AsyncGenerator<[string, GithubFileHandle | GithubFolderHandle]> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.entries(this._entries);
+        for (const [k, v] of Object.entries(this._entries)) {
+            yield [k, v];
+        }
     }
 
-    public async *values() {
+    async *values(): AsyncGenerator<GithubFileHandle | GithubFolderHandle> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.values(this._entries);
+        for (const v of Object.values(this._entries)) {
+            yield v;
+        }
     }
 
-    public async *keys() {
+    async *keys(): AsyncGenerator<string> {
         await this.populateEntries();
         if (this.deleted) throw new NotFoundError();
-        yield* Object.keys(this._entries);
+        for (const k of Object.keys(this._entries)) {
+            yield k;
+        }
     }
 
-    public isSameEntry(other: any) {
+    async isSameEntry(other: any) {
         return this === other;
     }
 
@@ -456,7 +481,7 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
         }
     }
 
-    public async getFileHandle(name: string, options?: { create?: boolean }): Promise<GithubFileHandle | undefined> {
+    public async getFileHandle(name: string, options?: { create?: boolean }): Promise<GithubFileHandle> {
         const entry = this._entries[name];
         const isFile = entry instanceof GithubFileHandle;
         let do_create = false;
@@ -477,6 +502,7 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
         if (!entry && do_create) {
             throw new Error("create not supported");
         }
+        throw new NotFoundError();
     }
 
     public async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
@@ -493,6 +519,10 @@ export class GithubFolderHandle implements ImplFolderHandle<GithubFileHandle, Gi
         }
         this._entries = {};
         this.deleted = true;
+    }
+
+    resolve(_possibleDescendant: GithubFileHandle | GithubFolderHandle): Promise<string[] | null> {
+        throw new Error("Method not implemented.");
     }
 }
 
@@ -585,7 +615,7 @@ export class GithubRepoListHandle implements ImplFolderHandle<GithubFileHandle, 
         yield* Object.keys(this._entries);
     }
 
-    public isSameEntry(other: any) {
+    async isSameEntry(other: any) {
         return this === other;
     }
 

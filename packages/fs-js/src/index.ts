@@ -42,8 +42,8 @@ export {
     TypeMismatchError,
 };
 
-export type { ImpleFileHandle, ImplFolderHandle, ImpleSink } from "./adapters/implements.js";
-export { DefaultSink } from "./adapters/implements.js";
+export type { ImpleFileHandle, ImplFolderHandle, ImpleSink } from "./implements.js";
+export { DefaultSink } from "./implements.js";
 
 import { FileSystemHandle } from "./FileSystemAccess.js";
 import { FileSystemDirectoryHandle } from "./FileSystemAccess.js";

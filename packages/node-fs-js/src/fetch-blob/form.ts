@@ -3,11 +3,6 @@ import { promises as fs } from "node:fs";
 import type { Stats } from "node:fs";
 import { basename } from "node:path";
 
-//import { createReadStream } from "node:fs";
-//import fs from "node:fs/promises";
-//import type { Stats } from "node:fs";
-//import { basename } from "node:path";
-
 import { MyBlob } from "./blob.js";
 import { MyFile } from "./file.js";
 

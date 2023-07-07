@@ -6,12 +6,13 @@ import {
     TypeMismatchError,
 } from "../errors.js";
 import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "./implements.js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";
 import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
 import { openFileHandle } from "./util.js";
 import { default as yaml } from "js-yaml";
 import {
     FileSystemDirectoryHandle,
+    FileSystemFileHandle,
     FileSystemHandlePermissionDescriptor,
     NFileSystemWritableFileStream,
     PreNameCheck,
@@ -71,7 +72,7 @@ export class IndexeddbSink extends DefaultSink<IndexeddbFileHandle> implements F
     }
 }
 
-export class IndexeddbFileHandle implements ImpleFileHandle<IndexeddbSink, File> {
+export class IndexeddbFileHandle implements ImpleFileHandle<File, IndexeddbSink>, FileSystemFileHandle {
     constructor(db: IDBDatabase, id: IDBValidKey, name: string) {
         this._db = db;
         this._id = id;
@@ -89,13 +90,11 @@ export class IndexeddbFileHandle implements ImpleFileHandle<IndexeddbSink, File>
     readable: boolean;
     writable: boolean;
 
-    /** @param {IndexeddbFileHandle} other */
     async isSameEntry(other: IndexeddbFileHandle): Promise<boolean> {
         return this._id === other._id;
     }
 
     async getFile(): Promise<File> {
-        /** @type {File} */
         const file = await new Promise<File>((resolve, reject) => {
             const req = store(this._db)[1].get(this._id);
             req.onsuccess = (evt) => resolve(req.result);
@@ -103,6 +102,10 @@ export class IndexeddbFileHandle implements ImpleFileHandle<IndexeddbSink, File>
         });
         if (!file) throw new NotFoundError();
         return file;
+    }
+
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("createSyncAccessHandle not implemented");
     }
 
     async createWritableSink(opts?: any) {
@@ -116,12 +119,16 @@ export class IndexeddbFileHandle implements ImpleFileHandle<IndexeddbSink, File>
         const fstream = new NFileSystemWritableFileStream(sink);
         return fstream;
     }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
 }
 
-/**
- * @param {IDBDatabase} db
- * @returns {[IDBTransaction, IDBObjectStore]}
- */
 function store(db: IDBDatabase): [IDBTransaction, IDBObjectStore] {
     //const tx = db.transaction("entries", "readwrite", { durability: "relaxed" });
     const tx = db.transaction("entries", "readwrite");
@@ -147,12 +154,9 @@ function rimraf(evt: any, toDelete: IndexeddbFileHandle | IndexeddbFolderHandle,
     }
 }
 
-export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHandle, IndexeddbFolderHandle> {
-    /**
-     * @param {IDBDatabase} db
-     * @param {IDBValidKey} id
-     * @param {string} name
-     */
+export class IndexeddbFolderHandle
+    implements ImplFolderHandle<IndexeddbFileHandle, IndexeddbFolderHandle>, FileSystemDirectoryHandle
+{
     constructor(db: IDBDatabase, id: IDBValidKey, name: string) {
         this._db = db;
         this._id = id;
@@ -181,7 +185,6 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         return "FileSystemDirectoryHandle";
     }
 
-    /** @returns {AsyncGenerator<[string, IndexeddbFileHandle | IndexeddbFolderHandle]>} */
     async *entries(): AsyncGenerator<[string, IndexeddbFileHandle | IndexeddbFolderHandle]> {
         const req = store(this._db)[1].get(this._id);
         await new Promise<void>((rs, rj) => {
@@ -204,7 +207,7 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         }
     }
 
-    public async *values() {
+    async *values() {
         const req = store(this._db)[1].get(this._id);
         await new Promise<void>((rs, rj) => {
             req.onsuccess = () => rs();
@@ -226,7 +229,7 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         }
     }
 
-    public async *keys() {
+    async *keys() {
         const req = store(this._db)[1].get(this._id);
         await new Promise<void>((rs, rj) => {
             req.onsuccess = () => rs();
@@ -239,7 +242,7 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         }
     }
 
-    isSameEntry(other: IndexeddbFolderHandle): boolean {
+    async isSameEntry(other: IndexeddbFolderHandle): Promise<boolean> {
         return this._id === other._id;
     }
 
@@ -275,6 +278,14 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
                     : reject(new NotFoundError());
             };
         });
+    }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
     }
 
     async getExternalFolderHandle(
@@ -358,10 +369,6 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
         return false;
     }
 
-    /**
-     * @param {string} name
-     * @param {{ create: boolean; }} opts
-     */
     async getFileHandle(name: string, options?: { create?: boolean }): Promise<IndexeddbFileHandle> {
         indexedDBDebug(`indexeddb.getFileHandle name: ${name}`);
         PreNameCheck(name);
@@ -488,6 +495,10 @@ export class IndexeddbFolderHandle implements ImplFolderHandle<IndexeddbFileHand
                 };
             }
         });
+    }
+
+    async resolve(possibleDescendant: FileSystemHandle): Promise<string[] | null> {
+        return null;
     }
 }
 

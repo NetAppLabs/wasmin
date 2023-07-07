@@ -26,6 +26,7 @@ export class MyFile extends MyBlob {
 
     public lastModified = 0;
     public name = "";
+    public webkitRelativePath = "";
 
     get [Symbol.toStringTag]() {
         return "File";

@@ -1,6 +1,7 @@
-import { FileSystemHandlePermissionDescriptor, InvalidStateError } from "../index.js";
+import { FileSystemHandlePermissionDescriptor, InvalidStateError } from "./index.js";
+import { FileSystemFileHandle, FileSystemDirectoryHandle } from "./FileSystemAccess.js";
 
-export interface ImpleSink<T> {
+export interface ImpleSink<T> extends UnderlyingSink<any> {
     fileHandle: T;
     size: number;
     position: number;
@@ -114,39 +115,39 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
     }
 }
 
-export interface ImpleFileHandle<T = any, U = any> {
+export interface ImpleFileHandle<F extends File, S extends ImpleSink<any>> {
     kind: "file";
     path: string;
     name: string;
 
-    getFile: () => Promise<U>;
+    getFile: () => Promise<F>;
     isSameEntry: (other: any) => Promise<boolean>;
-    createWritableSink: (options?: FileSystemCreateWritableOptions) => Promise<T>;
+    createWritableSink: (options?: FileSystemCreateWritableOptions) => Promise<S>;
     createWritable: (options?: FileSystemCreateWritableOptions) => Promise<FileSystemWritableFileStream>;
 }
 
-export interface ImplFolderHandle<T = any, U = any> {
+export interface ImplFolderHandle<F extends FileSystemFileHandle, D extends FileSystemDirectoryHandle> {
     kind: "directory";
     path: string;
     name: string;
 
-    queryPermission?: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
+    queryPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
 
-    requestPermission?: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
+    requestPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>;
 
-    isSameEntry: (other: any) => boolean;
+    isSameEntry: (other: any) => Promise<boolean>;
 
-    entries: () => AsyncGenerator<[string, T | U]>;
+    entries: () => AsyncGenerator<[string, F | D]>;
 
-    values: () => AsyncGenerator<T | U>;
+    values: () => AsyncGenerator<F | D>;
 
     keys: () => AsyncGenerator<string>;
 
-    getDirectoryHandle: (name: string, options?: { create?: boolean; capture?: boolean }) => Promise<U>;
+    getDirectoryHandle: (name: string, options?: { create?: boolean; capture?: boolean }) => Promise<D>;
 
-    getFileHandle: (name: string, options?: { create?: boolean }) => Promise<T | undefined>;
+    getFileHandle: (name: string, options?: { create?: boolean }) => Promise<F>;
 
     removeEntry: (name: string, opts: { recursive?: boolean }) => Promise<void>;
 
-    resolve?(possibleDescendant: T | U): Promise<string[] | null>;
+    resolve(possibleDescendant: F | D): Promise<string[] | null>;
 }

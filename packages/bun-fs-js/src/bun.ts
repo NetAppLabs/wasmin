@@ -3,6 +3,10 @@ import * as fs from "node:fs/promises";
 import { join } from "node:path";
 
 import {
+    FileSystemDirectoryHandle,
+    FileSystemFileHandle,
+    FileSystemHandlePermissionDescriptor,
+    FileSystemSyncAccessHandle,
     FileSystemWritableFileStream,
     InvalidModificationError,
     InvalidStateError,
@@ -145,14 +149,15 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
     }
 }
 
-export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile> {
+// @ts-ignore because of typescript .prototype bug regarding File/Blob
+export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile>, FileSystemFileHandle {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;
 
-    public async getFile() {
+    // @ts-ignore because of typescript .prototype bug regarding File/Blob
+    async getFile() {
         const f = await fileFrom(this.path);
-        //bunFsDebug("returning f: ",f);
         return f;
     }
 
@@ -160,7 +165,8 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile> {
         return this.path === this.getPath.apply(other);
     }
 
-    public async createWritableSink(options?: FileSystemCreateWritableOptions) {
+    // @ts-ignore because of typescript .prototype bug regarding File/Blob
+    async createWritableSink(options?: FileSystemCreateWritableOptions) {
         let fSize = 0;
         if (options && !options.keepExistingData) {
             await fs.truncate(this.path).catch((err) => {
@@ -179,8 +185,7 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile> {
         return sink;
     }
 
-    // @ts-ignore
-    public async createWritable(options?: FileSystemCreateWritableOptions) {
+    async createWritable(options?: FileSystemCreateWritableOptions) {
         const sink = await this.createWritableSink(options);
         const fstream = new NFileSystemWritableFileStream(sink);
         return fstream;
@@ -189,9 +194,21 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile> {
     private getPath() {
         return this.path;
     }
+
+    async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
+        throw new Error("createSyncAccessHandle not implemented");
+    }
+
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
 }
 
-export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolderHandle> {
+export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolderHandle>, FileSystemDirectoryHandle {
     constructor(public path: string, public name = "") {}
     public writable = true;
     public kind = "directory" as const;
@@ -208,11 +225,11 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         throw new Error("Method not implemented.");
     }
 
-    public isSameEntry(other: any) {
+    async isSameEntry(other: any) {
         return this.path === other.path;
     }
 
-    public async *entries(): AsyncGenerator<[string, BunFileHandle | BunFolderHandle]> {
+    async *entries(): AsyncGenerator<[string, BunFileHandle | BunFolderHandle]> {
         bunFsDebug("bunfs: entries");
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
@@ -230,7 +247,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         }
     }
 
-    public async *values(): AsyncGenerator<BunFileHandle | BunFolderHandle> {
+    async *values(): AsyncGenerator<BunFileHandle | BunFolderHandle> {
         bunFsDebug("bunfs: values");
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
@@ -249,7 +266,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         }
     }
 
-    public async *keys(): AsyncGenerator<string> {
+    async *keys(): AsyncGenerator<string> {
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -266,7 +283,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         }
     }
 
-    public async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+    async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
         PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
@@ -283,7 +300,7 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         return new BunFolderHandle(path, name);
     }
 
-    public async getFileHandle(name: string, opts: { create?: boolean } = {}) {
+    async getFileHandle(name: string, opts: { create?: boolean } = {}) {
         PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
@@ -303,11 +320,15 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
         return new BunFileHandle(path, name);
     }
 
-    public async queryPermission() {
+    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
 
-    public async removeEntry(name: string, opts?: { recursive?: boolean }) {
+    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+        return "granted" as const;
+    }
+
+    async removeEntry(name: string, opts?: { recursive?: boolean }) {
         PreNameCheck(name);
         const path = join(this.path, name);
         const stat = await fs.lstat(path).catch((err) => {
