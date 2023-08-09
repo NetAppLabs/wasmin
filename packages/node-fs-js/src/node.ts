@@ -1,6 +1,8 @@
 import { promises as fs } from "node:fs";
+import { utimesSync, statSync } from "node:fs";
 
-import { join } from "node:path";
+
+import { join, basename } from "node:path";
 
 import {
     InvalidModificationError,
@@ -10,8 +12,9 @@ import {
     SyntaxError,
     TypeMismatchError,
     PreNameCheck,
-    Inodable,
+    Stat,
     FileSystemHandlePermissionDescriptor,
+    Statable,
 } from "@wasm-env/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
@@ -21,6 +24,16 @@ import type { MyFile } from "./fetch-blob/file.js";
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
+
+interface NodeStats {
+    ino: bigint;
+    dev: bigint,
+    ctimeNs: bigint;
+    atimeNs: bigint;
+    mtimeNs: bigint;
+    size: bigint,
+}
+
 
 export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
@@ -98,15 +111,18 @@ export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemW
     }
 }
 
+export class NodeFileHandle
 // @ts-ignore because of typescript .prototype bug regarding File/Blob
-export class NodeFileHandle implements ImpleFileHandle<MyFile, NodeSink>, FileSystemFileHandle, Inodable {
-    constructor(public path: string, public name: string, public inode = 0n) {}
+    implements ImpleFileHandle<MyFile, NodeSink>, FileSystemFileHandle, Statable
+{
+    constructor(public path: string, public name: string) {
+    }
 
-    public kind = "file" as const;
+    kind = "file" as const;
 
     // @ts-ignore because of typescript .prototype bug regarding File/Blob
     async getFile(): Promise<File> {
-        const _stat = await fs.stat(this.path).catch((err) => {
+        const _stat = await fs.stat(this.path, {bigint: true}).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
@@ -153,15 +169,42 @@ export class NodeFileHandle implements ImpleFileHandle<MyFile, NodeSink>, FileSy
     private getPath() {
         return this.path;
     }
+
+    async stat(): Promise<Stat> {
+        const nodeStat = await fs.stat(this.path, {bigint: true});
+        const stat = nodeStatToStat(nodeStat);
+        return stat;
+    }
+
+    async updateTimes(accessTime: bigint|null, modifiedTime: bigint|null): Promise<void> {
+        let setAccessTime = accessTime;
+        let setModifiedTime = modifiedTime;
+        if (setAccessTime == null || setModifiedTime == null ) {
+            const thisStat = await this.stat();
+            if (setModifiedTime==null) {
+                setModifiedTime = thisStat.modifiedTime;
+            }
+            if (setAccessTime==null) {
+                setAccessTime = thisStat.accessedTime;
+            }
+        }
+        const setAccessTimeMs = Number(setAccessTime /1_000_000n);
+        const tSetAccessTime = new Date(setAccessTimeMs);
+        const setModifiedTimeMs = Number(setModifiedTime /1_000_000n);
+        const tSetModifiedTime = new Date(setModifiedTimeMs);
+        //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
+        await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
 }
 
 export class NodeFolderHandle
-    implements ImplFolderHandle<NodeFileHandle, NodeFolderHandle>, FileSystemDirectoryHandle, Inodable
+    implements ImplFolderHandle<NodeFileHandle, NodeFolderHandle>, FileSystemDirectoryHandle, Statable
 {
-    constructor(public path: string, public name = "", public inode = 0n) {}
-    public writable = true;
-    public kind = "directory" as const;
-
+    constructor(public path: string, public name: string) {
+    }
+    writable = true;
+    kind = "directory" as const;
+    
     [Symbol.asyncIterator]() {
         return this.entries();
     }
@@ -194,11 +237,11 @@ export class NodeFolderHandle
         });
         for (const name of await items) {
             const path = join(dir, name);
-            const stat = await fs.lstat(path);
+            const stat = await fs.lstat(path, {bigint: true});
             if (stat.isFile()) {
-                yield [name, new NodeFileHandle(path, name, BigInt(stat.ino))];
+                yield [name, new NodeFileHandle(path, name)];
             } else if (stat.isDirectory()) {
-                yield [name, new NodeFolderHandle(path, name, BigInt(stat.ino))];
+                yield [name, new NodeFolderHandle(path, name)];
             }
         }
     }
@@ -211,11 +254,11 @@ export class NodeFolderHandle
         });
         for (const name of items) {
             const path = join(dir, name);
-            const stat = await fs.lstat(path);
+            const stat = await fs.lstat(path, {bigint: true});
             if (stat.isFile()) {
-                yield new NodeFileHandle(path, name, BigInt(stat.ino));
+                yield new NodeFileHandle(path, name);
             } else if (stat.isDirectory()) {
-                yield new NodeFolderHandle(path, name, BigInt(stat.ino));
+                yield new NodeFolderHandle(path, name);
             }
         }
     }
@@ -234,39 +277,40 @@ export class NodeFolderHandle
     async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
         PreNameCheck(name);
         const path = join(this.path, name);
-        const stat = await fs.lstat(path).catch((err) => {
+        const stat = await fs.lstat(path, {bigint: true}).catch((err) => {
             if (err.code !== "ENOENT") throw err;
         });
         const isDirectory = stat?.isDirectory();
-        if (stat && isDirectory) return new NodeFolderHandle(path, name, BigInt(stat.ino));
+        if (stat && isDirectory) return new NodeFolderHandle(path, name);
         if (stat && !isDirectory) throw new TypeMismatchError();
         if (!options.create) throw new NotFoundError();
         await fs.mkdir(path);
-        const stat2 = await fs.lstat(path).catch((err) => {
+        const stat2 = await fs.lstat(path, {bigint: true}).catch((err) => {
             if (err.code !== "ENOENT") throw err;
         });
-        let newinode = 0;
         if (stat2) {
-            newinode = stat2.ino;
+            return new NodeFolderHandle(path, name);
+        } else {
+            throw new NotFoundError();
         }
-        return new NodeFolderHandle(path, name, BigInt(newinode));
     }
 
     async getFileHandle(name: string, opts: { create?: boolean } = {}) {
         PreNameCheck(name);
         const path = join(this.path, name);
-        const stat = await fs.lstat(path).catch((err) => {
+        const stat = await fs.lstat(path, {bigint: true}).catch((err) => {
             if (err.code !== "ENOENT") throw err;
         });
         if (stat) {
-            if (stat.isFile()) return new NodeFileHandle(path, name, BigInt(stat.ino));
+            if (stat.isFile()) return new NodeFileHandle(path, name);
             else throw new TypeMismatchError();
         }
         if (!opts.create) throw new NotFoundError();
         const fhandle = await fs.open(path, "w");
-        const stat2 = await fhandle.stat();
+        const stat2 = await fhandle.stat({bigint: true});
+        stat2.ctime;
         await fhandle.close();
-        return new NodeFileHandle(path, name, BigInt(stat2.ino));
+        return new NodeFileHandle(path, name);
     }
 
     async removeEntry(name: string, opts?: { recursive?: boolean }) {
@@ -292,6 +336,51 @@ export class NodeFolderHandle
             await fs.unlink(path);
         }
     }
+
+    async stat(): Promise<Stat> {
+        const nodeStat = await fs.stat(this.path, {bigint: true});
+        const stat = nodeStatToStat(nodeStat);
+        return stat;
+    }
+
+    async updateTimes(accessTime: bigint|null, modifiedTime: bigint|null): Promise<void> {
+        let setAccessTime = accessTime;
+        let setModifiedTime = modifiedTime;
+        if (setAccessTime == null || setModifiedTime == null ) {
+            const thisStat = await this.stat();
+            if (setModifiedTime==null) {
+                setModifiedTime = thisStat.modifiedTime;
+            }
+            if (setAccessTime==null) {
+                setAccessTime = thisStat.accessedTime;
+            }
+        }
+        const setAccessTimeMs = Number(setAccessTime /1_000_000n);
+        const tSetAccessTime = new Date(setAccessTimeMs);
+        const setModifiedTimeMs = Number(setModifiedTime /1_000_000n);
+        const tSetModifiedTime = new Date(setModifiedTimeMs);
+        //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
+        await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
 }
 
-export default (path: string) => new NodeFolderHandle(path);
+export default (absolutePath: string) => {
+    const name = basename(absolutePath);
+    const fh = new NodeFolderHandle(absolutePath, name);
+    return fh;
+};
+
+
+function nodeStatToStat(stat: NodeStats): Stat{
+    const ctimeNs = stat.ctimeNs;
+    const mtimeNs = stat.mtimeNs;
+    const atimeNs = stat.atimeNs;
+    const ino = stat.ino;
+    const s: Stat = {
+        creationTime: ctimeNs,
+        accessedTime: atimeNs,
+        modifiedTime: mtimeNs,
+        inode: ino,
+    }
+    return s;
+}

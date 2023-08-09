@@ -1,4 +1,4 @@
-import { FileSystemFileHandle, Inodable } from "@wasm-env/fs-js";
+import { FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
 import { Handle } from "./wasiFileSystem.js";
@@ -105,24 +105,38 @@ export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, file
 
     let inode = 0n;
     let size = 0n;
-    let time = 0n;
+    let ctime = 0n;
+    let mtime = 0n;
+    let atime = 0n;
+
     if (file) {
         size = BigInt(file.size);
-        time = BigInt(file.lastModified) * 1_000_000n;
+        ctime = BigInt(file.lastModified) * 1_000_000n;
+        mtime = ctime;
+        atime = ctime;
     }
-    if ((handle as any).inode) {
-        const inodable = handle as unknown as Inodable;
-        inode = inodable.inode;
+    if ((handle as any).stat) {
+        const statable = handle as unknown as Statable;
+        const s = await statable.stat();
+        const got_inode = s.inode;
+        if (got_inode) {
+            inode = got_inode;
+        }
+        const creationTime = s.creationTime;
+        ctime = creationTime;
+        mtime = s.modifiedTime;
+        atime = s.accessedTime;
     }
+
     const newFstat: Filestat = {
         dev: 0n,
         ino: inode,
         filetype: file ? FiletypeN.REGULAR_FILE : FiletypeN.DIRECTORY,
         nlink: 0n,
         size,
-        atim: time,
-        mtim: time,
-        ctim: time,
+        atim: atime,
+        mtim: mtime,
+        ctim: ctime,
     };
     wasiDebug("populateFileStat: newFstat: ", newFstat);
     Filestat.set(buffer, filestat_ptr, newFstat);

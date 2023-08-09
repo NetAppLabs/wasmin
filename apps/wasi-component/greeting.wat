@@ -38,7 +38,7 @@
   (import "wasi_snapshot_preview1" "fd_pwrite" 
     (func $fd_pwrite (param i32 i32 i32 i64 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_read"
-      (func $fd_read (param i32 i32 i32 i32) (result i32)))
+    (func $fd_read (param i32 i32 i32 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_readdir" 
     (func $fd_readdir (param i32 i32 i32 i64 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_renumber" 

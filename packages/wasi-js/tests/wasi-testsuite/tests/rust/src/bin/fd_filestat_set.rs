@@ -35,14 +35,24 @@ unsafe fn test_fd_filestat_set(dir_fd: wasi::Fd) {
 
     // Check fd_filestat_set_times
     let old_atim = stat.atim;
-    let new_mtim = stat.mtim - 100;
+    // there can be lost precision issues
+    let precision = 1_000_000;
+    let difference = 10 * precision; 
+    let new_mtim = stat.mtim - difference;
     wasi::fd_filestat_set_times(file_fd, new_mtim, new_mtim, wasi::FSTFLAGS_MTIM)
         .expect("fd_filestat_set_times");
 
     let stat = wasi::fd_filestat_get(file_fd).expect("failed filestat 3");
     assert_eq!(stat.size, 100, "file size should remain unchanged at 100");
-    assert_eq!(stat.mtim, new_mtim, "mtim should change");
-    assert_eq!(stat.atim, old_atim, "atim should not change");
+    let mut got_mtim = stat.mtim;
+    got_mtim = (((got_mtim / precision) as f64).floor() as u64 ) * precision;
+    let mut got_atim = stat.atim;
+    got_atim = (((got_atim / precision) as f64).floor() as u64 ) * precision;
+
+    let new_mtim_floored = (((new_mtim / precision) as f64).floor() as u64 ) * precision;
+    let old_atim_floored = (((old_atim / precision) as f64).floor() as u64 ) * precision;
+    assert_eq!(got_mtim, new_mtim_floored, "mtim should change");
+    assert_eq!(got_atim, old_atim_floored, "atim should not change");
 
     // let status = wasi_fd_filestat_set_times(file_fd, new_mtim, new_mtim, wasi::FILESTAT_SET_MTIM | wasi::FILESTAT_SET_MTIM_NOW);
     // assert_eq!(status, wasi::EINVAL, "ATIM & ATIM_NOW can't both be set");

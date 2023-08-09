@@ -42,6 +42,7 @@ import {
     Exitcode,
     addWasiSnapshotPreview1ToImports,
     RightsN,
+    FstflagsN,
 } from "./bindings.js";
 import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./bindings.js";
 import {
@@ -60,7 +61,7 @@ import {
     isNode,
 } from "../wasiUtils.js";
 import { WasiEnv } from "../wasi.js";
-import { Inodable } from "@wasm-env/fs-js";
+import { Statable } from "@wasm-env/fs-js";
 
 export function initializeWasiSnapshotPreview1AsyncToImports(
     imports: any,
@@ -200,12 +201,17 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdAdvise(fd: Fd, offset: Filesize, len: Filesize, advice: Advice): Promise<Errno> {
-        unimplemented("fd_advise");
-        return ErrnoN.NOSYS;
+        const of = this.openFiles.getAsFile(fd);
+        // TODO look into how to keep track of offset and len
+        // of.setSize(Number(len));
+        //of.position = Number(offset);
+        of.advice = advice;
+        return ErrnoN.SUCCESS;
     }
     async fdAllocate(fd: Fd, offset: Filesize, len: Filesize): Promise<Errno> {
-        unimplemented("fd_allocate");
-        return ErrnoN.NOSYS;
+        const totalSize = len + offset;
+        const ret = this.fdFilestatSetSize(fd, totalSize);
+        return ret;
     }
     async fdClose(fd: Fd): Promise<Errno> {
         wasiFdDebug("[fd_close]", fd);
@@ -303,8 +309,26 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdFilestatSetTimes(fd: Fd, atim: Timestamp, mtim: Timestamp, fst_flags: Fstflags): Promise<Errno> {
-        unimplemented("fd_filestat_set_times");
-        return ErrnoN.NOSYS;
+        wasiDebug("fd_filestat_set_times");
+        const of = this.openFiles.getAsFileOrDir(fd);
+        const handle = of.handle;
+        if ((handle as any).updateTimes) {
+            const uh = handle as unknown as Statable;
+            let dataAccessTimestampNs: bigint | null = null;
+            if (fst_flags & FstflagsN.ATIM ){
+                dataAccessTimestampNs = atim;
+            } else if (fst_flags & FstflagsN.ATIM_NOW ){
+                dataAccessTimestampNs = BigInt(Date.now() * 1_000_000);
+            }
+            let dataModificationTimestampNs: bigint | null = null;
+            if (fst_flags & FstflagsN.MTIM ){
+                dataModificationTimestampNs = mtim;
+            } else if (fst_flags & FstflagsN.MTIM_NOW ){
+                dataModificationTimestampNs = BigInt(Date.now() * 1_000_000);
+            }
+            await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
+        }
+        return ErrnoN.SUCCESS;
     }
     async fdPread(
         fd: Fd,
@@ -429,9 +453,13 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         const openDir = this.openFiles.getAsDir(fd);
         const dirfh = openDir.handle;
         let dot_inode = 0n;
-        if ((dirfh as any).inode) {
-            const inodable = dirfh as unknown as Inodable;
-            dot_inode = inodable.inode;
+        if ((dirfh as any).stat) {
+            const statable = dirfh as unknown as Statable;
+            const s = await statable.stat();
+            const got_inode = s.inode;
+            if (got_inode) {
+                dot_inode = s.inode;
+            }
         }
         // type conversion because buf is ptr<u8> but expects ptr<Dirent>
         let dirent_buf_ptr = buf as unknown as ptr<Dirent>;
@@ -490,9 +518,13 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             const nameLen = nameAsBytes.byteLength;
 
             let entry_inode = 0n;
-            if ((handle as any).inode) {
-                const inodable = handle as unknown as Inodable;
-                entry_inode = inodable.inode;
+            if ((handle as any).stat) {
+                const statable = dirfh as unknown as Statable;
+                const s = await statable.stat();
+                const got_inode = s.inode;
+                if (got_inode) {
+                    entry_inode = s.inode;
+                }
             }
             const itemSize = Dirent.size + nameLen;
             const newDirent: Dirent = {
@@ -632,8 +664,28 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         mtim: Timestamp,
         fst_flags: Fstflags
     ): Promise<Errno> {
-        unimplemented("path_filestat_set_times");
-        return ErrnoN.NOSYS;
+        wasiDebug("fd_filestat_set_times");
+        // TODO; handle Lookupflags
+        const path = string.get(this.buffer, path_ptr, path_len);
+        const opendir = this.openFiles.getAsDir(fd);
+        const handle = await opendir.getFileOrDir(path, FileOrDir.Any);
+        if ((handle as any).updateTimes) {
+            const uh = handle as unknown as Statable;
+            let dataAccessTimestampNs: bigint | null = null;
+            if (fst_flags & FstflagsN.ATIM ){
+                dataAccessTimestampNs = atim;
+            } else if (fst_flags & FstflagsN.ATIM_NOW ){
+                dataAccessTimestampNs = BigInt(Date.now() * 1_000_000);
+            }
+            let dataModificationTimestampNs: bigint | null = null;
+            if (fst_flags & FstflagsN.MTIM ){
+                dataModificationTimestampNs = mtim;
+            } else if (fst_flags & FstflagsN.MTIM_NOW ){
+                dataModificationTimestampNs = BigInt(Date.now() * 1_000_000);
+            }
+            await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
+        }
+        return ErrnoN.SUCCESS;
     }
     async pathLink(
         old_fd: Fd,

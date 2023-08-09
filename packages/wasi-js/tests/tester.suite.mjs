@@ -9,10 +9,11 @@ import { constructOneTestForTestSuite, constructWasiForTest } from "@wasm-env/wa
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
 //const testFile = "dangling_fd.json";
-const testFile = "fd_readdir.json";
+//const testFile = "fd_readdir.json";
 //const testFile = "fdopendir-with-access.json"
 //const testFile = "fopen-with-no-access.wasm"
 //const testFile = "interesting_paths.json"
+const testFile = "fd_filestat_set.json";
 
 const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
 

@@ -4,9 +4,8 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
 import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
-import { translateError } from "./preview2Utils.js";
-import { toDateTimeFromMs } from "./clocks.js";
-import { FileSystemHandle, FileSystemFileHandle, Inodable } from "@wasm-env/fs-js";
+import { adviceStringtoAdviceN, toDateTimeFromMs, toMillisFromDatetime, toMillisFromTimestamp, toNanosFromDatetime, toNanosFromTimestamp, translateError } from "./preview2Utils.js";
+import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
 
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
@@ -56,7 +55,15 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         }
     }
     async advise(fd: Descriptor, offset: FileSize, length: bigint, advice: fs.Advice): Promise<void> {
-        throw new Error("Method not implemented.");
+        try {
+            const of = this.openFiles.getAsFile(fd);
+            // TODO look into how to keep track of offset and len
+            // of.setSize(Number(len));
+            //of.position = Number(offset);
+            of.advice = adviceStringtoAdviceN(advice);
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
     async syncData(fd: Descriptor): Promise<void> {
         try {
@@ -104,7 +111,18 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         dataAccessTimestamp: fs.NewTimestamp,
         dataModificationTimestamp: fs.NewTimestamp
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        try {
+            const of = this.openFiles.getAsFileOrDir(fd);
+            const handle = of.handle;
+            if ((handle as any).updateTimes) {
+                const uh = handle as unknown as Statable;
+                const dataAccessTimestampNs = toNanosFromTimestamp(dataAccessTimestamp);
+                const dataModificationTimestampNs = toNanosFromTimestamp(dataModificationTimestamp);
+                await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
+            }
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
     async read(fd: Descriptor, length: bigint, offset: FileSize): Promise<[Uint8Array | ArrayBuffer, boolean]> {
         try {
@@ -190,7 +208,18 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         dataAccessTimestamp: fs.NewTimestamp,
         dataModificationTimestamp: fs.NewTimestamp
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        try {
+            const opendir = this.openFiles.getAsDir(fd);
+            const handle = await opendir.getFileOrDir(path, FileOrDir.Any);
+            if ((handle as any).updateTimes) {
+                const uh = handle as unknown as Statable;
+                const dataAccessTimestampNs = toNanosFromTimestamp(dataAccessTimestamp);
+                const dataModificationTimestampNs = toNanosFromTimestamp(dataModificationTimestamp);
+                await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
+            }
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
     linkAt(
         fd: Descriptor,
@@ -353,9 +382,13 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
     }
     const time = toDateTimeFromMs(timeMilliseconds);
     let inode = 0n;
-    if ((fHandle as any).inode) {
-        const inodable = fHandle as unknown as Inodable;
-        inode = inodable.inode;
+    if ((fHandle as any).stat) {
+        const statable = fHandle as unknown as Statable;
+        const s = await statable.stat();
+        const got_inode = s.inode;
+        if (got_inode) {
+            inode = got_inode;
+        }
     }
     const newStat: DescriptorStat = {
         device: 0n,

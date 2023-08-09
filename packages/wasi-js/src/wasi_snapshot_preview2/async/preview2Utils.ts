@@ -1,10 +1,14 @@
+import { NewTimestamp } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
 import { SystemError } from "../../errors.js";
 import { translateErrorToErrorno } from "../../wasiUtils.js";
-import { ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
+import { Advice, AdviceN, ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
 import { SocketsNetworkNamespace as sock } from "@wasm-env/wasi-snapshot-preview2";
+import { ClocksWallClockNamespace as clockw } from "@wasm-env/wasi-snapshot-preview2";
+
 type ErrorCodeFS = fs.ErrorCode;
 type ErrorCodeSockets = sock.ErrorCode;
+type Datetime = clockw.Datetime;
 
 type ErrorCode = ErrorCodeFS | ErrorCodeSockets;
 
@@ -253,6 +257,89 @@ export function translateError(err: any) {
     }
     return errCode;
 }
+
+export function adviceStringtoAdviceN(advice: fs.Advice): AdviceN {
+    switch (advice) {
+        case "normal":
+            return AdviceN.NORMAL;
+        case "sequential":
+            return AdviceN.SEQUENTIAL;
+        case "random":
+            return AdviceN.RANDOM;
+        case "will-need":
+            return AdviceN.WILLNEED;
+        case "dont-need":
+            return AdviceN.DONTNEED;
+        case "no-reuse":
+            return AdviceN.NOREUSE;    
+    }
+}
+
+export function toDateTimeFromMs(timeMillis: number): Datetime {
+    const seconds = BigInt(Math.floor(timeMillis / 1000));
+    const nanoseconds = (timeMillis % 1000) * 1_000_000;
+    const dt: Datetime = {
+        seconds: seconds,
+        nanoseconds: nanoseconds,
+    };
+    return dt;
+}
+
+export function toMillisFromDatetime(time: Datetime): number {
+
+    let millis = Number(time.seconds) * 1000;
+    let millisextra = time.nanoseconds / 1_000_000 ;
+
+    millis = millis + millisextra;
+    return millis;
+}
+
+export function toNanosFromDatetime(time: Datetime): bigint {
+    let nanos = time.seconds * 1_000_000_000n;
+    let nanosextra = BigInt(time.nanoseconds);
+    nanos = nanos + nanosextra;
+
+    return nanos;
+}
+
+export function toMillisFromTimestamp(timestamp: NewTimestamp): number|null {
+    let timestampMillis: number | null = null;
+    switch(timestamp.tag) {
+        case "no-change": {
+            timestampMillis = null;
+            break;
+        }
+        case "now": {
+            timestampMillis = Date.now();
+            break;
+        }
+        case "timestamp": {
+            timestampMillis = toMillisFromDatetime(timestamp.val);
+            break;
+        }
+    }
+    return null;
+}
+
+export function toNanosFromTimestamp(timestamp: NewTimestamp): bigint|null {
+    let timestampMillis: bigint | null = null;
+    switch(timestamp.tag) {
+        case "no-change": {
+            timestampMillis = null;
+            break;
+        }
+        case "now": {
+            timestampMillis = BigInt(Date.now() * 1_000_000);
+            break;
+        }
+        case "timestamp": {
+            timestampMillis = toNanosFromDatetime(timestamp.val);
+            break;
+        }
+    }
+    return null;
+}
+
 
 export type ManagedResourceId = number;
 export type ManagedResource = any;

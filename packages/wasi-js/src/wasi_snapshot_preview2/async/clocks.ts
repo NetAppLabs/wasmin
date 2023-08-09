@@ -6,6 +6,7 @@ import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-previ
 import { Pollable as FSPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, sleep } from "../../wasiUtils.js";
+import { toDateTimeFromMs } from "./preview2Utils.js";
 type ClocksTimezoneAsync = clockt.ClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
@@ -96,16 +97,6 @@ export class ClocksTimezoneAsyncHost implements ClocksTimezoneAsync {
     async dropTimezone(tz: Timezone): Promise<void> {
         throw new Error("Method not implemented.");
     }
-}
-
-export function toDateTimeFromMs(timeMillis: number): Datetime {
-    const seconds = BigInt(Math.floor(timeMillis / 1000));
-    const nanoseconds = (timeMillis % 1000) * 1_000_000;
-    const dt: Datetime = {
-        seconds: seconds,
-        nanoseconds: nanoseconds,
-    };
-    return dt;
 }
 
 // Get HR time in nanoseconds

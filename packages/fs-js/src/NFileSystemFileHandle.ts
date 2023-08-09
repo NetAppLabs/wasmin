@@ -1,4 +1,3 @@
-import { Timestampable } from "./ExtHandles.js";
 import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 import { FileSystemFileHandle } from "./index.js";

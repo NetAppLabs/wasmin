@@ -14,11 +14,11 @@
 
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
-import type { Fd } from "./wasi_snapshot_preview1/bindings.js";
+import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-import { Inodable, openDirectoryHandle } from "@wasm-env/fs-js";
+import { Statable, openDirectoryHandle } from "@wasm-env/fs-js";
 import {
     FileSystemHandle,
     FileSystemDirectoryHandle,
@@ -327,10 +327,13 @@ export class OpenDirectoryIterator {
             const descriptorNum = this._descriptor + count;
             let inode = 0n;
             if ((handle as any).inode) {
-                const inodable = handle as unknown as Inodable;
-                inode = inodable.inode;
+                const statable = handle as unknown as Statable;
+                const s = await statable.stat();
+                const got_inode = s.inode;
+                if (got_inode) {
+                    inode = got_inode;
+                }
             }
-            //const inode = BigInt(descriptorNum);
             let ftype: DescriptorType = "unknown";
             const { name } = handle;
             if (handle.kind == "file") {
@@ -338,7 +341,6 @@ export class OpenDirectoryIterator {
             } else if (handle.kind == "directory") {
                 ftype = "directory";
             }
-            const textEncoder = new TextEncoder();
             const ret: DirectoryEntry = {
                 type: ftype,
                 name: name,
@@ -363,6 +365,7 @@ export class OpenFile implements Readable, Writable {
     ) {}
 
     public position = 0;
+    public advice: AdviceN = AdviceN.NORMAL;
     private _writer: FileSystemWritableFileStream | undefined = undefined;
 
     async getFile(): Promise<File> {
