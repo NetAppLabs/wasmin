@@ -20,7 +20,7 @@ async function constructTestsWithSkip() {
         WASI_TESTSUITE_PATH_AS,
     ]);
     const testSkipRemoved: Test[] = [];
-    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access", "fd_filestat_set", "fd_readdir"];
+    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access", "fd_filestat_set"];
 
     for (const t of tests) {
         let skip = false;
@@ -71,6 +71,7 @@ describe("all", () => {
                 const w = ret.wasi;
                 if (w) {
                     //w.component = true;
+                    //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
                     actualExitCode = await w.run(await wasmMod);
                 }
             } catch (err: any) {

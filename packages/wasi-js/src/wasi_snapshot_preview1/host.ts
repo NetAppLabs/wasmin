@@ -519,7 +519,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
 
             let entry_inode = 0n;
             if ((handle as any).stat) {
-                const statable = dirfh as unknown as Statable;
+                const statable = handle as unknown as Statable;
                 const s = await statable.stat();
                 const got_inode = s.inode;
                 if (got_inode) {
