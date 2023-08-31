@@ -44,7 +44,7 @@ export namespace ExportsComponentNfsRsNfs {
 }
 export type Mount = number;
 export interface Error {
-  osErrorCode?: number,
+  nfsErrorCode?: number,
   message: string,
 }
 export interface Time {

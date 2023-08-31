@@ -1,0 +1,19 @@
+{
+    "name": "nfs-rs-component",
+    "type": "module",
+    "main": "component/index.js",
+    "files": [
+        "component/index.ts"
+    ],
+    "scripts": {
+        "build": "./build.sh",
+        "test": "./test.sh"
+    },
+    "devDependencies": {
+        "vitest": "^0.32.2"
+    },
+    "dependencies": {
+        "@wasm-env/fs-js": "*",
+        "@wasm-env/wasi-js": "*"
+    }
+}

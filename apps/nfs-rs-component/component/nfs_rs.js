@@ -2764,7 +2764,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -2813,7 +2813,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
@@ -2867,7 +2867,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -2918,7 +2918,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -2967,7 +2967,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
@@ -3021,7 +3021,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -3072,7 +3072,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -3131,7 +3131,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -3185,7 +3185,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -3234,7 +3234,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
@@ -3283,7 +3283,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
@@ -3360,7 +3360,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -3434,7 +3434,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -3554,7 +3554,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant14= {
           tag: 'err',
           val: {
-            osErrorCode: variant12,
+            nfsErrorCode: variant12,
             message: result13,
           }
         };
@@ -3662,7 +3662,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant12= {
           tag: 'err',
           val: {
-            osErrorCode: variant10,
+            nfsErrorCode: variant10,
             message: result11,
           }
         };
@@ -3711,7 +3711,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
@@ -3795,7 +3795,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -3871,7 +3871,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -3932,7 +3932,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant6= {
           tag: 'err',
           val: {
-            osErrorCode: variant4,
+            nfsErrorCode: variant4,
             message: result5,
           }
         };
@@ -3988,7 +3988,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -4045,7 +4045,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4099,7 +4099,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4153,7 +4153,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4256,7 +4256,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant8= {
           tag: 'err',
           val: {
-            osErrorCode: variant6,
+            nfsErrorCode: variant6,
             message: result7,
           }
         };
@@ -4356,7 +4356,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant8= {
           tag: 'err',
           val: {
-            osErrorCode: variant6,
+            nfsErrorCode: variant6,
             message: result7,
           }
         };
@@ -4413,7 +4413,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4467,7 +4467,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4526,7 +4526,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4582,7 +4582,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -4650,7 +4650,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -4715,7 +4715,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -4825,7 +4825,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant7= {
           tag: 'err',
           val: {
-            osErrorCode: variant5,
+            nfsErrorCode: variant5,
             message: result6,
           }
         };
@@ -4932,7 +4932,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant7= {
           tag: 'err',
           val: {
-            osErrorCode: variant5,
+            nfsErrorCode: variant5,
             message: result6,
           }
         };
@@ -4991,7 +4991,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant5= {
           tag: 'err',
           val: {
-            osErrorCode: variant3,
+            nfsErrorCode: variant3,
             message: result4,
           }
         };
@@ -5045,7 +5045,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -5101,7 +5101,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -5152,7 +5152,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -5208,7 +5208,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -5259,7 +5259,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant3= {
           tag: 'err',
           val: {
-            osErrorCode: variant1,
+            nfsErrorCode: variant1,
             message: result2,
           }
         };
@@ -5322,7 +5322,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant6= {
           tag: 'err',
           val: {
-            osErrorCode: variant4,
+            nfsErrorCode: variant4,
             message: result5,
           }
         };
@@ -5375,7 +5375,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant4= {
           tag: 'err',
           val: {
-            osErrorCode: variant2,
+            nfsErrorCode: variant2,
             message: result3,
           }
         };
@@ -5424,7 +5424,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         variant2= {
           tag: 'err',
           val: {
-            osErrorCode: variant0,
+            nfsErrorCode: variant0,
             message: result1,
           }
         };
