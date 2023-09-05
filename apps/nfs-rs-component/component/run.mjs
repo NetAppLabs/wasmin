@@ -21,23 +21,30 @@ await wasi.createWorker()
   .then((componentImports) => instantiate(compileCore, componentImports))
   .then((instance) => {
     const nfs = instance.nfs;
-    const mount = nfs.parseUrlAndMount("nfs://localhost/Users/Shared/nfs/?nfsport=20490&mountport=20490");
+    //const nfsUrl = "nfs://localhost/Users/Shared/nfs/?nfsport=20490&mountport=20490";
+    const rootPath = "/"
+    const nfsUrl = "nfs://localhost/tmp/go-nfs-server?uid=502&gid=20&nfsport=20490&mountport=20490&auto-traverse-mounts=0";
+
+    const mount = nfs.parseUrlAndMount(nfsUrl);
+
     console.log("mount identifier:", mount);
-    console.log("root fh:", nfs.lookup(mount, "/"));
-    const entries = nfs.readdirplusPath(mount, "/");
+    const rootFh = nfs.lookup(mount, rootPath);
+    console.log("root fh:", rootFh);
+    //const entries = nfs.readdirplusPath(mount, rootPath);
+    const entries = nfs.readdirplus(mount, rootFh);
     for (const entry of entries) {
       console.log(`/${entry.fileName} =`, entry);
     }
     nfs.umount(mount);
     try {
-      nfs.lookup(mount, "/");
+      nfs.lookup(mount, rootPath);
     } catch (e) {
-      console.log("error performing lookup using previously unmounted mount:", e.payload);
+      console.log("expected error: performing lookup using previously unmounted mount:", e.payload);
     }
     try {
       nfs.umount(mount);
     } catch (e) {
-      console.log("error unmounting previously unmounted mount:", e.payload);
+      console.log("expected error: unmounting previously unmounted mount:", e.payload);
     }
   })
   .finally(() => {

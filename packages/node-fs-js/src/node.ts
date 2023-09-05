@@ -188,10 +188,8 @@ export class NodeFileHandle
                 setAccessTime = thisStat.accessedTime;
             }
         }
-        const setAccessTimeMs = Number(setAccessTime /1_000_000n);
-        const tSetAccessTime = new Date(setAccessTimeMs);
-        const setModifiedTimeMs = Number(setModifiedTime /1_000_000n);
-        const tSetModifiedTime = new Date(setModifiedTimeMs);
+        const tSetAccessTime = toUnixTimestampNumber(setAccessTime);
+        const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
         //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
         await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
     }
@@ -355,10 +353,8 @@ export class NodeFolderHandle
                 setAccessTime = thisStat.accessedTime;
             }
         }
-        const setAccessTimeMs = Number(setAccessTime /1_000_000n);
-        const tSetAccessTime = new Date(setAccessTimeMs);
-        const setModifiedTimeMs = Number(setModifiedTime /1_000_000n);
-        const tSetModifiedTime = new Date(setModifiedTimeMs);
+        const tSetAccessTime = toUnixTimestampNumber(setAccessTime);
+        const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
         //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
         await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
     }
@@ -383,4 +379,12 @@ function nodeStatToStat(stat: NodeStats): Stat{
         inode: ino,
     }
     return s;
+}
+
+function toUnixTimestampNumber(timeNs: bigint) {
+    let timeMs = Number(timeNs /1_000_000n);
+    const timeMsFloored = Math.round(timeMs);
+    // convert to fractional UNIX timestamp like 123.456
+    const timeMsUnixSecondsFractional = timeMsFloored / 1000;
+    return timeMsUnixSecondsFractional
 }

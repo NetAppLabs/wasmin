@@ -65,7 +65,11 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
 
         const writer = this.getWriter();
         await writer.write(data);
-        writer.releaseLock();
+        try {
+            writer.releaseLock();
+        } catch(err: any) {
+            fileSystemWritableDebug("NFileSystemWritableFileStream: writer.releaseLock err:", err);
+        }
         fileSystemWritableDebug("NFileSystemWritableFileStream: write end");
     }
 
@@ -77,11 +81,11 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
       fileSystemWritableDebug("NFileSystemWritableFileStream getWriter: ", w);
     }
     return this.writer;
-  }*/
+    }*/
 
     /*getWriter(): WritableStreamDefaultWriter {
-    return super.getWriter();
-  }*/
+        return super.getWriter();
+    }*/
 
     get [Symbol.toStringTag]() {
         return "FileSystemWritableFileStream";

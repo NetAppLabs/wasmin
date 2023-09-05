@@ -324,6 +324,10 @@ export function translateErrorToErrorno(err: any): Errno {
     return ErrnoN.INVAL;
 }
 
+export function isNodeorBun() {
+    return globalThis.process != null;
+}
+
 export function isNode() {
     // only node.js or bun has global process class
     if (!isBun()) {

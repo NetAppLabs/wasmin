@@ -21,7 +21,6 @@ export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
 export async function workerDebugNode(msg?: any, ...optionalParams: any[]): Promise<void> {
     const { parentPort } = await import("node:worker_threads");
     if (parentPort) {
-        parentPort.postMessage(msg);
         const message = { msg: msg, params: [...optionalParams] };
         parentPort.postMessage(message);
     } else {

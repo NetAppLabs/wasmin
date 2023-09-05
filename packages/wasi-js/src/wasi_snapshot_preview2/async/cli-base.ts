@@ -43,15 +43,19 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
     }
     private _wasiEnv: WasiEnv;
 
-    async exit(status: Result<void, void>): Promise<void> {
+    async exit(status: Result<any, any>): Promise<void> {
         let rval = 0;
         if (status.tag == "ok") {
             rval = 0;
-            console.log("CliBaseExitAsyncHost exit ok: ", status.val);
+            //console.log("CliBaseExitAsyncHost exit ok: ", status.val);
         } else if (status.tag == "err") {
-            console.log("CliBaseExitAsyncHost exit err: ", status.val);
-            // TODO: figure out correct handling for status.val
-            rval = Number(status.val);
+            if (status.val) {
+                console.log("CliBaseExitAsyncHost exit err: ", status.val);
+                // TODO: figure out correct handling for status.val
+                rval = Number(status.val);
+            } else {
+                rval = 1;
+            }
         }
         throw new ExitStatus(rval);
     }

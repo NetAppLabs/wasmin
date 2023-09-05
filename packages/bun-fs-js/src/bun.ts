@@ -158,7 +158,8 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile>, FileSyst
     // @ts-ignore because of typescript .prototype bug regarding File/Blob
     async getFile() {
         const f = await fileFrom(this.path);
-        return f;
+        const fil = f as unknown as File;
+        return fil;
     }
 
     async isSameEntry(other: any): Promise<boolean> {

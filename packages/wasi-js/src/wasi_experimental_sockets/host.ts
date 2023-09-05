@@ -1,5 +1,5 @@
 import { WasiEnv } from "../wasi.js";
-import { isNode, translateErrorToErrorno } from "../wasiUtils.js";
+import { isNode, isNodeorBun, translateErrorToErrorno } from "../wasiUtils.js";
 import {
     Addr,
     AddressFamily,
@@ -26,7 +26,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
         this._wasiEnv = wasiEnv;
         this._get_exports_func = get_export;
-        this._isNode = isNode();
+        this._isNode = isNodeorBun();
     }
     public _get_exports_func?: (name: string) => WebAssembly.ExportValue;
     private _wasiEnv: WasiEnv;
@@ -147,7 +147,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
             return ErrnoN.SUCCESS;
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
             wasiSocketsDebug("sockOpen udp 1 :");
-            if (isNode()) {
+            if (isNodeorBun()) {
                 let sock: WasiSocket;
                 switch (af) {
                     case AddressFamilyN.INET_4:

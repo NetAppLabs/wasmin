@@ -2,7 +2,7 @@ import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 import { FileSystemFileHandle } from "./index.js";
 
-export function detectBun() {
+export function isBun() {
     // only bun has global Bun
     try {
         // @ts-ignore
@@ -31,8 +31,8 @@ export class NFileSystemFileHandle extends NFileSystemHandle implements FileSyst
     async createWritable(options: { keepExistingData?: boolean } = {}): Promise<NFileSystemWritableFileStream> {
         const thisAdapter = this.getAdapterFileSystemFileHandle();
         if (thisAdapter.createWritable) {
-            const isBun = detectBun();
-            if (isBun) {
+            const isThisBun = isBun();
+            if (isThisBun) {
                 // Temporary hack for Bun as NFileSystemWritableFileStream does not work
                 // TODO: remove this once NFileSystemWritableFileStream becomes usable in bun
                 //const wr = await thisAdapter.createWritable(options);

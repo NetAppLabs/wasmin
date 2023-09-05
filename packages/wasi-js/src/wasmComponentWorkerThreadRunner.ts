@@ -4,12 +4,19 @@ import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
 import { initializeComlinkHandlers, wasmWorkerThreadDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
+import { default as process } from "node:process";
+import { default as events } from "node:events";
+
 
 export class WasmComponentWorkerThreadRunner {
     commandRunner?: CommandRunner;
+    handleComponentImportFunc?: any;
     _channel?: Channel | null;
     constructor() {
-        wasmWorkerThreadDebug("WasmThreadRunner creating");
+        // TODO: find better way than setting high limit
+        events.defaultMaxListeners = 600;
+        process.on('warning', e => wasmWorkerThreadDebug("warn", e));
+        wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner creating");
         initializeComlinkHandlers();
     }
 
@@ -20,14 +27,20 @@ export class WasmComponentWorkerThreadRunner {
         handleComponentImportFunc: HandleWasmComponentImportFunc
     ) {
         this._channel = channel;
-        const impObject = this.createComponentModuleImportProxy(importNames, handleComponentImportFunc);
+        const impObject: Record<string,any> = this.createComponentModuleImportProxy(importNames, handleComponentImportFunc);
         this.commandRunner = new CommandRunner(impObject);
+        this.handleComponentImportFunc = handleComponentImportFunc;
         await this.commandRunner.instantiate(wasmBuf);
     }
 
     async run() {
         if (this.commandRunner) {
-            await this.commandRunner?.run();
+            try {
+                await this.commandRunner?.run();
+            } finally {
+                //console.log("finally1");
+                this.cleanup();
+            }
         } else {
             throw new Error("CommandRunner not set");
         }
@@ -36,7 +49,7 @@ export class WasmComponentWorkerThreadRunner {
     private createComponentModuleImportProxy(
         importNames: string[],
         handleComponentImportFunc: HandleWasmComponentImportFunc
-    ): {} {
+    ): Record<string,any> {
         const componentImports: Record<string, any> = {};
         for (const importName of importNames) {
             componentImports[importName] = this.createComponentModuleImportProxyPerImport(
@@ -57,6 +70,21 @@ export class WasmComponentWorkerThreadRunner {
             return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("Channel not set");
+        }
+    }
+
+    public cleanup(): void {
+        wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup");
+        if (this.commandRunner) {
+            wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup commandRunner: ", this.commandRunner);
+            this.commandRunner.cleanup();
+        }
+        if (this.handleComponentImportFunc) {
+            wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup handleImportFunc: ", this.handleComponentImportFunc);
+            if (this.handleComponentImportFunc[comlink.releaseProxy]) {
+                wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup handleImportFunc releaseProxy");
+                this.handleComponentImportFunc[comlink.releaseProxy]();
+            }
         }
     }
 }

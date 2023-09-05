@@ -70,7 +70,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { getStdout } = imports['wasi:cli-base/stdout'];
   const { now, resolution, subscribe } = imports['wasi:clocks/monotonic-clock'];
   const { now: now$1, resolution: resolution$1 } = imports['wasi:clocks/wall-clock'];
-  const { advise, appendViaStream, createDirectoryAt, dropDescriptor, dropDirectoryEntryStream, getFlags, getType, linkAt, openAt, read, readDirectory, readDirectoryEntry, readViaStream, readlinkAt, removeDirectoryAt, renameAt, setSize, setTimesAt, stat, statAt, symlinkAt, sync, syncData, unlinkFileAt, write, writeViaStream } = imports['wasi:filesystem/filesystem'];
+  const { advise, appendViaStream, createDirectoryAt, dropDescriptor, dropDirectoryEntryStream, getFlags, getType, linkAt, openAt, read, readDirectory, readDirectoryEntry, readViaStream, readlinkAt, removeDirectoryAt, renameAt, setSize, setTimes, setTimesAt, stat, statAt, symlinkAt, sync, syncData, unlinkFileAt, write, writeViaStream } = imports['wasi:filesystem/filesystem'];
   const { blockingRead, blockingWrite, dropInputStream, dropOutputStream, read: read$1, subscribeToInputStream, subscribeToOutputStream, write: write$1 } = imports['wasi:io/streams'];
   const { dropPollable, pollOneoff } = imports['wasi:poll/poll'];
   const { getRandomBytes } = imports['wasi:random/random'];
@@ -1761,7 +1761,248 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering25(arg0, arg1, arg2, arg3) {
+  function lowering25(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+    let variant0;
+    switch (arg1) {
+      case 0: {
+        variant0= {
+          tag: 'no-change',
+        };
+        break;
+      }
+      case 1: {
+        variant0= {
+          tag: 'now',
+        };
+        break;
+      }
+      case 2: {
+        variant0= {
+          tag: 'timestamp',
+          val: {
+            seconds: BigInt.asUintN(64, arg2),
+            nanoseconds: arg3 >>> 0,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for NewTimestamp');
+      }
+    }
+    let variant1;
+    switch (arg4) {
+      case 0: {
+        variant1= {
+          tag: 'no-change',
+        };
+        break;
+      }
+      case 1: {
+        variant1= {
+          tag: 'now',
+        };
+        break;
+      }
+      case 2: {
+        variant1= {
+          tag: 'timestamp',
+          val: {
+            seconds: BigInt.asUintN(64, arg5),
+            nanoseconds: arg6 >>> 0,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for NewTimestamp');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: setTimes(arg0 >>> 0, variant0, variant1) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant3 = ret;
+    switch (variant3.tag) {
+      case 'ok': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg7 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg7 + 0, 1, true);
+        const val2 = e;
+        let enum2;
+        switch (val2) {
+          case 'access': {
+            enum2 = 0;
+            break;
+          }
+          case 'would-block': {
+            enum2 = 1;
+            break;
+          }
+          case 'already': {
+            enum2 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum2 = 3;
+            break;
+          }
+          case 'busy': {
+            enum2 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum2 = 5;
+            break;
+          }
+          case 'quota': {
+            enum2 = 6;
+            break;
+          }
+          case 'exist': {
+            enum2 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum2 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum2 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum2 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum2 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum2 = 12;
+            break;
+          }
+          case 'io': {
+            enum2 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum2 = 14;
+            break;
+          }
+          case 'loop': {
+            enum2 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum2 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum2 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum2 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum2 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum2 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum2 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum2 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum2 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum2 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum2 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum2 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum2 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum2 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum2 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum2 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum2 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum2 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum2 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum2 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum2 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum2 = 36;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg7 + 1, enum2, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering26(arg0, arg1, arg2, arg3) {
     let ret;
     try {
       ret = { tag: 'ok', val: read(arg0 >>> 0, BigInt.asUintN(64, arg1), BigInt.asUintN(64, arg2)) };
@@ -1955,7 +2196,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering26(arg0, arg1, arg2, arg3, arg4) {
+  function lowering27(arg0, arg1, arg2, arg3, arg4) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -2144,7 +2385,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering27(arg0, arg1) {
+  function lowering28(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: readDirectory(arg0 >>> 0) };
@@ -2330,7 +2571,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering28(arg0, arg1) {
+  function lowering29(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: sync(arg0 >>> 0) };
@@ -2515,7 +2756,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering29(arg0, arg1, arg2, arg3) {
+  function lowering30(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -2703,7 +2944,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering30(arg0, arg1) {
+  function lowering31(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: stat(arg0 >>> 0) };
@@ -2946,7 +3187,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering31(arg0, arg1, arg2, arg3, arg4) {
+  function lowering32(arg0, arg1, arg2, arg3, arg4) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3198,7 +3439,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering32(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
+  function lowering33(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3448,7 +3689,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering33(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function lowering34(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3645,7 +3886,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering34(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function lowering35(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3868,7 +4109,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering35(arg0, arg1, arg2, arg3) {
+  function lowering36(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4060,7 +4301,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering36(arg0, arg1, arg2, arg3) {
+  function lowering37(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4248,7 +4489,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering37(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+  function lowering38(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4439,7 +4680,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering38(arg0, arg1, arg2, arg3, arg4, arg5) {
+  function lowering39(arg0, arg1, arg2, arg3, arg4, arg5) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4630,7 +4871,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering39(arg0, arg1, arg2, arg3) {
+  function lowering40(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4818,7 +5059,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering40(arg0, arg1) {
+  function lowering41(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: readDirectoryEntry(arg0 >>> 0) };
@@ -5067,7 +5308,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering41(arg0, arg1, arg2) {
+  function lowering42(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: read$1(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5102,7 +5343,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering42(arg0, arg1, arg2) {
+  function lowering43(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: blockingRead(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5137,7 +5378,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering43(arg0, arg1, arg2, arg3) {
+  function lowering44(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -5167,7 +5408,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering44(arg0, arg1, arg2, arg3) {
+  function lowering45(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -5197,7 +5438,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering45(arg0, arg1, arg2) {
+  function lowering46(arg0, arg1, arg2) {
     const ptr0 = arg0;
     const len0 = arg1;
     const result0 = new Uint32Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 4));
@@ -5213,7 +5454,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 0, result1, true);
   }
   
-  function lowering46(arg0, arg1) {
+  function lowering47(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -5224,7 +5465,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function lowering47(arg0) {
+  function lowering48(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -5245,7 +5486,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function lowering48(arg0) {
+  function lowering49(arg0) {
     const ret = getArguments();
     const vec1 = ret;
     const len1 = vec1.length;
@@ -5265,51 +5506,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     wasi_snapshot_preview1: {
-      args_get: exports0['35'],
-      args_sizes_get: exports0['36'],
-      clock_res_get: exports0['39'],
-      clock_time_get: exports0['40'],
-      environ_get: exports0['37'],
-      environ_sizes_get: exports0['38'],
-      fd_advise: exports0['41'],
-      fd_allocate: exports0['42'],
-      fd_close: exports0['43'],
-      fd_datasync: exports0['44'],
-      fd_fdstat_get: exports0['45'],
-      fd_fdstat_set_flags: exports0['46'],
-      fd_fdstat_set_rights: exports0['47'],
-      fd_filestat_get: exports0['48'],
-      fd_filestat_set_size: exports0['49'],
-      fd_pread: exports0['50'],
-      fd_prestat_dir_name: exports0['52'],
-      fd_prestat_get: exports0['51'],
-      fd_pwrite: exports0['53'],
-      fd_read: exports0['54'],
-      fd_readdir: exports0['55'],
-      fd_renumber: exports0['56'],
-      fd_seek: exports0['57'],
-      fd_sync: exports0['58'],
-      fd_tell: exports0['59'],
-      fd_write: exports0['60'],
-      path_create_directory: exports0['61'],
-      path_filestat_get: exports0['62'],
-      path_filestat_set_times: exports0['63'],
-      path_link: exports0['64'],
-      path_open: exports0['65'],
-      path_readlink: exports0['66'],
-      path_remove_directory: exports0['67'],
-      path_rename: exports0['68'],
-      path_symlink: exports0['69'],
-      path_unlink_file: exports0['70'],
-      poll_oneoff: exports0['71'],
-      proc_exit: exports0['72'],
-      proc_raise: exports0['73'],
-      random_get: exports0['75'],
-      sched_yield: exports0['74'],
-      sock_accept: exports0['76'],
-      sock_recv: exports0['77'],
-      sock_send: exports0['78'],
-      sock_shutdown: exports0['79'],
+      args_get: exports0['36'],
+      args_sizes_get: exports0['37'],
+      clock_res_get: exports0['40'],
+      clock_time_get: exports0['41'],
+      environ_get: exports0['38'],
+      environ_sizes_get: exports0['39'],
+      fd_advise: exports0['42'],
+      fd_allocate: exports0['43'],
+      fd_close: exports0['44'],
+      fd_datasync: exports0['45'],
+      fd_fdstat_get: exports0['46'],
+      fd_fdstat_set_flags: exports0['47'],
+      fd_fdstat_set_rights: exports0['48'],
+      fd_filestat_get: exports0['49'],
+      fd_filestat_set_size: exports0['50'],
+      fd_filestat_set_times: exports0['51'],
+      fd_pread: exports0['52'],
+      fd_prestat_dir_name: exports0['54'],
+      fd_prestat_get: exports0['53'],
+      fd_pwrite: exports0['55'],
+      fd_read: exports0['56'],
+      fd_readdir: exports0['57'],
+      fd_renumber: exports0['58'],
+      fd_seek: exports0['59'],
+      fd_sync: exports0['60'],
+      fd_tell: exports0['61'],
+      fd_write: exports0['62'],
+      path_create_directory: exports0['63'],
+      path_filestat_get: exports0['64'],
+      path_filestat_set_times: exports0['65'],
+      path_link: exports0['66'],
+      path_open: exports0['67'],
+      path_readlink: exports0['68'],
+      path_remove_directory: exports0['69'],
+      path_rename: exports0['70'],
+      path_symlink: exports0['71'],
+      path_unlink_file: exports0['72'],
+      poll_oneoff: exports0['73'],
+      proc_exit: exports0['74'],
+      proc_raise: exports0['75'],
+      random_get: exports0['77'],
+      sched_yield: exports0['76'],
+      sock_accept: exports0['78'],
+      sock_recv: exports0['79'],
+      sock_send: exports0['80'],
+      sock_shutdown: exports0['81'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -5320,8 +5562,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli-base/environment': {
-      'get-arguments': exports0['34'],
-      'get-environment': exports0['33'],
+      'get-arguments': exports0['35'],
+      'get-environment': exports0['34'],
     },
     'wasi:cli-base/exit': {
       exit: lowering11,
@@ -5350,47 +5592,48 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     'wasi:filesystem/filesystem': {
       advise: exports0['6'],
       'append-via-stream': exports0['5'],
-      'create-directory-at': exports0['15'],
+      'create-directory-at': exports0['16'],
       'drop-descriptor': lowering7,
       'drop-directory-entry-stream': lowering2,
       'get-flags': exports0['8'],
       'get-type': exports0['9'],
-      'link-at': exports0['19'],
-      'open-at': exports0['20'],
-      read: exports0['11'],
-      'read-directory': exports0['13'],
-      'read-directory-entry': exports0['26'],
+      'link-at': exports0['20'],
+      'open-at': exports0['21'],
+      read: exports0['12'],
+      'read-directory': exports0['14'],
+      'read-directory-entry': exports0['27'],
       'read-via-stream': exports0['3'],
-      'readlink-at': exports0['21'],
-      'remove-directory-at': exports0['22'],
-      'rename-at': exports0['23'],
+      'readlink-at': exports0['22'],
+      'remove-directory-at': exports0['23'],
+      'rename-at': exports0['24'],
       'set-size': exports0['10'],
-      'set-times-at': exports0['18'],
-      stat: exports0['16'],
-      'stat-at': exports0['17'],
-      'symlink-at': exports0['24'],
-      sync: exports0['14'],
+      'set-times': exports0['11'],
+      'set-times-at': exports0['19'],
+      stat: exports0['17'],
+      'stat-at': exports0['18'],
+      'symlink-at': exports0['25'],
+      sync: exports0['15'],
       'sync-data': exports0['7'],
-      'unlink-file-at': exports0['25'],
-      write: exports0['12'],
+      'unlink-file-at': exports0['26'],
+      write: exports0['13'],
       'write-via-stream': exports0['4'],
     },
     'wasi:io/streams': {
-      'blocking-read': exports0['28'],
-      'blocking-write': exports0['30'],
+      'blocking-read': exports0['29'],
+      'blocking-write': exports0['31'],
       'drop-input-stream': lowering12,
       'drop-output-stream': lowering13,
-      read: exports0['27'],
+      read: exports0['28'],
       'subscribe-to-input-stream': lowering4,
       'subscribe-to-output-stream': lowering3,
-      write: exports0['29'],
+      write: exports0['30'],
     },
     'wasi:poll/poll': {
       'drop-pollable': lowering6,
-      'poll-oneoff': exports0['31'],
+      'poll-oneoff': exports0['32'],
     },
     'wasi:random/random': {
-      'get-random-bytes': exports0['32'],
+      'get-random-bytes': exports0['33'],
     },
   }));
   memory0 = exports1.memory;
@@ -5427,56 +5670,58 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '32': lowering46,
       '33': lowering47,
       '34': lowering48,
-      '35': exports2.args_get,
-      '36': exports2.args_sizes_get,
-      '37': exports2.environ_get,
-      '38': exports2.environ_sizes_get,
-      '39': exports2.clock_res_get,
+      '35': lowering49,
+      '36': exports2.args_get,
+      '37': exports2.args_sizes_get,
+      '38': exports2.environ_get,
+      '39': exports2.environ_sizes_get,
       '4': lowering18,
-      '40': exports2.clock_time_get,
-      '41': exports2.fd_advise,
-      '42': exports2.fd_allocate,
-      '43': exports2.fd_close,
-      '44': exports2.fd_datasync,
-      '45': exports2.fd_fdstat_get,
-      '46': exports2.fd_fdstat_set_flags,
-      '47': exports2.fd_fdstat_set_rights,
-      '48': exports2.fd_filestat_get,
-      '49': exports2.fd_filestat_set_size,
+      '40': exports2.clock_res_get,
+      '41': exports2.clock_time_get,
+      '42': exports2.fd_advise,
+      '43': exports2.fd_allocate,
+      '44': exports2.fd_close,
+      '45': exports2.fd_datasync,
+      '46': exports2.fd_fdstat_get,
+      '47': exports2.fd_fdstat_set_flags,
+      '48': exports2.fd_fdstat_set_rights,
+      '49': exports2.fd_filestat_get,
       '5': lowering19,
-      '50': exports2.fd_pread,
-      '51': exports2.fd_prestat_get,
-      '52': exports2.fd_prestat_dir_name,
-      '53': exports2.fd_pwrite,
-      '54': exports2.fd_read,
-      '55': exports2.fd_readdir,
-      '56': exports2.fd_renumber,
-      '57': exports2.fd_seek,
-      '58': exports2.fd_sync,
-      '59': exports2.fd_tell,
+      '50': exports2.fd_filestat_set_size,
+      '51': exports2.fd_filestat_set_times,
+      '52': exports2.fd_pread,
+      '53': exports2.fd_prestat_get,
+      '54': exports2.fd_prestat_dir_name,
+      '55': exports2.fd_pwrite,
+      '56': exports2.fd_read,
+      '57': exports2.fd_readdir,
+      '58': exports2.fd_renumber,
+      '59': exports2.fd_seek,
       '6': lowering20,
-      '60': exports2.fd_write,
-      '61': exports2.path_create_directory,
-      '62': exports2.path_filestat_get,
-      '63': exports2.path_filestat_set_times,
-      '64': exports2.path_link,
-      '65': exports2.path_open,
-      '66': exports2.path_readlink,
-      '67': exports2.path_remove_directory,
-      '68': exports2.path_rename,
-      '69': exports2.path_symlink,
+      '60': exports2.fd_sync,
+      '61': exports2.fd_tell,
+      '62': exports2.fd_write,
+      '63': exports2.path_create_directory,
+      '64': exports2.path_filestat_get,
+      '65': exports2.path_filestat_set_times,
+      '66': exports2.path_link,
+      '67': exports2.path_open,
+      '68': exports2.path_readlink,
+      '69': exports2.path_remove_directory,
       '7': lowering21,
-      '70': exports2.path_unlink_file,
-      '71': exports2.poll_oneoff,
-      '72': exports2.proc_exit,
-      '73': exports2.proc_raise,
-      '74': exports2.sched_yield,
-      '75': exports2.random_get,
-      '76': exports2.sock_accept,
-      '77': exports2.sock_recv,
-      '78': exports2.sock_send,
-      '79': exports2.sock_shutdown,
+      '70': exports2.path_rename,
+      '71': exports2.path_symlink,
+      '72': exports2.path_unlink_file,
+      '73': exports2.poll_oneoff,
+      '74': exports2.proc_exit,
+      '75': exports2.proc_raise,
+      '76': exports2.sched_yield,
+      '77': exports2.random_get,
+      '78': exports2.sock_accept,
+      '79': exports2.sock_recv,
       '8': lowering22,
+      '80': exports2.sock_send,
+      '81': exports2.sock_shutdown,
       '9': lowering23,
     },
   }));

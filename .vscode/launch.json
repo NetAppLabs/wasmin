@@ -25,6 +25,7 @@
         },
         {
             "name": "wasi-tester-suite",
+            "args": ["--trace-warnings"],
             "program": "${workspaceFolder}/packages/wasi-js/tests/tester.suite.mjs",
             "request": "launch",
             "skipFiles": [

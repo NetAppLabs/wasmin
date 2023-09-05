@@ -18,8 +18,10 @@ export function capture(p: any): Promise<Error> {
 }
 
 export async function cleanupSandboxedFileSystem(root: FileSystemDirectoryHandle) {
-    for await (const [name, entry] of root) {
-        await root.removeEntry(name, { recursive: entry.kind === "directory" });
+    if (root) {
+        for await (const [name, entry] of root) {
+            await root.removeEntry(name, { recursive: entry.kind === "directory" });
+        }
     }
 }
 

@@ -273,7 +273,7 @@ export class WASI {
     // Instantiation for a WebAssembly Component Model Component
     public async instantiateComponent(
         wasmModOrBufSource: WebAssembly.Module | BufferSource,
-        componentImportObject: any
+        componentImportObject2: any
     ): Promise<WebAssembly.Instance | any> {
         const importNames: string[] = [];
         for (const [importName, _importValue] of Object.entries(this.componentImportObject)) {
@@ -297,7 +297,7 @@ export class WASI {
             functionName: string,
             args: any[]
         ) => {
-            const localComponentImportObject = componentImportObject;
+            //const localComponentImportObject = componentImportObject;
             try {
                 return await this.handleComponentImport(channel, messageId, importName, functionName, args);
             } catch (err: any) {

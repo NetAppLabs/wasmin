@@ -4,7 +4,7 @@ import "jest-extended";
 import path from "path";
 import { readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
 

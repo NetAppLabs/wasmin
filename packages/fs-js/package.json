@@ -64,7 +64,7 @@
     "@vitest/ui": "^0.32.2",
     "@wasm-env/tsconfig": "*",
     "eslint-config-custom": "*",
-    "vitest": "^0.32.2"
+    "vitest": "^0.34.3"
   },
   "funding": [
     {

@@ -29,6 +29,8 @@
     (func $fd_filestat_get (param i32 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_filestat_set_size" 
     (func $fd_filestat_set_size (param i32 i64) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_filestat_set_times" 
+    (func $fd_filestat_set_times (param i32 i64 i64 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_pread" 
     (func $fd_pread (param i32 i32 i32 i64 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fd_prestat_get"

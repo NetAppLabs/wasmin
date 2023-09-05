@@ -326,7 +326,7 @@ export class OpenDirectoryIterator {
             //this._checkAbort();
             const descriptorNum = this._descriptor + count;
             let inode = 0n;
-            if ((handle as any).inode) {
+            if ((handle as any).stat) {
                 const statable = handle as unknown as Statable;
                 const s = await statable.stat();
                 const got_inode = s.inode;

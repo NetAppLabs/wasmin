@@ -4,6 +4,7 @@ import { basename } from "path";
 
 import { MyBlob, blobDebug } from "./blob";
 import { MyFile } from "./file";
+import { NotFoundError } from "@wasm-env/fs-js";
 
 export const blobFrom = async (path: string, type?: string) => {
     const s = await fs.stat(path);
@@ -11,8 +12,14 @@ export const blobFrom = async (path: string, type?: string) => {
 };
 
 export const fileFrom = async (path: string, type?: string) => {
-    const s = fsSync.statSync(path);
-    return fromFile(s, path, type);
+    try {
+        const s = fsSync.statSync(path);
+        return fromFile(s, path, type);
+    } catch (err: any) {
+        if (err.code === "ENOENT") throw new NotFoundError();
+        throw err;
+    }
+
 };
 
 const fromBlob = (stat: fsSync.Stats, path: string, type = "") => {

@@ -1,4 +1,5 @@
-import { instantiate, Root } from "./runner.js";
+import { instantiate, Root, ImportObject } from "./runner.js";
+import * as comlink from "comlink";
 
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 
@@ -15,11 +16,11 @@ export type WasiCommand = Root;
 const instantiateCore = WebAssembly.instantiate;
 
 export class CommandRunner {
-    importObject?: any;
+    importObject?: Record<string,any>;
     wasmModOrBufferSource?: WebAssembly.Module | BufferSource;
     commandComponent?: WasiCommand;
 
-    constructor(importObject: any) {
+    constructor(importObject: Record<string,any>) {
         this.importObject = importObject;
     }
 
@@ -50,18 +51,35 @@ export class CommandRunner {
         const boundCompilerFunc = compileFunc.bind(this);
 
         try {
-            this.commandComponent = await instantiate(boundCompilerFunc, importObject, instantiateCore);
+            if (importObject) {
+                const impObject = importObject as unknown as ImportObject;
+                this.commandComponent = await instantiate(boundCompilerFunc, impObject, instantiateCore);
+            }
         } catch (err: any) {
             throw err;
         }
-        return this.commandComponent;
+        if (this.commandComponent) {
+            return this.commandComponent;
+        }
+        throw new Error("Error intantiating Wasi Command");
     }
 
     async run() {
         if (this.commandComponent) {
-            this.commandComponent.run();
+            try {
+                this.commandComponent.run();
+            } finally {
+                this.cleanup();
+            }
         } else {
             throw new Error("commandComponent not set");
         }
+    }
+
+    [comlink.finalizer](){
+        this.cleanup();
+    }
+
+    cleanup() {
     }
 }

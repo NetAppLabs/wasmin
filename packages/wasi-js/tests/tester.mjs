@@ -9,11 +9,12 @@ import { WASI, OpenFiles, stringOut, bufferIn } from "@wasm-env/wasi-js";
 import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { fileURLToPath } from "node:url";
+import { isBun } from "@wasm-env/wasi-js/index.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
 let baseDir = scriptDir;
-console.log("Current directory:", baseDir);
+//console.log("Current directory:", baseDir);
 
 const textEncoder = new TextEncoder();
 
@@ -22,7 +23,15 @@ async function getRootHandle(backend) {
         case "memory":
             return getOriginPrivateDirectory(memory);
         default:
-            return getOriginPrivateDirectory(node, resolve(join(baseDir, "fixtures")));
+        {
+            if (isBun()) {
+                const bunmod = await import("@wasm-env/bun-fs-js");
+                const bun = bunmod.bun;
+                return getOriginPrivateDirectory(bun, resolve(join(baseDir, "fixtures")));
+            } else {
+                return getOriginPrivateDirectory(node, resolve(join(baseDir, "fixtures")));
+            }
+        }
     }
 }
 
@@ -35,8 +44,8 @@ let actualStderr = "";
 //let test = "exitcode";
 //let test = "stdout";
 //let test = "stdin";
-let test = "readdir";
-//let test = "write_file";
+//let test = "readdir";
+let test = "write_file";
 //let test = "cant_dotdot";
 
 let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
@@ -69,6 +78,7 @@ const w = new WASI({
 //w.component = true;
 let actualExitCode = 0;
 try {
+    w.component = true;
     actualExitCode = await w.run(await wasmMod);
 } catch (err) {
     console.log("run err: ", err);

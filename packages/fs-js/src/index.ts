@@ -2,7 +2,7 @@ export { showDirectoryPicker } from "./showDirectoryPicker.js";
 export { getOriginPrivateDirectory } from "./getOriginPrivateDirectory.js";
 export { getDirectoryHandleByURL, RegisterProvider } from "./getDirectoryHandleByURL.js";
 export { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";
-export { NFileSystemFileHandle } from "./NFileSystemFileHandle.js";
+export { NFileSystemFileHandle, isBun } from "./NFileSystemFileHandle.js";
 export { NFileSystemHandle } from "./NFileSystemHandle.js";
 export { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 //export { FileHandle as downloader } from ".//downloader";

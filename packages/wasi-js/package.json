@@ -33,7 +33,8 @@
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
     "compile-tests": "node tests/compile.mjs",
-    "test": "vitest run --globals"
+    "test": "vitest run --globals",
+    "test-debug": "node --trace-warnings node_modules/.bin/vitest --globals"
   },
   "repository": {
     "type": "git",

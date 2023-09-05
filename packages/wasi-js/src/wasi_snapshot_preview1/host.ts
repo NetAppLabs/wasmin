@@ -315,6 +315,14 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         if ((handle as any).updateTimes) {
             const uh = handle as unknown as Statable;
             let dataAccessTimestampNs: bigint | null = null;
+            if (fst_flags & (FstflagsN.ATIM && FstflagsN.ATIM_NOW )) {
+                // can not both be set
+                return ErrnoN.INVAL;
+            }
+            if (fst_flags & (FstflagsN.MTIM && FstflagsN.MTIM_NOW )) {
+                // can not both be set
+                return ErrnoN.INVAL;
+            }
             if (fst_flags & FstflagsN.ATIM ){
                 dataAccessTimestampNs = atim;
             } else if (fst_flags & FstflagsN.ATIM_NOW ){

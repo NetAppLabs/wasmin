@@ -7,6 +7,7 @@ export namespace ImportsFilesystem {
   export function getFlags(this: Descriptor): DescriptorFlags;
   export function getType(this: Descriptor): DescriptorType;
   export function setSize(this: Descriptor, size: Filesize): void;
+  export function setTimes(this: Descriptor, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
   export function read(this: Descriptor, length: Filesize, offset: Filesize): [Uint8Array | ArrayBuffer, boolean];
   export function write(this: Descriptor, buffer: Uint8Array, offset: Filesize): Filesize;
   export function readDirectory(this: Descriptor): DirectoryEntryStream;
@@ -154,12 +155,23 @@ export interface DescriptorFlags {
  * ## `"socket"`
  */
 export type DescriptorType = 'unknown' | 'block-device' | 'character-device' | 'directory' | 'fifo' | 'symbolic-link' | 'regular-file' | 'socket';
+import type { Datetime } from '../imports/wall-clock';
+export { Datetime };
+export type NewTimestamp = NewTimestampNoChange | NewTimestampNow | NewTimestampTimestamp;
+export interface NewTimestampNoChange {
+  tag: 'no-change',
+}
+export interface NewTimestampNow {
+  tag: 'now',
+}
+export interface NewTimestampTimestamp {
+  tag: 'timestamp',
+  val: Datetime,
+}
 export type DirectoryEntryStream = number;
 export type Device = bigint;
 export type Inode = bigint;
 export type LinkCount = bigint;
-import type { Datetime } from '../imports/wall-clock';
-export { Datetime };
 export interface DescriptorStat {
   device: Device,
   inode: Inode,
@@ -172,17 +184,6 @@ export interface DescriptorStat {
 }
 export interface PathFlags {
   symlinkFollow?: boolean,
-}
-export type NewTimestamp = NewTimestampNoChange | NewTimestampNow | NewTimestampTimestamp;
-export interface NewTimestampNoChange {
-  tag: 'no-change',
-}
-export interface NewTimestampNow {
-  tag: 'now',
-}
-export interface NewTimestampTimestamp {
-  tag: 'timestamp',
-  val: Datetime,
 }
 export interface OpenFlags {
   create?: boolean,

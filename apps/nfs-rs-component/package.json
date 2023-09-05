@@ -1,4 +1,5 @@
 {
+    "version": "0.1.0",
     "name": "nfs-rs-component",
     "type": "module",
     "main": "component/index.js",
@@ -7,10 +8,11 @@
     ],
     "scripts": {
         "build": "./build.sh",
-        "test": "./test.sh"
+        "test": "./test.sh",
+        "bun-test": "./test-bun.sh"
     },
     "devDependencies": {
-        "vitest": "^0.32.2"
+        "vitest": "^0.34.3"
     },
     "dependencies": {
         "@wasm-env/fs-js": "*",

@@ -1,12 +1,13 @@
 import path from "path";
 import { readdir, readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "../index.js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { WASI, stringOut, OpenFiles, bufferIn, isBun } from "../index.js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 import { memory } from "@wasm-env/fs-js";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
+
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let testFsBackend: backendType = "fs-js";
@@ -188,7 +189,7 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
     return undefined;
 }
 
-export async function constructWasiForTest(testCase: Test) {
+export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
     const wasmPath = testCase.wasmPath;
     const rootPath = testCase.rootPath;
     const dirs = testCase.dirs;
@@ -207,7 +208,11 @@ export async function constructWasiForTest(testCase: Test) {
     };
     let rootHandle: FileSystemDirectoryHandle;
     if (rootPath) {
-        rootHandle = await getRootHandle(testFsBackend, rootPath);
+        if (rootFsHandle) {
+            rootHandle = rootFsHandle;
+        } else {
+            rootHandle = await getRootHandle(testFsBackend, rootPath);
+        }
     } else {
         throw Error("RootHandle not set");
     }

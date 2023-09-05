@@ -1,23 +1,43 @@
 #!/usr/bin/env zx
 /* eslint-disable no-undef */
 
+import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
 import { constructOneTestForTestSuite, constructWasiForTest } from "@wasm-env/wasi-js/tests/utils.js";
+import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
+import { isBun } from "@wasm-env/wasi-js/index.js";
+import { default as process } from "node:process";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
 //const testFile = "dangling_fd.json";
 //const testFile = "fd_readdir.json";
 //const testFile = "fdopendir-with-access.json"
-//const testFile = "fopen-with-no-access.wasm"
+//const testFile = "directory_seek.json"
 //const testFile = "interesting_paths.json"
-const testFile = "fd_filestat_set.json";
+//const testFile = "fd_filestat_set.json";
+//const testFile = "fd_filestat_get.wasm";
+//const testFile = "fd_flags_set.json";
 
-const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
+const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
+//const testFile = "fopen-with-access.json"
+const testFile = "pwrite-with-access.json"
+//const testFile = "lseek.json"
 
-await runCase(testCase);
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
+//const testFile = "environ_get-multiple-variables.json"
+//const testFile = "fd_write-to-stdout.json"
+
+
+let loop_count = 1;
+
+for (let i = 0; i < loop_count; i++) {
+    const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
+    console.log(`iteration: ${i}`);
+    await runCase(testCase);
+}
 
 async function runCase(testCase) {
     let ret = {
@@ -41,14 +61,32 @@ async function runCase(testCase) {
             throw Error("wasmPath is not set");
         }
         console.log("exitCode: ", exitCode);
-        ret = await constructWasiForTest(testCase);
-        const w = ret.wasi;
+        let w = undefined;
+        if (isBun()) {
+            const bunmod = await import("@wasm-env/bun-fs-js");
+            const bun = bunmod.bun;
+            const rootPath = testCase.rootPath;
+            const bunDirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
+            ret = await constructWasiForTest(testCase, bunDirHandle);
+            w = ret.wasi;
+        } else {
+            ret = await constructWasiForTest(testCase);
+            w = ret.wasi;
+        }
         if (w) {
+            w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {
         console.log("err: ", err);
         console.log("err.stack: ", err.stack);
+        actualStdout = ret.stdout;
+        actualStderr = ret.stderr;
+    
+        console.log("actualStdout: ", actualStdout);
+        console.log("actualStdErr: ", actualStderr);
+
+        process.exit(1);
     }
     actualStdout = ret.stdout;
     actualStderr = ret.stderr;

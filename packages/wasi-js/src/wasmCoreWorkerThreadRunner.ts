@@ -12,7 +12,7 @@ import * as comlink from "comlink";
 
 export class WasmCoreWorkerThreadRunner {
     constructor() {
-        wasmWorkerThreadDebug("WasmThreadRunner creating");
+        wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner creating");
         initializeComlinkHandlers();
         this._wasmInstances = {};
     }
@@ -44,38 +44,38 @@ export class WasmCoreWorkerThreadRunner {
         handleImportFunc: HandleWasmImportFunc,
         moduleInstanceId?: string
     ): Promise<void> {
-        wasmWorkerThreadDebug("WasmThreadRunner instantiate");
+        wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner instantiate");
 
         const storeReceivedMemoryFuncLocal = (buf: ArrayBuffer) => {
-            wasmWorkerThreadDebug("WasmThreadRunner calling storeReceivedMemoryFuncLocal");
+            wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner calling storeReceivedMemoryFuncLocal");
             if (this && this.exportsMemory) {
                 const mem = this.exportsMemory as WebAssembly.Memory;
                 if (mem.buffer instanceof SharedArrayBuffer) {
-                    wasmWorkerThreadDebug("WasmThreadRunner storeReceivedMemoryFuncLocal isSharedArrayBuffer");
+                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal isSharedArrayBuffer");
                     // no need to copy if SharedArrayBuffer
                 } else {
                     // copy buf into wasm memory
-                    wasmWorkerThreadDebug("WasmThreadRunner storeReceivedMemoryFuncLocal copyBuffer", buf, mem.buffer);
+                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal copyBuffer", buf, mem.buffer);
                     copyBuffer(buf, mem.buffer);
                 }
             } else {
-                throw new Error("WasmThreadRunner this.exportsMemory not set");
+                throw new Error("WasmCoreWorkerThreadRunner this.exportsMemory not set");
             }
         };
 
         const getMemoryForSendFuncLocal = (functionName: string) => {
-            wasmWorkerThreadDebug("WasmThreadRunner calling getMemoryForSendFunc");
+            wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner calling getMemoryForSendFunc");
             if (this && this.exportsMemory) {
                 const mem = this.exportsMemory as WebAssembly.Memory;
-                //wasmWorkerThreadDebug(`WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} mem: ${mem}`);
+                //wasmWorkerThreadDebug(`WasmCoreWorkerThreadRunner calling getMemoryForSendFunc functionName: ${functionName} mem: ${mem}`);
                 if (mem.buffer instanceof SharedArrayBuffer) {
                     wasmWorkerThreadDebug(
-                        `WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`
+                        `WasmCoreWorkerThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with SharedArrayBuffer`
                     );
                     this._sharedMemory = mem.buffer as SharedArrayBuffer;
                 } else {
                     wasmWorkerThreadDebug(
-                        `WasmThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`
+                        `WasmCoreWorkerThreadRunner calling getMemoryForSendFunc functionName: ${functionName} with non-SharedArrayBuffer`
                     );
                     if (!this._sharedMemory) {
                         this._sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
@@ -84,7 +84,7 @@ export class WasmCoreWorkerThreadRunner {
                             this._sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                         }
                     }
-                    wasmWorkerThreadDebug("getMemoryForSendFuncLocal copyBuffer: ", mem.buffer, this.sharedMemory);
+                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner getMemoryForSendFuncLocal copyBuffer: ", mem.buffer, this.sharedMemory);
                     copyBuffer(mem.buffer, this._sharedMemory);
                 }
                 return this._sharedMemory;
@@ -109,7 +109,7 @@ export class WasmCoreWorkerThreadRunner {
         if (moduleInstanceId) {
             this.wasmInstances[moduleInstanceId] = instantiatedSource.instance;
         } else {
-            console.warn("Warning, moduleInstanceId is undefined for WasmThreadRunner.instantiate");
+            console.warn("Warning, moduleInstanceId is undefined for WasmCoreWorkerThreadRunner.instantiate");
         }
         this._handleImportFunc = handleImportFunc;
         if (
@@ -122,12 +122,12 @@ export class WasmCoreWorkerThreadRunner {
     }
 
     public cleanup(): void {
-        wasmWorkerThreadDebug("WasmThreadRunner.cleanup");
+        wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner.cleanup");
         if (this.handleImportFunc) {
-            wasmWorkerThreadDebug("WasmThreadRunner.cleanup handleImportFunc: ", this.handleImportFunc);
+            wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner.cleanup handleImportFunc: ", this.handleImportFunc);
             // @ts-ignore
             if (this.handleImportFunc[comlink.releaseProxy]) {
-                wasmWorkerThreadDebug("WasmThreadRunner.cleanup handleImportFunc releaseProxy");
+                wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner.cleanup handleImportFunc releaseProxy");
                 // @ts-ignore
                 this.handleImportFunc[comlink.releaseProxy]();
             }
@@ -159,10 +159,10 @@ export class WasmCoreWorkerThreadRunner {
     }
 
     public async executeExportedFunction(moduleInstanceId: string, functionName: string, args: any[]): Promise<any> {
-        wasmWorkerThreadDebug("WasmThreadRunner executeExportedFunction: ", functionName);
+        wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner executeExportedFunction: ", functionName);
         let wasmInstance = this.wasmInstances[moduleInstanceId];
         while (!wasmInstance) {
-            wasmWorkerThreadDebug("WasmThreadRunner executeExportedFunction: waiting for wasmInstance");
+            wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner executeExportedFunction: waiting for wasmInstance");
             await sleep(100);
             wasmInstance = this.wasmInstances[moduleInstanceId];
         }
@@ -187,7 +187,7 @@ export class WasmCoreWorkerThreadRunner {
                 }
             } else {
                 wasmWorkerThreadDebug(
-                    "WasmThreadRunner executeExportedFunction " + functionName + " exportedMember:",
+                    "WasmCoreWorkerThreadRunner executeExportedFunction " + functionName + " exportedMember:",
                     exportedMember
                 );
                 if (exportedMember instanceof WebAssembly.Memory) {

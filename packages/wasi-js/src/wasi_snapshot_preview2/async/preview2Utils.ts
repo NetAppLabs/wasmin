@@ -285,6 +285,16 @@ export function toDateTimeFromMs(timeMillis: number): Datetime {
     return dt;
 }
 
+export function toDateTimeFromNs(timeNanos: bigint): Datetime {
+    const seconds = timeNanos / 1000_000_000n;
+    const nanoseconds = Number(timeNanos % 1000_000_000n);
+    const dt: Datetime = {
+        seconds: seconds,
+        nanoseconds: nanoseconds,
+    };
+    return dt;
+}
+
 export function toMillisFromDatetime(time: Datetime): number {
 
     let millis = Number(time.seconds) * 1000;
@@ -337,7 +347,7 @@ export function toNanosFromTimestamp(timestamp: NewTimestamp): bigint|null {
             break;
         }
     }
-    return null;
+    return timestampMillis;
 }
 
 

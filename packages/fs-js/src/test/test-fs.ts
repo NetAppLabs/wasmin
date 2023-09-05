@@ -11,7 +11,7 @@ import {
     cleanupSandboxedFileSystem,
 } from "./util.js";
 
-import { FileSystemDirectoryHandle } from "../index.js";
+import { FileSystemDirectoryHandle, isBun } from "../index.js";
 
 const testOnlyMemory = (name: string) => (name === "memory" ? test : test.skip);
 const testNotOnBun = (name: string) => (name === "bun" ? test.skip : test);
@@ -241,10 +241,6 @@ export const TestsFileSystemHandle = (
             const err = await capture(getFileContents(handle));
             let errMsg = "A requested file or directory could not be found at the time an operation was processed.";
             let errName = "NotFoundError";
-            if (name == "bun") {
-                errMsg = "No such file or directory";
-                errName = "ENOENT";
-            }
             expect(err.message).toBe(errMsg);
             expect(err.name).toBe(errName);
         });
@@ -448,7 +444,8 @@ export const TestsFileSystemHandle = (
         // May be different depending on implementations:
         // expect(err.message).toBe("Aborted");
         let errMsg = "This operation was aborted";
-        if (name == "bun") {
+        const isRunningInsideBun = isBun();
+        if (isRunningInsideBun) {
             errMsg = "The operation was aborted.";
         }
         expect(err.message).toBe(errMsg);

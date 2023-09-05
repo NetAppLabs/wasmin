@@ -4,7 +4,7 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
 import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
-import { adviceStringtoAdviceN, toDateTimeFromMs, toMillisFromDatetime, toMillisFromTimestamp, toNanosFromDatetime, toNanosFromTimestamp, translateError } from "./preview2Utils.js";
+import { adviceStringtoAdviceN, toDateTimeFromMs, toDateTimeFromNs, toMillisFromDatetime, toMillisFromTimestamp, toNanosFromDatetime, toNanosFromTimestamp, translateError } from "./preview2Utils.js";
 import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
 
 type FileSize = fs.Filesize;
@@ -381,6 +381,9 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
         ftype = "regular-file";
     }
     const time = toDateTimeFromMs(timeMilliseconds);
+    let ctime = time;
+    let atime = time;
+    let mtime = time;
     let inode = 0n;
     if ((fHandle as any).stat) {
         const statable = fHandle as unknown as Statable;
@@ -389,15 +392,27 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
         if (got_inode) {
             inode = got_inode;
         }
+        const got_atime = s.accessedTime;
+        if (got_atime) {
+            atime = toDateTimeFromNs(got_atime);
+        }
+        const got_ctime = s.creationTime;
+        if (got_ctime) {
+            ctime = toDateTimeFromNs(got_ctime);
+        }
+        const got_mtime = s.modifiedTime;
+        if (got_mtime) {
+            mtime = toDateTimeFromNs(got_mtime);
+        }
     }
     const newStat: DescriptorStat = {
         device: 0n,
         inode: inode,
         type: ftype,
         linkCount: 0n,
-        statusChangeTimestamp: time,
-        dataModificationTimestamp: time,
-        dataAccessTimestamp: time,
+        statusChangeTimestamp: ctime,
+        dataModificationTimestamp: mtime,
+        dataAccessTimestamp: atime,
         size: size,
     };
     return newStat;

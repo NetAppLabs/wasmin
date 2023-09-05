@@ -20,7 +20,7 @@ async function constructTestsWithSkip() {
         WASI_TESTSUITE_PATH_AS,
     ]);
     const testSkipRemoved: Test[] = [];
-    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access", "fd_filestat_set"];
+    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access"];
 
     for (const t of tests) {
         let skip = false;

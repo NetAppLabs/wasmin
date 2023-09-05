@@ -41,7 +41,7 @@ export class WASIWorker {
 
     private _wasiOptions: WasiWorkerOptions;
     private _channel?: Channel;
-    private _componentImports?: any;
+    private _componentImports?: Record<string,any>;
 
     get channel(): Channel {
         if (!this._channel) {
@@ -100,6 +100,19 @@ export class WASIWorker {
     }
 
     public stopWorker(): void {
+        const wasiWorker = this;
+        const workerThread = wasiWorker.wasiWorkerThread;
+        if (workerThread) {
+            const handleComponentImportFunc = workerThread.handleComponentImport;
+            if (handleComponentImportFunc) {
+                if (handleComponentImportFunc[comlink.releaseProxy]) {
+                    handleComponentImportFunc[comlink.releaseProxy]();
+                }
+            }
+            if (workerThread[comlink.releaseProxy]) {
+                workerThread[comlink.releaseProxy]();
+            }
+        }
         this.worker?.terminate();
     }
 
