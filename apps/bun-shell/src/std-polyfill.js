@@ -3,8 +3,9 @@ import EventEmitter from "node:events";
 const DEBUG_MODE = false;
 
 class Readable extends EventEmitter {
-  fromWeb(rs) {
+  fromWeb(rs, stdin) {
     this.rs = rs;
+    this.stdin = stdin;
     this.begin();
     this.td = new TextDecoder("utf-8");
   }
@@ -26,17 +27,22 @@ class Readable extends EventEmitter {
 
     this.emit("end");
   }
+
+  setRawMode(mode) {
+    this.stdin.setRawMode(mode);
+  }
+
 }
 
 // Make the instance
-const webRSToNodeRS = async (rs) => {
+const webRSToNodeRS = async (rs, stdin) => {
   const nodeStream = new Readable();
-  nodeStream.fromWeb(rs);
+  nodeStream.fromWeb(rs, stdin);
   return nodeStream;
 };
 
 //process.stdin = Bun.stdin;
-process.stdin = await webRSToNodeRS(Bun.stdin.stream());
+process.stdin = await webRSToNodeRS(Bun.stdin.stream(), process.stdin);
 
 /*
 class Writable {

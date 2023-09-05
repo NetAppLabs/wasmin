@@ -1,25 +1,32 @@
-// require needed for now:
-const bun_console = require("@wasm-env/bun-console");
-const termSetRawMode = bun_console.termSetRawMode;
-const termGetColumns = bun_console.termGetColumns;
-const termGetRows = bun_console.termGetRows;
-
-// TODO figure out ESM import
-//import { termSetRawMode, termGetColumns, termGetRows } from "@wasm-env/bun-console";
-
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 
 import { readFileSync } from "fs";
-
-//polyfill needed for process.stdin/stdout/stderr
-import "./std-polyfill.js";
+import { default as process } from "node:process";
 
 import { bun as bunFs } from "@wasm-env/bun-fs-js";
 
 // s3 not currently working because of missing node:http2
 //import { s3 } from "@wasm-env/s3-fs-js";
 import { github } from "@wasm-env/github-fs-js";
+
+const termGetRows = () => {
+    const rows = process.stdout.rows;
+    //console.log("termGetRows: ", rows);
+    return rows;
+}
+const termGetColumns = () => {
+    const cols = process.stdout.columns;
+    //console.log("termGetColumns: ", cols);
+    return cols;
+}
+const termSetRawMode = (mode: any) => {
+    //console.log('termsetRawMode:', mode);
+    process.stdin.setRawMode(mode);
+}
+
+//polyfill needed for process.stdin/stdout/stderr
+import "./std-polyfill.js";
 
 const DEBUG_MODE = false;
 
