@@ -21,7 +21,8 @@ export namespace ExportsComponentNfsRsNfs {
   export function symlinkPath(mnt: Mount, srcPath: string, dstPath: string): Uint8Array;
   export function readlink(mnt: Mount, fh: Uint8Array | ArrayBuffer): string;
   export function readlinkPath(mnt: Mount, path: string): string;
-  export function lookup(mnt: Mount, path: string): Uint8Array;
+  export function lookup(mnt: Mount, dirFh: Uint8Array | ArrayBuffer, filename: string): Uint8Array;
+  export function lookupPath(mnt: Mount, path: string): Uint8Array;
   export function pathconf(mnt: Mount, fh: Uint8Array | ArrayBuffer): PathConf;
   export function pathconfPath(mnt: Mount, path: string): PathConf;
   export function read(mnt: Mount, fh: Uint8Array | ArrayBuffer, offset: bigint, count: number): Uint8Array;

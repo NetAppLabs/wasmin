@@ -146,7 +146,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         if (typeof param === 'string') {
             const url = param;
             mount = nfs.parseUrlAndMount(url);
-            fh = nfs.lookup(mount, '/');
+            fh = nfs.lookupPath(mount, '/');
             kind = 'directory';
             fullName = '/';
             name = '';
@@ -209,7 +209,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfs.lookup(this._mount, this._fullName + name);
+                const fh = nfs.lookup(this._mount, this._fh, name);
                 const attr = nfs.getattr(this._mount, fh);
                 if (attr.attrType !== AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
@@ -228,7 +228,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o775;
                 nfs.mkdir(this._mount, this._fh, name, mode);
-                const fh = nfs.lookup(this._mount, this._fullName + name);
+                const fh = nfs.lookup(this._mount, this._fh, name);
                 // console.debug(`mkdir fhx: ${fhx} fh: ${fh}`);
                 return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, 'directory', this._fullName + name + '/', name)));
             }
@@ -241,7 +241,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfs.lookup(this._mount, this._fullName + name);
+                const fh = nfs.lookup(this._mount, this._fh, name);
                 const attr = nfs.getattr(this._mount, fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
@@ -260,7 +260,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o664;
                 nfs.create(this._mount, this._fh, name, mode);
-                const fh = nfs.lookup(this._mount, this._fullName + name);
+                const fh = nfs.lookup(this._mount, this._fh, name);
                 // console.debug(`create fhx: ${fhx} fh: ${fh}`);
                 return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, 'file', this._fullName + name, name)));
             }
@@ -273,7 +273,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfs.lookup(this._mount, this._fullName + name);
+                const fh = nfs.lookup(this._mount, this._fh, name);
                 const attr = nfs.getattr(this._mount, fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     this.removeDirectory(fh, this._fh, name, !!options?.recursive);

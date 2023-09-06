@@ -92,7 +92,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { dropPollable, pollOneoff } = imports['wasi:poll/poll'];
   const { getRandomBytes } = imports['wasi:random/random'];
   const { dropResolveAddressStream, resolveAddresses, resolveNextAddress } = imports['wasi:sockets/ip-name-lookup'];
-  const { dropTcpSocket, finishConnect, remoteAddress, startConnect } = imports['wasi:sockets/tcp'];
+  const { dropTcpSocket, finishConnect, remoteAddress, shutdown, startConnect } = imports['wasi:sockets/tcp'];
   const { createTcpSocket } = imports['wasi:sockets/tcp-create-socket'];
   let exports0;
   
@@ -744,9 +744,192 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
-  let realloc0;
   
   function lowering17(arg0, arg1, arg2) {
+    let enum0;
+    switch (arg1) {
+      case 0: {
+        enum0 = 'receive';
+        break;
+      }
+      case 1: {
+        enum0 = 'send';
+        break;
+      }
+      case 2: {
+        enum0 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: shutdown(arg0 >>> 0, enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  let realloc0;
+  
+  function lowering18(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: blockingRead(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -781,7 +964,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering18(arg0, arg1, arg2, arg3) {
+  function lowering19(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -811,7 +994,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering19(arg0, arg1) {
+  function lowering20(arg0, arg1) {
     let enum0;
     switch (arg0) {
       case 0: {
@@ -991,7 +1174,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering20(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+  function lowering21(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -1189,7 +1372,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering21(arg0, arg1) {
+  function lowering22(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: resolveNextAddress(arg0 >>> 0) };
@@ -1392,7 +1575,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   let realloc1;
   
-  function lowering22(arg0) {
+  function lowering23(arg0) {
     const ret = getDirectories();
     const vec2 = ret;
     const len2 = vec2.length;
@@ -1410,14 +1593,14 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result2, true);
   }
   
-  function lowering23(arg0) {
+  function lowering24(arg0) {
     const ret = now$1();
     const {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
-  function lowering24(arg0, arg1, arg2) {
+  function lowering25(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: readViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -1603,7 +1786,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering25(arg0, arg1, arg2) {
+  function lowering26(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: writeViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -1789,7 +1972,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering26(arg0, arg1) {
+  function lowering27(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: appendViaStream(arg0 >>> 0) };
@@ -1975,7 +2158,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering27(arg0, arg1) {
+  function lowering28(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: getType(arg0 >>> 0) };
@@ -2204,7 +2387,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering28(arg0, arg1) {
+  function lowering29(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: stat(arg0 >>> 0) };
@@ -2447,7 +2630,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering29(arg0, arg1, arg2, arg3) {
+  function lowering30(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -2477,7 +2660,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering30(arg0, arg1, arg2) {
+  function lowering31(arg0, arg1, arg2) {
     const ptr0 = arg0;
     const len0 = arg1;
     const result0 = new Uint32Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 4));
@@ -2491,7 +2674,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 0, ptr1, true);
   }
   
-  function lowering31(arg0, arg1) {
+  function lowering32(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -2502,7 +2685,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function lowering32(arg0) {
+  function lowering33(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -2565,35 +2748,37 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let postReturn39;
   let postReturn40;
   let postReturn41;
+  let postReturn42;
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     'wasi:io/streams': {
-      'blocking-read': exports0['3'],
-      'blocking-write': exports0['4'],
+      'blocking-read': exports0['4'],
+      'blocking-write': exports0['5'],
     },
     'wasi:sockets/ip-name-lookup': {
       'drop-resolve-address-stream': lowering1,
-      'resolve-addresses': exports0['6'],
-      'resolve-next-address': exports0['7'],
+      'resolve-addresses': exports0['7'],
+      'resolve-next-address': exports0['8'],
     },
     'wasi:sockets/tcp': {
       'drop-tcp-socket': lowering0,
       'finish-connect': exports0['1'],
       'remote-address': exports0['2'],
+      shutdown: exports0['3'],
       'start-connect': exports0['0'],
     },
     'wasi:sockets/tcp-create-socket': {
-      'create-tcp-socket': exports0['5'],
+      'create-tcp-socket': exports0['6'],
     },
     wasi_snapshot_preview1: {
-      clock_time_get: exports0['21'],
-      environ_get: exports0['24'],
-      environ_sizes_get: exports0['25'],
-      fd_write: exports0['22'],
-      poll_oneoff: exports0['23'],
-      proc_exit: exports0['26'],
-      random_get: exports0['20'],
+      clock_time_get: exports0['22'],
+      environ_get: exports0['25'],
+      environ_sizes_get: exports0['26'],
+      fd_write: exports0['23'],
+      poll_oneoff: exports0['24'],
+      proc_exit: exports0['27'],
+      random_get: exports0['21'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -2604,13 +2789,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli-base/environment': {
-      'get-environment': exports0['19'],
+      'get-environment': exports0['20'],
     },
     'wasi:cli-base/exit': {
       exit: lowering8,
     },
     'wasi:cli-base/preopens': {
-      'get-directories': exports0['8'],
+      'get-directories': exports0['9'],
     },
     'wasi:cli-base/stderr': {
       'get-stderr': lowering9,
@@ -2626,30 +2811,30 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       subscribe: lowering5,
     },
     'wasi:clocks/wall-clock': {
-      now: exports0['9'],
+      now: exports0['10'],
     },
     'wasi:filesystem/filesystem': {
-      'append-via-stream': exports0['12'],
+      'append-via-stream': exports0['13'],
       'drop-descriptor': lowering7,
-      'get-type': exports0['13'],
-      'read-via-stream': exports0['10'],
-      stat: exports0['14'],
-      'write-via-stream': exports0['11'],
+      'get-type': exports0['14'],
+      'read-via-stream': exports0['11'],
+      stat: exports0['15'],
+      'write-via-stream': exports0['12'],
     },
     'wasi:io/streams': {
-      'blocking-write': exports0['16'],
+      'blocking-write': exports0['17'],
       'drop-input-stream': lowering12,
       'drop-output-stream': lowering13,
       'subscribe-to-input-stream': lowering4,
       'subscribe-to-output-stream': lowering3,
-      write: exports0['15'],
+      write: exports0['16'],
     },
     'wasi:poll/poll': {
       'drop-pollable': lowering6,
-      'poll-oneoff': exports0['17'],
+      'poll-oneoff': exports0['18'],
     },
     'wasi:random/random': {
-      'get-random-bytes': exports0['18'],
+      'get-random-bytes': exports0['19'],
     },
   }));
   memory0 = exports1.memory;
@@ -2666,18 +2851,19 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '13': lowering27,
       '14': lowering28,
       '15': lowering29,
-      '16': lowering18,
-      '17': lowering30,
+      '16': lowering30,
+      '17': lowering19,
       '18': lowering31,
       '19': lowering32,
       '2': lowering16,
-      '20': exports2.random_get,
-      '21': exports2.clock_time_get,
-      '22': exports2.fd_write,
-      '23': exports2.poll_oneoff,
-      '24': exports2.environ_get,
-      '25': exports2.environ_sizes_get,
-      '26': exports2.proc_exit,
+      '20': lowering33,
+      '21': exports2.random_get,
+      '22': exports2.clock_time_get,
+      '23': exports2.fd_write,
+      '24': exports2.poll_oneoff,
+      '25': exports2.environ_get,
+      '26': exports2.environ_sizes_get,
+      '27': exports2.proc_exit,
       '3': lowering17,
       '4': lowering18,
       '5': lowering19,
@@ -2710,25 +2896,26 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   postReturn20 = exports1['cabi_post_component:nfs-rs/nfs#readlink'];
   postReturn21 = exports1['cabi_post_component:nfs-rs/nfs#readlink-path'];
   postReturn22 = exports1['cabi_post_component:nfs-rs/nfs#lookup'];
-  postReturn23 = exports1['cabi_post_component:nfs-rs/nfs#pathconf'];
-  postReturn24 = exports1['cabi_post_component:nfs-rs/nfs#pathconf-path'];
-  postReturn25 = exports1['cabi_post_component:nfs-rs/nfs#read'];
-  postReturn26 = exports1['cabi_post_component:nfs-rs/nfs#read-path'];
-  postReturn27 = exports1['cabi_post_component:nfs-rs/nfs#write'];
-  postReturn28 = exports1['cabi_post_component:nfs-rs/nfs#write-path'];
-  postReturn29 = exports1['cabi_post_component:nfs-rs/nfs#readdir'];
-  postReturn30 = exports1['cabi_post_component:nfs-rs/nfs#readdir-path'];
-  postReturn31 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus'];
-  postReturn32 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus-path'];
-  postReturn33 = exports1['cabi_post_component:nfs-rs/nfs#mkdir'];
-  postReturn34 = exports1['cabi_post_component:nfs-rs/nfs#mkdir-path'];
-  postReturn35 = exports1['cabi_post_component:nfs-rs/nfs#remove'];
-  postReturn36 = exports1['cabi_post_component:nfs-rs/nfs#remove-path'];
-  postReturn37 = exports1['cabi_post_component:nfs-rs/nfs#rmdir'];
-  postReturn38 = exports1['cabi_post_component:nfs-rs/nfs#rmdir-path'];
-  postReturn39 = exports1['cabi_post_component:nfs-rs/nfs#rename'];
-  postReturn40 = exports1['cabi_post_component:nfs-rs/nfs#rename-path'];
-  postReturn41 = exports1['cabi_post_component:nfs-rs/nfs#umount'];
+  postReturn23 = exports1['cabi_post_component:nfs-rs/nfs#lookup-path'];
+  postReturn24 = exports1['cabi_post_component:nfs-rs/nfs#pathconf'];
+  postReturn25 = exports1['cabi_post_component:nfs-rs/nfs#pathconf-path'];
+  postReturn26 = exports1['cabi_post_component:nfs-rs/nfs#read'];
+  postReturn27 = exports1['cabi_post_component:nfs-rs/nfs#read-path'];
+  postReturn28 = exports1['cabi_post_component:nfs-rs/nfs#write'];
+  postReturn29 = exports1['cabi_post_component:nfs-rs/nfs#write-path'];
+  postReturn30 = exports1['cabi_post_component:nfs-rs/nfs#readdir'];
+  postReturn31 = exports1['cabi_post_component:nfs-rs/nfs#readdir-path'];
+  postReturn32 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus'];
+  postReturn33 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus-path'];
+  postReturn34 = exports1['cabi_post_component:nfs-rs/nfs#mkdir'];
+  postReturn35 = exports1['cabi_post_component:nfs-rs/nfs#mkdir-path'];
+  postReturn36 = exports1['cabi_post_component:nfs-rs/nfs#remove'];
+  postReturn37 = exports1['cabi_post_component:nfs-rs/nfs#remove-path'];
+  postReturn38 = exports1['cabi_post_component:nfs-rs/nfs#rmdir'];
+  postReturn39 = exports1['cabi_post_component:nfs-rs/nfs#rmdir-path'];
+  postReturn40 = exports1['cabi_post_component:nfs-rs/nfs#rename'];
+  postReturn41 = exports1['cabi_post_component:nfs-rs/nfs#rename-path'];
+  postReturn42 = exports1['cabi_post_component:nfs-rs/nfs#umount'];
   
   function parseUrlAndMount(arg0) {
     const ptr0 = utf8Encode(arg0, realloc0, memory0);
@@ -4116,10 +4303,69 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return variant4.val;
   }
   
-  function lookup(arg0, arg1) {
+  function lookup(arg0, arg1, arg2) {
+    const val0 = arg1;
+    const len0 = val0.byteLength;
+    const ptr0 = realloc0(0, 0, 1, len0 * 1);
+    const src0 = new Uint8Array(val0.buffer || val0, val0.byteOffset, len0 * 1);
+    (new Uint8Array(memory0.buffer, ptr0, len0 * 1)).set(src0);
+    const ptr1 = utf8Encode(arg2, realloc0, memory0);
+    const len1 = utf8EncodedLen;
+    const ret = exports1['component:nfs-rs/nfs#lookup'](toUint32(arg0), ptr0, len0, ptr1, len1);
+    let variant5;
+    switch (dataView(memory0).getUint8(ret + 0, true)) {
+      case 0: {
+        const ptr2 = dataView(memory0).getInt32(ret + 4, true);
+        const len2 = dataView(memory0).getInt32(ret + 8, true);
+        const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
+        variant5= {
+          tag: 'ok',
+          val: result2
+        };
+        break;
+      }
+      case 1: {
+        let variant3;
+        switch (dataView(memory0).getUint8(ret + 4, true)) {
+          case 0: {
+            variant3 = null;
+            break;
+          }
+          case 1: {
+            variant3 = dataView(memory0).getInt32(ret + 8, true);
+            break;
+          }
+          default: {
+            throw new TypeError('invalid variant discriminant for option');
+          }
+        }
+        const ptr4 = dataView(memory0).getInt32(ret + 12, true);
+        const len4 = dataView(memory0).getInt32(ret + 16, true);
+        const result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+        variant5= {
+          tag: 'err',
+          val: {
+            nfsErrorCode: variant3,
+            message: result4,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for expected');
+      }
+    }
+    postReturn22(ret);
+    if (variant5.tag === 'err') {
+      throw new ComponentError(variant5.val);
+    }
+    return variant5.val;
+  }
+  
+  function lookupPath(arg0, arg1) {
     const ptr0 = utf8Encode(arg1, realloc0, memory0);
     const len0 = utf8EncodedLen;
-    const ret = exports1['component:nfs-rs/nfs#lookup'](toUint32(arg0), ptr0, len0);
+    const ret = exports1['component:nfs-rs/nfs#lookup-path'](toUint32(arg0), ptr0, len0);
     let variant4;
     switch (dataView(memory0).getUint8(ret + 0, true)) {
       case 0: {
@@ -4163,7 +4409,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn22(ret);
+    postReturn23(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4266,7 +4512,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn23(ret);
+    postReturn24(ret);
     if (variant8.tag === 'err') {
       throw new ComponentError(variant8.val);
     }
@@ -4366,7 +4612,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn24(ret);
+    postReturn25(ret);
     if (variant8.tag === 'err') {
       throw new ComponentError(variant8.val);
     }
@@ -4423,7 +4669,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn25(ret);
+    postReturn26(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4477,7 +4723,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn26(ret);
+    postReturn27(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4536,7 +4782,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn27(ret);
+    postReturn28(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4592,7 +4838,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn28(ret);
+    postReturn29(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4660,7 +4906,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn29(ret);
+    postReturn30(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -4725,7 +4971,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn30(ret);
+    postReturn31(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -4835,7 +5081,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn31(ret);
+    postReturn32(ret);
     if (variant7.tag === 'err') {
       throw new ComponentError(variant7.val);
     }
@@ -4942,7 +5188,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn32(ret);
+    postReturn33(ret);
     if (variant7.tag === 'err') {
       throw new ComponentError(variant7.val);
     }
@@ -5001,7 +5247,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn33(ret);
+    postReturn34(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -5055,7 +5301,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn34(ret);
+    postReturn35(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5111,7 +5357,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn35(ret);
+    postReturn36(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5162,7 +5408,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn36(ret);
+    postReturn37(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -5218,7 +5464,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn37(ret);
+    postReturn38(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5269,7 +5515,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn38(ret);
+    postReturn39(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -5332,7 +5578,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn39(ret);
+    postReturn40(ret);
     if (variant6.tag === 'err') {
       throw new ComponentError(variant6.val);
     }
@@ -5385,7 +5631,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn40(ret);
+    postReturn41(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5434,7 +5680,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn41(ret);
+    postReturn42(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -5456,6 +5702,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     link: link,
     linkPath: linkPath,
     lookup: lookup,
+    lookupPath: lookupPath,
     mkdir: mkdir,
     mkdirPath: mkdirPath,
     'null': _null,
