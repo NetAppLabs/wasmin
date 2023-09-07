@@ -244,9 +244,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 
             try {
                 const mode = 0o775;
-                nfs.mkdir(this._mount, this._fh, name, mode);
-                const fh = nfs.lookup(this._mount, this._fh, name);
-                // console.debug(`mkdir fhx: ${fhx} fh: ${fh}`);
+                const fh = nfs.mkdir(this._mount, this._fh, name, mode);
                 return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, 'directory', this._fullName + name + '/', name)) as FileSystemDirectoryHandle);
             } catch (e: any) {
                 return reject(e);
@@ -276,9 +274,8 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 
             try {
                 const mode = 0o664;
-                nfs.create(this._mount, this._fh, name, mode);
+                nfs.create(this._mount, this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
                 const fh = nfs.lookup(this._mount, this._fh, name);
-                // console.debug(`create fhx: ${fhx} fh: ${fh}`);
                 return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, 'file', this._fullName + name, name)) as FileSystemFileHandle);
             } catch (e: any) {
                 return reject(e);
