@@ -53,7 +53,7 @@ const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
 
 function fullNameFromReaddirplusEntry(parentName: string, entry: ReaddirplusEntry): string {
-    const suffix = (entry.attr && entry.attr.attrType === AttrTypeDirectory) ? '/' : '';
+    const suffix = entry.attr?.attrType === AttrTypeDirectory ? '/' : '';
     return parentName + entry.fileName + suffix;
 }
 
@@ -120,7 +120,8 @@ export class NfsHandle implements FileSystemHandle {
             const mode = perm?.mode === 'readwrite' ? AccessReadWrite : AccessRead;
             const ret = nfs.access(this._mount, this._fh, mode);
             if (ret !== 0) {
-                resolve(ret === mode ? 'granted' : 'denied');
+                // XXX: ACCESS3_EXECUTE may be omitted for root directory access but we should still return 'granted'
+                resolve((ret === mode || (this._fullName === '/' && (ret | ACCESS3_EXECUTE) === mode)) ? 'granted' : 'denied');
             } else {
                 reject('access denied');
             }
@@ -200,7 +201,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                 }
             }
         } catch (e: any) {
-            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_NOTDIR) {
+            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_NOTDIR || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                 throw new NotFoundError();
             }
             throw e;
@@ -295,7 +296,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                 }
                 return resolve();
             } catch (e: any) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 } else if (e.payload?.nfsErrorCode === NFS3ERR_IO || e.payload?.nfsErrorCode === NFS3ERR_NOTEMPTY) {
                     return reject(new InvalidModificationError());
@@ -308,10 +309,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         if (recursive) {
             const entries = nfs.readdirplus(this._mount, fh);
             for (const entry of entries) {
-                if (entry.attr && entry.attr.attrType === AttrTypeDirectory) {
-                    this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
-                } else if (entry.fileName !== '.' && entry.fileName !== '..') {
-                    nfs.remove(this._mount, fh, entry.fileName);
+                if (entry.fileName !== '.' && entry.fileName !== '..') {
+                    if (entry.attr?.attrType === AttrTypeDirectory) {
+                        this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
+                    } else {
+                        nfs.remove(this._mount, fh, entry.fileName);
+                    }
                 }
             }
         }
@@ -387,7 +390,7 @@ export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
                 const file = new NfsFile(this._mount, this._fh, this.name) as unknown;
                 return resolve(file as File);
             } catch (e: any) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 }
                 return reject(e);
@@ -400,7 +403,7 @@ export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
                 const sink = new NfsSink(this._mount, this._fh, this._fullName, options);
                 return resolve(new NFileSystemWritableFileStream(sink));
             } catch (e: any) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 }
                 return reject(e);

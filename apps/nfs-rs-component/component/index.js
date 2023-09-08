@@ -41,7 +41,7 @@ const AttrTypeDirectory = 2;
 const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
 function fullNameFromReaddirplusEntry(parentName, entry) {
-    const suffix = (entry.attr && entry.attr.attrType === AttrTypeDirectory) ? '/' : '';
+    const suffix = entry.attr?.attrType === AttrTypeDirectory ? '/' : '';
     return parentName + entry.fileName + suffix;
 }
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
@@ -101,7 +101,8 @@ export class NfsHandle {
             const mode = perm?.mode === 'readwrite' ? AccessReadWrite : AccessRead;
             const ret = nfs.access(this._mount, this._fh, mode);
             if (ret !== 0) {
-                resolve(ret === mode ? 'granted' : 'denied');
+                // XXX: ACCESS3_EXECUTE may be omitted for root directory access but we should still return 'granted'
+                resolve((ret === mode || (this._fullName === '/' && (ret | ACCESS3_EXECUTE) === mode)) ? 'granted' : 'denied');
             }
             else {
                 reject('access denied');
@@ -184,7 +185,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             }
         }
         catch (e) {
-            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_NOTDIR) {
+            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_NOTDIR || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                 throw new NotFoundError();
             }
             throw e;
@@ -281,7 +282,7 @@ export class NfsDirectoryHandle extends NfsHandle {
                 return resolve();
             }
             catch (e) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 }
                 else if (e.payload?.nfsErrorCode === NFS3ERR_IO || e.payload?.nfsErrorCode === NFS3ERR_NOTEMPTY) {
@@ -295,11 +296,13 @@ export class NfsDirectoryHandle extends NfsHandle {
         if (recursive) {
             const entries = nfs.readdirplus(this._mount, fh);
             for (const entry of entries) {
-                if (entry.attr && entry.attr.attrType === AttrTypeDirectory) {
-                    this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
-                }
-                else if (entry.fileName !== '.' && entry.fileName !== '..') {
-                    nfs.remove(this._mount, fh, entry.fileName);
+                if (entry.fileName !== '.' && entry.fileName !== '..') {
+                    if (entry.attr?.attrType === AttrTypeDirectory) {
+                        this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
+                    }
+                    else {
+                        nfs.remove(this._mount, fh, entry.fileName);
+                    }
                 }
             }
         }
@@ -374,7 +377,7 @@ export class NfsFileHandle extends NfsHandle {
                 return resolve(file);
             }
             catch (e) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 }
                 return reject(e);
@@ -388,7 +391,7 @@ export class NfsFileHandle extends NfsHandle {
                 return resolve(new NFileSystemWritableFileStream(sink));
             }
             catch (e) {
-                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT) {
+                if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                     return reject(new NotFoundError());
                 }
                 return reject(e);
