@@ -13,6 +13,8 @@ import {
     NFileSystemWritableFileStream,
     NotFoundError,
     PreNameCheck,
+    Stat,
+    Statable,
     SyntaxError,
     TypeMismatchError,
 } from "@wasm-env/fs-js";
@@ -29,6 +31,16 @@ export function bunFsDebug(msg?: any, ...optionalParams: any[]): void {
         console.log(...msg);
     }
 }
+
+interface BunStats {
+    ino: bigint;
+    dev: bigint,
+    ctimeNs: bigint;
+    atimeNs: bigint;
+    mtimeNs: bigint;
+    size: bigint,
+}
+
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
@@ -134,7 +146,7 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
 }
 
 // @ts-ignore because of typescript .prototype bug regarding File/Blob
-export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSystemFileHandle {
+export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSystemFileHandle, Statable {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;
@@ -144,7 +156,6 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
         try {
              // @ts-ignore 
             const bf = Bun.file(this.path) as BunFile;
-            //const f = wrapBunFile(bf);
             const f = bf;
             return f;
         } catch (err: any) {
@@ -198,10 +209,35 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
     async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
+
+    async stat(): Promise<Stat> {
+        const nodeStat = await fs.stat(this.path, {bigint: true});
+        const stat = bunStatToStat(nodeStat);
+        return stat;
+    }
+
+    async updateTimes(accessTime: bigint|null, modifiedTime: bigint|null): Promise<void> {
+        let setAccessTime = accessTime;
+        let setModifiedTime = modifiedTime;
+        if (setAccessTime == null || setModifiedTime == null ) {
+            const thisStat = await this.stat();
+            if (setModifiedTime==null) {
+                setModifiedTime = thisStat.modifiedTime;
+            }
+            if (setAccessTime==null) {
+                setAccessTime = thisStat.accessedTime;
+            }
+        }
+        const tSetAccessTime = toUnixTimestampNumber(setAccessTime);
+        const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
+        //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
+        await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
 }
 
-export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolderHandle>, FileSystemDirectoryHandle {
+export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolderHandle>, FileSystemDirectoryHandle, Statable {
     constructor(public path: string, public name = "") {}
+
     public writable = true;
     public kind = "directory" as const;
 
@@ -342,6 +378,53 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
             await fs.unlink(path);
         }
     }
+
+    async stat(): Promise<Stat> {
+        const bunStat = await fs.stat(this.path, {bigint: true});
+        const stat = bunStatToStat(bunStat);
+        return stat;
+    }
+
+    async updateTimes(accessTime: bigint|null, modifiedTime: bigint|null): Promise<void> {
+        let setAccessTime = accessTime;
+        let setModifiedTime = modifiedTime;
+        if (setAccessTime == null || setModifiedTime == null ) {
+            const thisStat = await this.stat();
+            if (setModifiedTime==null) {
+                setModifiedTime = thisStat.modifiedTime;
+            }
+            if (setAccessTime==null) {
+                setAccessTime = thisStat.accessedTime;
+            }
+        }
+        const tSetAccessTime = toUnixTimestampNumber(setAccessTime);
+        const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
+        //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
+        await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
+
 }
 
 export default (path: string) => new BunFolderHandle(path);
+
+function bunStatToStat(stat: BunStats): Stat{
+    const ctimeNs = stat.ctimeNs;
+    const mtimeNs = stat.mtimeNs;
+    const atimeNs = stat.atimeNs;
+    const ino = stat.ino;
+    const s: Stat = {
+        creationTime: ctimeNs,
+        accessedTime: atimeNs,
+        modifiedTime: mtimeNs,
+        inode: ino,
+    }
+    return s;
+}
+
+function toUnixTimestampNumber(timeNs: bigint) {
+    let timeMs = Number(timeNs /1_000_000n);
+    const timeMsFloored = Math.round(timeMs);
+    // convert to fractional UNIX timestamp like 123.456
+    const timeMsUnixSecondsFractional = timeMsFloored / 1000;
+    return timeMsUnixSecondsFractional
+}

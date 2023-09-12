@@ -126,7 +126,7 @@ const startShell = async () => {
     }
     //const rootfs = await getOriginPrivateDirectory(node, nodePath);
     //const rootfs = await getOriginPrivateDirectory(memory);
-    const rootfs = await getOriginPrivateDirectory(bunFs, nodePath, true);
+    const rootfs = await getOriginPrivateDirectory(bunFs, nodePath, false);
 
     const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
     const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;

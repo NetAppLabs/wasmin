@@ -24,7 +24,6 @@ async function constructTestsWithSkip() {
     if (isBun()) {
         skips.push("fd_filestat_set");
         skips.push("interesting_paths");
-        skips.push("stat-dev-ino");
     }
     for (const t of tests) {
         let skip = false;
