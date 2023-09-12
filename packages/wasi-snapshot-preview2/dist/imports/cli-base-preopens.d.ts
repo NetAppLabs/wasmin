@@ -10,10 +10,10 @@ export interface CliBasePreopensAsync {
      */
     getDirectories(): Promise<[Descriptor, string][]>;
 }
-import type { Descriptor } from '../imports/filesystem-filesystem';
+import type { Descriptor } from "../imports/filesystem-filesystem";
 export { Descriptor };
-import type { InputStream } from '../imports/io-streams';
+import type { InputStream } from "../imports/io-streams";
 export { InputStream };
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };
 //# sourceMappingURL=cli-base-preopens.d.ts.map

@@ -391,7 +391,7 @@ export class OpenFile implements Readable, Writable {
         filesystemDebug(`[read] len: ${len}`);
         const file = await this.getFile();
         filesystemDebug(`[read] file`, file);
-        let toPos = this.position+len;
+        let toPos = this.position + len;
         if (toPos > file.size) {
             toPos = file.size;
         }

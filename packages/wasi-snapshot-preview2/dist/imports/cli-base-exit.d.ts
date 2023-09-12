@@ -10,11 +10,13 @@ export interface CliBaseExitAsync {
      */
     exit(status: Result<void, void>): Promise<void>;
 }
-export type Result<T, E> = {
-    tag: 'ok';
-    val: T;
-} | {
-    tag: 'err';
-    val: E;
-};
+export type Result<T, E> =
+    | {
+          tag: "ok";
+          val: T;
+      }
+    | {
+          tag: "err";
+          val: E;
+      };
 //# sourceMappingURL=cli-base-exit.d.ts.map

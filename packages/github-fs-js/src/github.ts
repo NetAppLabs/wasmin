@@ -154,7 +154,7 @@ export class GithubFile {
     }
 }
 
-export class GithubFileHandle implements ImpleFileHandle<File, GithubFileSink>,FileSystemFileHandle {
+export class GithubFileHandle implements ImpleFileHandle<File, GithubFileSink>, FileSystemFileHandle {
     constructor(
         config: GithubConfig,
         blobUrl: string,

@@ -20,7 +20,7 @@ interface Logger {
     error(msg?: any, ...optionalParams: any[]): void;
 }
 
-let underlyingLogger: Logger| undefined = undefined;
+let underlyingLogger: Logger | undefined = undefined;
 
 export async function getLogger(id?: string): Promise<Logger> {
     if (isFileLog()) {
@@ -60,7 +60,7 @@ export async function getLogger(id?: string): Promise<Logger> {
                     stdout: fsSync.createWriteStream(outFile),
                     stderr: fsSync.createWriteStream(errFile),
                 });
-                underlyingLogger=logger;
+                underlyingLogger = logger;
             }
             return underlyingLogger;
         }
@@ -78,7 +78,7 @@ export class BunLogger {
         this.errFile = errFile;
     }
     writeMsg(fil: any, msg?: any, ...optionalParams: any[]) {
-        console.log("writemsg: ",msg);
+        console.log("writemsg: ", msg);
         fil.writer().write(msg);
         if (optionalParams) {
             for (const param of optionalParams) {

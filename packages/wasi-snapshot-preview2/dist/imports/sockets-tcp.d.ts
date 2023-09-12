@@ -500,19 +500,19 @@ export interface SocketsTcpAsync {
      */
     dropTcpSocket(this0: TcpSocket): Promise<void>;
 }
-import type { InputStream } from '../imports/io-streams';
+import type { InputStream } from "../imports/io-streams";
 export { InputStream };
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
-import type { ErrorCode } from '../imports/sockets-network';
+import type { ErrorCode } from "../imports/sockets-network";
 export { ErrorCode };
-import type { IpSocketAddress } from '../imports/sockets-network';
+import type { IpSocketAddress } from "../imports/sockets-network";
 export { IpSocketAddress };
-import type { IpAddressFamily } from '../imports/sockets-network';
+import type { IpAddressFamily } from "../imports/sockets-network";
 export { IpAddressFamily };
 /**
  * A TCP socket handle.
@@ -533,5 +533,5 @@ export type TcpSocket = number;
  *
  * Similar to `SHUT_RDWR` in POSIX.
  */
-export type ShutdownType = 'receive' | 'send' | 'both';
+export type ShutdownType = "receive" | "send" | "both";
 //# sourceMappingURL=sockets-tcp.d.ts.map

@@ -48,12 +48,12 @@ export interface SocketsUdpCreateSocketAsync {
      */
     createUdpSocket(addressFamily: IpAddressFamily): Promise<UdpSocket>;
 }
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
-import type { ErrorCode } from '../imports/sockets-network';
+import type { ErrorCode } from "../imports/sockets-network";
 export { ErrorCode };
-import type { IpAddressFamily } from '../imports/sockets-network';
+import type { IpAddressFamily } from "../imports/sockets-network";
 export { IpAddressFamily };
-import type { UdpSocket } from '../imports/sockets-udp';
+import type { UdpSocket } from "../imports/sockets-udp";
 export { UdpSocket };
 //# sourceMappingURL=sockets-udp-create-socket.d.ts.map

@@ -40,7 +40,7 @@ export interface ClocksTimezoneAsync {
      */
     dropTimezone(this0: Timezone): Promise<void>;
 }
-import type { Datetime } from '../imports/clocks-wall-clock';
+import type { Datetime } from "../imports/clocks-wall-clock";
 export { Datetime };
 /**
  * Information useful for displaying the timezone of a specific `datetime`.

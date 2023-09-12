@@ -7,7 +7,6 @@ import * as comlink from "comlink";
 import { default as process } from "node:process";
 import { default as events } from "node:events";
 
-
 export class WasmComponentWorkerThreadRunner {
     commandRunner?: CommandRunner;
     handleComponentImportFunc?: any;
@@ -15,7 +14,7 @@ export class WasmComponentWorkerThreadRunner {
     constructor() {
         // TODO: find better way than setting high limit
         events.defaultMaxListeners = 600;
-        process.on('warning', e => wasmWorkerThreadDebug("warn", e));
+        process.on("warning", (e) => wasmWorkerThreadDebug("warn", e));
         wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner creating");
         initializeComlinkHandlers();
     }
@@ -27,7 +26,10 @@ export class WasmComponentWorkerThreadRunner {
         handleComponentImportFunc: HandleWasmComponentImportFunc
     ) {
         this._channel = channel;
-        const impObject: Record<string,any> = this.createComponentModuleImportProxy(importNames, handleComponentImportFunc);
+        const impObject: Record<string, any> = this.createComponentModuleImportProxy(
+            importNames,
+            handleComponentImportFunc
+        );
         this.commandRunner = new CommandRunner(impObject);
         this.handleComponentImportFunc = handleComponentImportFunc;
         await this.commandRunner.instantiate(wasmBuf);
@@ -49,7 +51,7 @@ export class WasmComponentWorkerThreadRunner {
     private createComponentModuleImportProxy(
         importNames: string[],
         handleComponentImportFunc: HandleWasmComponentImportFunc
-    ): Record<string,any> {
+    ): Record<string, any> {
         const componentImports: Record<string, any> = {};
         for (const importName of importNames) {
             componentImports[importName] = this.createComponentModuleImportProxyPerImport(
@@ -80,7 +82,10 @@ export class WasmComponentWorkerThreadRunner {
             this.commandRunner.cleanup();
         }
         if (this.handleComponentImportFunc) {
-            wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup handleImportFunc: ", this.handleComponentImportFunc);
+            wasmWorkerThreadDebug(
+                "WasmComponentWorkerThreadRunner.cleanup handleImportFunc: ",
+                this.handleComponentImportFunc
+            );
             if (this.handleComponentImportFunc[comlink.releaseProxy]) {
                 wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner.cleanup handleImportFunc releaseProxy");
                 this.handleComponentImportFunc[comlink.releaseProxy]();

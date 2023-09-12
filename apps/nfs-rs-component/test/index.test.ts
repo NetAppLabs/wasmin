@@ -10,8 +10,10 @@ globalThis.describe = describe;
 globalThis.expect = expect;
 globalThis.test = test;
 
-const testNonWrappedURL = "nfs://localhost/tmp/nfs-rs-component-test-non-wrapped?uid=502&gid=20&nfsport=20490&mountport=20490&auto-traverse-mounts=0";
-const testWrappedURL = "nfs://localhost/tmp/nfs-rs-component-test-wrapped?uid=502&gid=20&nfsport=20940&mountport=20940&auto-traverse-mounts=0";
+const testNonWrappedURL =
+    "nfs://localhost/tmp/nfs-rs-component-test-non-wrapped?uid=502&gid=20&nfsport=20490&mountport=20490&auto-traverse-mounts=0";
+const testWrappedURL =
+    "nfs://localhost/tmp/nfs-rs-component-test-wrapped?uid=502&gid=20&nfsport=20940&mountport=20940&auto-traverse-mounts=0";
 const driver = (url: string) => new NfsDirectoryHandle(url);
 
 const getComponentRoot = async () => {
@@ -21,7 +23,6 @@ const getComponentRoot = async () => {
 const getComponentRootWrapped = async () => {
     return getOriginPrivateDirectory(driver, testWrappedURL, true);
 };
-
 
 TestsFileSystemHandle("component", getComponentRoot);
 TestsFileSystemHandle("component", getComponentRootWrapped);

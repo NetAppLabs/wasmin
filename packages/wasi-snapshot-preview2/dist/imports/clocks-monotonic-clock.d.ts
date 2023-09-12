@@ -34,7 +34,7 @@ export interface ClocksMonotonicClockAsync {
      */
     subscribe(when: Instant, absolute: boolean): Promise<Pollable>;
 }
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
 /**
  * A timestamp in nanoseconds.

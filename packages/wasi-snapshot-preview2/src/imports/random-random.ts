@@ -1,44 +1,44 @@
 export interface RandomRandom {
-  /**
-   * Return `len` cryptographically-secure pseudo-random bytes.
-   * 
-   * This function must produce data from an adequately seeded
-   * cryptographically-secure pseudo-random number generator (CSPRNG), so it
-   * must not block, from the perspective of the calling program, and the
-   * returned data is always unpredictable.
-   * 
-   * This function must always return fresh pseudo-random data. Deterministic
-   * environments must omit this function, rather than implementing it with
-   * deterministic data.
-   */
-   getRandomBytes(len: bigint): Uint8Array | ArrayBuffer;
-  /**
-   * Return a cryptographically-secure pseudo-random `u64` value.
-   * 
-   * This function returns the same type of pseudo-random data as
-   * `get-random-bytes`, represented as a `u64`.
-   */
-   getRandomU64(): bigint;
+    /**
+     * Return `len` cryptographically-secure pseudo-random bytes.
+     *
+     * This function must produce data from an adequately seeded
+     * cryptographically-secure pseudo-random number generator (CSPRNG), so it
+     * must not block, from the perspective of the calling program, and the
+     * returned data is always unpredictable.
+     *
+     * This function must always return fresh pseudo-random data. Deterministic
+     * environments must omit this function, rather than implementing it with
+     * deterministic data.
+     */
+    getRandomBytes(len: bigint): Uint8Array | ArrayBuffer;
+    /**
+     * Return a cryptographically-secure pseudo-random `u64` value.
+     *
+     * This function returns the same type of pseudo-random data as
+     * `get-random-bytes`, represented as a `u64`.
+     */
+    getRandomU64(): bigint;
 }
 export interface RandomRandomAsync {
-  /**
-   * Return `len` cryptographically-secure pseudo-random bytes.
-   * 
-   * This function must produce data from an adequately seeded
-   * cryptographically-secure pseudo-random number generator (CSPRNG), so it
-   * must not block, from the perspective of the calling program, and the
-   * returned data is always unpredictable.
-   * 
-   * This function must always return fresh pseudo-random data. Deterministic
-   * environments must omit this function, rather than implementing it with
-   * deterministic data.
-   */
-   getRandomBytes(len: bigint): Promise<Uint8Array | ArrayBuffer>;
-  /**
-   * Return a cryptographically-secure pseudo-random `u64` value.
-   * 
-   * This function returns the same type of pseudo-random data as
-   * `get-random-bytes`, represented as a `u64`.
-   */
-   getRandomU64(): Promise<bigint>;
+    /**
+     * Return `len` cryptographically-secure pseudo-random bytes.
+     *
+     * This function must produce data from an adequately seeded
+     * cryptographically-secure pseudo-random number generator (CSPRNG), so it
+     * must not block, from the perspective of the calling program, and the
+     * returned data is always unpredictable.
+     *
+     * This function must always return fresh pseudo-random data. Deterministic
+     * environments must omit this function, rather than implementing it with
+     * deterministic data.
+     */
+    getRandomBytes(len: bigint): Promise<Uint8Array | ArrayBuffer>;
+    /**
+     * Return a cryptographically-secure pseudo-random `u64` value.
+     *
+     * This function returns the same type of pseudo-random data as
+     * `get-random-bytes`, represented as a `u64`.
+     */
+    getRandomU64(): Promise<bigint>;
 }

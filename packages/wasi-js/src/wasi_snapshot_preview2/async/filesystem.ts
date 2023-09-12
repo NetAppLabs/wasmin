@@ -4,7 +4,16 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
 import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
-import { adviceStringtoAdviceN, toDateTimeFromMs, toDateTimeFromNs, toMillisFromDatetime, toMillisFromTimestamp, toNanosFromDatetime, toNanosFromTimestamp, translateError } from "./preview2Utils.js";
+import {
+    adviceStringtoAdviceN,
+    toDateTimeFromMs,
+    toDateTimeFromNs,
+    toMillisFromDatetime,
+    toMillisFromTimestamp,
+    toNanosFromDatetime,
+    toNanosFromTimestamp,
+    translateError,
+} from "./preview2Utils.js";
 import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
 
 type FileSize = fs.Filesize;

@@ -22,12 +22,11 @@ interface DiscoveryManager {
 }
 
 class DiscoveryManagerLocal implements DiscoveryManager {
-    constructor() {
-    }
+    constructor() {}
     async publish(host: Host): Promise<void> {
         return;
     }
-    async updateLoop(): Promise<void>{
+    async updateLoop(): Promise<void> {
         return;
     }
 }
@@ -39,7 +38,7 @@ class DiscoveryManagerNostr implements DiscoveryManager {
     emitter?: NostrEmitterTyped;
 
     async getEmitter(): Promise<NostrEmitterTyped> {
-        const logger = await getLogger(); 
+        const logger = await getLogger();
         const secret = "mySuperSecretClusterInNostrHyperSpace";
         //const relay = "wss://nostr.rocks";
         //const relay = "wss://nostr-relay.wlvs.space";
@@ -48,8 +47,8 @@ class DiscoveryManagerNostr implements DiscoveryManager {
         const relay = "wss://relay.nostr.bg";
         //const relay = "ws://127.0.0.1:8080";
         const logFunc = (msg?: any, ...optionalParams: any[]) => {
-            logger.log(msg,...optionalParams);
-        }
+            logger.log(msg, ...optionalParams);
+        };
         if (!this.emitter) {
             const newEm = new NostrEmitter({
                 log: logFunc,
@@ -65,7 +64,7 @@ class DiscoveryManagerNostr implements DiscoveryManager {
     }
 
     async publish(host: Host): Promise<void> {
-        const logger = await getLogger(); 
+        const logger = await getLogger();
 
         const emitter = await this.getEmitter();
         // Connect your emitter to the relay.
@@ -104,7 +103,7 @@ class DiscoveryManagerNostr implements DiscoveryManager {
     }
 
     async discoverHosts(): Promise<void> {
-        const logger = await getLogger(); 
+        const logger = await getLogger();
 
         const emitter = await this.getEmitter();
 
@@ -132,7 +131,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
     bonjourInstance: Bonjour;
 
     async publish(host: Host): Promise<void> {
-        const logger = await getLogger(); 
+        const logger = await getLogger();
 
         const serverName = host.name;
         const myPort = host.port;

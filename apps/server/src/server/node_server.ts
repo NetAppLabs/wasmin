@@ -1,4 +1,3 @@
-
 import { appRouter } from "./router.js";
 import { HostManagerInstance } from "./host.js";
 import { DiscoveryManagerInstance } from "./discovery.js";
@@ -10,7 +9,6 @@ import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
 import { default as http } from "node:http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
 import { CreateHTTPContextOptions, createHTTPServer, createHTTPHandler } from "@trpc/server/adapters/standalone";
-
 
 // Initialize a context for the server
 function createContext(opts: CreateHTTPContextOptions) {
@@ -111,7 +109,7 @@ export async function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
 }
 
 export async function startRestServerNode(restPort = DEFAULT_REST_PORT) {
-  const logger = await getLogger();
+    const logger = await getLogger();
 
     const server = http.createServer(
         createOpenApiHttpHandler({

@@ -400,15 +400,15 @@ export interface SocketsUdpAsync {
      */
     dropUdpSocket(this0: UdpSocket): Promise<void>;
 }
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
-import type { ErrorCode } from '../imports/sockets-network';
+import type { ErrorCode } from "../imports/sockets-network";
 export { ErrorCode };
-import type { IpSocketAddress } from '../imports/sockets-network';
+import type { IpSocketAddress } from "../imports/sockets-network";
 export { IpSocketAddress };
-import type { IpAddressFamily } from '../imports/sockets-network';
+import type { IpAddressFamily } from "../imports/sockets-network";
 export { IpAddressFamily };
 /**
  * A UDP socket handle.

@@ -18,7 +18,14 @@ export interface HttpTypes {
     incomingRequestAuthority(request: IncomingRequest): string;
     incomingRequestHeaders(request: IncomingRequest): Headers;
     incomingRequestConsume(request: IncomingRequest): IncomingStream;
-    newOutgoingRequest(method: Method, path: string, query: string, scheme: Scheme | null, authority: string, headers: Headers): OutgoingRequest;
+    newOutgoingRequest(
+        method: Method,
+        path: string,
+        query: string,
+        scheme: Scheme | null,
+        authority: string,
+        headers: Headers
+    ): OutgoingRequest;
     outgoingRequestWrite(request: OutgoingRequest): OutgoingStream;
     dropResponseOutparam(response: ResponseOutparam): void;
     setResponseOutparam(response: Result<OutgoingResponse, Error>): void;
@@ -53,7 +60,14 @@ export interface HttpTypesAsync {
     incomingRequestAuthority(request: IncomingRequest): Promise<string>;
     incomingRequestHeaders(request: IncomingRequest): Promise<Headers>;
     incomingRequestConsume(request: IncomingRequest): Promise<IncomingStream>;
-    newOutgoingRequest(method: Method, path: string, query: string, scheme: Scheme | null, authority: string, headers: Headers): Promise<OutgoingRequest>;
+    newOutgoingRequest(
+        method: Method,
+        path: string,
+        query: string,
+        scheme: Scheme | null,
+        authority: string,
+        headers: Headers
+    ): Promise<OutgoingRequest>;
     outgoingRequestWrite(request: OutgoingRequest): Promise<OutgoingStream>;
     dropResponseOutparam(response: ResponseOutparam): Promise<void>;
     setResponseOutparam(response: Result<OutgoingResponse, Error>): Promise<void>;
@@ -68,22 +82,22 @@ export interface HttpTypesAsync {
     futureIncomingResponseGet(f: FutureIncomingResponse): Promise<Result<IncomingResponse, Error> | null>;
     listenToFutureIncomingResponse(f: FutureIncomingResponse): Promise<Pollable>;
 }
-import type { InputStream } from '../imports/io-streams';
+import type { InputStream } from "../imports/io-streams";
 export { InputStream };
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
 export type StatusCode = number;
 export type Scheme = SchemeHttp | SchemeHttps | SchemeOther;
 export interface SchemeHttp {
-    tag: 'HTTP';
+    tag: "HTTP";
 }
 export interface SchemeHttps {
-    tag: 'HTTPS';
+    tag: "HTTPS";
 }
 export interface SchemeOther {
-    tag: 'other';
+    tag: "other";
     val: string;
 }
 export type ResponseOutparam = number;
@@ -95,36 +109,46 @@ export interface RequestOptions {
 export type OutgoingStream = OutputStream;
 export type OutgoingResponse = number;
 export type OutgoingRequest = number;
-export type Method = MethodGet | MethodHead | MethodPost | MethodPut | MethodDelete | MethodConnect | MethodOptions | MethodTrace | MethodPatch | MethodOther;
+export type Method =
+    | MethodGet
+    | MethodHead
+    | MethodPost
+    | MethodPut
+    | MethodDelete
+    | MethodConnect
+    | MethodOptions
+    | MethodTrace
+    | MethodPatch
+    | MethodOther;
 export interface MethodGet {
-    tag: 'get';
+    tag: "get";
 }
 export interface MethodHead {
-    tag: 'head';
+    tag: "head";
 }
 export interface MethodPost {
-    tag: 'post';
+    tag: "post";
 }
 export interface MethodPut {
-    tag: 'put';
+    tag: "put";
 }
 export interface MethodDelete {
-    tag: 'delete';
+    tag: "delete";
 }
 export interface MethodConnect {
-    tag: 'connect';
+    tag: "connect";
 }
 export interface MethodOptions {
-    tag: 'options';
+    tag: "options";
 }
 export interface MethodTrace {
-    tag: 'trace';
+    tag: "trace";
 }
 export interface MethodPatch {
-    tag: 'patch';
+    tag: "patch";
 }
 export interface MethodOther {
-    tag: 'other';
+    tag: "other";
     val: string;
 }
 export type IncomingStream = InputStream;
@@ -136,26 +160,28 @@ export type Trailers = Fields;
 export type Headers = Fields;
 export type Error = ErrorInvalidUrl | ErrorTimeoutError | ErrorProtocolError | ErrorUnexpectedError;
 export interface ErrorInvalidUrl {
-    tag: 'invalid-url';
+    tag: "invalid-url";
     val: string;
 }
 export interface ErrorTimeoutError {
-    tag: 'timeout-error';
+    tag: "timeout-error";
     val: string;
 }
 export interface ErrorProtocolError {
-    tag: 'protocol-error';
+    tag: "protocol-error";
     val: string;
 }
 export interface ErrorUnexpectedError {
-    tag: 'unexpected-error';
+    tag: "unexpected-error";
     val: string;
 }
-export type Result<T, E> = {
-    tag: 'ok';
-    val: T;
-} | {
-    tag: 'err';
-    val: E;
-};
+export type Result<T, E> =
+    | {
+          tag: "ok";
+          val: T;
+      }
+    | {
+          tag: "err";
+          val: E;
+      };
 //# sourceMappingURL=http-types.d.ts.map

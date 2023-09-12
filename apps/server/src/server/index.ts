@@ -69,11 +69,10 @@ async function main() {
     await startRpcServer(rpcPort);
     await startRestServer(restPort);
 
-
     DiscoveryManagerInstance.updateLoop();
 
     if (daemon) {
-      logger.log("Not starting local shell as daemon mode");
+        logger.log("Not starting local shell as daemon mode");
     } else {
         console.log("starting shell");
         await startLocalShell();

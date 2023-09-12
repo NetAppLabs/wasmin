@@ -315,23 +315,23 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         if ((handle as any).updateTimes) {
             const uh = handle as unknown as Statable;
             let dataAccessTimestampNs: bigint | null = null;
-            if (fst_flags & (FstflagsN.ATIM && FstflagsN.ATIM_NOW )) {
+            if (fst_flags & (FstflagsN.ATIM && FstflagsN.ATIM_NOW)) {
                 // can not both be set
                 return ErrnoN.INVAL;
             }
-            if (fst_flags & (FstflagsN.MTIM && FstflagsN.MTIM_NOW )) {
+            if (fst_flags & (FstflagsN.MTIM && FstflagsN.MTIM_NOW)) {
                 // can not both be set
                 return ErrnoN.INVAL;
             }
-            if (fst_flags & FstflagsN.ATIM ){
+            if (fst_flags & FstflagsN.ATIM) {
                 dataAccessTimestampNs = atim;
-            } else if (fst_flags & FstflagsN.ATIM_NOW ){
+            } else if (fst_flags & FstflagsN.ATIM_NOW) {
                 dataAccessTimestampNs = BigInt(Date.now() * 1_000_000);
             }
             let dataModificationTimestampNs: bigint | null = null;
-            if (fst_flags & FstflagsN.MTIM ){
+            if (fst_flags & FstflagsN.MTIM) {
                 dataModificationTimestampNs = mtim;
-            } else if (fst_flags & FstflagsN.MTIM_NOW ){
+            } else if (fst_flags & FstflagsN.MTIM_NOW) {
                 dataModificationTimestampNs = BigInt(Date.now() * 1_000_000);
             }
             await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
@@ -680,15 +680,15 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         if ((handle as any).updateTimes) {
             const uh = handle as unknown as Statable;
             let dataAccessTimestampNs: bigint | null = null;
-            if (fst_flags & FstflagsN.ATIM ){
+            if (fst_flags & FstflagsN.ATIM) {
                 dataAccessTimestampNs = atim;
-            } else if (fst_flags & FstflagsN.ATIM_NOW ){
+            } else if (fst_flags & FstflagsN.ATIM_NOW) {
                 dataAccessTimestampNs = BigInt(Date.now() * 1_000_000);
             }
             let dataModificationTimestampNs: bigint | null = null;
-            if (fst_flags & FstflagsN.MTIM ){
+            if (fst_flags & FstflagsN.MTIM) {
                 dataModificationTimestampNs = mtim;
-            } else if (fst_flags & FstflagsN.MTIM_NOW ){
+            } else if (fst_flags & FstflagsN.MTIM_NOW) {
                 dataModificationTimestampNs = BigInt(Date.now() * 1_000_000);
             }
             await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);

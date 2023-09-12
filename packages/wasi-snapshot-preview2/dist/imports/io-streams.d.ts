@@ -262,14 +262,13 @@ export interface IoStreamsAsync {
      */
     dropOutputStream(this0: OutputStream): Promise<void>;
 }
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
 /**
  * An error type returned from a stream operation. Currently this
  * doesn't provide any additional information.
  */
-export interface StreamError {
-}
+export interface StreamError {}
 /**
  * An output bytestream. In the future, this will be replaced by handle
  * types.

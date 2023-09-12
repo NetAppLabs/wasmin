@@ -1,4 +1,3 @@
-
 //import { createOpenApiNodeHttpHandler } from 'trpc-openapi';
 import { appRouter } from "./router.js";
 import { getLogger } from "./log.js";
@@ -10,7 +9,6 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import http from "http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
-
 
 /*
 type Proc = {

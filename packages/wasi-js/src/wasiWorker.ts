@@ -41,7 +41,7 @@ export class WASIWorker {
 
     private _wasiOptions: WasiWorkerOptions;
     private _channel?: Channel;
-    private _componentImports?: Record<string,any>;
+    private _componentImports?: Record<string, any>;
 
     get channel(): Channel {
         if (!this._channel) {

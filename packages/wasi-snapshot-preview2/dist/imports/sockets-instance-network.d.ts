@@ -10,6 +10,6 @@ export interface SocketsInstanceNetworkAsync {
      */
     instanceNetwork(): Promise<Network>;
 }
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
 //# sourceMappingURL=sockets-instance-network.d.ts.map

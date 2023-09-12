@@ -271,7 +271,7 @@ export function adviceStringtoAdviceN(advice: fs.Advice): AdviceN {
         case "dont-need":
             return AdviceN.DONTNEED;
         case "no-reuse":
-            return AdviceN.NOREUSE;    
+            return AdviceN.NOREUSE;
     }
 }
 
@@ -296,9 +296,8 @@ export function toDateTimeFromNs(timeNanos: bigint): Datetime {
 }
 
 export function toMillisFromDatetime(time: Datetime): number {
-
     let millis = Number(time.seconds) * 1000;
-    let millisextra = time.nanoseconds / 1_000_000 ;
+    let millisextra = time.nanoseconds / 1_000_000;
 
     millis = millis + millisextra;
     return millis;
@@ -312,9 +311,9 @@ export function toNanosFromDatetime(time: Datetime): bigint {
     return nanos;
 }
 
-export function toMillisFromTimestamp(timestamp: NewTimestamp): number|null {
+export function toMillisFromTimestamp(timestamp: NewTimestamp): number | null {
     let timestampMillis: number | null = null;
-    switch(timestamp.tag) {
+    switch (timestamp.tag) {
         case "no-change": {
             timestampMillis = null;
             break;
@@ -331,9 +330,9 @@ export function toMillisFromTimestamp(timestamp: NewTimestamp): number|null {
     return null;
 }
 
-export function toNanosFromTimestamp(timestamp: NewTimestamp): bigint|null {
+export function toNanosFromTimestamp(timestamp: NewTimestamp): bigint | null {
     let timestampMillis: bigint | null = null;
-    switch(timestamp.tag) {
+    switch (timestamp.tag) {
         case "no-change": {
             timestampMillis = null;
             break;
@@ -349,7 +348,6 @@ export function toNanosFromTimestamp(timestamp: NewTimestamp): bigint|null {
     }
     return timestampMillis;
 }
-
 
 export type ManagedResourceId = number;
 export type ManagedResource = any;

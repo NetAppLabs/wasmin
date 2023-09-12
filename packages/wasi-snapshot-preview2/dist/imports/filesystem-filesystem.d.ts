@@ -151,13 +151,25 @@ export interface FilesystemFilesystem {
      * Note: This was called `path_filestat_set_times` in earlier versions of
      * WASI.
      */
-    setTimesAt(this0: Descriptor, pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
+    setTimesAt(
+        this0: Descriptor,
+        pathFlags: PathFlags,
+        path: string,
+        dataAccessTimestamp: NewTimestamp,
+        dataModificationTimestamp: NewTimestamp
+    ): void;
     /**
      * Create a hard link.
      *
      * Note: This is similar to `linkat` in POSIX.
      */
-    linkAt(this0: Descriptor, oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): void;
+    linkAt(
+        this0: Descriptor,
+        oldPathFlags: PathFlags,
+        oldPath: string,
+        newDescriptor: Descriptor,
+        newPath: string
+    ): void;
     /**
      * Open a file or directory.
      *
@@ -178,7 +190,14 @@ export interface FilesystemFilesystem {
      *
      * Note: This is similar to `openat` in POSIX.
      */
-    openAt(this0: Descriptor, pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags, modes: Modes): Descriptor;
+    openAt(
+        this0: Descriptor,
+        pathFlags: PathFlags,
+        path: string,
+        openFlags: OpenFlags,
+        flags: DescriptorFlags,
+        modes: Modes
+    ): Descriptor;
     /**
      * Read the contents of a symbolic link.
      *
@@ -447,7 +466,11 @@ export interface FilesystemFilesystemAsync {
      *
      * Note: This was called `fd_filestat_set_times` in earlier versions of WASI.
      */
-    setTimes(this0: Descriptor, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
+    setTimes(
+        this0: Descriptor,
+        dataAccessTimestamp: NewTimestamp,
+        dataModificationTimestamp: NewTimestamp
+    ): Promise<void>;
     /**
      * Read from a descriptor, without using and updating the descriptor's offset.
      *
@@ -525,13 +548,25 @@ export interface FilesystemFilesystemAsync {
      * Note: This was called `path_filestat_set_times` in earlier versions of
      * WASI.
      */
-    setTimesAt(this0: Descriptor, pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
+    setTimesAt(
+        this0: Descriptor,
+        pathFlags: PathFlags,
+        path: string,
+        dataAccessTimestamp: NewTimestamp,
+        dataModificationTimestamp: NewTimestamp
+    ): Promise<void>;
     /**
      * Create a hard link.
      *
      * Note: This is similar to `linkat` in POSIX.
      */
-    linkAt(this0: Descriptor, oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void>;
+    linkAt(
+        this0: Descriptor,
+        oldPathFlags: PathFlags,
+        oldPath: string,
+        newDescriptor: Descriptor,
+        newPath: string
+    ): Promise<void>;
     /**
      * Open a file or directory.
      *
@@ -552,7 +587,14 @@ export interface FilesystemFilesystemAsync {
      *
      * Note: This is similar to `openat` in POSIX.
      */
-    openAt(this0: Descriptor, pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags, modes: Modes): Promise<Descriptor>;
+    openAt(
+        this0: Descriptor,
+        pathFlags: PathFlags,
+        path: string,
+        openFlags: OpenFlags,
+        flags: DescriptorFlags,
+        modes: Modes
+    ): Promise<Descriptor>;
     /**
      * Read the contents of a symbolic link.
      *
@@ -746,11 +788,11 @@ export interface FilesystemFilesystemAsync {
      */
     dropDirectoryEntryStream(this0: DirectoryEntryStream): Promise<void>;
 }
-import type { InputStream } from '../imports/io-streams';
+import type { InputStream } from "../imports/io-streams";
 export { InputStream };
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };
-import type { Datetime } from '../imports/clocks-wall-clock';
+import type { Datetime } from "../imports/clocks-wall-clock";
 export { Datetime };
 /**
  * Flags determining the method of how paths are resolved.
@@ -972,7 +1014,44 @@ export type Filesize = bigint;
  *
  * Cross-device link, similar to `EXDEV` in POSIX.
  */
-export type ErrorCode = 'access' | 'would-block' | 'already' | 'bad-descriptor' | 'busy' | 'deadlock' | 'quota' | 'exist' | 'file-too-large' | 'illegal-byte-sequence' | 'in-progress' | 'interrupted' | 'invalid' | 'io' | 'is-directory' | 'loop' | 'too-many-links' | 'message-size' | 'name-too-long' | 'no-device' | 'no-entry' | 'no-lock' | 'insufficient-memory' | 'insufficient-space' | 'not-directory' | 'not-empty' | 'not-recoverable' | 'unsupported' | 'no-tty' | 'no-such-device' | 'overflow' | 'not-permitted' | 'pipe' | 'read-only' | 'invalid-seek' | 'text-file-busy' | 'cross-device';
+export type ErrorCode =
+    | "access"
+    | "would-block"
+    | "already"
+    | "bad-descriptor"
+    | "busy"
+    | "deadlock"
+    | "quota"
+    | "exist"
+    | "file-too-large"
+    | "illegal-byte-sequence"
+    | "in-progress"
+    | "interrupted"
+    | "invalid"
+    | "io"
+    | "is-directory"
+    | "loop"
+    | "too-many-links"
+    | "message-size"
+    | "name-too-long"
+    | "no-device"
+    | "no-entry"
+    | "no-lock"
+    | "insufficient-memory"
+    | "insufficient-space"
+    | "not-directory"
+    | "not-empty"
+    | "not-recoverable"
+    | "unsupported"
+    | "no-tty"
+    | "no-such-device"
+    | "overflow"
+    | "not-permitted"
+    | "pipe"
+    | "read-only"
+    | "invalid-seek"
+    | "text-file-busy"
+    | "cross-device";
 /**
  * A stream of directory entries.
  *
@@ -1025,7 +1104,15 @@ export type Device = bigint;
  *
  * The descriptor refers to a socket.
  */
-export type DescriptorType = 'unknown' | 'block-device' | 'character-device' | 'directory' | 'fifo' | 'symbolic-link' | 'regular-file' | 'socket';
+export type DescriptorType =
+    | "unknown"
+    | "block-device"
+    | "character-device"
+    | "directory"
+    | "fifo"
+    | "symbolic-link"
+    | "regular-file"
+    | "socket";
 /**
  * A directory entry.
  */
@@ -1120,20 +1207,20 @@ export type NewTimestamp = NewTimestampNoChange | NewTimestampNow | NewTimestamp
  * Leave the timestamp set to its previous value.
  */
 export interface NewTimestampNoChange {
-    tag: 'no-change';
+    tag: "no-change";
 }
 /**
  * Set the timestamp to the current time of the system clock associated
  * with the filesystem.
  */
 export interface NewTimestampNow {
-    tag: 'now';
+    tag: "now";
 }
 /**
  * Set the timestamp to the given value.
  */
 export interface NewTimestampTimestamp {
-    tag: 'timestamp';
+    tag: "timestamp";
     val: Datetime;
 }
 /**
@@ -1211,7 +1298,7 @@ export interface DescriptorStat {
  * The application expects to access the specified data once and then
  * not reuse it thereafter.
  */
-export type Advice = 'normal' | 'sequential' | 'random' | 'will-need' | 'dont-need' | 'no-reuse';
+export type Advice = "normal" | "sequential" | "random" | "will-need" | "dont-need" | "no-reuse";
 /**
  * Access type used by `access-at`.
  */
@@ -1220,13 +1307,13 @@ export type AccessType = AccessTypeAccess | AccessTypeExists;
  * Test for readability, writeability, or executability.
  */
 export interface AccessTypeAccess {
-    tag: 'access';
+    tag: "access";
     val: Modes;
 }
 /**
  * Test whether the path exists.
  */
 export interface AccessTypeExists {
-    tag: 'exists';
+    tag: "exists";
 }
 //# sourceMappingURL=filesystem-filesystem.d.ts.map

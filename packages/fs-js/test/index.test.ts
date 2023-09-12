@@ -1,5 +1,4 @@
-
-import { test, describe, beforeAll, beforeEach, expect, afterAll } from 'vitest';
+import { test, describe, beforeAll, beforeEach, expect, afterAll } from "vitest";
 
 globalThis.beforeAll = beforeAll;
 globalThis.beforeEach = beforeEach;

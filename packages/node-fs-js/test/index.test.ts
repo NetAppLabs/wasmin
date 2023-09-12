@@ -29,7 +29,8 @@ const beforeAllFunc1 = async () => {
 const beforeAllFunc2 = async () => {
     if (!existsSync(testFolderPath2)) {
         await mkdir(testFolderPath2);
-    }};
+    }
+};
 
 const afterAllFunc1 = async () => {
     await rm(testFolderPath1, { force: true, recursive: true });

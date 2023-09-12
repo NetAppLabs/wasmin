@@ -31,7 +31,12 @@ export interface SocketsIpNameLookup {
      * - <https://learn.microsoft.com/en-us/windows/win32/api/ws2tcpip/nf-ws2tcpip-getaddrinfo>
      * - <https://man.freebsd.org/cgi/man.cgi?query=getaddrinfo&sektion=3>
      */
-    resolveAddresses(network: Network, name: string, addressFamily: IpAddressFamily | null, includeUnavailable: boolean): ResolveAddressStream;
+    resolveAddresses(
+        network: Network,
+        name: string,
+        addressFamily: IpAddressFamily | null,
+        includeUnavailable: boolean
+    ): ResolveAddressStream;
     /**
      * Returns the next address from the resolver.
      *
@@ -96,7 +101,12 @@ export interface SocketsIpNameLookupAsync {
      * - <https://learn.microsoft.com/en-us/windows/win32/api/ws2tcpip/nf-ws2tcpip-getaddrinfo>
      * - <https://man.freebsd.org/cgi/man.cgi?query=getaddrinfo&sektion=3>
      */
-    resolveAddresses(network: Network, name: string, addressFamily: IpAddressFamily | null, includeUnavailable: boolean): Promise<ResolveAddressStream>;
+    resolveAddresses(
+        network: Network,
+        name: string,
+        addressFamily: IpAddressFamily | null,
+        includeUnavailable: boolean
+    ): Promise<ResolveAddressStream>;
     /**
      * Returns the next address from the resolver.
      *
@@ -128,15 +138,15 @@ export interface SocketsIpNameLookupAsync {
      */
     subscribe(this0: ResolveAddressStream): Promise<Pollable>;
 }
-import type { Pollable } from '../imports/poll-poll';
+import type { Pollable } from "../imports/poll-poll";
 export { Pollable };
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
-import type { ErrorCode } from '../imports/sockets-network';
+import type { ErrorCode } from "../imports/sockets-network";
 export { ErrorCode };
-import type { IpAddress } from '../imports/sockets-network';
+import type { IpAddress } from "../imports/sockets-network";
 export { IpAddress };
-import type { IpAddressFamily } from '../imports/sockets-network';
+import type { IpAddressFamily } from "../imports/sockets-network";
 export { IpAddressFamily };
 export type ResolveAddressStream = number;
 //# sourceMappingURL=sockets-ip-name-lookup.d.ts.map

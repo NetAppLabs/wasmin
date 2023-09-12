@@ -1,5 +1,5 @@
 export namespace CliBasePreopens {
-  export function getDirectories(): [Descriptor, string][];
+    export function getDirectories(): [Descriptor, string][];
 }
-import type { Descriptor } from '../imports/filesystem-filesystem';
+import type { Descriptor } from "../imports/filesystem-filesystem";
 export { Descriptor };

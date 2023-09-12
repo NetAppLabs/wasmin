@@ -67,7 +67,7 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
         await writer.write(data);
         try {
             writer.releaseLock();
-        } catch(err: any) {
+        } catch (err: any) {
             fileSystemWritableDebug("NFileSystemWritableFileStream: writer.releaseLock err:", err);
         }
         fileSystemWritableDebug("NFileSystemWritableFileStream: write end");

@@ -4,7 +4,6 @@ import { CreateProcessId } from "./util.js";
 
 import { Readable, WASI, Writable } from "@wasm-env/wasi-js";
 
-
 /*function randomBytes(count: number) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const webcrypto = require("crypto").webcrypto;

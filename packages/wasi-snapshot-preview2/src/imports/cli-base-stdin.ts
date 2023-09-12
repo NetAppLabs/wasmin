@@ -1,8 +1,8 @@
 export interface CliBaseStdin {
-   getStdin(): InputStream;
+    getStdin(): InputStream;
 }
 export interface CliBaseStdinAsync {
-   getStdin(): Promise<InputStream>;
+    getStdin(): Promise<InputStream>;
 }
-import type { InputStream } from '../imports/io-streams';
+import type { InputStream } from "../imports/io-streams";
 export { InputStream };

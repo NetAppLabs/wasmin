@@ -1,8 +1,8 @@
 export interface CliBaseStdout {
-   getStdout(): OutputStream;
+    getStdout(): OutputStream;
 }
 export interface CliBaseStdoutAsync {
-   getStdout(): Promise<OutputStream>;
+    getStdout(): Promise<OutputStream>;
 }
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };

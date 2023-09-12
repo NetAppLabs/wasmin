@@ -8,7 +8,6 @@ import { memory } from "@wasm-env/fs-js";
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let testFsBackend: backendType = "fs-js";
 switch (process.env.TEST_WASI_USING_BACKEND) {

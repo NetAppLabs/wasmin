@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
-import { test, describe, beforeAll, beforeEach, expect, afterAll } from 'vitest';
+import { test, describe, beforeAll, beforeEach, expect, afterAll } from "vitest";
 
 globalThis.beforeAll = beforeAll;
 globalThis.beforeEach = beforeEach;
@@ -37,7 +37,8 @@ const beforeAllFunc1 = async () => {
 const beforeAllFunc2 = async () => {
     if (!existsSync(testFolderPath2)) {
         await mkdir(testFolderPath2);
-    }};
+    }
+};
 
 const afterAllFunc1 = async () => {
     await rm(testFolderPath1, { force: true, recursive: true });

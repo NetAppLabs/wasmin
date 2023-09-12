@@ -16,7 +16,7 @@ export interface Statable {
     // fs stat
     stat(): Promise<Stat>;
     // accessedTime and modifiedTime in nanoseconds
-    updateTimes(accessedTime: bigint|null, modifiedTime: bigint|null): Promise<void>;
+    updateTimes(accessedTime: bigint | null, modifiedTime: bigint | null): Promise<void>;
 }
 
 export interface Stat {

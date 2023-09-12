@@ -1,12 +1,12 @@
 export interface HttpOutgoingHandler {
-   handle(request: OutgoingRequest, options: RequestOptions | null): FutureIncomingResponse;
+    handle(request: OutgoingRequest, options: RequestOptions | null): FutureIncomingResponse;
 }
 export interface HttpOutgoingHandlerAsync {
-   handle(request: OutgoingRequest, options: RequestOptions | null): Promise<FutureIncomingResponse>;
+    handle(request: OutgoingRequest, options: RequestOptions | null): Promise<FutureIncomingResponse>;
 }
-import type { OutgoingRequest } from '../imports/http-types';
+import type { OutgoingRequest } from "../imports/http-types";
 export { OutgoingRequest };
-import type { RequestOptions } from '../imports/http-types';
+import type { RequestOptions } from "../imports/http-types";
 export { RequestOptions };
-import type { FutureIncomingResponse } from '../imports/http-types';
+import type { FutureIncomingResponse } from "../imports/http-types";
 export { FutureIncomingResponse };

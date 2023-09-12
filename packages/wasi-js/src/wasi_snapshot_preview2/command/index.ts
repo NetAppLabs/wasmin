@@ -16,11 +16,11 @@ export type WasiCommand = Root;
 const instantiateCore = WebAssembly.instantiate;
 
 export class CommandRunner {
-    importObject?: Record<string,any>;
+    importObject?: Record<string, any>;
     wasmModOrBufferSource?: WebAssembly.Module | BufferSource;
     commandComponent?: WasiCommand;
 
-    constructor(importObject: Record<string,any>) {
+    constructor(importObject: Record<string, any>) {
         this.importObject = importObject;
     }
 
@@ -76,10 +76,9 @@ export class CommandRunner {
         }
     }
 
-    [comlink.finalizer](){
+    [comlink.finalizer]() {
         this.cleanup();
     }
 
-    cleanup() {
-    }
+    cleanup() {}
 }

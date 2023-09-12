@@ -48,5 +48,5 @@ export interface LoggingHandlerAsync {
  *
  * Describes messages indicating serious errors.
  */
-export type Level = 'trace' | 'debug' | 'info' | 'warn' | 'error';
+export type Level = "trace" | "debug" | "info" | "warn" | "error";
 //# sourceMappingURL=logging-handler.d.ts.map

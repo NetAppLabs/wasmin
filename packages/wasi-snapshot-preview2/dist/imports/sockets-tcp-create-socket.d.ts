@@ -48,12 +48,12 @@ export interface SocketsTcpCreateSocketAsync {
      */
     createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
 }
-import type { Network } from '../imports/sockets-network';
+import type { Network } from "../imports/sockets-network";
 export { Network };
-import type { ErrorCode } from '../imports/sockets-network';
+import type { ErrorCode } from "../imports/sockets-network";
 export { ErrorCode };
-import type { IpAddressFamily } from '../imports/sockets-network';
+import type { IpAddressFamily } from "../imports/sockets-network";
 export { IpAddressFamily };
-import type { TcpSocket } from '../imports/sockets-tcp';
+import type { TcpSocket } from "../imports/sockets-tcp";
 export { TcpSocket };
 //# sourceMappingURL=sockets-tcp-create-socket.d.ts.map

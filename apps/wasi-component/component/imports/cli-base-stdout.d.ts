@@ -1,5 +1,5 @@
 export namespace CliBaseStdout {
-  export function getStdout(): OutputStream;
+    export function getStdout(): OutputStream;
 }
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };

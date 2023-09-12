@@ -1,8 +1,8 @@
 export interface CliBaseStderr {
-   getStderr(): OutputStream;
+    getStderr(): OutputStream;
 }
 export interface CliBaseStderrAsync {
-   getStderr(): Promise<OutputStream>;
+    getStderr(): Promise<OutputStream>;
 }
-import type { OutputStream } from '../imports/io-streams';
+import type { OutputStream } from "../imports/io-streams";
 export { OutputStream };

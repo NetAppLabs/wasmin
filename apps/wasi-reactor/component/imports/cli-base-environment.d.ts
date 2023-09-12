@@ -1,3 +1,3 @@
 export namespace CliBaseEnvironment {
-  export function getEnvironment(): [string, string][];
+    export function getEnvironment(): [string, string][];
 }

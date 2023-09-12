@@ -33,7 +33,7 @@ export class WasmWorker {
             if (globalThis.WASM_WORKER_THREAD_DEBUG) {
                 worker.addEventListener("message", (ev: MessageEvent<any>) => {
                     console.log("WasmThread worker message received: ", ev);
-                })
+                });
             }
             //worker.on("error", err => console.log("`Worker error:", err));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
@@ -62,8 +62,8 @@ export class WasmWorker {
             if (globalThis.WASM_WORKER_THREAD_DEBUG) {
                 worker.addEventListener("message", (ev: MessageEvent<any>) => {
                     console.log("WasmThread worker message received: ", ev);
-                })
-            }            //worker.on("error", err => console.log("`Worker error:", err));
+                });
+            } //worker.on("error", err => console.log("`Worker error:", err));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
         }
         wasmHandlerDebug("createComponentWorker started worker");
@@ -84,7 +84,7 @@ export class WasmWorker {
                 if (this.coreRunner[comlink.releaseProxy]) {
                     this.coreRunner[comlink.releaseProxy]();
                 }
-            } catch(err: any) {
+            } catch (err: any) {
                 //console.log('err componentRunner ProxyRelease');
             }
         }
@@ -94,7 +94,7 @@ export class WasmWorker {
                 if (this.componentRunner[comlink.releaseProxy]) {
                     this.componentRunner[comlink.releaseProxy]();
                 }
-            } catch(err: any) {
+            } catch (err: any) {
                 //console.log('err componentRunner ProxyRelease');
             }
         }

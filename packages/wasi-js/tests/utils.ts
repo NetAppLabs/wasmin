@@ -1,4 +1,3 @@
-
 import path from "node:path";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";

@@ -24,34 +24,34 @@ executor is quite simple; see the [specification] document for the details and t
 1. Clone the repository; use the `prod/testsuite-base` branch as it already includes precompiled
    test binaries (see [branch structure](#branch-structure)):
 
-   ```bash
-   git clone --branch prod/testsuite-base https://github.com/WebAssembly/wasi-testsuite
-   ```
+    ```bash
+    git clone --branch prod/testsuite-base https://github.com/WebAssembly/wasi-testsuite
+    ```
 
 2. Make sure there is already an adapter for the runtime in the [`adapters`](adapters) directory; if
    not, create one (see [the doc](doc/adapters.md) for details).
 
 3. Install `python3` (e.g., on Ubuntu):
 
-   ```bash
-   sudo apt install python3 python3-pip
-   ```
+    ```bash
+    sudo apt install python3 python3-pip
+    ```
 
 4. Install the test runner dependencies:
 
-   ```bash
-   python3 -m pip install -r test-runner/requirements.txt
-   ```
+    ```bash
+    python3 -m pip install -r test-runner/requirements.txt
+    ```
 
 5. Execute the test suites from this repository:
 
-   ```bash
-   python3 test-runner/wasi_test_runner.py                                                  \
-      -t ./tests/assemblyscript/testsuite/ `# path to folders containing .wasm test files` \
-         ./tests/c/testsuite/                                                              \
-         ./tests/rust/testsuite/                                                           \
-      -r adapters/wasmtime.py # path to a runtime adapter
-   ```
+    ```bash
+    python3 test-runner/wasi_test_runner.py                                                  \
+       -t ./tests/assemblyscript/testsuite/ `# path to folders containing .wasm test files` \
+          ./tests/c/testsuite/                                                              \
+          ./tests/rust/testsuite/                                                           \
+       -r adapters/wasmtime.py # path to a runtime adapter
+    ```
 
 Optionally you can specify test cases to skip with the `--exclude-filter` option.
 
@@ -78,9 +78,9 @@ TEST_RUNTIME_EXE="wasmtime --wasm-features all" python3 test-runner/wasi_test_ru
 
 All contributions are very welcome. Contributors can help with:
 
-- adding or updating test cases,
-- improving test execution and reporting,
-- integrating with new WASM runtimes,
+-   adding or updating test cases,
+-   improving test execution and reporting,
+-   integrating with new WASM runtimes,
 
 and many others. We appreciate both code contributions as well as suggestions and bug reports.
 
@@ -90,10 +90,10 @@ Here is some additional information for developers who are willing to contribute
 
 ### Directory structure
 
-- [`test-runner`](test-runner) - test executor scripts.
-- [`tests`](tests) - source code of WASI tests and build scripts. The folder contains subfolders for all supported languages.
-- [`.github`](.github) - CI workflow definitions.
-- [`doc`](doc) - additional documentation.
+-   [`test-runner`](test-runner) - test executor scripts.
+-   [`tests`](tests) - source code of WASI tests and build scripts. The folder contains subfolders for all supported languages.
+-   [`.github`](.github) - CI workflow definitions.
+-   [`doc`](doc) - additional documentation.
 
 ### Cleaning up temporary resources
 
@@ -107,9 +107,9 @@ will automatically delete all the files and directories in the test suite direct
 
 The repository currently consists of tests implemented in the following languages:
 
-- `C` (with [`wasi-libc`](https://github.com/WebAssembly/wasi-libc))
-- `AssemblyScript`
-- `Rust`
+-   `C` (with [`wasi-libc`](https://github.com/WebAssembly/wasi-libc))
+-   `AssemblyScript`
+-   `Rust`
 
 The list of supported languages can be extended if needed.
 
@@ -117,6 +117,6 @@ The list of supported languages can be extended if needed.
 
 Apart from development branches for various features, we identify the following branches as critical (i.e. they won't be removed or force-updated):
 
-- `main` - main branch of the repository. Use this branch for development (e.g. updating test cases, modifying test runner)
-- `prod/testsuite-base` - the branch is an up-to-date fork of the `main` branch but it also includes precompiled binaries. Use this branch for simply running tests and validating WASM runtimes (see [doc](doc/precompiled-binaries.md) for details).
-- `prod/daily-test-results` - the branch contains daily test results for supported WASM runtimes (at the moment, we only execute tests on wasmtime and WAMR). In the future we intend to publish those results to the website to provide users with additional input for selecting the runtime.
+-   `main` - main branch of the repository. Use this branch for development (e.g. updating test cases, modifying test runner)
+-   `prod/testsuite-base` - the branch is an up-to-date fork of the `main` branch but it also includes precompiled binaries. Use this branch for simply running tests and validating WASM runtimes (see [doc](doc/precompiled-binaries.md) for details).
+-   `prod/daily-test-results` - the branch contains daily test results for supported WASM runtimes (at the moment, we only execute tests on wasmtime and WAMR). In the future we intend to publish those results to the website to provide users with additional input for selecting the runtime.

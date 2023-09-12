@@ -1,5 +1,10 @@
 import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import {
+    getOriginPrivateDirectory,
+    FileSystemDirectoryHandle,
+    RegisterProvider,
+    NFileSystemDirectoryHandle,
+} from "@wasm-env/fs-js";
 
 import { readFileSync } from "fs";
 import { default as process } from "node:process";
@@ -14,16 +19,16 @@ const termGetRows = () => {
     const rows = process.stdout.rows;
     //console.log("termGetRows: ", rows);
     return rows;
-}
+};
 const termGetColumns = () => {
     const cols = process.stdout.columns;
     //console.log("termGetColumns: ", cols);
     return cols;
-}
+};
 const termSetRawMode = (mode: any) => {
     //console.log('termsetRawMode:', mode);
     process.stdin.setRawMode(mode);
-}
+};
 
 //polyfill needed for process.stdin/stdout/stderr
 import "./std-polyfill.js";

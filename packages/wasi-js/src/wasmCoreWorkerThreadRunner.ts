@@ -51,11 +51,17 @@ export class WasmCoreWorkerThreadRunner {
             if (this && this.exportsMemory) {
                 const mem = this.exportsMemory as WebAssembly.Memory;
                 if (mem.buffer instanceof SharedArrayBuffer) {
-                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal isSharedArrayBuffer");
+                    wasmWorkerThreadDebug(
+                        "WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal isSharedArrayBuffer"
+                    );
                     // no need to copy if SharedArrayBuffer
                 } else {
                     // copy buf into wasm memory
-                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal copyBuffer", buf, mem.buffer);
+                    wasmWorkerThreadDebug(
+                        "WasmCoreWorkerThreadRunner storeReceivedMemoryFuncLocal copyBuffer",
+                        buf,
+                        mem.buffer
+                    );
                     copyBuffer(buf, mem.buffer);
                 }
             } else {
@@ -84,7 +90,11 @@ export class WasmCoreWorkerThreadRunner {
                             this._sharedMemory = new SharedArrayBuffer(mem.buffer.byteLength);
                         }
                     }
-                    wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner getMemoryForSendFuncLocal copyBuffer: ", mem.buffer, this.sharedMemory);
+                    wasmWorkerThreadDebug(
+                        "WasmCoreWorkerThreadRunner getMemoryForSendFuncLocal copyBuffer: ",
+                        mem.buffer,
+                        this.sharedMemory
+                    );
                     copyBuffer(mem.buffer, this._sharedMemory);
                 }
                 return this._sharedMemory;

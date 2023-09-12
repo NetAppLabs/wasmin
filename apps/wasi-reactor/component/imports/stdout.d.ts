@@ -1,5 +1,5 @@
 export namespace ImportsStdout {
-  export function getStdout(): OutputStream;
+    export function getStdout(): OutputStream;
 }
-import type { OutputStream } from '../imports/streams';
+import type { OutputStream } from "../imports/streams";
 export { OutputStream };
