@@ -1,14 +1,16 @@
+
+//import { createOpenApiNodeHttpHandler } from 'trpc-openapi';
+import { appRouter } from "./router.js";
+import { getLogger } from "./log.js";
+import { HostManagerInstance } from "./host.js";
+import { DiscoveryManagerInstance } from "./discovery.js";
+import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
+
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import http from "http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
 
-//import { createOpenApiNodeHttpHandler } from 'trpc-openapi';
-import { appRouter } from "./router";
-import { Logger } from "./log";
-import { HostManagerInstance } from "./host";
-import { DiscoveryManagerInstance } from "./discovery";
-import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
 
 /*
 type Proc = {
@@ -91,7 +93,8 @@ export default {
     },
 };
 
-Logger.log("RPC Listening on port " + rpcPort);
+const logger = await getLogger();
+logger.log("RPC Listening on port " + rpcPort);
 const selfHost = HostManagerInstance.self;
 selfHost.port = rpcPort;
 DiscoveryManagerInstance.publish(selfHost);

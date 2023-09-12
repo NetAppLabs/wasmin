@@ -1,4 +1,5 @@
 // from https://github.com/node-fetch/fetch-blob/blob/main/test.js
+import "jest-extended";
 
 import path from "node:path";
 import { promises as fs } from "node:fs";

@@ -2880,20 +2880,15 @@ bun-types@^0.1.4:
   resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-0.1.11.tgz#cc34bf6c9fe3ade6569a18fdc2e442e80ad912e7"
   integrity sha512-a5G9LZtF5qBsDMjGnS5FfTvIeg1bS0PzI3Q2LqShEjJWdhZTB56xO8ewqZ83J+3my5rW/PPPWT/udAofRQ3zdg==
 
-bun-types@^0.5.7:
-  version "0.5.7"
-  resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-0.5.7.tgz#331d5b8b495540bf7eac1c4727c5fe8dd1f1f5dd"
-  integrity sha512-79ualR6PIZYTbALgsUxZXlAhkz0M7h7QMsXWn/eX+VOOCX3bPA9y0Pywu4MUEWOK8cK/JhnAODMqZfhCb911nw==
-
 bun-types@^0.8.1:
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-0.8.1.tgz#3685d248a13392507cec715f6a16951bcfe9070a"
   integrity sha512-VuCBox66P/3a8gVOffLCWIS6vdpXq4y3eJuF3VnsyC5HpykmIjkcr5wYDn22qQdeTUmOfCcBy1SZmtrZCeUr3A==
 
-bun-utilities@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/bun-utilities/-/bun-utilities-0.2.1.tgz#2cd7538cc8042bcd54591425b57e852444f88897"
-  integrity sha512-2e4rMaA50zfUqvc3+Cu8I88nCzvF6WsOnxz4iZSSSQt/pBGgpiwgFCx2y5/s69C9iaCVfyrM6kHxYOgvVx1e8Q==
+bun-types@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/bun-types/-/bun-types-1.0.0.tgz#92e9e1959f3fe8ef23b8852117e29f975eb0a0ab"
+  integrity sha512-Ozs85sjq1yn0sgqjehmSC3X7wIz0EqpPM+JVY7VgMACyAzSQyFvvNhZTnpg/hI0MUEZvlIXgV67oySsq8upXEg==
 
 bundle-require@^4.0.0:
   version "4.0.1"
@@ -7571,10 +7566,10 @@ typescript@^4.7.3, typescript@^4.7.4:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
-typescript@^5.1.3:
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.3.tgz#8d84219244a6b40b6fb2b33cc1c062f715b9e826"
-  integrity sha512-XH627E9vkeqhlZFQuL+UsyAXEnibT0kWR2FWONlr4sTjvxyJYnyefgrkyECLzM5NenmKzRAy2rR/OlYLA1HkZw==
+typescript@^5.2.2:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.2.tgz#5ebb5e5a5b75f085f22bc3f8460fba308310fa78"
+  integrity sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==
 
 typeson-registry@^7.2.1:
   version "7.2.1"

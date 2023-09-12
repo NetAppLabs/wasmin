@@ -5,7 +5,7 @@ type ClocksWallClockAsync = clockw.ClocksWallClockAsync;
 import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-preview2";
 import { Pollable as FSPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isNode, sleep } from "../../wasiUtils.js";
+import { isNode, isNodeorBun, sleep } from "../../wasiUtils.js";
 import { toDateTimeFromMs } from "./preview2Utils.js";
 type ClocksTimezoneAsync = clockt.ClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
@@ -101,7 +101,7 @@ export class ClocksTimezoneAsyncHost implements ClocksTimezoneAsync {
 
 // Get HR time in nanoseconds
 export async function getHrTime(): Promise<bigint> {
-    if (isNode()) {
+    if (isNodeorBun()) {
         const nodeProcess = await import("node:process");
         const hrTimeNode = nodeProcess.hrtime;
         const hrNow = hrTimeNode.bigint();

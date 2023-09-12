@@ -1,7 +1,7 @@
-import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
-import { DiscoveryManagerInstance } from "./discovery";
-import { HostManagerInstance } from "./host";
-import { Logger } from "./log";
+import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
+import { DiscoveryManagerInstance } from "./discovery.js";
+import { HostManagerInstance } from "./host.js";
+import { getLogger } from "./log.js";
 import http from "http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -9,7 +9,8 @@ import { nodeHTTPRequestHandler } from "@trpc/server/adapters/node-http";
 import { CreateHTTPContextOptions, createHTTPServer, createHTTPHandler } from "@trpc/server/adapters/standalone";
 
 export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
-    Logger.log("RPC Listening on port " + rpcPort);
+    const logger = await getLogger();
+    logger.log("RPC Listening on port " + rpcPort);
     /*const liveReloadImport = await import("bun-livereload");
     const liveReload = liveReloadImport.liveReload;
 
@@ -65,7 +66,8 @@ export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
 */
 
 export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
-    Logger.log("REST Listening on port " + restPort);
+    const logger = await getLogger();
+    logger.log("REST Listening on port " + restPort);
 
     const { appRouter } = await import("./router");
 

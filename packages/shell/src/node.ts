@@ -6,7 +6,7 @@ import { promises } from "node:fs";
 // @ts-ignore
 //import { File, Blob } from 'node:buffer';
 
-import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { FileSystemDirectoryHandle, isBun } from "@wasm-env/fs-js";
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
 import { node } from "@wasm-env/node-fs-js";
 
@@ -161,7 +161,9 @@ async function getWasmModuleBufer(): Promise<{
 
 export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: Record<string, string>) {
     // @ts-ignore
-    RegisterProvider("s3", s3);
+    if (!isBun()) {
+        RegisterProvider("s3", s3);
+    }
     // @ts-ignore
     RegisterProvider("github", github);
 

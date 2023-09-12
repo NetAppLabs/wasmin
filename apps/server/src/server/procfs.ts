@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/member-ordering */
+import { HostManagerInstance } from "./host.js";
+import { getLogger } from "./log.js";
+import { Host, Process } from "./types.js";
 
 import { TypeMismatchError } from "@wasm-env/fs-js";
-import { HostManagerInstance } from "./host";
-import { Logger } from "./log";
-import { Host, Process } from "./types";
-
 import {
     PermissionState,
     FileSystemHandle,
@@ -86,6 +85,7 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
     }
     kind: "directory";
     async getHandle(name: string, options?: FileSystemGetDirectoryOptions): Promise<FileSystemHandle> {
+        const logger = await getLogger();
         const key = name;
         let obj = this.obj as any;
         if (typeof this.obj === "function") {
@@ -94,11 +94,11 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
         const value = obj[key];
         const entryName = key;
         let kind = "file";
-        Logger.log("getHandle: key:", key, " value: ", value);
+        logger.log("getHandle: key:", key, " value: ", value);
 
         if (value instanceof Array) {
             kind = "directory";
-            Logger.log("getHandle(): key: ", key, "is array");
+            logger.log("getHandle(): key: ", key, "is array");
             type Arrtype = typeof value;
             /*type ArrtypeElement = Arrtype[number];
             const styp = ArrtypeElement
@@ -107,27 +107,30 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
             }*/
             const arr = value as Arrtype;
             const s = typeof value;
-            Logger.log("arrtyp:", s);
+            logger.log("arrtyp:", s);
         } else if (value instanceof Object) {
-            Logger.log("getHandle(): key: ", key, "is object");
+            logger.log("getHandle(): key: ", key, "is object");
             kind = "directory";
         }
         let ret: FileSystemHandle;
         kind === "file"
             ? (ret = new ObjectFileSystemFileHandle(entryName, value))
             : (ret = new ObjectFileSystemDirectoryHandle(entryName, value));
-        Logger.log("getHandle returning ret: ", ret);
+        logger.log("getHandle returning ret: ", ret);
         return ret;
     }
     async getDirectoryHandle(
         name: string,
         options?: FileSystemGetDirectoryOptions
     ): Promise<FileSystemDirectoryHandle> {
+        const logger = await getLogger();
         const ret = (await this.getHandle(name, options)) as FileSystemDirectoryHandle;
-        Logger.log("getDirectoryHandle returning ret: ", ret);
+        logger.log("getDirectoryHandle returning ret: ", ret);
         return ret;
     }
     async *entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]> {
+        const logger = await getLogger();
+
         //this.fsDebug("entries: for :", this.adapter);
         let obj = this.obj;
         if (typeof this.obj === "function") {
@@ -135,12 +138,12 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
         }
         const entr = Object.entries(obj);
         for (const [key, value] of entr) {
-            Logger.log("entries: key:", key, " value: ", value);
+            logger.log("entries: key:", key, " value: ", value);
             const entryName = key;
             let kind = "file";
             if (value instanceof Array) {
                 kind = "directory";
-                Logger.log("entries(): key: ", key, "is array");
+                logger.log("entries(): key: ", key, "is array");
                 type Arrtype = typeof value;
                 /*type ArrtypeElement = Arrtype[number];
                 const styp = ArrtypeElement
@@ -149,9 +152,9 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
                 }*/
                 const arr = value as Arrtype;
                 const s = typeof value;
-                Logger.log("arrtyp:", s);
+                logger.log("arrtyp:", s);
             } else if (value instanceof Object) {
-                Logger.log("entries(): key: ", key, "is object");
+                logger.log("entries(): key: ", key, "is object");
                 kind = "directory";
             }
             /*
@@ -161,7 +164,7 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
                     ? new ObjectFileSystemFileHandle(entryName, value)
                     : new ObjectFileSystemDirectoryHandle(entryName, value),
             ];*/
-            Logger.log("entries(): key: ", key, "kind: " + kind);
+            logger.log("entries(): key: ", key, "kind: " + kind);
             if (kind === "file") {
                 yield [entryName, new ObjectFileSystemFileHandle(entryName, value)];
             } else {
@@ -185,13 +188,15 @@ export class ObjectFileSystemDirectoryHandle implements FileSystemDirectoryHandl
             create: boolean;
         }
     ): Promise<FileSystemFileHandle> {
+        const logger = await getLogger();
+
         const hret = await this.getHandle(name, options);
         if (hret.kind == "file") {
             const ret = hret as FileSystemFileHandle;
-            Logger.log("getFileHandle returning ret: ", ret);
+            logger.log("getFileHandle returning ret: ", ret);
             return ret;
         } else {
-            Logger.log("getFileHandle throwing TypeMismatchError");
+            logger.log("getFileHandle throwing TypeMismatchError");
             throw new TypeMismatchError();
         }
     }
@@ -236,21 +241,23 @@ export class ObjectFileSystemFileHandle implements FileSystemFileHandle {
     }
 
     async getFile(): Promise<File> {
-        Logger.log("in getFile ", this.name);
+        const logger = await getLogger();
+
+        logger.log("in getFile ", this.name);
         const data = this.obj;
-        Logger.log("in getFile ", this.name, "data ", data);
+        logger.log("in getFile ", this.name, "data ", data);
         const buffer = textEncoder.encode(data as string);
-        Logger.log("in getFile buffer: ", this.name, buffer);
+        logger.log("in getFile buffer: ", this.name, buffer);
 
         const mimeType = "application/octet-stream";
         const b = new Blob([buffer], { type: mimeType });
-        Logger.log("in getFile b: ", this.name, b);
+        logger.log("in getFile b: ", this.name, b);
         //return b;
         //const lastModified = new Date();
         const lastModified = 0;
         //const f = new File([buffer], this.name, {type: mimeType, lastModified: lastModified});
         const f = new File([buffer], this.name);
-        Logger.log("in getFile returning f: ", this.name, f);
+        logger.log("in getFile returning f: ", this.name, f);
         return f;
     }
 

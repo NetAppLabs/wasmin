@@ -390,8 +390,16 @@ export class OpenFile implements Readable, Writable {
     async read(len: number): Promise<Uint8Array> {
         filesystemDebug(`[read] len: ${len}`);
         const file = await this.getFile();
-        const slice = file.slice(this.position, this.position + len);
+        filesystemDebug(`[read] file`, file);
+        let toPos = this.position+len;
+        if (toPos > file.size) {
+            toPos = file.size;
+        }
+        filesystemDebug(`[read] slicing from: ${this.position} to ${toPos}`);
+        const slice = file.slice(this.position, toPos);
+        filesystemDebug(`[read] slice`, slice);
         const arrayBuffer = await slice.arrayBuffer();
+        filesystemDebug(`[read] arrayBuffer`, arrayBuffer);
         this.position += arrayBuffer.byteLength;
         return new Uint8Array(arrayBuffer);
     }

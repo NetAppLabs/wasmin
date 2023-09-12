@@ -1,13 +1,13 @@
-import { startRpcServer, startRestServer } from "./server";
-import { startLocalShell } from "./shell";
-import { DiscoveryManagerInstance } from "./discovery";
-import { HostManagerInstance } from "./host";
-import { Logger, setLogToConsole } from "./log";
+import { startRpcServer, startRestServer } from "./server.js";
+import { startLocalShell } from "./shell.js";
+import { DiscoveryManagerInstance } from "./discovery.js";
+import { HostManagerInstance } from "./host.js";
+import { getLogger, setLogToConsole } from "./log.js";
+import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
 //@ts-ignore
 import { File } from "node:buffer";
 import { Command } from "@molt/command";
 import { z } from "zod";
-import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
 
 if (!globalThis.File) {
     //@ts-ignore
@@ -59,23 +59,25 @@ async function main() {
     const rpcPort = args.rpcport;
     const restPort = args.restport;
 
-    if (daemon) {
+    /*if (daemon) {
         setLogToConsole();
-    }
+    }*/
+    const hostId = HostManagerInstance.self.id;
+    const logger = await getLogger(hostId);
+    logger.log("starting host:", HostManagerInstance.self);
 
     await startRpcServer(rpcPort);
     await startRestServer(restPort);
 
-    Logger.log("starting host:", HostManagerInstance.self);
 
     DiscoveryManagerInstance.updateLoop();
 
     if (daemon) {
-        Logger.log("Not starting local shell as daemon mode");
+      logger.log("Not starting local shell as daemon mode");
     } else {
-        startLocalShell();
         console.log("starting shell");
+        await startLocalShell();
     }
 }
 
-main();
+await main();

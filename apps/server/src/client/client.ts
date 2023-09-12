@@ -8,7 +8,7 @@ const t = await res.text();
 console.log(t);
 */
 
-import { Process } from "../server/types";
+import { Process } from "../server/types.js";
 
 const p: Process = {
     cmd: "http://test.com/test.wasm",

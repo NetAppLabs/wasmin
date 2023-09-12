@@ -1,37 +1,11 @@
 //import { describe, test, expect } from 'vitest'
 import "jest-extended";
 
+import { backend, getRootHandle } from "./utils.js";
 import path from "path";
 import { readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
-import { memory } from "@wasm-env/fs-js";
-
-type backendType = "fs-js" | "nfs-js" | "memory";
-let backend: backendType = "fs-js";
-switch (process.env.TEST_WASI_USING_BACKEND) {
-    case "memory":
-        backend = "memory";
-        break;
-    case "nfs-js":
-        backend = "nfs-js";
-        break;
-    default:
-        backend = "fs-js";
-        break;
-}
-
-async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle> {
-    const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
-    switch (backend) {
-        case "memory":
-            return getOriginPrivateDirectory(memory);
-        //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
-        default:
-            return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
-    }
-}
+import { FileSystemFileHandle } from "@wasm-env/fs-js";
 
 const EOL = "\n";
 
@@ -73,10 +47,11 @@ const tests: (Test & { test: string })[] = [
 ];
 
 const textEncoder = new TextEncoder();
-describe("all", () => {
+describe("component", () => {
     test.each(tests)(
         "$test",
         async ({ test, stdin, stdout = "", exitCode = 0 }) => {
+            console.log("running test: ", test);
             const wasmPath = path.resolve(path.join("tests", "wasm", `${test}.wasm`));
             //const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
             const module = readFile(wasmPath);

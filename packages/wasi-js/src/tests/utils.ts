@@ -57,7 +57,13 @@ export async function getRootHandle(backend: string, rootPath: string): Promise<
             await copyFsInto(rootPath, dirHandle);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default:
-            dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
+            if (isBun()) {
+                const bunmod = await import("@wasm-env/bun-fs-js");
+                const bun = bunmod.bun;
+                dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
+            } else {
+                dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
+            }
     }
     return dirHandle;
 }
@@ -87,8 +93,8 @@ export async function constructTestsForTestSuites(testsuitePaths: string[]): Pro
 
 export async function constructTestsForTestSuite(testsuitePath: string): Promise<Test[]> {
     const tests: Test[] = [];
-    const files = await readdir(testsuitePath);
-
+    let files = await readdir(testsuitePath);
+    files.sort();
     for (const fileName of files) {
         const newTest = await constructOneTestForTestSuite(testsuitePath, fileName);
         let skipThisWasm = false;

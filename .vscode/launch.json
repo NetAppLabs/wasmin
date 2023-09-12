@@ -24,6 +24,13 @@
             "type": "node"
         },
         {
+            "name": "wasi-tester-bun",
+            "program": "${workspaceFolder}/packages/wasi-js/tests/tester.mjs",
+            "request": "launch",
+            "env": {},
+            "type": "bun"
+        },
+        {
             "name": "wasi-tester-suite",
             "args": ["--trace-warnings"],
             "program": "${workspaceFolder}/packages/wasi-js/tests/tester.suite.mjs",
@@ -33,6 +40,13 @@
             ],
             "env": {},
             "type": "node"
+        },
+        {
+            "name": "wasi-tester-suite-bun",
+            "program": "${workspaceFolder}/packages/wasi-js/tests/tester.suite.mjs",
+            "request": "launch",
+            "env": {},
+            "type": "bun"
         },
         {
             "name": "wasi-worker-run",

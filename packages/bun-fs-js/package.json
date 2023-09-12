@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@wasm-env/tsconfig": "*",
-    "bun-types": "^0.8.1",
+    "bun-types": "^1.0.0",
     "eslint-config-custom": "*"
   }
 }

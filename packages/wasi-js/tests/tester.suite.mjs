@@ -21,17 +21,18 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const testFile = "fd_filestat_get.wasm";
 //const testFile = "fd_flags_set.json";
 
-const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
 //const testFile = "fopen-with-access.json"
-const testFile = "pwrite-with-access.json"
+//const testFile = "pwrite-with-access.json"
 //const testFile = "lseek.json"
 
-//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
-//const testFile = "environ_get-multiple-variables.json"
+const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
+const testFile = "environ_get-multiple-variables.json"
 //const testFile = "fd_write-to-stdout.json"
+//const testFile = "environ_sizes_get-multiple-variables.json";
 
 
-let loop_count = 1;
+let loop_count = 10;
 
 for (let i = 0; i < loop_count; i++) {
     const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
@@ -62,19 +63,13 @@ async function runCase(testCase) {
         }
         console.log("exitCode: ", exitCode);
         let w = undefined;
-        if (isBun()) {
-            const bunmod = await import("@wasm-env/bun-fs-js");
-            const bun = bunmod.bun;
-            const rootPath = testCase.rootPath;
-            const bunDirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
-            ret = await constructWasiForTest(testCase, bunDirHandle);
-            w = ret.wasi;
-        } else {
-            ret = await constructWasiForTest(testCase);
-            w = ret.wasi;
-        }
+        ret = await constructWasiForTest(testCase);
+        w = ret.wasi;
+        console.log("wasi: ", w);
+
         if (w) {
-            w.component = true;
+            //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
+            //w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {

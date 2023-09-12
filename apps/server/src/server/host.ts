@@ -1,9 +1,9 @@
-import { Host } from "./types";
+import { Host } from "./types.js";
+import { ProcessManager } from "./process.js";
+import { CreateHostId, isBun, isNode, sleep } from "./util.js";
+import { getDefaultLocalIPv4, getDefaultLocalIPv6 } from "./util_node.js";
 
 import { uniqueNamesGenerator, Config, adjectives, colors, names } from "unique-names-generator";
-import { ProcessManager } from "./process";
-import { CreateHostId, isBun, isNode, sleep } from "./util";
-import { getDefaultLocalIPv4, getDefaultLocalIPv6 } from "./util_node";
 
 const config: Config = {
     dictionaries: [adjectives, colors, names],

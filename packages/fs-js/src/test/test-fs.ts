@@ -241,6 +241,10 @@ export const TestsFileSystemHandle = (
             const err = await capture(getFileContents(handle));
             let errMsg = "A requested file or directory could not be found at the time an operation was processed.";
             let errName = "NotFoundError";
+            if (name == "bun") {
+                errMsg = "No such file or directory";
+                errName = "ENOENT";
+            }
             expect(err.message).toBe(errMsg);
             expect(err.name).toBe(errName);
         });
@@ -249,9 +253,8 @@ export const TestsFileSystemHandle = (
             await createFileWithContents("file-to-remove", "12345", root);
             await root.removeEntry("file-to-remove");
             const err = await capture(root.removeEntry("file-to-remove"));
-            expect(err.message).toBe(
-                "A requested file or directory could not be found at the time an operation was processed."
-            );
+            let errMsg = "A requested file or directory could not be found at the time an operation was processed.";
+            expect(err.message).toBe(errMsg);
             expect(err.name).toBe("NotFoundError");
         });
 
@@ -308,7 +311,7 @@ export const TestsFileSystemHandle = (
     });
 
     describe("getFile()", () => {
-        testNotOnBun(name)("getFile() provides a file that can be sliced", async () => {
+        test("getFile() provides a file that can be sliced", async () => {
             // TODO BunFile.slice() seems to be broken
             const fileContents = "awesome content";
             const handle = await createFileWithContents("awesome.txt", fileContents, root);

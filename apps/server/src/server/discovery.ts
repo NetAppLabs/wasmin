@@ -1,14 +1,14 @@
 import { Bonjour, Service } from "bonjour-service";
 //import NostrEmitter from '@cmdcode/nostr-emitter';
-import { NostrEmitter } from "./nostr-emitter/index";
+import { NostrEmitter } from "./nostr-emitter/index.js";
 
-import { Host } from "./types";
+import { Host } from "./types.js";
 
-import { AppRouter } from "./router";
-import { HostManagerInstance } from "./host";
+import { AppRouter } from "./router.js";
+import { HostManagerInstance } from "./host.js";
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
-import { Logger } from "./log";
-import { sleep } from "./util";
+import { getLogger } from "./log.js";
+import { sleep } from "./util.js";
 
 interface NostrEmitterTyped {
     connect(relayUrl: string, secret: string): Promise<void>;
@@ -21,22 +21,38 @@ interface DiscoveryManager {
     updateLoop(): Promise<void>;
 }
 
+class DiscoveryManagerLocal implements DiscoveryManager {
+    constructor() {
+    }
+    async publish(host: Host): Promise<void> {
+        return;
+    }
+    async updateLoop(): Promise<void>{
+        return;
+    }
+}
+
 class DiscoveryManagerNostr implements DiscoveryManager {
     constructor() {
-        Logger.log("Starting DiscoveryManagerNostr");
+        //Logger.log("Starting DiscoveryManagerNostr");
     }
     emitter?: NostrEmitterTyped;
 
     async getEmitter(): Promise<NostrEmitterTyped> {
+        const logger = await getLogger(); 
         const secret = "mySuperSecretClusterInNostrHyperSpace";
+        //const relay = "wss://nostr.rocks";
         //const relay = "wss://nostr-relay.wlvs.space";
         //const relay = "wss://nostr-relay.gkbrk.com";
-        const relay = "wss://public.nostr.swissrouting.com";
-        //const relay = "wss://relay.nostr.bg";
+        //const relay = "wss://public.nostr.swissrouting.com";
+        const relay = "wss://relay.nostr.bg";
         //const relay = "ws://127.0.0.1:8080";
+        const logFunc = (msg?: any, ...optionalParams: any[]) => {
+            logger.log(msg,...optionalParams);
+        }
         if (!this.emitter) {
             const newEm = new NostrEmitter({
-                log: Logger.log,
+                log: logFunc,
             });
             //Logger.debug("newEmitter: ", newEm);
             const em = newEm as NostrEmitterTyped;
@@ -49,6 +65,8 @@ class DiscoveryManagerNostr implements DiscoveryManager {
     }
 
     async publish(host: Host): Promise<void> {
+        const logger = await getLogger(); 
+
         const emitter = await this.getEmitter();
         // Connect your emitter to the relay.
         while (true) {
@@ -56,7 +74,7 @@ class DiscoveryManagerNostr implements DiscoveryManager {
             try {
                 emitter.emit("publish-host", host);
             } catch (err: any) {
-                Logger.error("Error emitting event: ", err);
+                logger.error("Error emitting event: ", err);
             }
             await sleep(1000);
         }
@@ -86,10 +104,12 @@ class DiscoveryManagerNostr implements DiscoveryManager {
     }
 
     async discoverHosts(): Promise<void> {
+        const logger = await getLogger(); 
+
         const emitter = await this.getEmitter();
 
         const listenPublishHandler = async (host: Host) => {
-            Logger.log("Hello From ", host);
+            logger.log("Hello From ", host);
             await this.addHost(host);
         };
 
@@ -107,11 +127,13 @@ class DiscoveryManagerNostr implements DiscoveryManager {
 class DiscoveryManagerBonjour implements DiscoveryManager {
     constructor() {
         this.bonjourInstance = new Bonjour();
-        Logger.log("Starting DiscoveryManagerBonjour");
+        //Logger.log("Starting DiscoveryManagerBonjour");
     }
     bonjourInstance: Bonjour;
 
     async publish(host: Host): Promise<void> {
+        const logger = await getLogger(); 
+
         const serverName = host.name;
         const myPort = host.port;
         if (myPort) {
@@ -122,7 +144,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
                 port: myPort,
             });
         } else {
-            Logger.log("no port set, unable to publish host");
+            logger.log("no port set, unable to publish host");
         }
     }
 
@@ -132,6 +154,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
     }
 
     async discoverHosts(): Promise<void> {
+        const logger = await getLogger();
         const browser = this.bonjourInstance.find({ type: "wasmenv" });
         browser.start();
         while (true) {
@@ -139,7 +162,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
                 const serverName = service.name;
                 const selfName = HostManagerInstance.self.name;
                 if (serverName != selfName) {
-                    Logger.log("Found server:", service);
+                    logger.log("Found server:", service);
                     let ipv4_addr = "127.0.0.1";
                     let ipv6_addr = " ::1";
                     const addrs = service.addresses;
@@ -155,7 +178,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
                     }
                     const port = service.port;
                     const url = "http://" + ipv4_addr + ":" + port;
-                    Logger.log("Found peer: ", service.name, "on url", url);
+                    logger.log("Found peer: ", service.name, "on url", url);
                     await this.queryHost(url);
                 }
             };
@@ -168,12 +191,14 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
     }
 
     async discoverHosts2(): Promise<void> {
+        const logger = await getLogger();
+
         while (true) {
             const onUp = async (service: Service) => {
                 const serverName = service.name;
                 const selfName = HostManagerInstance.self.name;
                 if (serverName != selfName) {
-                    Logger.log("Found server:", service);
+                    logger.log("Found server:", service);
                     let ipv4_addr = "127.0.0.1";
                     let ipv6_addr = " ::1";
                     const addrs = service.addresses;
@@ -187,7 +212,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
                     }
                     const port = service.port;
                     const url = "http://" + ipv4_addr + ":" + port;
-                    Logger.log("Found peer: ", service.name, "on url", url);
+                    logger.log("Found peer: ", service.name, "on url", url);
                     await this.queryHost(url);
                 }
             };
@@ -197,6 +222,7 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
     }
 
     async queryHost(url: string): Promise<void> {
+        const logger = await getLogger();
         try {
             const links = [
                 httpBatchLink({
@@ -207,10 +233,10 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
             //const caller = appRouter.createCaller({url: url});
             //const host = await caller.host.get();
             const host = (await proxy.host.get.query()) as Host;
-            Logger.log("got host: ", host);
+            logger.log("got host: ", host);
             await this.addHost(host);
         } catch (err: any) {
-            Logger.log("queryHost: ", err);
+            logger.log("queryHost: ", err);
         }
     }
 
@@ -222,3 +248,5 @@ class DiscoveryManagerBonjour implements DiscoveryManager {
 //export const DiscoveryManagerInstance = new DiscoveryManagerBonjour();
 
 export const DiscoveryManagerInstance = new DiscoveryManagerNostr();
+
+//export const DiscoveryManagerInstance = new DiscoveryManagerLocal();

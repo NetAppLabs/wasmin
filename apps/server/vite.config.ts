@@ -7,7 +7,7 @@ export default defineConfig({
         target: "esnext",
         lib: {
             formats: ["cjs"],
-            entry: "server/index.ts",
+            entry: "src/server/index.ts",
             name: "@wasm-env/server",
         },
         rollupOptions: {

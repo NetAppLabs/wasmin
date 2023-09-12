@@ -1,8 +1,6 @@
-import { isNode } from "./util";
+import { isNode } from "./util.js";
 
 export async function startLocalShell() {
-    if (isNode()) {
-        const nodeShell = await import("./node_shell");
-        await nodeShell.startLocalShell();
-    }
+    const nodeShell = await import("./node_shell.js");
+    await nodeShell.startLocalShell();
 }

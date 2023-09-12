@@ -6,11 +6,16 @@ const isBrowser = typeof window !== 'undefined'
 const isBun = typeof Bun !== 'undefined'
 
 // Import our required packages.
-const { schnorr } = isBrowser
-  ? window.nobleSecp256k1
-  : require('@noble/secp256k1')
+//const { schnorr } = isBrowser
+//  ? window.nobleSecp256k1
+//  : require('@noble/secp256k1')
 
-const crypto = isBrowser ? window.crypto : require('crypto').webcrypto
+import { schnorr } from "@noble/secp256k1";
+import { default as cr } from "node:crypto";
+import { WebSocket as node_ws } from "ws";
+
+//const crypto = isBrowser ? window.crypto : require('crypto').webcrypto
+const crypto = cr.webcrypto;
 
 // Specify our base64 helper functions.
 const b64encode = isBrowser
@@ -112,7 +117,9 @@ export class NostrEmitter {
       ? this.relayUrl
       : 'wss://' + this.relayUrl
     */
-    const WebSocket = isBrowser ? window.WebSocket : isBun ? globalThis.WebSocket || (await import("ws")).WebSocket : require('ws')
+
+    const WebSocket = isBrowser ? window.WebSocket : isBun ? globalThis.WebSocket || node_ws : node_ws;
+    //const WebSocket = isBrowser ? window.WebSocket : isBun ? globalThis.WebSocket || (await import("ws")).WebSocket : require('ws')
 
     this.socket = new WebSocket(this.relayUrl)
 
@@ -199,6 +206,9 @@ export class NostrEmitter {
 
   async eventHandler(data) {
     const { content, ...metaData } = data
+    if (!content) {
+      return;
+    }
 
     // Verify that the signature is valid.
     const { id, pubkey, sig } = metaData

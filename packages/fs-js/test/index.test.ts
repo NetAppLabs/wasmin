@@ -1,5 +1,14 @@
-import { getOriginPrivateDirectory, memory } from "../src";
 
+import { test, describe, beforeAll, beforeEach, expect, afterAll } from 'vitest';
+
+globalThis.beforeAll = beforeAll;
+globalThis.beforeEach = beforeEach;
+globalThis.afterAll = afterAll;
+globalThis.describe = describe;
+globalThis.expect = expect;
+globalThis.test = test;
+
+import { getOriginPrivateDirectory, memory } from "../src";
 import { TestsFileSystemHandle } from "../src";
 
 const getMemoryRoot = async () => {

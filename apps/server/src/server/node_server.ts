@@ -1,14 +1,16 @@
+
+import { appRouter } from "./router.js";
+import { HostManagerInstance } from "./host.js";
+import { DiscoveryManagerInstance } from "./discovery.js";
+import { getLogger } from "./log.js";
+import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
+//import { renderTrpcPanel } from "trpc-panel";
+
 //import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { default as http } from "node:http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
 import { CreateHTTPContextOptions, createHTTPServer, createHTTPHandler } from "@trpc/server/adapters/standalone";
 
-import { appRouter } from "./router";
-import { HostManagerInstance } from "./host";
-import { DiscoveryManagerInstance } from "./discovery";
-import { Logger } from "./log";
-import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults";
-//import { renderTrpcPanel } from "trpc-panel";
 
 // Initialize a context for the server
 function createContext(opts: CreateHTTPContextOptions) {
@@ -17,9 +19,9 @@ function createContext(opts: CreateHTTPContextOptions) {
     return {};
 }
 
-export function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
+export async function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
     // Create regular trpc server
-
+    const logger = await getLogger();
     const trpcHandler = createHTTPHandler({
         router: appRouter,
         createContext: () => ({}),
@@ -52,7 +54,7 @@ export function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
     });
     server.on("error", (e: any) => {
         if (e.code === "EADDRINUSE") {
-            Logger.log("RPC Default address in use, retrying on random port ...");
+            logger.log("RPC Default address in use, retrying on random port ...");
             server.listen(0);
         }
     });
@@ -62,7 +64,7 @@ export function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
             if (addr) {
                 if (addr.port) {
                     const myPort = addr.port;
-                    Logger.log("RPC Listening on port " + myPort);
+                    logger.log("RPC Listening on port " + myPort);
                     const selfHost = HostManagerInstance.self;
                     selfHost.port = myPort;
                     DiscoveryManagerInstance.publish(selfHost);
@@ -108,7 +110,9 @@ export function startRpcServerNode(rpcPort = DEFAULT_RPC_PORT) {
   */
 }
 
-export function startRestServerNode(restPort = DEFAULT_REST_PORT) {
+export async function startRestServerNode(restPort = DEFAULT_REST_PORT) {
+  const logger = await getLogger();
+
     const server = http.createServer(
         createOpenApiHttpHandler({
             router: appRouter,
@@ -123,7 +127,7 @@ export function startRestServerNode(restPort = DEFAULT_REST_PORT) {
             if (addr) {
                 if (addr.port) {
                     const myPort = addr.port;
-                    Logger.log("REST Listening on port " + myPort);
+                    logger.log("REST Listening on port " + myPort);
                     const selfHost = HostManagerInstance.self;
                     selfHost.port = myPort;
                     //DiscoveryManagerInstance.publish(selfHost);
@@ -134,7 +138,7 @@ export function startRestServerNode(restPort = DEFAULT_REST_PORT) {
 
     server.on("error", (e: any) => {
         if (e.code === "EADDRINUSE") {
-            Logger.log("Default address in use, retrying on random port ...");
+            logger.log("Default address in use, retrying on random port ...");
             server.listen(0);
         }
     });

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
-import { test, describe, beforeAll, beforeEach, expect, afterAll } from 'bun:test';
+import { test, describe, beforeAll, beforeEach, expect, afterAll } from 'vitest';
 
 globalThis.beforeAll = beforeAll;
 globalThis.beforeEach = beforeEach;

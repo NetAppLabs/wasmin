@@ -1,9 +1,10 @@
+import { Host, HostList, HostMap, Process, ProcessList, ProcessMap } from "./types.js";
+import { HostManagerInstance } from "./host.js";
+
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import { OpenApiMeta } from "trpc-openapi";
 import { generateOpenApiDocument } from "trpc-openapi";
-import { Host, HostList, HostMap, Process, ProcessList, ProcessMap } from "./types";
-import { HostManagerInstance } from "./host";
 
 //const t = initTRPC.create();
 const t = initTRPC.meta<OpenApiMeta>().create();

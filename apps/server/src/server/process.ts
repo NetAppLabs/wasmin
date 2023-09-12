@@ -1,8 +1,9 @@
-import { Process } from "./types";
+import { Process } from "./types.js";
+import { getLogger } from "./log.js";
+import { CreateProcessId } from "./util.js";
+
 import { Readable, WASI, Writable } from "@wasm-env/wasi-js";
 
-import { Logger } from "./log";
-import { CreateProcessId } from "./util";
 
 /*function randomBytes(count: number) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -14,10 +15,11 @@ import { CreateProcessId } from "./util";
 class BufferedInOut implements Writable, Readable {
     buf!: Uint8Array;
     async write(data: Uint8Array): Promise<void> {
+        const logger = await getLogger();
         //throw new Error("Method not implemented.");
         const textdecoder = new TextDecoder();
         const str = textdecoder.decode(data);
-        Logger.log(str);
+        logger.log(str);
         return;
     }
     read(len: number): Promise<Uint8Array> {
@@ -38,19 +40,23 @@ class ProcessInfo {
 export class ProcessManager {
     processList: ProcessInfo[] = [];
     async create(process: Process): Promise<Process> {
-        Logger.log("process.create");
+        const logger = await getLogger();
+
+        logger.log("process.create");
         process.status = "created";
 
         if (!process.id) {
             process.id = CreateProcessId();
         }
-        Logger.log("process.create process.cmd: ", process.cmd, " id: ", process.id);
+        logger.log("process.create process.cmd: ", process.cmd, " id: ", process.id);
 
         const p = await this.start(process);
         return process;
     }
 
     async start(process: Process): Promise<Process> {
+        const logger = await getLogger();
+
         const wasmBinaryUrl = process.cmd;
 
         const buf = await fetch(wasmBinaryUrl);
@@ -84,26 +90,28 @@ export class ProcessManager {
             process.status = "running";
             w.run(mod)
                 .then(() => {
-                    Logger.log("in run then");
+                    logger.log("in run then");
                 })
                 .catch((err: any) => {
                     process.status = "terminated";
-                    Logger.log("in run catch err:", err);
+                    logger.log("in run catch err:", err);
                 })
                 .finally(() => {
                     process.status = "terminated";
-                    Logger.log("in run finally");
+                    logger.log("in run finally");
                 });
         } catch (err: any) {
-            Logger.log("in try catch");
-            Logger.error(err.message);
+            logger.log("in try catch");
+            logger.error(err.message);
         } finally {
-            Logger.log("in try finally");
+            logger.log("in try finally");
         }
         return process;
     }
 
     async map(): Promise<Record<string, Process>> {
+        const logger = await getLogger();
+
         const pMap: Record<string, Process> = {};
         for (const p of this.processList) {
             const proc = p.process;
@@ -111,7 +119,7 @@ export class ProcessManager {
                 pMap[proc.id] = proc;
             }
         }
-        Logger.log("listing processes");
+        logger.log("listing processes");
         return pMap;
     }
 
@@ -134,14 +142,16 @@ export class ProcessManager {
     }
 
     async killProcess(id: string): Promise<boolean> {
-        Logger.log("killing processes ", id);
+        const logger = await getLogger();
+
+        logger.log("killing processes ", id);
         const p = await this.getProcessInfo(id);
         if (p.abortController) {
             const abortc = p.abortController;
             try {
                 abortc.abort();
             } catch (err: any) {
-                Logger.log("catched err: ", err);
+                logger.log("catched err: ", err);
             }
         }
         return true;

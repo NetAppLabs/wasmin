@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
 import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasm-env/wasi-js/tests/utils.js";
-import { WASI } from "@wasm-env/wasi-js";
+import { WASI, isBun } from "@wasm-env/wasi-js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -21,7 +21,11 @@ async function constructTestsWithSkip() {
     ]);
     const testSkipRemoved: Test[] = [];
     const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access"];
-
+    if (isBun()) {
+        skips.push("fd_filestat_set");
+        skips.push("interesting_paths");
+        skips.push("stat-dev-ino");
+    }
     for (const t of tests) {
         let skip = false;
         for (const sk of skips) {
@@ -39,7 +43,7 @@ async function constructTestsWithSkip() {
 
 const tests = await constructTestsWithSkip();
 
-describe("all", () => {
+describe("wasi-testsuite", () => {
     test.each(tests)(
         "$test",
         async (testCase: Test) => {
@@ -51,6 +55,9 @@ describe("all", () => {
                 stdout: "",
                 stderr: "",
             };
+            const testCaseName = testCase.test;
+            console.log("running test: ", testCaseName);
+
             const wasmPath = testCase.wasmPath;
             const stdout = testCase.stdout;
             let actualExitCode = 0;

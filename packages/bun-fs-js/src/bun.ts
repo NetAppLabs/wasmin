@@ -18,8 +18,9 @@ import {
 } from "@wasm-env/fs-js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
 
-import type { MyFile } from "./fetch-blob/file";
-import { fileFrom } from "./fetch-blob/from.js";
+// @ts-ignore
+import { WritableStreamDefaultWriter, FileBlob, BunFile } from "bun";
+//import { WritableStreamDefaultWriter, FileBlob, BunFile } from "bun-types";
 
 const BUN_FS_DEBUG = false;
 
@@ -114,27 +115,10 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
         bunFsDebug("write else");
         bunFsDebug("write else chunk: ", chunk);
 
-        //chunk = new ArrayBuffer(chunk);
-        //const written = fsSync.writevSync(this.fileHandle, [chunk], this.position);
-        //const resp = await writeev(this.fileHandle, [chunk], this.position);
-
         try {
-            //const writeev = promisify(fsSync.writev);
-            //const resp = await writeev(this.fileHandle, chunk, this.position);
-            //const written = fsSync.writevSync(this.fileHandle, chunk, this.position)
-            /*const cb = function(err, bytesWritten, buffers){
-        this.position += bytesWritten;
-        this.size += bytesWritten;
-        return;
-      }
-      fs.writeFile()
-      fsSync.writev(this.fileHandle, chunk, cb);
-      */
             const chunkLength = chunk.byteLength;
             bunFsDebug("write else chunkLength: ", chunkLength);
             const written = fsSync.writeSync(this.fileHandleNumber, chunk, 0, chunkLength, this.position);
-            //const written = resp.bytesWritten;
-            //const res = await this.fileHandle.writev([chunk], this.position);
             this.position += written;
             this.size += written;
             bunFsDebug("write else written: ", written);
@@ -150,16 +134,23 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
 }
 
 // @ts-ignore because of typescript .prototype bug regarding File/Blob
-export class BunFileHandle implements ImpleFileHandle<BunSink, MyFile>, FileSystemFileHandle {
+export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSystemFileHandle {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;
 
     // @ts-ignore because of typescript .prototype bug regarding File/Blob
     async getFile() {
-        const f = await fileFrom(this.path);
-        const fil = f as unknown as File;
-        return fil;
+        try {
+             // @ts-ignore 
+            const bf = Bun.file(this.path) as BunFile;
+            //const f = wrapBunFile(bf);
+            const f = bf;
+            return f;
+        } catch (err: any) {
+            if (err.code === "ENOENT") throw new NotFoundError();
+            throw err;
+        }
     }
 
     async isSameEntry(other: any): Promise<boolean> {
@@ -315,7 +306,6 @@ export class BunFolderHandle implements ImplFolderHandle<BunFileHandle, BunFolde
             }
         }
         if (!opts.create) throw new NotFoundError();
-        //await (await fs.open(path, "w")).close();
         const fHandle = await fs.open(path, "w");
         fsSync.closeSync(fHandle);
         return new BunFileHandle(path, name);
