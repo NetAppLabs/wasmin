@@ -27,10 +27,9 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const testFile = "lseek.json"
 
 const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
-const testFile = "environ_get-multiple-variables.json"
+const testFile = "environ_get-multiple-variables.json";
 //const testFile = "fd_write-to-stdout.json"
 //const testFile = "environ_sizes_get-multiple-variables.json";
-
 
 let loop_count = 10;
 
@@ -77,7 +76,7 @@ async function runCase(testCase) {
         console.log("err.stack: ", err.stack);
         actualStdout = ret.stdout;
         actualStderr = ret.stderr;
-    
+
         console.log("actualStdout: ", actualStdout);
         console.log("actualStdErr: ", actualStderr);
 

@@ -3,6 +3,7 @@ import { Socket } from "../wasiFileSystem.js";
 import { Addr, AddrTypeN, ErrnoN } from "./bindings.js";
 
 export type AddressFamily = "IPv4" | "IPv6";
+export type SocketType = "dgram" | "strm";
 
 export interface AddressInfo {
     address: string;
@@ -10,11 +11,24 @@ export interface AddressInfo {
     port: number;
 }
 
+export interface RemoteInfo {
+    address: string;
+    family: AddressFamily;
+    port: number;
+    size: number;
+}
+
+export interface RemoteChunk {
+    buf: Uint8Array;
+    rinfo: RemoteInfo;
+}
+
 /**
  * WasiSocket defines the operations on a wasi_experimental_sockets Socket
  *
  */
 export interface WasiSocket extends Socket {
+    type: SocketType;
     address(): Promise<AddressInfo>;
     remoteAddress(): Promise<AddressInfo>;
     bind(addr: AddressInfo): Promise<void>;
@@ -22,6 +36,8 @@ export interface WasiSocket extends Socket {
     getAcceptedSocket(): Promise<WasiSocket>;
     connect(addr: string, port: number): Promise<void>;
     shutdown(): void;
+    readFrom(len: number): Promise<RemoteChunk>;
+    writeTo(buf: Uint8Array, remoteAddr?: AddressInfo): Promise<void>;
 }
 
 /**
@@ -34,13 +50,15 @@ export interface NodeNetTcpSocket {
     remotePort?: number | undefined;
     address(): AddressInfo;
     connect(port: number, host: string, connectionListener?: () => void): this | Promise<this>;
-    //end(callback?: () => void): this;
-    end(str: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void): this;
+    end(callback?: () => void): this;
+    //end(str: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void): this;
     on(event: "close", listener: (hadError: boolean) => void): this;
     on(event: "connect", listener: () => void): this;
     on(event: "data", listener: (data: Buffer) => void): this;
+    on(event: "drain", listener: () => void): this;
     on(event: "end", listener: () => void): this;
     on(event: "error", listener: (err: Error) => void): this;
+    on(event: "lookup", listener: (err: Error, address: string, family: string | number, host: string) => void): this;
     on(event: "ready", listener: () => void): this;
     on(event: "timeout", listener: () => void): this;
     write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
@@ -51,12 +69,34 @@ export interface NodeNetTcpSocket {
  *
  */
 export interface NodeNetTcpServer {
-    on(event: "error", listener: (err: Error) => void): this;
     on(event: "close", listener: () => void): this;
     on(event: "connection", listener: (socket: NodeNetTcpSocket) => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
     on(event: "listening", listener: () => void): this;
+    on(event: "drop", listener: () => void): this;
     listen(port?: number, hostname?: string, backlog?: number, listeningListener?: () => void): this;
     address(): AddressInfo;
+}
+
+export interface NodeNetUdpSocket {
+    address(): AddressInfo;
+    //connect(port: number, host: string, connectionListener?: () => void): this | Promise<this>;
+    close(callback?: () => void): this;
+    connect(port: number, address?: string, callback?: () => void): void;
+    bind(port?: number, address?: string, callback?: () => void): this;
+    remoteAddress(): AddressInfo;
+    //send(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
+    send(
+        msg: string | Uint8Array | ReadonlyArray<any>,
+        port?: number,
+        address?: string,
+        callback?: (error: Error | null, bytes: number) => void
+    ): void;
+    on(event: "close", listener: () => void): this;
+    on(event: "connect", listener: () => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
+    on(event: "listening", listener: () => void): this;
+    on(event: "message", listener: (msg: Buffer, rinfo: RemoteInfo) => void): this;
 }
 
 export function delay(ms: number) {
@@ -97,30 +137,40 @@ export function wasiSocketsDebug(msg?: any, ...optionalParams: any[]): void {
 
 export function IPv4AddressToArray(addr: string): [number, number, number, number] {
     const saddrs = addr.split(".");
+    wasiSocketsDebug("IPv4AddressToArray: saddrs: ", saddrs);
     const retAddrs: [number, number, number, number] = [0, 0, 0, 0];
+    let i = 0;
     for (const saddr of saddrs) {
-        retAddrs.push(parseInt(saddr));
+        retAddrs[i] = parseInt(saddr);
+        i++;
     }
+    wasiSocketsDebug("IPv4AddressToArray: retAddrs: ", retAddrs);
     return retAddrs;
 }
 
 export function IPv6AddressToArray(addr: string): [number, number, number, number, number, number, number, number] {
     // TODO: handle IPv6 representation of IPv4 address? (e.g. '::ffff:192.168.1.1')
-    const a = addr.startsWith("::") ? "0" + addr : addr.endsWith("::") ? addr + "0" : addr;
-    const saddrs = a.split(":");
-    const retAddrs: [number, number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0, 0];
-    for (const saddr of saddrs) {
-        if (saddr !== "") {
-            retAddrs.push(parseInt(saddr, 16));
-        } else {
-            // saddr is empty so this should be the "::" shorthand
-            // need to add zeroes to retAddrs as many times as it
-            // takes to end up with 8 elements in total
-            for (let i = saddrs.length - 1; i < 8; i++) {
-                retAddrs.push(0);
-            }
+    let a = addr;
+    // handle short hand form
+    if (addr.startsWith("::")) {
+        let separatorCounts = addr.split(":").length;
+        for (let i = separatorCounts; i < 8; i++) {
+            a = ":" + a;
         }
     }
+    const saddrs = a.split(":");
+    const retAddrs: [number, number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0, 0];
+    let i = 0;
+    for (const saddr of saddrs) {
+        if (saddr !== "") {
+            retAddrs[i] = parseInt(saddr, 16);
+        } else {
+            // saddr is empty so this should be the "::" shorthand
+            retAddrs[i] = 0;
+        }
+        i++;
+    }
+    wasiSocketsDebug("IPv6AddressToArray: retAddrs: ", retAddrs);
     return retAddrs;
 }
 
@@ -148,7 +198,7 @@ export function WasiAddrtoAddressInfo(addr: Addr): AddressInfo {
         const h2s = h2.toString(16);
         const h3 = addr.data.addr.h_3;
         const h3s = h3.toString(16);
-        hostAddr = `${n0s}:${n1s}:${n2s}}:${n3s}:${h0s}:${h1s}:${h2s}}:${h3s}`;
+        hostAddr = `${n0s}:${n1s}:${n2s}:${n3s}:${h0s}:${h1s}:${h2s}:${h3s}`;
     } else {
         throw new SystemError(ErrnoN.AFNOSUPPORT);
     }

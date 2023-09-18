@@ -26,6 +26,10 @@ while [ -n "$1" ] ; do
         ;;
    -d)
         set -x
+		export WASM_ENV_DEBUG=true
+        ;;
+   -c)
+		export WASM_ENV_COMPONENT=true
         ;;
    -w)
         export NODE_SHELL_WORKER=1

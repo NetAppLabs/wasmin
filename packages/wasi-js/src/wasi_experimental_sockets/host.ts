@@ -1,5 +1,5 @@
 import { WasiEnv } from "../wasi.js";
-import { isNode, isNodeorBun, translateErrorToErrorno } from "../wasiUtils.js";
+import { isNode, isNodeorBun, translateErrorToErrorno, wasiCallDebug } from "../wasiUtils.js";
 import {
     Addr,
     AddressFamily,
@@ -20,7 +20,14 @@ import {
 
 import { SystemError } from "../errors.js";
 import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common.js";
-import { NetTcpSocket, NetUdpSocket, addrFamilyNoToAddrFamily, createTcpSocket, getAddressResolver } from "./net.js";
+import {
+    NetTcpSocket,
+    NetUdpSocket,
+    addrFamilyNoToAddrFamily,
+    createTcpSocket,
+    createUdpSocket,
+    getAddressResolver,
+} from "./net.js";
 
 export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSocketsAsync {
     constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
@@ -64,13 +71,16 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         buf_len: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
+        const hostname = string.get(this.buffer, host_ptr, host_len);
+        wasiCallDebug("[addr_resolve] hostname:", hostname, " port:", port);
         const addrResolve = await getAddressResolver();
         if (addrResolve) {
             let offset = 0;
-            const hostname = string.get(this.buffer, host_ptr, host_len);
             const dnsResponses = await addrResolve(hostname, port);
             for (const addrInfo of dnsResponses) {
+                wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
                 const wasiAddr = AddressInfoToWasiAddr(addrInfo);
+                console.log("[addr_resolve] wasiAddr: ", wasiAddr);
                 const mptr = (buf + offset) as any as mutptr<Addr>;
                 Addr.set(this.buffer, mptr, wasiAddr);
                 if (addrInfo.family == "IPv4") {
@@ -85,79 +95,59 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return ErrnoN.NOSYS;
     }
     async sockAddrLocal(fd: number, buf: mutptr<number>, buf_len: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockAddrLocal:");
+        wasiCallDebug("[sock_addr_local] fd:", fd);
         const sock = this.getSocket(fd);
         const addr = await sock.address();
-        wasiSocketsDebug("sockAddrLocal: addr: ", addr);
+        wasiCallDebug("[sock_addr_local] addr:", addr);
         const wasiAddr = AddressInfoToWasiAddr(addr);
         const mptr = buf as any as mutptr<Addr>;
         Addr.set(this.buffer, mptr, wasiAddr);
-        wasiSocketsDebug("sockAddrLocal: returning");
+        wasiSocketsDebug("[sock_addr_local] returnign wasi_addr:", wasiAddr);
         return ErrnoN.SUCCESS;
     }
     async sockAddrRemote(fd: number, buf: mutptr<number>, buf_len: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockAddrRemote:");
+        wasiCallDebug("[sock_addr_remote] fd:", fd);
         const sock = this.getSocket(fd);
         //wasiSocketsDebug("sockAddrRemote: sock: ", sock);
         const addr = await sock.remoteAddress();
-        wasiSocketsDebug("sockAddrRemote: addr: ", addr);
+        wasiCallDebug("[sock_addr_remote] addr: ", addr);
         const wasiAddr = AddressInfoToWasiAddr(addr);
         const mptr = buf as any as mutptr<Addr>;
         Addr.set(this.buffer, mptr, wasiAddr);
-        wasiSocketsDebug("sockAddrRemote: returning");
+        wasiSocketsDebug("sock_addr_remote: returning");
         return ErrnoN.SUCCESS;
     }
     async sockOpen(af: AddressFamily, socktype: SockType, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockOpen:");
-        wasiSocketsDebug("sockOpen:  af: ", af);
-        wasiSocketsDebug("sockOpen:  afn: ", af as number);
-        wasiSocketsDebug("sockOpen:  sockType: ", socktype);
+        wasiCallDebug("[sock_open] af:", af, "sock_type:", socktype);
+        wasiSocketsDebug("[sock_open]:  af: ", af);
+        wasiSocketsDebug("[sock_open]:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
-            /*if (isNode()) {
-                const nodeImpl = await import("./net_node.js");
-                const createSocket = nodeImpl.createNodeTcpSocket;
-                const createServer = nodeImpl.createNodeTcpServer;
-                wasiSocketsDebug("sockOpen tcp 1 :");
-                const sock = new NetTcpSocket(createSocket, createServer);
-                wasiSocketsDebug("sockOpen tcp 2 :");
-                const resultFd = this.openFiles.add(sock);
-                wasiSocketsDebug("sockOpen tcp 3 :");
-                Fd.set(this.buffer, result_ptr, resultFd);
-                wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
-                return ErrnoN.SUCCESS;
-            } else {
-                const wsImpl = await import("./net_wsproxy.js");
-                const createSocket = wsImpl.createNodeTcpSocket;
-                const createServer = wsImpl.createNodeTcpServer;
-                wasiSocketsDebug("sockOpen tcp 1 :");
-                const sock = new NetTcpSocket(createSocket, createServer);
-                wasiSocketsDebug("sockOpen tcp 2 :");
-                const resultFd = this.openFiles.add(sock);
-                wasiSocketsDebug("sockOpen tcp 3 :");
-                Fd.set(this.buffer, result_ptr, resultFd);
-                wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
-                return ErrnoN.SUCCESS;
-            }*/
             const addrFamily = addrFamilyNoToAddrFamily(af);
             const sock = await createTcpSocket(addrFamily);
             const resultFd = this.openFiles.add(sock);
-            wasiSocketsDebug("sockOpen tcp 3 :");
+            wasiSocketsDebug("[sock_open] tcp 3 :");
             Fd.set(this.buffer, result_ptr, resultFd);
             wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
+            wasiCallDebug("[sock_open] SOCKET_STREAM returning fd:", resultFd);
             return ErrnoN.SUCCESS;
         } else if (socktype == SockTypeN.SOCKET_DGRAM) {
-            wasiSocketsDebug("sockOpen udp 1 :");
+            wasiSocketsDebug("[sock_open] udp 1 :");
             if (isNodeorBun()) {
                 let sock: WasiSocket;
                 switch (af) {
                     case AddressFamilyN.INET_4:
-                        sock = new NetUdpSocket("udp4");
+                        wasiSocketsDebug("[sock_open] udp INET_4:");
+                        sock = await createUdpSocket("IPv4");
+                        break;
                     case AddressFamilyN.INET_6:
-                        sock = new NetUdpSocket("udp6");
+                        wasiSocketsDebug("[sock_open] udp INET_6:");
+                        sock = await createUdpSocket("IPv6");
+                        break;
                 }
                 const resultFd = this.openFiles.add(sock);
                 Fd.set(this.buffer, result_ptr, resultFd);
-                wasiSocketsDebug("SOCKET_DGRAM: resultFd: ", resultFd);
+                wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
+                wasiCallDebug("[sock_open] SOCKET_DGRAM returning fd:", resultFd);
                 return ErrnoN.SUCCESS;
             } else {
                 // Not supported on other platforms than node
@@ -168,46 +158,50 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         }
     }
     async sockClose(fd: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockClose:");
+        wasiCallDebug("[sock_close] fd:", fd);
         //const sock = this.getSocket(fd);
         try {
             this.openFiles.close(fd);
         } catch (err: any) {
-            wasiSocketsDebug("close() error: ", err);
+            wasiSocketsDebug("[sock_close] error: ", err);
             return ErrnoN.BUSY;
         }
         return ErrnoN.SUCCESS;
     }
     async sockSetReuseAddr(fd: number, reuse: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSetReuseAddr:");
-        throw new Error("Method not implemented.");
+        wasiCallDebug("[sock_set_reuse_addr] fd:", fd, " reuse:", reuse);
+        // Silently ignored for now
+        return ErrnoN.SUCCESS;
     }
     async sockGetReuseAddr(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockGetReuseAddr:");
-        throw new Error("Method not implemented.");
+        wasiCallDebug("[sock_get_reuse_addr] fd:", fd);
+        // Silently ignored for now
+        const reuse = 0;
+        Fd.set(this.buffer, result_ptr, reuse);
+        return ErrnoN.SUCCESS;
     }
     async sockSetReusePort(fd: number, reuse: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSetReusePort:");
+        wasiCallDebug("[sock_set_reuse_port] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockGetReusePort(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockGetReusePort:");
+        wasiCallDebug("[sock_get_reuse_port] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockSetRecvBufSize(fd: number, size: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSetRecvBufSize:");
+        wasiCallDebug("[sock_set_recv_buffer_size] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockGetRecvBufSize(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockGetRecvBufSize:");
+        wasiCallDebug("[sock_get_recv_buffer_size] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockSetSendBufSize(fd: number, size: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSetSendBufSize:");
+        wasiCallDebug("[sock_set_send_buf_size] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockGetSendBufSize(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockGetSendBufSize:");
+        wasiCallDebug("[sock_get_send_buf_size] fd:", fd);
         throw new Error("Method not implemented.");
     }
     async sockBind(
@@ -238,7 +232,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
               }
         >
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockBind:");
+        wasiCallDebug("[sock_bind] fd:", fd, "addr:", addr);
         const addrval = Addr.get(this.buffer, addr);
         const addrInfo = WasiAddrtoAddressInfo(addrval);
         const sock = this.getSocket(fd);
@@ -246,18 +240,19 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         return ErrnoN.SUCCESS;
     }
     async sockListen(fd: number, backlog: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockListen: fd: ", fd);
+        wasiCallDebug("[sock_listen] fd:", fd);
         const sock = this.getSocket(fd);
         await sock.listen(backlog);
         return ErrnoN.SUCCESS;
     }
     async sockAccept(fd: number, result_ptr: mutptr<number>): Promise<ErrnoN> {
-        wasiSocketsDebug("sockAccept:");
+        wasiCallDebug("[sock_accept] fd:", fd);
         const sock = this.getSocket(fd);
         const clientSock = await sock.getAcceptedSocket();
         const resultFd = this.openFiles.add(clientSock);
         Fd.set(this.buffer, result_ptr, resultFd);
         wasiSocketsDebug("sockAccept: accept: resultFd: ", resultFd);
+        wasiCallDebug("[sock_accept] fd:", fd, " returning fd:", resultFd);
         return ErrnoN.SUCCESS;
     }
     async sockConnect(
@@ -288,7 +283,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
               }
         >
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockConnect:");
+        wasiCallDebug("[sock_connect] fd:", fd, " addr:", addr);
         const sock = this.getSocket(fd);
         const addrval = Addr.get(this.buffer, addr);
         const addrInfo = WasiAddrtoAddressInfo(addrval);
@@ -303,10 +298,11 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         flags: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockRecv:");
+        wasiCallDebug("[sock_recv] fd:", fd);
         const sock = this.getSocket(fd);
-        const read_len = buf_len;
+        let read_len = buf_len;
         const ret = await sock.read(read_len);
+        read_len = ret.length;
         const readbuf = new Uint8Array(this.buffer, buf, buf_len);
         readbuf.set(ret);
         Size.set(this.buffer, result_ptr, read_len);
@@ -321,17 +317,29 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         flags: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockRecvFrom:");
-        if (addr_buf && addr_buf_len) {
+        wasiCallDebug("[sock_recv_from] fd:", fd);
+
+        //const addr_ptr = addr_buf as any as mutptr<Addr>;
+        //const addr = Addr.get(this.buffer, addr_ptr);
+        //wasiCallDebug("[sock_recv_from] addr:", addr);
+
+        /*if (addr_buf && addr_buf_len) {
             const addr_ptr = buf as any as mutptr<Addr>;
             this.sockConnect(fd, addr_ptr);
-        }
+        }*/
         const sock = this.getSocket(fd);
-        const read_len = buf_len;
-        const ret = await sock.read(read_len);
-        const readbuf = new Uint8Array(this.buffer, buf, buf_len);
-        readbuf.set(ret);
-        Size.set(this.buffer, result_ptr, read_len);
+        let read_len = buf_len;
+        const read_chunk = await sock.readFrom(read_len);
+        const read_buf = read_chunk.buf;
+        const read_addr = read_chunk.rinfo;
+        const addr_ptr = addr_buf as any as mutptr<Addr>;
+        const wasi_addr = AddressInfoToWasiAddr(read_addr);
+        wasiCallDebug("[sock_recv_from] wasi_addr:", wasi_addr);
+        Addr.set(this.buffer, addr_ptr, wasi_addr);
+        const read_buf_len = read_buf.length;
+        const read_buf_return = new Uint8Array(this.buffer, buf, read_buf_len);
+        read_buf_return.set(read_buf);
+        Size.set(this.buffer, result_ptr, read_buf_len);
         return ErrnoN.SUCCESS;
     }
     async sockSend(
@@ -341,7 +349,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         flags: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSend:");
+        wasiCallDebug("[sock_send] fd:", fd);
         const sock = this.getSocket(fd);
         const read_len = buf_len;
         const writebuf = new Uint8Array(this.buffer, buf, buf_len);
@@ -381,19 +389,21 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         flags: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        wasiSocketsDebug("sockSendTo:");
-        if (addr) {
-            this.sockConnect(fd, addr);
-        }
+        wasiCallDebug("[sock_send_to] fd:", fd, " address:", addr);
+        const wasiAddr = Addr.get(this.buffer, addr);
+        wasiCallDebug("[sock_send_to] wasiAddr:", wasiAddr);
+        const addrInfo = WasiAddrtoAddressInfo(wasiAddr);
+        wasiCallDebug("[sock_send_to] addrInfo:", addrInfo);
+
         const sock = this.getSocket(fd);
         const read_len = buf_len;
         const writebuf = new Uint8Array(this.buffer, buf, buf_len);
-        await sock.write(writebuf);
+        await sock.writeTo(writebuf, addrInfo);
         Size.set(this.buffer, result_ptr, read_len);
         return ErrnoN.SUCCESS;
     }
     async sockShutdown(fd: number, how: number): Promise<ErrnoN> {
-        wasiSocketsDebug("sockShutdown:");
+        wasiCallDebug("[sock_shutdown] fd:", fd);
         const sock = this.getSocket(fd);
         sock.shutdown();
         return ErrnoN.SUCCESS;

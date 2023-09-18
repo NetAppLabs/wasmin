@@ -2,7 +2,7 @@
 
 import { SystemError } from "../errors.js";
 import { FIRST_PREOPEN_FD, OpenFile, FileOrDir, OpenDirectory } from "../wasiFileSystem.js";
-import { unimplemented } from "../wasiUtils.js";
+import { unimplemented, wasiCallDebug } from "../wasiUtils.js";
 import {
     u64,
     string,
@@ -62,6 +62,7 @@ import {
 } from "../wasiUtils.js";
 import { WasiEnv } from "../wasi.js";
 import { Statable } from "@wasm-env/fs-js";
+import { WasiSocket } from "../wasi_experimental_sockets/common.js";
 
 export function initializeWasiSnapshotPreview1AsyncToImports(
     imports: any,
@@ -171,36 +172,39 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
 
     async argsGet(argv: mutptr<mutptr<u8>>, argv_buf: mutptr<u8>): Promise<Errno> {
-        wasiDebug("[args_get]");
+        wasiCallDebug("[args_get]");
         this.cargs.get(this.buffer, argv, argv_buf);
         return ErrnoN.SUCCESS;
     }
     async argsSizesGet(argc_ptr: mutptr<Size>, argv_buf_size_ptr: mutptr<Size>): Promise<Errno> {
-        wasiDebug("[args_sizes_get]");
+        wasiCallDebug("[args_sizes_get]");
         this.cargs.sizes_get(this.buffer, argc_ptr, argv_buf_size_ptr);
         return ErrnoN.SUCCESS;
     }
     async environGet(environ: mutptr<mutptr<u8>>, environ_buf: mutptr<u8>): Promise<Errno> {
-        wasiDebug("[environ_get]");
+        wasiCallDebug("[environ_get]");
         this.cenv.get(this.buffer, environ, environ_buf);
         return ErrnoN.SUCCESS;
     }
     async environSizesGet(count_ptr: mutptr<Size>, size_ptr: mutptr<Size>): Promise<Errno> {
-        wasiDebug("[environ_sizes_get]");
+        wasiCallDebug("[environ_sizes_get]");
         this.cenv.sizes_get(this.buffer, count_ptr, size_ptr);
         return ErrnoN.SUCCESS;
     }
     async clockResGet(id: ClockidN, result_ptr: mutptr<Timestamp>): Promise<Errno> {
+        wasiCallDebug("[clock_res_get] id:", id);
         // 1 ms
         Timestamp.set(this.buffer, result_ptr, 1_000_000n);
         return ErrnoN.SUCCESS;
     }
     async clockTimeGet(id: ClockidN, precision: Timestamp, result_ptr: mutptr<Timestamp>): Promise<Errno> {
+        wasiCallDebug("[clock_time_get] id:", id);
         const origin = id === ClockidN.REALTIME ? Date : globalThis.performance;
         Timestamp.set(this.buffer, result_ptr, BigInt(Math.round(origin.now() * 1_000_000)));
         return ErrnoN.SUCCESS;
     }
     async fdAdvise(fd: Fd, offset: Filesize, len: Filesize, advice: Advice): Promise<Errno> {
+        wasiCallDebug("[fd_advise] fd:", fd);
         const of = this.openFiles.getAsFile(fd);
         // TODO look into how to keep track of offset and len
         // of.setSize(Number(len));
@@ -209,22 +213,23 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdAllocate(fd: Fd, offset: Filesize, len: Filesize): Promise<Errno> {
+        wasiCallDebug("[fd_allocate] fd:", fd);
         const totalSize = len + offset;
         const ret = this.fdFilestatSetSize(fd, totalSize);
         return ret;
     }
     async fdClose(fd: Fd): Promise<Errno> {
-        wasiFdDebug("[fd_close]", fd);
+        wasiCallDebug("[fd_close] fd:", fd);
         await this.openFiles.close(fd);
         return ErrnoN.SUCCESS;
     }
     async fdDatasync(fd: Fd): Promise<Errno> {
-        wasiDebug("[fd_datasync]");
+        wasiCallDebug("[fd_datasync] fd:", fd);
         this.openFiles.getAsFile(fd).flush();
         return ErrnoN.SUCCESS;
     }
     async fdFdstatGet(fd: Fd, fdstat_ptr: mutptr<Fdstat>): Promise<Errno> {
-        wasiDebug("[fd_fdstat_get]", fd, fdstat_ptr);
+        wasiCallDebug("[fd_fdstat_get] fd:", fd, " fdstat_ptr: ", fdstat_ptr);
         let filetype;
         let fsflags = 0;
         let rightsBase: Rights = -1n; /* anything */
@@ -251,6 +256,17 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             rightsBase = RIGHTS_DIRECTORY_BASE;
             rightsInheriting = RIGHTS_DIRECTORY_INHERITING;
             filetype = FiletypeN.DIRECTORY;
+        } else if (this.openFiles.isSocket(fd)) {
+            rightsBase = RIGHTS_FILE_BASE;
+            rightsInheriting = BigInt(0);
+            filetype = FiletypeN.SOCKET_STREAM;
+            const sock = this.getSocket(fd);
+            if (sock.type == "strm") {
+                filetype = FiletypeN.SOCKET_STREAM;
+            } else if (sock.type == "dgram") {
+                filetype = FiletypeN.SOCKET_DGRAM;
+            }
+            fsflags = sock.fdFlags;
         } else {
             return ErrnoN.BADF;
         }
@@ -264,6 +280,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdFdstatSetFlags(fd: Fd, flags: Fdflags): Promise<Errno> {
+        wasiCallDebug("[fd_fdstat_set_flags] fd:", fd);
         if (flags & FdflagsN.DSYNC) {
             unimplemented("fd_fdstat_set_flags FdFlags.DSync");
         } else if (flags & FdflagsN.RSYNC) {
@@ -271,8 +288,18 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         } else if (flags & FdflagsN.SYNC) {
             unimplemented("fd_fdstat_set_flags FdFlags.Sync");
         }
-        const openFile = this.openFiles.getAsFile(fd);
-        openFile.fdFlags = flags;
+        if (this.openFiles.isFile(fd)) {
+            const openFile = this.openFiles.getAsFile(fd);
+            openFile.fdFlags = flags;
+        } else if (this.openFiles.isDirectory(fd)) {
+            return ErrnoN.NOTSUP;
+        } else if (this.openFiles.isSocket(fd)) {
+            const sock = this.openFiles.getAsSocket(fd);
+            sock.fdFlags = flags;
+        } else {
+            // silently ignore for other types
+        }
+
         return ErrnoN.SUCCESS;
     }
     async fdFdstatSetRights(fd: Fd, fs_rights_base: Rights, fs_rights_inheriting: Rights): Promise<Errno> {
@@ -280,7 +307,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdFilestatGet(fd: Fd, filestat_ptr: mutptr<Filestat>): Promise<Errno> {
-        wasiDebug(`[fd_filestat_get fd: ${fd}]`);
+        wasiCallDebug(`[fd_filestat_get] fd: ${fd}`);
         if (fd == 0 || fd == 1 || fd == 2) {
             // TODO improve this by moving stdin etc. into this._openFiles
             const newFilestat: Filestat = {
@@ -304,12 +331,12 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdFilestatSetSize(fd: Fd, size: Filesize): Promise<Errno> {
-        wasiDebug(`[fd_filestat_set_size] fd: ${fd} , size: ${size}`);
+        wasiCallDebug(`[fd_filestat_set_size] fd: ${fd} , size: ${size}`);
         await this.openFiles.getAsFile(fd).setSize(Number(size));
         return ErrnoN.SUCCESS;
     }
     async fdFilestatSetTimes(fd: Fd, atim: Timestamp, mtim: Timestamp, fst_flags: Fstflags): Promise<Errno> {
-        wasiDebug("fd_filestat_set_times");
+        wasiCallDebug("[fd_filestat_set_times] fd:", fd);
         const of = this.openFiles.getAsFileOrDir(fd);
         const handle = of.handle;
         if ((handle as any).updateTimes) {
@@ -345,8 +372,8 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         offset: Filesize,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        wasiDebug("[fdPread]");
-        const newFd = await this.openFiles.openWriter(fd, offset);
+        wasiCallDebug("[fd_pread] fd:", fd);
+        const newFd = await this.openFiles.openReader(fd, offset);
         const input = this.openFiles.getAsReadable(newFd);
         try {
             await forEachIoVec(
@@ -371,7 +398,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdPrestatGet(fd: Fd, result_ptr: mutptr<Prestat>): Promise<Errno> {
-        wasiDebug("[fd_prestat_get] fd: ", fd);
+        wasiCallDebug("[fd_prestat_get] fd:", fd);
         try {
             const newPrestat: Prestat = {
                 tag: PreopentypeN.DIR,
@@ -386,7 +413,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdPrestatDirName(fd: Fd, path: mutptr<u8>, path_len: Size): Promise<Errno> {
-        wasiDebug(`[fd_prestat_dir_name] fd: ${fd}`);
+        wasiCallDebug(`[fd_prestat_dir_name] fd: ${fd}`);
         // TODO: look into type safety
         const path_ptr = path as unknown as ptr<string>;
         const preOpenPath = this.openFiles.getPreOpen(fd).path;
@@ -401,7 +428,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         offset: Filesize,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        wasiFdDebug("[fd_write]", fd, iovs_ptr, iovs_len, result_ptr);
+        wasiFdDebug("[fd_pwrite]", fd, iovs_ptr, iovs_len, result_ptr);
         const newFd = await this.openFiles.openWriter(fd, offset);
         const out = this.openFiles.getAsWritable(newFd);
         try {
@@ -453,7 +480,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
         let setcookie = cookie;
-        wasiDebug("[fd_readdir] cookie: ", setcookie);
+        wasiCallDebug("[fd_readdir] fd:", fd, " cookie: ", setcookie);
         const textEncoder = new TextEncoder();
 
         const initialBufPtr = buf;
@@ -575,13 +602,12 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         }
     }
     async fdRenumber(fd: Fd, to: Fd): Promise<Errno> {
-        ("");
-        wasiDebug("[fd_renumber]");
+        wasiCallDebug("[fd_renumber] fd:", fd);
         this.openFiles.renumber(fd, to);
         return ErrnoN.SUCCESS;
     }
     async fdSeek(fd: Fd, offset: Filedelta, whence: Whence, result_ptr: mutptr<Filesize>): Promise<Errno> {
-        wasiDebug(`[fd_seek fd: ${fd} offset: ${offset} whence: ${whence}]`);
+        wasiCallDebug(`[fd_seek] fd: ${fd} offset: ${offset} whence: ${whence}`);
         if (fd < FIRST_PREOPEN_FD) {
             // Assuming this is a FileType.CharacterDevice
             // TODO look into how best to handle this error as character devices do not support seek
@@ -609,7 +635,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdSync(fd: Fd): Promise<Errno> {
-        wasiDebug("[fd_sync]");
+        wasiCallDebug("[fd_sync] fd:", fd);
         if (this.openFiles.isFile(fd)) {
             const openFile = this.openFiles.getAsFile(fd);
             await openFile.flush();
@@ -617,7 +643,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async fdTell(fd: Fd, result_ptr: mutptr<Filesize>): Promise<Errno> {
-        wasiDebug(`[fd_tell fd: ${fd}]`);
+        wasiCallDebug(`[fd_tell] fd: ${fd}`);
         const filePos = this.openFiles.getAsFile(fd).position;
         u64.set(this.buffer, result_ptr, BigInt(filePos));
         return ErrnoN.SUCCESS;
@@ -642,7 +668,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async pathCreateDirectory(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const pathString = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_create_directory] pathString: ${pathString} on fd: ${fd}`);
+        wasiCallDebug(`[path_create_directory] pathString: ${pathString} on fd: ${fd}`);
         const cMode = FileOrDir.Dir;
         const openFlags = OflagsN.CREAT | OflagsN.DIRECTORY | OflagsN.EXCL;
         const preOpenDir = this.openFiles.getAsDir(fd);
@@ -658,7 +684,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Filestat>
     ): Promise<Errno> {
         const pathString = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_filestat_get] fd: ${fd} _flags: ${flags} pathString: ${pathString} result_ptr: ${result_ptr}`);
+        wasiCallDebug(
+            `[path_filestat_get] fd: ${fd} _flags: ${flags} pathString: ${pathString} result_ptr: ${result_ptr}`
+        );
         const handle = await this.openFiles.getAsDir(fd).getFileOrDir(pathString, FileOrDir.Any);
         await populateFileStat(this.buffer, handle, result_ptr);
         return ErrnoN.SUCCESS;
@@ -672,7 +700,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         mtim: Timestamp,
         fst_flags: Fstflags
     ): Promise<Errno> {
-        wasiDebug("fd_filestat_set_times");
+        wasiCallDebug("[fd_filestat_set_times] fd:", fd);
         // TODO; handle Lookupflags
         const path = string.get(this.buffer, path_ptr, path_len);
         const opendir = this.openFiles.getAsDir(fd);
@@ -719,7 +747,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Fd>
     ): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_open fd: ${fd}, dirFlags: ${dirflags}, path: ${path}, fdflags: ${fdflags} ]`);
+        wasiCallDebug(`[path_open] fd: ${fd}, dirFlags: ${dirflags}, path: ${path}, fdflags: ${fdflags}`);
         if (fdflags & FdflagsN.NONBLOCK) {
             wasiWarn(
                 `Asked for non-blocking mode on path ${path} with dirFd: ${fd} while opening the file, falling back to blocking one.`
@@ -736,7 +764,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
 
         const openDir = this.openFiles.getAsDir(fd);
         const resultFd = await this.openFiles.open(openDir, path, oflags, fdflags);
-        wasiDebug(`[path_open result: dirFd: ${fd}, path: ${path}, resultFd: ${resultFd} ]`);
+        wasiCallDebug(`[path_open] fd: ${fd} path: ${path} result fd: ${resultFd}`);
 
         Fd.set(this.buffer, result_ptr, resultFd);
         return ErrnoN.SUCCESS;
@@ -750,13 +778,13 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_readlink: dirFd: ${fd} , path: ${path}]`);
+        wasiCallDebug(`[path_readlink] dirFd: ${fd} , path: ${path}`);
         //throw new SystemError(ErrnoN.INVAL);
         return ErrnoN.INVAL;
     }
     async pathRemoveDirectory(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_remove_directory] fd: ${fd} path: ${path}`);
+        wasiCallDebug(`[path_remove_directory] fd: ${fd} path: ${path}`);
         const openDir = this.openFiles.getAsDir(fd);
         await openDir.delete(path);
         return ErrnoN.SUCCESS;
@@ -784,7 +812,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     }
     async pathUnlinkFile(fd: Fd, path_ptr: ptr<string>, path_len: usize): Promise<Errno> {
         const path = string.get(this.buffer, path_ptr, path_len);
-        wasiDebug(`[path_unlink_file] dirfd: ${fd} path: ${path}`);
+        wasiCallDebug(`[path_unlink_file] dir fd: ${fd} path: ${path}`);
         const resource = this.openFiles.get(fd);
         if (resource instanceof OpenDirectory) {
             const dir = resource as OpenDirectory;
@@ -804,7 +832,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         nsubscriptions: Size,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        wasiDebug("[poll_oneoff]");
+        wasiCallDebug("[poll_oneoff] nsubscriptions: ", nsubscriptions);
         const subscriptionsNum = nsubscriptions;
         const eventsNumPtr = result_ptr;
         let subscriptionPtr = in_;
@@ -830,7 +858,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             subscriptionPtr = (subscriptionPtr + Subscription.size) as ptr<Subscription>;
             switch (u.tag) {
                 case EventtypeN.CLOCK: {
-                    wasiDebug("poll_oneoff EventType.Clock");
+                    wasiCallDebug("[poll_oneoff] event_type: clock");
                     let timeout = Number(u.data.timeout) / 1_000_000;
                     if (u.data.flags === SubclockflagsN.SUBSCRIPTION_CLOCK_ABSTIME) {
                         const origin = u.data.id === ClockidN.REALTIME ? Date : globalThis.performance;
@@ -846,49 +874,52 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 }
                 case EventtypeN.FD_READ: {
                     const fd_forread = u.data.file_descriptor;
-                    wasiDebug("poll_oneoff EventType.FdRead: fd: " + fd_forread);
-                    if (fd_forread == 0) {
-                        if (this.suspendStdIn == true) {
-                            wasiDebug("poll_oneoff EventType.FdRead: _suspendStdIn==true");
-                            wasiDebug("poll_oneoff EventType.FdRead: args: ", this.cargs);
-                            wasiDebug("poll_oneoff EventType.FdRead: env: ", this.cenv);
+                    wasiCallDebug("[poll_oneoff] event_type: fd_read, fd:", fd_forread);
+                    if (this.suspendStdIn == true) {
+                        wasiDebug("poll_oneoff EventType.FdRead: _suspendStdIn==true");
+                        wasiDebug("poll_oneoff EventType.FdRead: args: ", this.cargs);
+                        wasiDebug("poll_oneoff EventType.FdRead: env: ", this.cenv);
 
-                            await this._wait(1000);
-                        } else {
-                            wasiDebug("poll_oneoff EventType.FdRead: _suspendStdIn==false");
-                            wasiDebug("poll_oneoff EventType.FdRead: args: ", this.cargs);
-                            wasiDebug("poll_oneoff EventType.FdRead: env: ", this.cenv);
-
-                            const ofd = this.openFiles.get(fd_forread);
-                            const ofda = ofd as any;
-                            if (ofda.peek) {
-                                const peekBytes = await ofda.peek();
-                            }
-
-                            // TODO this is a hack, specifically for stdin , fd=0
-                            // TODO: implement number of bytes to read
-                            // EventrwflagsN.NONE does not exist, setting to 0
-                            const eventFlagsNone = 0;
-                            const nBytes = 1n;
-                            addEvent({
-                                userdata,
-                                error: ErrnoN.SUCCESS,
-                                type: u.tag,
-                                fd_readwrite: {
-                                    nbytes: nBytes,
-                                    flags: eventFlagsNone,
-                                },
-                            });
+                        await this._wait(1000);
+                    } else {
+                        wasiDebug("poll_oneoff EventType.FdRead: _suspendStdIn==false");
+                        wasiDebug("poll_oneoff EventType.FdRead: args: ", this.cargs);
+                        wasiDebug("poll_oneoff EventType.FdRead: env: ", this.cenv);
+                        let nBytes = 0n;
+                        const ofd = this.openFiles.get(fd_forread);
+                        const ofda = ofd as any;
+                        if (ofda.peek) {
+                            const peekBytes = await ofda.peek();
+                            nBytes = BigInt(peekBytes);
+                            wasiCallDebug("[poll_oneoff] fd:", fd_forread, " peek:", nBytes);
                         }
+
+                        // TODO this is a hack, specifically for stdin , fd=0
+                        // TODO: implement number of bytes to read
+                        // EventrwflagsN.NONE does not exist, setting to 0
+                        const eventFlagsNone = 0;
+                        if (fd_forread == 0) {
+                            nBytes = 1n;
+                        }
+                        addEvent({
+                            userdata,
+                            error: ErrnoN.SUCCESS,
+                            type: u.tag,
+                            fd_readwrite: {
+                                nbytes: nBytes,
+                                flags: eventFlagsNone,
+                            },
+                        });
                     }
                     break;
                 }
                 case EventtypeN.FD_WRITE: {
                     const fd_forwrite = u.data.file_descriptor;
-                    wasiDebug("poll_oneoff EventType.FdWrite: fd: " + fd_forwrite);
+                    wasiCallDebug("[poll_oneoff] event_type: fd_write, fd:", fd_forwrite);
                     break;
                 }
                 default: {
+                    wasiCallDebug("[poll_oneoff] event_type: unknown");
                     // EventrwflagsN.NONE does not exist, setting to 0
                     const eventFlagsNone = 0;
                     addEvent({
@@ -923,6 +954,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.SUCCESS;
     }
     async procExit(rval: Exitcode): Promise<void> {
+        wasiCallDebug("[proc_exit] rval: ", rval);
         throw new ExitStatus(rval);
     }
     async procRaise(sig: Signal): Promise<Errno> {
@@ -930,13 +962,13 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         return ErrnoN.NOSYS;
     }
     async schedYield(): Promise<Errno> {
-        wasiDebug("sched_yield");
+        wasiCallDebug("[sched_yield]");
         // Single threaded environment
         // This is a no-op in JS
         return ErrnoN.SUCCESS;
     }
     async randomGet(buf: mutptr<u8>, buf_len: Size): Promise<Errno> {
-        wasiDebug("[random_get] buf_len: ", buf_len);
+        wasiCallDebug("[random_get] buf_len: ", buf_len);
         let copyToSharedArrayBuffer = false;
         if (this.buffer instanceof SharedArrayBuffer) {
             copyToSharedArrayBuffer = true;
@@ -969,10 +1001,22 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         }
         return ErrnoN.SUCCESS;
     }
-    async sockAccept(fd: Fd, flags: Fdflags, result_ptr: mutptr<Fd>): Promise<Errno> {
-        unimplemented("sock_accept");
-        return ErrnoN.NOSYS;
+
+    getSocket(fd: number): WasiSocket {
+        const res = this.openFiles.get(fd);
+        return res as WasiSocket;
     }
+
+    async sockAccept(fd: Fd, flags: Fdflags, result_ptr: mutptr<Fd>): Promise<Errno> {
+        wasiCallDebug("[sock_accept] fd:", fd);
+        const sock = this.getSocket(fd);
+        const clientSock = await sock.getAcceptedSocket();
+        const resultFd = this.openFiles.add(clientSock);
+        Fd.set(this.buffer, result_ptr, resultFd);
+        wasiCallDebug("[sock_accept] returning fd:", resultFd);
+        return ErrnoN.SUCCESS;
+    }
+
     async sockRecv(
         fd: Fd,
         ri_data_ptr: ptr<Iovec>,
@@ -981,8 +1025,29 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_0_ptr: mutptr<Size>,
         result_1_ptr: mutptr<Roflags>
     ): Promise<Errno> {
-        unimplemented("sock_recv");
-        return ErrnoN.NOSYS;
+        wasiCallDebug("[sock_recv] fd:", fd);
+        const sock = this.getSocket(fd);
+        try {
+            await forEachIoVec(
+                this.buffer,
+                ri_data_ptr,
+                ri_data_len,
+                result_0_ptr,
+                async (buf) => {
+                    const read_len = ri_data_len;
+                    wasiDebug(`[sock_recv] forEachIoVec bufLen: ${ri_data_len} input: `, sock);
+                    const chunk = await sock.read(read_len);
+                    buf.set(chunk);
+                    return chunk.length;
+                },
+                () => {
+                    this._checkAbort();
+                }
+            );
+        } catch (err: any) {
+            wasiDebug("[sock_recv] err: ", err);
+        }
+        return ErrnoN.SUCCESS;
     }
     async sockSend(
         fd: Fd,
@@ -991,11 +1056,31 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         si_flags: Siflags,
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
-        unimplemented("sock_send");
-        return ErrnoN.NOSYS;
+        wasiCallDebug("[sock_send] fd:", fd);
+        const sock = this.getSocket(fd);
+        try {
+            await forEachIoVec(
+                this.buffer,
+                si_data_ptr,
+                si_data_len,
+                result_ptr,
+                async (data) => {
+                    await sock.write(data);
+                    return data.length;
+                },
+                () => {
+                    this._checkAbort();
+                }
+            );
+        } catch (err: any) {
+            wasiDebug("[sock_send] err: ", err);
+        }
+        return ErrnoN.SUCCESS;
     }
     async sockShutdown(fd: Fd, how: Sdflags): Promise<Errno> {
-        unimplemented("sock_shutdown");
-        return ErrnoN.NOSYS;
+        wasiCallDebug("[sock_shutdown] fd:", fd);
+        const sock = this.getSocket(fd);
+        sock.shutdown();
+        return ErrnoN.SUCCESS;
     }
 }

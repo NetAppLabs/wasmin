@@ -22,8 +22,7 @@ async function getRootHandle(backend) {
     switch (backend) {
         case "memory":
             return getOriginPrivateDirectory(memory);
-        default:
-        {
+        default: {
             if (isBun()) {
                 const bunmod = await import("@wasm-env/bun-fs-js");
                 const bun = bunmod.bun;

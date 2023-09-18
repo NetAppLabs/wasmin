@@ -1,0 +1,7 @@
+#!/bin/bash
+
+from=$1
+to_base=$(echo "${from}" | sed 's/\.wasm//')
+to="${to_base}.async.wasm"
+
+wasm-opt $from -O --enable-bulk-memory --asyncify -o $to

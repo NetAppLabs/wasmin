@@ -3,9 +3,18 @@ import { Socket } from "../wasiFileSystem.js";
 import { isNode, isNodeorBun } from "../wasiUtils.js";
 
 import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
-import { AddressInfo, appendToUint8Array, delay, WasiSocket, wasiSocketsDebug } from "./common.js";
+import {
+    AddressInfo,
+    appendToUint8Array,
+    delay,
+    NodeNetUdpSocket,
+    RemoteChunk,
+    RemoteInfo,
+    SocketType,
+    WasiSocket,
+    wasiSocketsDebug,
+} from "./common.js";
 import { NodeNetTcpServer, NodeNetTcpSocket, AddressFamily } from "./common.js";
-import { addrResolve } from "./net_node.js";
 
 /*
 import { default as net } from "node:net";
@@ -14,8 +23,10 @@ type NodeNetTcpServer = net.Server;
 */
 
 export class NetTcpSocket extends Socket implements WasiSocket {
+    type: SocketType;
     constructor(socketCreator: () => NodeNetTcpSocket, serverCreator?: () => NodeNetTcpServer) {
         super();
+        this.type = "strm";
         this._socketCreator = socketCreator;
         this._serverCreator = serverCreator;
         let nodeSocket: NodeNetTcpSocket | undefined;
@@ -59,6 +70,22 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         }
     }
 
+    async peek(): Promise<number> {
+        let peekedSize = 0;
+        wasiSocketsDebug("socket:peek ");
+        if (this._closed) {
+            wasiSocketsDebug("socket:peek returning 0 as closed");
+            // assuming the sender closed
+            return 0;
+        } else {
+            if (this._dataBuffer) {
+                peekedSize = this._dataBuffer.length;
+            }
+        }
+        await this.waitForConnect();
+        return peekedSize;
+    }
+
     async read(len: number): Promise<Uint8Array> {
         wasiSocketsDebug("socket:read len:", len);
         if (this._closed) {
@@ -67,6 +94,7 @@ export class NetTcpSocket extends Socket implements WasiSocket {
             return new Uint8Array(0);
         }
         await this.waitForConnect();
+
         if (this._dataBuffer.length == 0) {
             wasiSocketsDebug("socket:read throwing EAGAIN as no data");
             await delay(1);
@@ -148,6 +176,11 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         return retChunks;
     }*/
 
+    async writeTo(data: Uint8Array, addr?: AddressInfo): Promise<void> {
+        wasiSocketsDebug("socket:writeTo");
+        await this.write(data);
+    }
+
     async write(data: Uint8Array): Promise<void> {
         wasiSocketsDebug("socket:write");
         await this.waitForConnect();
@@ -186,13 +219,21 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         throw new Error("remoteAddress invalid address");
     }
     close(): void {
-        wasiSocketsDebug("socket:close");
-        this._nodeSocket.end("");
+        wasiSocketsDebug("socket:close()");
+        try {
+            //console.log("close:, ", this._nodeSocket);
+            if (!this._closed) {
+                this._nodeSocket.end();
+                this._closed = true;
+            }
+        } catch (err: any) {
+            wasiSocketsDebug("socket:close() err: ", err);
+        }
         //this._nodeSocket.destroy();
     }
     shutdown(): void {
         wasiSocketsDebug("socket:shutdown");
-        this._nodeSocket.end("");
+        this._nodeSocket.end();
     }
     async bind(addrInfo: AddressInfo) {
         wasiSocketsDebug("socket:bind");
@@ -238,8 +279,11 @@ export class NetTcpSocket extends Socket implements WasiSocket {
                 });
                 server.on("close", () => {
                     wasiSocketsDebug("server:close");
+                    superThis._closed = true;
                 });
-
+                server.on("drop", () => {
+                    wasiSocketsDebug("server:drop");
+                });
                 server.on("connection", (netSocket: NodeNetTcpSocket) => {
                     const getClientSocket = () => netSocket;
                     const newSocket = new NetTcpSocket(getClientSocket, this._serverCreator);
@@ -353,46 +397,249 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         }
         return acceptedSocket;
     }
+
+    async readFrom(len: number): Promise<RemoteChunk> {
+        const chunk = await this.read(len);
+        const rinfoNull: RemoteInfo = {
+            address: "0.0.0.0",
+            port: 0,
+            family: "IPv4",
+            size: 0,
+        };
+        const ret = { buf: chunk, rinfo: rinfoNull };
+        return ret;
+    }
 }
 
 export class NetUdpSocket extends Socket implements WasiSocket {
-    constructor(family: string) {
+    type: SocketType;
+    constructor(family: AddressFamily, socketCreator: (fam: AddressFamily) => NodeNetUdpSocket) {
         super();
-        //const nodeSocket = dgram.createSocket(family);
-        //this.nodeSocket = nodeSocket;
+        this.type = "dgram";
+        const nodeSocket = socketCreator(family);
+        this._nodeSocket = nodeSocket;
+        this.setupListeners();
     }
-    // TODO UDP
-    /*
-    nodeSocket: dgram.Socket
-    async read(len: number): Promise<Uint8Array> {
-        const res = this.nodeSocket.read(len);
-        return res;
+    private _nodeSocket: NodeNetUdpSocket;
+    private _closed = false;
+    private _listening = false;
+    private _connected = false;
+    private _error = 0;
+    // _dataBuffer = new Uint8Array();
+    _dataBuffer: Array<RemoteChunk> = [];
+
+    private _remoteAddr: string = "";
+    private _remotePort: number = 0;
+    async waitForConnect(): Promise<void> {
+        if (this._error) {
+            wasiSocketsDebug("udp socket waitForConnect throwing err: ", this._error);
+            throw new SystemError(this._error, true);
+        }
+        while (!(this._connected || this._listening)) {
+            if (this._error != 0) {
+                wasiSocketsDebug("udp socket waiting for connect err: ", this._error);
+                throw new SystemError(ErrnoN.CONNREFUSED, false);
+            }
+            wasiSocketsDebug("udp socket waiting for connect");
+            await delay(1);
+        }
     }
 
-    async write(data: Uint8Array): Promise<void>{
-        this.nodeSocket.write(data);
+    async read(len: number): Promise<Uint8Array> {
+        const rfrom = await this.readFrom(len);
+        const arr = rfrom.buf;
+        return arr;
     }
-    */
-    address(): Promise<AddressInfo> {
-        throw new Error("UDP not implemented.");
+
+    /*async readFrom(len: number): Promise<RemoteChunk> {
+        let ret: RemoteChunk | undefined = undefined;
+        while (ret==undefined) {
+            try {
+                ret = await this.readFromWithoutRetry(len);
+                return ret;
+            } catch( err: any) {
+                delay(100);
+                wasiSocketsDebug("udp socket:readFrom err:", err);
+            }
+        }
+        throw new SystemError(ErrnoN.CONNABORTED, true);
+    }*/
+    async readFrom(len: number): Promise<RemoteChunk> {
+        const ret = await this.readFromWithoutRetry(len);
+        return ret;
     }
-    remoteAddress(): Promise<AddressInfo> {
-        throw new Error("UDP not implemented.");
+    async readFromWithoutRetry(len: number): Promise<RemoteChunk> {
+        //console.trace();
+        wasiSocketsDebug("udp socket:readFrom len:", len);
+        if (this._closed) {
+            wasiSocketsDebug("udp socket:readFrom ErrnoN.CONNABORTED as closed");
+            // assuming the sender closed
+            //return new Uint8Array(0);
+            throw new SystemError(ErrnoN.CONNABORTED, true);
+        }
+
+        await this.waitForConnect();
+        if (this._dataBuffer.length == 0) {
+            wasiSocketsDebug("udp socket:readFrom throwing EAGAIN as no data");
+            await delay(1);
+            // assuming connected and empty buffer, no data available, telling client to try again
+            throw new SystemError(ErrnoN.AGAIN, true);
+        }
+
+        let availableChunks = this._dataBuffer;
+        const lastChunk = availableChunks.shift();
+        if (lastChunk) {
+            let returningBuf = lastChunk.buf;
+            const returningRinfo = lastChunk.rinfo;
+            const returningBufLen = returningBuf.length;
+            wasiSocketsDebug("udp socket:readFrom returningBuf: ", returningBufLen);
+            if (returningBufLen > len) {
+                returningBuf = lastChunk.buf.subarray(0, len);
+                this._dataBuffer = this._dataBuffer.slice(len);
+                const remainingBuf = lastChunk.buf.subarray(len);
+                const remainingBufLen = remainingBuf.length;
+                // pushing back the remaining buf
+                const remainingRinfo: RemoteInfo = {
+                    address: returningRinfo.address,
+                    port: returningRinfo.port,
+                    size: remainingBufLen,
+                    family: returningRinfo.family,
+                };
+                wasiSocketsDebug("udp socket:readFrom returning remainingRinfo: ", remainingRinfo);
+                this._dataBuffer.push({ buf: remainingBuf, rinfo: remainingRinfo });
+            }
+            wasiSocketsDebug("udp socket:readFrom returning returningBuf.length: ", returningBuf.length);
+            wasiSocketsDebug("udp socket:readFrom returning returningRinfo: ", returningRinfo);
+            return { buf: returningBuf, rinfo: returningRinfo };
+        } else {
+            throw new SystemError(ErrnoN.AGAIN, true);
+        }
     }
-    bind(addr: AddressInfo): Promise<void> {
-        throw new Error("UDP not implemented.");
+
+    async write(data: Uint8Array): Promise<void> {
+        await this.writeTo(data, undefined);
     }
-    listen(backlog: number): Promise<void> {
-        throw new Error("UDP not implemented.");
+
+    async writeTo(data: Uint8Array, addr?: AddressInfo): Promise<void> {
+        wasiSocketsDebug("udp socket:write");
+        wasiSocketsDebug("udp socket:write data:", data);
+        await this.waitForConnect();
+        const cb = (error: Error | null, bytes: number) => {
+            wasiSocketsDebug("udp write callback:");
+            wasiSocketsDebug("udp write callback: error:"), error;
+            wasiSocketsDebug("udp write callback: bytes:"), bytes;
+        };
+        if (addr) {
+            wasiSocketsDebug("udp socket:write addr:", addr);
+            const remotePort = addr.port;
+            const remoteAddr = addr.address;
+            this._nodeSocket.send(data, remotePort, remoteAddr, cb);
+        } else {
+            wasiSocketsDebug("udp socket:write noaddr");
+            this._nodeSocket.send(data);
+        }
+    }
+    async address(): Promise<AddressInfo> {
+        await this.waitForConnect();
+        const addr = this._nodeSocket.address();
+        return addr;
+    }
+    async remoteAddress(): Promise<AddressInfo> {
+        await this.waitForConnect();
+        const addr = this._nodeSocket.remoteAddress();
+        return addr;
+    }
+    async bind(addr: AddressInfo): Promise<void> {
+        wasiSocketsDebug("udp socket bind");
+        const address = addr.address;
+        const port = addr.port;
+        this._nodeSocket.bind(port, address);
+    }
+    async listen(backlog: number): Promise<void> {
+        wasiSocketsDebug("udp socket listen");
     }
     getAcceptedSocket(): Promise<WasiSocket> {
         throw new Error("UDP not implemented.");
     }
-    connect(addr: string, port: number): Promise<void> {
-        throw new Error("UDP not implemented.");
+    async connect(addr: string, port: number): Promise<void> {
+        wasiSocketsDebug("udp connect: starting");
+        const host = addr;
+        const socket = this._nodeSocket;
+        socket.connect(port, host);
+        wasiSocketsDebug("udp connect: setting _remoteAddr: ", addr);
+        this._remoteAddr = addr;
+        wasiSocketsDebug("udp connect: setting _remotePort: ", port);
+        this._remotePort = port;
+        wasiSocketsDebug("udp connect: connected");
     }
     shutdown(): void {
         throw new Error("UDP not implemented.");
+    }
+    setupListeners() {
+        const socket = this._nodeSocket;
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const superThis = this;
+
+        //socket.on(event: string, listener: (...args: any[]) => void)
+
+        //if (this._isServerConnection) {
+        socket.on("message", (buf: Buffer, rinfo: RemoteInfo) => {
+            wasiSocketsDebug("udp socket on message:");
+            wasiSocketsDebug("udp socket on message from rinfo:", rinfo);
+
+            if (buf) {
+                const gotMsg: RemoteChunk = { buf: buf, rinfo: rinfo };
+                superThis._dataBuffer.push(gotMsg);
+            }
+        });
+        socket.on("listening", () => {
+            wasiSocketsDebug("udp socket on listening:");
+            superThis._listening = true;
+        });
+        socket.on("close", () => {
+            wasiSocketsDebug("udp socket on close:");
+            superThis._closed = true;
+            wasiSocketsDebug("connect: Client: closed");
+        });
+        socket.on("connect", async () => {
+            wasiSocketsDebug("udp socket on connect: Client: connection established with peer");
+            superThis._connected = true;
+        });
+        socket.on("error", function (err: any) {
+            wasiSocketsDebug("udp socket on error: ", err);
+            wasiSocketsDebug("udp socket on error err.code: ", err.code);
+            if (err.code) {
+                if (err.code == "ECONNREFUSED") {
+                    superThis._error = ErrnoN.CONNREFUSED;
+                } else if (err.code == "ECONNABORTED") {
+                    superThis._error = ErrnoN.CONNABORTED;
+                } else if (err.code == "ECONNRESET") {
+                    superThis._error = ErrnoN.CONNRESET;
+                } else {
+                    superThis._error = ErrnoN.CONNABORTED;
+                }
+            } else {
+                superThis._error = ErrnoN.CONNABORTED;
+            }
+        });
+    }
+
+    async peek(): Promise<number> {
+        let peekedSize = 0;
+        wasiSocketsDebug("udp socket:peek ");
+        if (this._closed) {
+            wasiSocketsDebug("udp socket:peek returning 0 as closed");
+            // assuming the sender closed
+            return 0;
+        } else {
+            if (this._dataBuffer) {
+                if (this._dataBuffer.length > 0) {
+                    const buf = this._dataBuffer[0].buf;
+                    peekedSize = buf.length;
+                }
+            }
+        }
+        return peekedSize;
     }
 }
 
@@ -413,6 +660,22 @@ export async function createTcpSocket(af?: AddressFamily): Promise<NetTcpSocket>
         const sock = new NetTcpSocket(createSocket, createServer);
         wasiSocketsDebug("net createTcpSocket ws 2 :");
         return sock;
+    }
+}
+
+export async function createUdpSocket(af?: AddressFamily): Promise<NetUdpSocket> {
+    if (isNodeorBun()) {
+        const nodeImpl = await import("./net_node.js");
+        const createSocket = nodeImpl.createNodeUdpSocket;
+        wasiSocketsDebug("net createUdpSocket node 1 :");
+        if (!af) {
+            af = "IPv4";
+        }
+        const sock = new NetUdpSocket(af, createSocket);
+        wasiSocketsDebug("net createUdpSocket node 2 :");
+        return sock;
+    } else {
+        throw new Error("UDP not supported");
     }
 }
 

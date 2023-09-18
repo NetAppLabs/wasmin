@@ -18,7 +18,18 @@ import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimen
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
 import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
-import { CStringArray, In, isExitStatus, lineOut, Out, sleep, wasiDebug, wasiError } from "./wasiUtils.js";
+import {
+    CStringArray,
+    In,
+    isExitStatus,
+    lineOut,
+    Out,
+    sleep,
+    wasiCallDebug,
+    wasiDebug,
+    wasiError,
+    wasiFdDebug,
+} from "./wasiUtils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, makeChannel, writeMessage } from "./vendored/sync-message/index.js";
 import {
@@ -603,7 +614,11 @@ export class WASI {
                 };
 
                 this._coreModuleMemory = mem;
-                wasiDebug(`WASI handleImport: entering function: ${importName}.${functionName} args: `, args);
+                if (functionName == "fd_read" || functionName == "fd_write") {
+                    wasiFdDebug(`[WASI.handleCoreImport] calling: [${importName}.${functionName}] args: `, args);
+                } else {
+                    wasiDebug(`[WASI.handleCoreImport] calling: [${importName}.${functionName}] args: `, args);
+                }
                 wasiDebug(
                     `WASI handleImport: entering function: ${importName}.${functionName} memory: `,
                     this._coreModuleMemory

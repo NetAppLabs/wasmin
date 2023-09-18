@@ -16,8 +16,15 @@ import {
 } from "./wasi_snapshot_preview1/bindings.js";
 
 declare let globalThis: any;
-globalThis.WASI_DEBUG = false;
-globalThis.WASI_FD_DEBUG = false;
+if (!globalThis.WASI_DEBUG) {
+    globalThis.WASI_DEBUG = false;
+}
+if (!globalThis.WASI_CALL_DEBUG) {
+    globalThis.WASI_CALL_DEBUG = false;
+}
+if (!globalThis.WASI_DEBUG) {
+    globalThis.WASI_FD_DEBUG = false;
+}
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
@@ -27,6 +34,12 @@ export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
 
 export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
+        console.debug(msg, ...optionalParams);
+    }
+}
+
+export function wasiCallDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASI_CALL_DEBUG) {
         console.debug(msg, ...optionalParams);
     }
 }

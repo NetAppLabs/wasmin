@@ -45,12 +45,20 @@ export interface Writable {
 }
 
 export class Socket implements Writable, Readable {
+    private _fdFlags: Fdflags = 0;
     async read(_len: number): Promise<Uint8Array> {
         throw new SystemError(ErrnoN.NOTSUP);
     }
 
     async write(_data: Uint8Array): Promise<void> {
         throw new SystemError(ErrnoN.NOTSUP);
+    }
+
+    get fdFlags() {
+        return this._fdFlags;
+    }
+    set fdFlags(flags: Fdflags) {
+        this._fdFlags = flags;
     }
 }
 
@@ -553,6 +561,17 @@ export class OpenFiles {
         }
     }
 
+    getAsSocket(fd: Fd): Socket {
+        const h = this.get(fd);
+        if (h instanceof Socket) {
+            return h as Socket;
+        } else if (h instanceof OpenDirectory) {
+            throw new SystemError(ErrnoN.ISDIR);
+        } else {
+            throw new SystemError(ErrnoN.NOTSUP);
+        }
+    }
+
     getAsDir(fd: Fd): OpenDirectory {
         const h = this.get(fd);
         if (h instanceof OpenDirectory) {
@@ -570,6 +589,15 @@ export class OpenFiles {
             const d = h as OpenDirectory;
             const isFile = d.isFile;
             return !isFile;
+        } else {
+            return false;
+        }
+    }
+
+    isSocket(fd: Fd): boolean {
+        const h = this.get(fd);
+        if (h instanceof Socket) {
+            return true;
         } else {
             return false;
         }
@@ -607,13 +635,13 @@ export class OpenFiles {
     }
 
     async renumber(from: Fd, to: Fd): Promise<void> {
-        filesystemDebug("[renumber]");
+        filesystemDebug("[renumber] from fd:", from, "to fd:", to);
         await this.close(to);
         this._files.set(to, this._take(from));
     }
 
     async close(fd: Fd) {
-        filesystemDebug("[close]");
+        filesystemDebug("[close] fd:", fd);
         const res = this._take(fd);
         const fdhandle = res as any;
         if (fdhandle.close) {

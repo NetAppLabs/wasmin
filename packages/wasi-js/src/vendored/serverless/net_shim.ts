@@ -397,8 +397,15 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket {
 
     //end(buffer: Uint8Array | string, callback?: () => void): this;
     //end(data?: Uint8Array | string, encoding?: BufferEncoding, callback?: () => void | undefined): this;
+    end(callback?: () => void | undefined) {
+        //end(data: Uint8Array | string = Buffer.alloc(0) as unknown as Uint8Array, encoding = 'utf8', callback?: (() => void)) {
+        debug && log("ending socket");
+        this.ws!.close();
+        if (callback) callback();
+        return this;
+    }
 
-    end(
+    /*end(
         data: Uint8Array | string = Buffer.alloc(0) as Uint8Array,
         encoding = "utf8",
         callback?: () => void | undefined
@@ -410,7 +417,7 @@ export class Socket extends EventEmitter implements NodeNetTcpSocket {
             if (callback) callback();
         });
         return this;
-    }
+    }*/
 
     destroy() {
         this.destroyed = true;
