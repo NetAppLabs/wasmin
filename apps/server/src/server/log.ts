@@ -36,10 +36,12 @@ export async function getLogger(id?: string): Promise<Logger> {
                 const outFile = Bun.file(outFileName);
                 // @ts-ignore
                 const errFile = Bun.file(errFileName);
+                const outFileWriter = outFile.writer();
+                const errFileWriter = errFile.writer();
                 //console.log("bFile:", bFile);
                 //const bunOutWriter = bFile.writer();
                 //console.log("bunOutWriter:", bunOutWriter);
-                const logger = new BunLogger(outFile, errFile);
+                const logger = new BunLogger(outFileWriter, errFileWriter);
                 //underlyingLogger = logger;
                 underlyingLogger = logger;
             }
@@ -78,15 +80,16 @@ export class BunLogger {
         this.errFile = errFile;
     }
     writeMsg(fil: any, msg?: any, ...optionalParams: any[]) {
-        console.log("writemsg: ", msg);
-        fil.writer().write(msg);
+        //const wr = fil.writer();
+        const wr = fil;
+        wr.write(msg);
         if (optionalParams) {
             for (const param of optionalParams) {
-                fil.writer().write(JSON.stringify(param));
+                wr.write(JSON.stringify(param));
             }
         }
-        fil.writer().write("\n");
-        fil.writer().flush();
+        wr.write("\n");
+        wr.flush();
     }
     log(msg?: any, ...optionalParams: any[]) {
         this.writeMsg(this.outFile, msg, ...optionalParams);

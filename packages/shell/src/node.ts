@@ -202,7 +202,17 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     const args: string[] = [];
 
     const workerEnv = process.env.NODE_SHELL_WORKER;
+    const runDebug = process.env.WASM_ENV_DEBUG;
+    let componentMode = false;
+    const componentFlag = process.env.WASM_ENV_COMPONENT;
+    if (componentFlag) {
+        componentMode = true;
+    }
 
+    if (runDebug) {
+        // @ts-ignore
+        globalThis.WASI_CALL_DEBUG=true;
+    }
     let useWorker = false;
     if (workerEnv) {
         useWorker = true;
@@ -221,7 +231,6 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
                 env: env,
                 tty: tty,
             });
-
             const statusCode = await wasi.run(wasmBinary);
             if (statusCode !== 0) {
                 console.log(`Exit code: ${statusCode}`);
@@ -246,6 +255,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
                 env: env,
                 tty: tty,
             });
+            wasi.component = componentMode;
             const statusCode = await wasi.run(wasmBuf);
             if (statusCode !== 0) {
                 console.log(`Exit code: ${statusCode}`);

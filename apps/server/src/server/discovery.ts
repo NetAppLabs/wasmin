@@ -44,8 +44,8 @@ class DiscoveryManagerNostr implements DiscoveryManager {
         //const relay = "wss://nostr-relay.wlvs.space";
         //const relay = "wss://nostr-relay.gkbrk.com";
         //const relay = "wss://public.nostr.swissrouting.com";
-        const relay = "wss://relay.nostr.bg";
-        //const relay = "ws://127.0.0.1:8080";
+        //const relay = "wss://relay.nostr.bg";
+        const relay = "ws://127.0.0.1:8080";
         const logFunc = (msg?: any, ...optionalParams: any[]) => {
             logger.log(msg, ...optionalParams);
         };

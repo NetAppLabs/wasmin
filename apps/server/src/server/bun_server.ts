@@ -45,11 +45,42 @@ export async function startRpcServerBun(rpcPort = DEFAULT_RPC_PORT) {
         trpcHandler(req, res);
     });
 
-    const selfHost = HostManagerInstance.self;
-    selfHost.port = rpcPort;
-    DiscoveryManagerInstance.publish(selfHost);
+    //const selfHost = HostManagerInstance.self;
+    //selfHost.port = rpcPort;
+    //DiscoveryManagerInstance.publish(selfHost);
 
-    server.listen(rpcPort);
+    try {
+        server.listen(rpcPort);
+    } catch (err: any) {
+        console.log("server.listen: err", err);
+        logger.log("RPC Default address in use, retrying on random port ...");
+        server.listen(0);
+    }
+    server.on("error", (e: any) => {
+        //console.log("erver errcode:", e.code);
+        //console.log("erver err:", e);
+        //if (e.code === "EADDRINUSE") {
+            // blindly assuming we got EADDRINUSE
+            logger.log("RPC Default address in use, retrying on random port ...");
+            server.listen(0);
+        //}
+    });
+    server.on("listening", (e: any) => {
+        if (server) {
+            const addr = server.address() as any;
+            if (addr) {
+                //console.log("listening on addr:", addr);
+                if (addr.port) {
+                    const myPort = addr.port;
+                    logger.log("RPC Listening on port " + myPort);
+                    const selfHost = HostManagerInstance.self;
+                    selfHost.port = myPort;
+                    DiscoveryManagerInstance.publish(selfHost);
+                }
+            }
+        }
+    });
+
 }
 
 /*
@@ -72,5 +103,34 @@ export async function startRestServerBun(restPort = DEFAULT_REST_PORT) {
     const { appRouter } = await import("./router");
 
     const server = http.createServer(createOpenApiHttpHandler({ router: appRouter }));
-    server.listen(restPort);
-}
+    try {
+        server.listen(restPort);
+    } catch (err: any) {
+        console.log("server.listen: err", err);
+        logger.log("Rest Default address in use, retrying on random port ...");
+        server.listen(0);
+    }
+    server.on("error", (e: any) => {
+        //console.log("erver errcode:", e.code);
+        //console.log("erver err:", e);
+        //if (e.code === "EADDRINUSE") {
+            // blindly assuming we got EADDRINUSE
+            logger.log("RPC Default address in use, retrying on random port ...");
+            server.listen(0);
+        //}
+    });
+    server.on("listening", (e: any) => {
+        if (server) {
+            const addr = server.address() as any;
+            if (addr) {
+                //console.log("listening on addr:", addr);
+                if (addr.port) {
+                    const myPort = addr.port;
+                    logger.log("REST Listening on port " + myPort);
+                    const selfHost = HostManagerInstance.self;
+                    //selfHost.port = myPort;
+                    DiscoveryManagerInstance.publish(selfHost);
+                }
+            }
+        }
+    });}

@@ -169,7 +169,8 @@ const startShell = async () => {
     }
 
     const wasmBuf = readFileSync(wasmBinary);
-    const mod = await WebAssembly.compile(wasmBuf);
+    //const mod = await WebAssembly.compile(wasmBuf);
+    const mod = wasmBuf;
 
     const cols = termGetColumns();
     const rows = termGetRows();

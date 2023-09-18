@@ -59,9 +59,9 @@ async function main() {
     const rpcPort = args.rpcport;
     const restPort = args.restport;
 
-    /*if (daemon) {
+    if (daemon) {
         setLogToConsole();
-    }*/
+    }
     const hostId = HostManagerInstance.self.id;
     const logger = await getLogger(hostId);
     logger.log("starting host:", HostManagerInstance.self);
@@ -74,7 +74,7 @@ async function main() {
     if (daemon) {
         logger.log("Not starting local shell as daemon mode");
     } else {
-        console.log("starting shell");
+        //console.log("starting shell");
         await startLocalShell();
     }
 }
