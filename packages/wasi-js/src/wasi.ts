@@ -310,6 +310,7 @@ export class WASI {
         ) => {
             //const localComponentImportObject = componentImportObject;
             try {
+                wasiCallDebug(`[wasi] [component] : [${importName}] [${functionName}]:`, args);
                 return await this.handleComponentImport(channel, messageId, importName, functionName, args);
             } catch (err: any) {
                 wasiDebug("WASI.handleImportFuncLocal err: ", err);

@@ -167,6 +167,17 @@ const startShell = async () => {
     if (binaryFromEnv && binaryFromEnv != " ") {
         wasmBinary = binaryFromEnv;
     }
+    const runDebug = process.env.WASM_ENV_DEBUG;
+    let componentMode = false;
+    const componentFlag = process.env.WASM_ENV_COMPONENT;
+    if (componentFlag) {
+        componentMode = true;
+    }
+
+    if (runDebug) {
+        // @ts-ignore
+        globalThis.WASI_CALL_DEBUG=true;
+    }
 
     const wasmBuf = readFileSync(wasmBinary);
     //const mod = await WebAssembly.compile(wasmBuf);
@@ -178,7 +189,7 @@ const startShell = async () => {
     const tty = new TTY(cols, rows, rawMode, modeListener);
 
     try {
-        const statusCode = await new WASI({
+        const wasi = new WASI({
             abortSignal: abortController.signal,
             openFiles: openFiles,
             stdin: stdin,
@@ -198,7 +209,9 @@ const startShell = async () => {
                 PROMPT_INDICATOR: " > ",
             },
             tty: tty,
-        }).run(mod);
+        })
+        wasi.component = componentMode;
+        const statusCode = await wasi.run(mod);
         if (statusCode !== 0) {
             console.log(`Exit code: ${statusCode}`);
         }

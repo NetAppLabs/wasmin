@@ -17,6 +17,7 @@ while [ -n "$1" ] ; do
         echo "$(basename $0) [arguments]"
         echo "Arguments:"
         echo "  -b                          Run with bun instead of the default node"
+        echo "  -c                          Run in component mode"
         echo "  -d                          debug"
         echo "  -w                          Run in worker"
         exit 0
