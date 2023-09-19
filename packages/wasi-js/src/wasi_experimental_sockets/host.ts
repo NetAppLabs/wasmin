@@ -80,7 +80,7 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
             for (const addrInfo of dnsResponses) {
                 wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
                 const wasiAddr = AddressInfoToWasiAddr(addrInfo);
-                console.log("[addr_resolve] wasiAddr: ", wasiAddr);
+                wasiSocketsDebug("[addr_resolve] wasiAddr: ", wasiAddr);
                 const mptr = (buf + offset) as any as mutptr<Addr>;
                 Addr.set(this.buffer, mptr, wasiAddr);
                 if (addrInfo.family == "IPv4") {
