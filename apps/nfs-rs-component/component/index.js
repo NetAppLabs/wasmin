@@ -1,7 +1,7 @@
-import { isTypedArray } from 'util/types';
-import { instantiate } from './nfs_rs';
-import { WASIWorker } from '@wasm-env/wasi-js';
-import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError } from '@wasm-env/fs-js';
+import { isTypedArray } from "util/types";
+import { instantiate } from "./nfs_rs";
+import { WASIWorker } from "@wasm-env/wasi-js";
+import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@wasm-env/fs-js";
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;
 const ACCESS3_MODIFY = 0x0004;
@@ -41,27 +41,28 @@ const AttrTypeDirectory = 2;
 const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
 function fullNameFromReaddirplusEntry(parentName, entry) {
-    const suffix = entry.attr?.attrType === AttrTypeDirectory ? '/' : '';
+    const suffix = entry.attr?.attrType === AttrTypeDirectory ? "/" : "";
     return parentName + entry.fileName + suffix;
 }
-const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 let _fs;
 async function fetchCompile(url) {
     if (isNode) {
-        _fs = _fs || await import('fs/promises');
+        _fs = _fs || (await import("fs/promises"));
         return WebAssembly.compile(await _fs.readFile(url));
     }
     return fetch(url).then(WebAssembly.compileStreaming);
 }
 async function compileCore(url) {
-    url = './' + url;
+    url = "./" + url;
     return await fetchCompile(new URL(url, import.meta.url));
 }
 var nfs;
 const wasi = new WASIWorker({});
-await wasi.createWorker()
+await wasi
+    .createWorker()
     .then((componentImports) => instantiate(compileCore, componentImports))
-    .then((instance) => nfs = instance.nfs);
+    .then((instance) => (nfs = instance.nfs));
 export class NfsHandle {
     _mount;
     _fh;
@@ -82,8 +83,8 @@ export class NfsHandle {
         this._fullName = fullName;
         this.kind = kind;
         this.name = name;
-        this.isFile = kind == 'file';
-        this.isDirectory = kind == 'directory';
+        this.isFile = kind == "file";
+        this.isDirectory = kind == "directory";
     }
     isSameEntry(other) {
         return new Promise(async (resolve) => {
@@ -92,33 +93,35 @@ export class NfsHandle {
                 resolve(false);
             }
             else {
-                resolve(other.kind === this.kind && other.name === this.name && (!anyOther._fullName || anyOther._fullName === this._fullName));
+                resolve(other.kind === this.kind &&
+                    other.name === this.name &&
+                    (!anyOther._fullName || anyOther._fullName === this._fullName));
             }
         });
     }
     async queryPermission(perm) {
         return new Promise(async (resolve, reject) => {
-            const mode = perm?.mode === 'readwrite' ? AccessReadWrite : AccessRead;
+            const mode = perm?.mode === "readwrite" ? AccessReadWrite : AccessRead;
             const ret = nfs.access(this._mount, this._fh, mode);
             if (ret !== 0) {
                 // XXX: ACCESS3_EXECUTE may be omitted for root directory access but we should still return 'granted'
-                resolve((ret === mode || (this._fullName === '/' && (ret | ACCESS3_EXECUTE) === mode)) ? 'granted' : 'denied');
+                resolve(ret === mode || (this._fullName === "/" && (ret | ACCESS3_EXECUTE) === mode) ? "granted" : "denied");
             }
             else {
-                reject('access denied');
+                reject("access denied");
             }
         });
     }
     async requestPermission(perm) {
         return new Promise(async (resolve, reject) => {
-            const mode = perm.mode === 'readwrite' ? AccessReadWrite : AccessRead;
+            const mode = perm.mode === "readwrite" ? AccessReadWrite : AccessRead;
             try {
                 nfs.setattr(this._mount, this._fh, null, mode, null, null, null, null, null);
-                resolve('granted');
+                resolve("granted");
             }
             catch (e) {
                 if (e.payload?.nfsErrorCode === NFS3ERR_PERM || e.payload?.nfsErrorCode === NFS3ERR_ACCES) {
-                    resolve('denied');
+                    resolve("denied");
                 }
                 else {
                     reject(e);
@@ -144,13 +147,13 @@ export class NfsDirectoryHandle extends NfsHandle {
         var kind;
         var fullName;
         var name;
-        if (typeof param === 'string') {
+        if (typeof param === "string") {
             const url = param;
             mount = nfs.parseUrlAndMount(url);
-            fh = nfs.lookupPath(mount, '/');
-            kind = 'directory';
-            fullName = '/';
-            name = '';
+            fh = nfs.lookupPath(mount, "/");
+            kind = "directory";
+            fullName = "/";
+            name = "";
         }
         else {
             const toWrap = param;
@@ -162,7 +165,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         }
         super(mount, fh, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
-        this.kind = 'directory';
+        this.kind = "directory";
         this.isFile = false;
         this.isDirectory = true;
         this.getFile = this.getFileHandle;
@@ -173,19 +176,21 @@ export class NfsDirectoryHandle extends NfsHandle {
         try {
             const entries = nfs.readdirplus(this._mount, this._fh);
             for (const entry of entries) {
-                if (entry.fileName !== '.' && entry.fileName !== '..') {
+                if (entry.fileName !== "." && entry.fileName !== "..") {
                     const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
-                    if (fullName.endsWith('/')) {
-                        yield new NfsDirectoryHandle(new NfsHandle(this._mount, entry.handle, 'directory', fullName, entry.fileName));
+                    if (fullName.endsWith("/")) {
+                        yield new NfsDirectoryHandle(new NfsHandle(this._mount, entry.handle, "directory", fullName, entry.fileName));
                     }
                     else {
-                        yield new NfsFileHandle(new NfsHandle(this._mount, entry.handle, 'file', fullName, entry.fileName));
+                        yield new NfsFileHandle(new NfsHandle(this._mount, entry.handle, "file", fullName, entry.fileName));
                     }
                 }
             }
         }
         catch (e) {
-            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT || e.payload?.nfsErrorCode === NFS3ERR_NOTDIR || e.payload?.nfsErrorCode === NFS3ERR_STALE) {
+            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT ||
+                e.payload?.nfsErrorCode === NFS3ERR_NOTDIR ||
+                e.payload?.nfsErrorCode === NFS3ERR_STALE) {
                 throw new NotFoundError();
             }
             throw e;
@@ -215,13 +220,13 @@ export class NfsDirectoryHandle extends NfsHandle {
                 if (attr.attrType !== AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
-                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, 'directory', this._fullName + name + '/', name)));
+                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, "directory", this._fullName + name + "/", name)));
             }
             catch (e) {
                 if (e instanceof TypeError) {
                     return reject(e);
                 }
-                // XXX: ignore error 
+                // XXX: ignore error
             }
             if (!options?.create) {
                 return reject(new NotFoundError());
@@ -229,7 +234,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o775;
                 const fh = nfs.mkdir(this._mount, this._fh, name, mode);
-                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, 'directory', this._fullName + name + '/', name)));
+                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, fh, "directory", this._fullName + name + "/", name)));
             }
             catch (e) {
                 return reject(e);
@@ -245,13 +250,13 @@ export class NfsDirectoryHandle extends NfsHandle {
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
-                return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, 'file', this._fullName + name, name)));
+                return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, "file", this._fullName + name, name)));
             }
             catch (e) {
                 if (e instanceof TypeError) {
                     return reject(e);
                 }
-                // XXX: ignore error 
+                // XXX: ignore error
             }
             if (!options?.create) {
                 return reject(new NotFoundError());
@@ -260,7 +265,7 @@ export class NfsDirectoryHandle extends NfsHandle {
                 const mode = 0o664;
                 nfs.create(this._mount, this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
                 const fh = nfs.lookup(this._mount, this._fh, name);
-                return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, 'file', this._fullName + name, name)));
+                return resolve(new NfsFileHandle(new NfsHandle(this._mount, fh, "file", this._fullName + name, name)));
             }
             catch (e) {
                 return reject(e);
@@ -296,7 +301,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         if (recursive) {
             const entries = nfs.readdirplus(this._mount, fh);
             for (const entry of entries) {
-                if (entry.fileName !== '.' && entry.fileName !== '..') {
+                if (entry.fileName !== "." && entry.fileName !== "..") {
                     if (entry.attr?.attrType === AttrTypeDirectory) {
                         this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
                     }
@@ -326,11 +331,11 @@ export class NfsDirectoryHandle extends NfsHandle {
     async resolveDirectory(subentries, possibleDescendant) {
         for await (const subentry of subentries) {
             if (await subentry.isSameEntry(possibleDescendant)) {
-                const ret = subentry.name.substring(1).split('/');
+                const ret = subentry.name.substring(1).split("/");
                 ret.pop();
                 return ret;
             }
-            if (subentry.kind === 'directory') {
+            if (subentry.kind === "directory") {
                 const nfsEntry = subentry;
                 const ret = await this.resolveDirectory(nfsEntry.values(), possibleDescendant);
                 if (ret) {
@@ -345,12 +350,12 @@ export class NfsDirectoryHandle extends NfsHandle {
      */
     getFile;
     /**
-    * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-    */
+     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
+     */
     getDirectory;
     /**
-    * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
-    */
+     * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
+     */
     getEntries;
 }
 export class NfsFileHandle extends NfsHandle {
@@ -366,7 +371,7 @@ export class NfsFileHandle extends NfsHandle {
     constructor(param) {
         const toWrap = param;
         super(toWrap._mount, toWrap._fh, toWrap.kind, toWrap._fullName, toWrap.name);
-        this.kind = 'file';
+        this.kind = "file";
         this.isFile = true;
         this.isDirectory = false;
     }
@@ -417,7 +422,7 @@ export class NfsFile {
         this.name = name;
         this.webkitRelativePath = name;
         this.size = Number(attr.filesize);
-        this.type = 'unknown';
+        this.type = "unknown";
     }
     arrayBuffer() {
         return new Promise(async (resolve, reject) => {
@@ -440,7 +445,7 @@ export class NfsFile {
         var pulled = false;
         const file = this;
         return new ReadableStream({
-            type: 'bytes',
+            type: "bytes",
             pull(controller) {
                 if (!pulled) {
                     const buf = nfs.read(file._mount, file._fh, 0n, file.size);
@@ -455,7 +460,7 @@ export class NfsFile {
     }
     text() {
         return this.arrayBuffer().then((buf) => {
-            const decoder = new TextDecoder('utf-8');
+            const decoder = new TextDecoder("utf-8");
             return decoder.decode(buf);
         });
     }
@@ -473,7 +478,7 @@ export class NfsBlob {
         this._fh = fh;
         this._data = data;
         this.size = data.byteLength;
-        this.type = contentType || 'unknown';
+        this.type = contentType || "unknown";
     }
     arrayBuffer() {
         return new Promise(async (resolve) => resolve(this._data));
@@ -486,7 +491,7 @@ export class NfsBlob {
         var pulled = false;
         const data = this._data;
         return new ReadableStream({
-            type: 'bytes',
+            type: "bytes",
             pull(controller) {
                 if (!pulled) {
                     controller.enqueue(data);
@@ -500,7 +505,7 @@ export class NfsBlob {
     }
     text() {
         return this.arrayBuffer().then((buf) => {
-            const decoder = new TextDecoder('utf-8');
+            const decoder = new TextDecoder("utf-8");
             return decoder.decode(buf);
         });
     }
@@ -517,10 +522,10 @@ export class NfsSink {
     _newSize;
     _position;
     constructor(mount, fh, fullName, options) {
-        const x = fullName.lastIndexOf('/');
+        const x = fullName.lastIndexOf("/");
         const dirPath = fullName.slice(0, x + 1);
         const fileName = fullName.slice(x + 1);
-        const fullNameTmp = dirPath + '.' + fileName + '-tmp' + Date.now();
+        const fullNameTmp = dirPath + "." + fileName + "-tmp" + Date.now();
         this._mount = mount;
         this._fh = fh;
         this._fhTmp = nfs.createPath(mount, fullNameTmp, 0o664);
@@ -550,21 +555,21 @@ export class NfsSink {
     async write(data) {
         return new Promise(async (resolve, reject) => {
             if (!this._valid) {
-                return reject(new TypeError('invalid stream'));
+                return reject(new TypeError("invalid stream"));
             }
             const anyData = data;
-            if (anyData.type === 'seek') {
-                if (!('position' in anyData) || typeof anyData.position !== 'number') {
-                    return reject(new SyntaxError('seek requires a position argument'));
+            if (anyData.type === "seek") {
+                if (!("position" in anyData) || typeof anyData.position !== "number") {
+                    return reject(new SyntaxError("seek requires a position argument"));
                 }
                 await this.seek(anyData.position)
                     .then(() => resolve())
                     .catch((e) => reject(e));
                 return;
             }
-            if (anyData.type === 'truncate') {
-                if (!('size' in anyData) || typeof anyData.size !== 'number') {
-                    return reject(new SyntaxError('truncate requires a size argument'));
+            if (anyData.type === "truncate") {
+                if (!("size" in anyData) || typeof anyData.size !== "number") {
+                    return reject(new SyntaxError("truncate requires a size argument"));
                 }
                 await this.truncate(anyData.size)
                     .then(() => resolve())
@@ -572,11 +577,11 @@ export class NfsSink {
                 return;
             }
             var buffer;
-            if (anyData.type === 'write') {
-                if (!('data' in anyData)) {
-                    return reject(new SyntaxError('write requires a data argument'));
+            if (anyData.type === "write") {
+                if (!("data" in anyData)) {
+                    return reject(new SyntaxError("write requires a data argument"));
                 }
-                if ('position' in anyData) {
+                if ("position" in anyData) {
                     await this.seek(anyData.position);
                 }
                 data = anyData.data;
@@ -618,7 +623,7 @@ export class NfsSink {
     async seek(position) {
         return new Promise(async (resolve, reject) => {
             if (!this._valid) {
-                return reject(new TypeError('invalid stream'));
+                return reject(new TypeError("invalid stream"));
             }
             this._position = position;
             return resolve();
@@ -627,7 +632,7 @@ export class NfsSink {
     async truncate(size) {
         return new Promise(async (resolve, reject) => {
             if (!this._valid) {
-                return reject(new TypeError('invalid stream'));
+                return reject(new TypeError("invalid stream"));
             }
             try {
                 this.ensureExistingIfToBeKept();
@@ -646,10 +651,11 @@ export class NfsSink {
     async close() {
         return new Promise(async (resolve, reject) => {
             if (!this._valid) {
-                return reject(new TypeError('invalid stream'));
+                return reject(new TypeError("invalid stream"));
             }
             try {
-                if (!this._keepExisting) { // XXX: if this._keepExisting is still set, no writes or truncates have occurred
+                if (!this._keepExisting) {
+                    // XXX: if this._keepExisting is still set, no writes or truncates have occurred
                     this.copyContents(this._fhTmp, this._fh, this._newSize);
                     const contents = nfs.read(this._mount, this._fhTmp, 0n, this._position);
                     nfs.write(this._mount, this._fh, 0n, contents);
@@ -669,7 +675,7 @@ export class NfsSink {
     async abort(_reason) {
         return new Promise(async (resolve, reject) => {
             if (!this._valid) {
-                return reject(new TypeError('invalid stream'));
+                return reject(new TypeError("invalid stream"));
             }
             try {
                 nfs.removePath(this._mount, this._fullNameTmp);
@@ -683,10 +689,10 @@ export class NfsSink {
     }
     getWriter() {
         if (!this._valid) {
-            throw new TypeError('invalid stream');
+            throw new TypeError("invalid stream");
         }
         if (this.locked) {
-            throw new Error('Invalid state: WritableStream is locked');
+            throw new Error("Invalid state: WritableStream is locked");
         }
         const fileStream = this;
         const stream = new WritableStream({

@@ -1,1 +1,0 @@
-{"version":3,"file":"cli-base-stdout.d.ts","sourceRoot":"","sources":["../../src/imports/cli-base-stdout.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,aAAa;IAC3B,SAAS,IAAI,YAAY,CAAC;CAC5B;AACD,MAAM,WAAW,kBAAkB;IAChC,SAAS,IAAI,OAAO,CAAC,YAAY,CAAC,CAAC;CACrC;AACD,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,uBAAuB,CAAC;AAC1D,OAAO,EAAE,YAAY,EAAE,CAAC"}

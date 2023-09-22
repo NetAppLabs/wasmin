@@ -1,6 +1,6 @@
-import { initializeComlinkHandlers, wasmHandlerDebug } from "./workerUtils.js";
+import { initializeComlinkHandlers, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-import { isNode } from "./wasiUtils.js";
+import { isNode, wasiDebug } from "./wasiUtils.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";
@@ -112,14 +112,39 @@ export function createComponentModuleImportProxyPerImportForChannel(
         get: (_target, name, _receiver) => {
             const functionName = name as string;
             return (...args: any) => {
+                let newArgs = args;
+                let i = 0;
+                let lastBuffer: ArrayBuffer|undefined;
+                let lastTypedArray: Array<any>| undefined;
+                // Making sure TypedArrays are transferred as Transferrable
+                for (let arg of newArgs) {
+                    let arr = arg as Array<any>;
+                    if (ArrayBuffer.isView(arg)) {
+                        wasmHandlerDebug("istransfer:", arg);
+                        let typedArray = arg as ArrayBufferView;
+                        lastBuffer = typedArray.buffer;
+                        wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
+                        lastTypedArray = arr;
+                        wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
+                        // Simply marking the ArrayBuffer under the array as Transferrable
+                        // This puts the ArrayBuffer in the transfer cache
+                        comlink.transfer(newArgs,[lastBuffer]);
+                    }
+                    i++;
+                }
                 const messageId = uuidv4();
                 wasmHandlerDebug(
                     `Proxy handleComponentImportFunc: importName: ${importName} functionName:`,
                     functionName
                 );
-                handleComponentImportFunc(channel, messageId, importName, functionName, args);
+                handleComponentImportFunc(channel, messageId, importName, functionName, newArgs);
                 const ret = readMessage(channel, messageId);
+                if (lastBuffer) {
+                    wasmHandlerDebug("lastBuffer post transfer: ", lastBuffer);
+                }
+                wasmHandlerDebug("lastTypedArray post transfer: ", lastTypedArray);
                 if (ret.error) {
+                    wasmHandlerDebug("ret.error: ", ret.error);
                     throw ret.error;
                 }
                 return ret.return;

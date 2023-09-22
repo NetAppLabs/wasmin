@@ -1,1 +1,0 @@
-{"version":3,"file":"sockets-instance-network.d.ts","sourceRoot":"","sources":["../../src/imports/sockets-instance-network.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,sBAAsB;IACrC;;OAEG;IACF,eAAe,IAAI,OAAO,CAAC;CAC7B;AACD,MAAM,WAAW,2BAA2B;IAC1C;;OAEG;IACF,eAAe,IAAI,OAAO,CAAC,OAAO,CAAC,CAAC;CACtC;AACD,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,4BAA4B,CAAC;AAC1D,OAAO,EAAE,OAAO,EAAE,CAAC"}

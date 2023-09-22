@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 
-import { jsonStringify, jsonParse } from "./deser.js";
+import { jsonStringify, jsonParse, toUint8Array, fromUint8Array } from "./deser.js";
 
 // Borrowed from repository https://github.com/alexmojaki/sync-message
 // included here because of webpack build issues
@@ -160,8 +160,7 @@ BigInt.prototype.toJSON = function () {
 };
 
 export function writeMessageAtomics(channel: AtomicsChannel, message: any) {
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(jsonStringify(message));
+    const bytes = toUint8Array(message);
     const { data, meta } = channel;
     if (bytes.length > data.length) {
         throw new Error("Message is too big, increase bufferSize when making channel.");
@@ -305,10 +304,7 @@ export function readMessage(
                 const size = Atomics.exchange(meta, 0, 0);
                 const bytes = data.slice(0, size);
                 Atomics.store(meta, 1, 0);
-
-                const decoder = new TextDecoder();
-                const text = decoder.decode(bytes);
-                const parsed = jsonParse(text);
+                const parsed = fromUint8Array(bytes);
                 return parsed;
             }
         };

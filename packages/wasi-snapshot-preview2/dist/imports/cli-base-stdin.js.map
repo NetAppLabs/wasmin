@@ -1,1 +1,0 @@
-{"version":3,"file":"cli-base-stdin.js","sourceRoot":"","sources":["../../src/imports/cli-base-stdin.ts"],"names":[],"mappings":"","sourcesContent":["export interface CliBaseStdin {\n   getStdin(): InputStream;\n}\nexport interface CliBaseStdinAsync {\n   getStdin(): Promise<InputStream>;\n}\nimport type { InputStream } from '../imports/io-streams';\nexport { InputStream };\n"]}
