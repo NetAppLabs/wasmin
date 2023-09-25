@@ -1,9 +1,11 @@
 //import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasm-env/wasi-snapshot-preview2"
 import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
+import { FilesystemPreopensNamespace } from "@wasm-env/wasi-snapshot-preview2";
+type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopensAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
-import { unimplemented, wasiDebug, wasiWarn } from "../../wasiUtils.js";
+import { unimplemented, wasiDebug, wasiError, wasiWarn } from "../../wasiUtils.js";
 import {
     adviceStringtoAdviceN,
     toDateTimeFromMs,
@@ -24,12 +26,39 @@ type DescriptorFlags = fs.DescriptorFlags;
 type InputStream = fs.InputStream;
 type OutputStream = fs.OutputStream;
 type DirectoryEntryStream = fs.DirectoryEntryStream;
+type Filesize = fs.Filesize;
 
-export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsync {
+import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
+
+export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    private _wasiEnv: WasiEnv;
+
+    async getDirectories(): Promise<[Descriptor, string][]> {
+        const preopens: [Descriptor, string][] = [];
+        const preopen_fd = FIRST_PREOPEN_FD;
+        try {
+            for (let i = preopen_fd; true; i++) {
+                const openDir = this._wasiEnv.openFiles.getPreOpen(i);
+                const path = openDir.path;
+                preopens.push([i, path]);
+            }
+        } catch (err: any) {
+            wasiError("getDirectories: err: ", err);
+        }
+        return preopens;
+    }
+}
+
+export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsync {
+    constructor(wasiOptions: WasiOptions) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+    }
+
     private _wasiEnv: WasiEnv;
 
     get wasiEnv() {
@@ -133,7 +162,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             throw translateError(err);
         }
     }
-    async read(fd: Descriptor, length: bigint, offset: FileSize): Promise<[Uint8Array | ArrayBuffer, boolean]> {
+    async read(fd: Descriptor, length: Filesize, offset: Filesize): Promise<[Uint8Array, boolean]> {
         try {
             const newFd = await this.readViaStream(fd, offset);
             const input = this.openFiles.getAsReadable(newFd);
@@ -357,7 +386,7 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
             throw translateError(err);
         }
     }
-    async readDirectoryEntry(dirFd: DirectoryEntryStream): Promise<fs.DirectoryEntry | null> {
+    async readDirectoryEntry(dirFd: DirectoryEntryStream): Promise<fs.DirectoryEntry | undefined> {
         try {
             const dirIter = await this.openFiles.getAsOpenDirectoryIterator(dirFd);
             const next = await dirIter.next();
@@ -373,6 +402,51 @@ export class FileSystemFileSystemAsyncHost implements fs.FilesystemFilesystemAsy
         } catch (err: any) {
             throw translateError(err);
         }
+    }
+
+    async isSameObject(fd: Descriptor, otherFd: Descriptor): Promise<boolean> {
+        const thisMd = await this.metadataHash(fd);
+        const otherMd = await this.metadataHash(otherFd);
+        if (( thisMd.lower == otherMd.lower ) && ( thisMd.upper == otherMd.upper)) {
+            return true;
+        }
+        return false;
+    }
+    async metadataHash(fd: Descriptor): Promise<fs.MetadataHashValue> {
+        const stat = await this.stat(fd);
+        const value = `${stat.type}-${stat.size}-${stat.dataAccessTimestamp}-${stat.dataModificationTimestamp}`;
+        const enc = new TextEncoder();
+        const buffer = enc.encode(value);
+        let hash_bytes = await crypto.subtle.digest("SHA-1", buffer);
+
+        let view = new DataView(hash_bytes, 0);
+        let lower = view.getBigUint64(0, true);
+        let upper = view.getBigUint64(8, true);
+
+        let res: fs.MetadataHashValue = {
+            lower: lower,
+            upper: upper,
+        }
+        return res;
+    }
+    async metadataHashAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string): Promise<fs.MetadataHashValue> {
+        const stat = await this.statAt(fd, pathFlags, path);
+        const value = `${stat.type}-${stat.size}-${stat.dataAccessTimestamp}-${stat.dataModificationTimestamp}`;
+        const enc = new TextEncoder();
+        const buffer = enc.encode(value);
+        // TODO revise this, ensure this is accurate enough
+        let hash_bytes = await crypto.subtle.digest("SHA-1", buffer);
+
+        let view = new DataView(hash_bytes, 0);
+        let lower = view.getBigUint64(0, true);
+        // TODO better error handling:
+        let upper = view.getBigUint64(8, true);
+
+        let res: fs.MetadataHashValue = {
+            lower: lower,
+            upper: upper,
+        }
+        return res;
     }
 }
 
@@ -415,8 +489,8 @@ async function populateDescriptorStat(fd: Descriptor, fHandle: FileSystemHandle)
         }
     }
     const newStat: DescriptorStat = {
-        device: 0n,
-        inode: inode,
+        //device: 0n,
+        //inode: inode,
         type: ftype,
         linkCount: 0n,
         statusChangeTimestamp: ctime,

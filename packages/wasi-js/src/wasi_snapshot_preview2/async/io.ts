@@ -1,11 +1,12 @@
 import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
-import { IoStreamsAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/io-streams";
+type IoStreamsAsync = io.WasiIoStreamsAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { translateError } from "./preview2Utils.js";
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
 type Pollable = io.Pollable;
+type StreamStatus = io.StreamStatus;
 
 export class IoStreamsAsyncHost implements IoStreamsAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -20,10 +21,13 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     get openFiles() {
         return this.wasiEnv.openFiles;
     }
-    async read(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
+
+    //async read(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, StreamStatus]>{
+    async read(instr: InputStream, len: bigint): Promise<[Uint8Array, StreamStatus]> {
         try {
+            let streamStatus: StreamStatus = 'ended';
             if (len == 0n) {
-                return [new Uint8Array(), true];
+                return [new Uint8Array(), streamStatus];
             }
             const reader = this.openFiles.getAsReadable(instr);
             // TODO: handle bigint
@@ -32,21 +36,26 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             if (buffer.length < len) {
                 isEnd = true;
             }
-            return [buffer, isEnd];
+            if (isEnd) {
+                streamStatus = 'ended';
+            } else {
+                streamStatus = 'open';
+            }
+            return [buffer, streamStatus];
         } catch (err: any) {
             throw translateError(err);
         }
     }
-    async blockingRead(instr: InputStream, len: bigint): Promise<[Uint8Array | ArrayBuffer, boolean]> {
+    async blockingRead(instr: InputStream, len: bigint): Promise<[Uint8Array, StreamStatus]> {
         return await this.read(instr, len);
     }
-    skip(instr: InputStream, len: bigint): Promise<[bigint, boolean]> {
+    async (instr: InputStream, len: bigint): Promise<[bigint, boolean]> {
         throw new Error("Method not implemented.");
     }
-    blockingSkip(instr: InputStream, len: bigint): Promise<[bigint, boolean]> {
+    async blockingSkip(instr: InputStream, len: bigint): Promise<[bigint, StreamStatus]> {
         throw new Error("Method not implemented.");
     }
-    subscribeToInputStream(instr: InputStream): Promise<Pollable> {
+    async subscribeToInputStream(instr: InputStream): Promise<Pollable> {
         throw new Error("Method not implemented.");
     }
     async dropInputStream(instr: InputStream): Promise<void> {
@@ -56,36 +65,40 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             throw translateError(err);
         }
     }
-    async write(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
+    async write(outstr: OutputStream, contents: Uint8Array): Promise<void> {
         try {
             const writer = this.openFiles.getAsWritable(outstr);
-            const len = await writer.write(buf);
-            const written = buf.length;
-            return BigInt(written);
+            const len = await writer.write(contents);
+            const written = contents.length;
+            return;
         } catch (err: any) {
             throw translateError(err);
         }
     }
-    async blockingWrite(outstr: OutputStream, buf: Uint8Array): Promise<bigint> {
+
+    async checkWrite(this0: OutputStream): Promise<bigint> {
+        throw new Error("Method not implemented.");
+    }
+    async blockingWriteAndFlush(outstr: OutputStream, contents: Uint8Array): Promise<void> {
         try {
-            return await this.write(outstr, buf);
+            return await this.write(outstr, contents);
         } catch (err: any) {
             throw translateError(err);
         }
     }
-    writeZeroes(outstr: OutputStream, len: bigint): Promise<bigint> {
+    writeZeroes(outstr: OutputStream, len: bigint): Promise<void> {
         throw new Error("Method not implemented.");
     }
     blockingWriteZeroes(outstr: OutputStream, len: bigint): Promise<bigint> {
         throw new Error("Method not implemented.");
     }
-    splice(outstr: OutputStream, src: number, len: bigint): Promise<[bigint, boolean]> {
+    splice(outstr: OutputStream, src: number, len: bigint): Promise<[bigint, StreamStatus]> {
         throw new Error("Method not implemented.");
     }
-    blockingSplice(outstr: OutputStream, src: number, len: bigint): Promise<[bigint, boolean]> {
+    blockingSplice(outstr: OutputStream, src: number, len: bigint): Promise<[bigint, StreamStatus]> {
         throw new Error("Method not implemented.");
     }
-    forward(outstr: OutputStream, src: number): Promise<bigint> {
+    async forward(this0: OutputStream, src: InputStream): Promise<[bigint, StreamStatus]> {
         throw new Error("Method not implemented.");
     }
     subscribeToOutputStream(outstr: OutputStream): Promise<Pollable> {
@@ -97,5 +110,14 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         } catch (err: any) {
             throw translateError(err);
         }
+    }
+    skip(this0: number, len: bigint): Promise<[bigint, io.StreamStatus]> {
+        throw new Error("Method not implemented.");
+    }
+    flush(this0: number): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    blockingFlush(this0: number): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 }

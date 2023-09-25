@@ -67,7 +67,9 @@ export class CommandRunner {
     async run() {
         if (this.commandComponent) {
             try {
-                this.commandComponent.run();
+                //this.commandComponent.run();
+                const runner = this.commandComponent.run;
+                runner.run();
             } finally {
                 this.cleanup();
             }

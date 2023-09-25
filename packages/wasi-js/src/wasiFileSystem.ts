@@ -325,7 +325,7 @@ export class OpenDirectoryIterator {
         this._openDir = value;
     }
 
-    async next(): Promise<DirectoryEntry | null> {
+    async next(): Promise<DirectoryEntry | undefined> {
         let count = 0;
 
         const iterator = this.openDir.handle.values();
@@ -352,7 +352,7 @@ export class OpenDirectoryIterator {
             const ret: DirectoryEntry = {
                 type: ftype,
                 name: name,
-                inode: inode,
+                //inode: inode,
             };
             if (count == this.cursor) {
                 this.cursor++;
@@ -360,7 +360,7 @@ export class OpenDirectoryIterator {
             }
             count++;
         }
-        return null;
+        return undefined;
     }
 }
 

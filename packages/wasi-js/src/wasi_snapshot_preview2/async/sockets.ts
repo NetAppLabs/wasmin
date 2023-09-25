@@ -1,15 +1,16 @@
 import { SocketsInstanceNetworkNamespace as socki } from "@wasm-env/wasi-snapshot-preview2";
-type SocketsInstanceNetworkAsync = socki.SocketsInstanceNetworkAsync;
+type SocketsInstanceNetworkAsync = socki.WasiSocketsInstanceNetworkAsync;
 type Network = socki.Network;
 import { SocketsNetworkNamespace as sockn } from "@wasm-env/wasi-snapshot-preview2";
-type SocketsNetworkAsync = sockn.SocketsNetworkAsync;
+type SocketsNetworkAsync = sockn.WasiSocketsNetworkAsync;
 import { SocketsTcpCreateSocketNamespace as socktc } from "@wasm-env/wasi-snapshot-preview2";
-type SocketsTcpCreateSocketAsync = socktc.SocketsTcpCreateSocketAsync;
+type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocketAsync;
 import { SocketsIpNameLookupNamespace as socklookup } from "@wasm-env/wasi-snapshot-preview2";
-type SocketsIpNameLookupAsync = socklookup.SocketsIpNameLookupAsync;
-
+type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookupAsync;
+import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
+type InputStream = io.InputStream;
+type OutputStream = io.InputStream;
 import { SocketsTcpNamespace as sockt } from "@wasm-env/wasi-snapshot-preview2";
-import { InputStream, OutputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/io-streams";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { createTcpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";
 import {
@@ -20,7 +21,7 @@ import {
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
 import { ResourceManager, translateError } from "./preview2Utils.js";
-type SocketsTcpAsync = sockt.SocketsTcpAsync;
+type SocketsTcpAsync = sockt.WasiSocketsTcpAsync;
 type TcpSocket = socktc.TcpSocket;
 type Pollable = sockt.Pollable;
 type IpSocketAddress = sockn.IpSocketAddress;
@@ -107,7 +108,7 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
         // returning as previously created in startConnect
         return [sockFd, sockFd];
     }
-    async startListen(sockFd: TcpSocket, network: Network): Promise<void> {
+    async startListen(sockFd: TcpSocket): Promise<void> {
         try {
             // Network ignored for now
             const sock = this.getSocket(sockFd);
@@ -243,7 +244,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
     async resolveAddresses(
         network: Network,
         name: string,
-        addressFamily: IpAddressFamily | null,
+        addressFamily: IpAddressFamily | undefined,
         includeUnavailable: boolean
     ): Promise<ResolveAddressStream> {
         const host = name;
@@ -254,7 +255,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
         const returnId = this._addressLookupManager.add(iter);
         return returnId;
     }
-    async resolveNextAddress(resId: ResolveAddressStream): Promise<IpAddress | null> {
+    async resolveNextAddress(resId: ResolveAddressStream): Promise<IpAddress | undefined> {
         const res = this._addressLookupManager.get(resId);
         if (res) {
             const iter = res as ResolveAddressIterator;
@@ -264,7 +265,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
                 return ipAddr;
             }
         }
-        return null;
+        return undefined;
     }
     async dropResolveAddressStream(res: ResolveAddressStream): Promise<void> {
         await this._addressLookupManager.close(res);

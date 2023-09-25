@@ -1,5 +1,5 @@
 export namespace ImportsStdin {
-    export function getStdin(): InputStream;
+  export function getStdin(): InputStream;
 }
-import type { InputStream } from "../imports/streams";
+import type { InputStream } from '../imports/streams';
 export { InputStream };

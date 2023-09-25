@@ -1,13 +1,13 @@
 import { ClocksMonotonicClockNamespace as clockm } from "@wasm-env/wasi-snapshot-preview2";
-type ClocksMonotonicClockAsync = clockm.ClocksMonotonicClockAsync;
+type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace as clockw } from "@wasm-env/wasi-snapshot-preview2";
-type ClocksWallClockAsync = clockw.ClocksWallClockAsync;
+type ClocksWallClockAsync = clockw.WasiClocksWallClockAsync;
 import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-preview2";
 import { Pollable as FSPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, sleep } from "../../wasiUtils.js";
 import { toDateTimeFromMs } from "./preview2Utils.js";
-type ClocksTimezoneAsync = clockt.ClocksTimezoneAsync;
+type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
 type Timezone = clockt.Timezone;

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 #rustc foo.rs --target wasm32-wasi
 #wasm-tools component new foo.wasm --adapt wasi_snapshot_preview1.command.wasm -o component.wasm

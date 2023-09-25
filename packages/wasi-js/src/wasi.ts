@@ -246,7 +246,7 @@ export class WASI {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
             const componentImportObject = this.componentImportObject as WasiSnapshotPreview2AsyncImportObject;
-            const filesystem = () => componentImportObject["wasi:filesystem/filesystem"];
+            const filesystem = () => componentImportObject["wasi:filesystem/types"];
             const sockets = () => {
                 let sock = {
                     socketsInstanceNetwork: componentImportObject["wasi:sockets/instance-network"],
@@ -556,6 +556,7 @@ export class WASI {
 
         let funcReturn, funcThrownError;
         try {
+            console.log(`binding func: ${importName}`, functionName);
             // Binding "this" to section object for fuction
             const boundFunc = func.bind(imp);
             funcReturn = await boundFunc(...args);

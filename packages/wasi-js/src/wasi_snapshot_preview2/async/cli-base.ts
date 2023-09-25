@@ -1,21 +1,21 @@
 import { CliBaseEnvironmentNamespace as clibe } from "@wasm-env/wasi-snapshot-preview2";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-type CliBaseEnvironmentAsync = clibe.CliBaseEnvironmentAsync;
+type CliBaseEnvironmentAsync = clibe.WasiCliEnvironmentAsync;
 import { CliBaseExitNamespace as clib } from "@wasm-env/wasi-snapshot-preview2";
 import { ExitStatus } from "../../wasiUtils.js";
 type Result<T, E> = clib.Result<T, E>;
-import { CliBasePreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
-import { CliBasePreopensAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-preopens";
-import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
+import { FilesystemPreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
+type PreopensAsync = clibp.WasiFilesystemPreopensAsync;
 import { wasiError } from "../../wasiUtils.js";
 type Descriptor = clibp.Descriptor;
-import { CliBaseStderrNamespace } from "@wasm-env/wasi-snapshot-preview2";
-import { CliBaseStderrAsync, OutputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-stderr";
-import { CliBaseStdinNamespace } from "@wasm-env/wasi-snapshot-preview2";
-import { CliBaseStdinAsync, InputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-stdin";
-import { CliBaseStdoutNamespace } from "@wasm-env/wasi-snapshot-preview2";
-//import { CliBaseStdoutAsync, OutputStream } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-Stdout";
-import { CliBaseStdoutAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/cli-base-Stdout";
+import { CliBaseStderrNamespace as clibsderrns } from "@wasm-env/wasi-snapshot-preview2";
+type CliBaseStderrAsync = clibsderrns.WasiCliStderrAsync;
+type OutputStream = clibsderrns.OutputStream;
+import { CliBaseStdinNamespace as clibsdinns } from "@wasm-env/wasi-snapshot-preview2";
+type CliBaseStdinAsync = clibsdinns.WasiCliStdinAsync;
+type InputStream = clibsdinns.InputStream;
+import { CliBaseStdoutNamespace as clibsdoutns } from "@wasm-env/wasi-snapshot-preview2";
+type CliBaseStdoutAsync = clibsdoutns.WasiCliStdoutAsync;
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -34,9 +34,14 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
     async getArguments(): Promise<string[]> {
         return this._wasiEnv.args;
     }
+
+    async initialCwd(): Promise<string | undefined> {
+        return ".";
+    }
+
 }
 
-export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
+export class CliBaseExitAsyncHost implements clib.WasiCliExitAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -44,6 +49,7 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
     private _wasiEnv: WasiEnv;
 
     async exit(status: Result<any, any>): Promise<void> {
+        console.log("exit:status: ", status);
         let rval = 0;
         if (status.tag == "ok") {
             rval = 0;
@@ -60,30 +66,6 @@ export class CliBaseExitAsyncHost implements clib.CliBaseExitAsync {
         throw new ExitStatus(rval);
     }
 }
-
-export class CliBasePreopensAsyncHost implements CliBasePreopensAsync {
-    constructor(wasiOptions: WasiOptions) {
-        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
-        this._wasiEnv = wasiEnv;
-    }
-    private _wasiEnv: WasiEnv;
-
-    async getDirectories(): Promise<[Descriptor, string][]> {
-        const preopens: [Descriptor, string][] = [];
-        const preopen_fd = FIRST_PREOPEN_FD;
-        try {
-            for (let i = preopen_fd; true; i++) {
-                const openDir = this._wasiEnv.openFiles.getPreOpen(i);
-                const path = openDir.path;
-                preopens.push([i, path]);
-            }
-        } catch (err: any) {
-            wasiError("getDirectories: err: ", err);
-        }
-        return preopens;
-    }
-}
-
 export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
