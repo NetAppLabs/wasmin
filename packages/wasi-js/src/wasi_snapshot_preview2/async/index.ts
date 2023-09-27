@@ -26,12 +26,12 @@ import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
 import { IoStreamsAsyncHost } from "./io.js";
 import { RandomInsecureSeedAsyncHost, RandomRandomAsynHost } from "./random.js";
 import { RandomInsecureAsyncHost } from "./random.js";
-import { CliBaseEnvironmentAsyncHost } from "./cli-base.js";
+import { CliBaseEnvironmentAsyncHost } from "./cli.js";
 import { FileSystemPreopensAsyncHost } from "./filesystem.js";
-import { CliBaseExitAsyncHost } from "./cli-base.js";
-import { CliBaseStdinAsyncHost } from "./cli-base.js";
-import { CliBaseStdoutAsyncHost } from "./cli-base.js";
-import { CliBaseStderrAsyncHost } from "./cli-base.js";
+import { CliBaseExitAsyncHost } from "./cli.js";
+import { CliBaseStdinAsyncHost } from "./cli.js";
+import { CliBaseStdoutAsyncHost } from "./cli.js";
+import { CliBaseStderrAsyncHost } from "./cli.js";
 import { ClocksMonotonicClockAsyncHost, ClocksTimezoneAsyncHost, ClocksWallClockAsyncHost } from "./clocks.js";
 import { ClocksMonotonicClockNamespace } from "@wasm-env/wasi-snapshot-preview2";
 type ClocksMonotonicClockAsync = ClocksMonotonicClockNamespace.WasiClocksMonotonicClockAsync;
@@ -47,9 +47,14 @@ import { SocketsTcpCreateSocketNamespace } from "@wasm-env/wasi-snapshot-preview
 type SocketsTcpCreateSocketAsync = SocketsTcpCreateSocketNamespace.WasiSocketsTcpCreateSocketAsync;
 import { SocketsTcpNamespace } from "@wasm-env/wasi-snapshot-preview2";
 type SocketsTcpAsync = SocketsTcpNamespace.WasiSocketsTcpAsync;
+import { SocketsUdpCreateSocketNamespace } from "@wasm-env/wasi-snapshot-preview2";
+type WasiSocketsUdpCreateSocketAsync = SocketsUdpCreateSocketNamespace.WasiSocketsUdpCreateSocketAsync;
+import { SocketsUdpNamespace } from "@wasm-env/wasi-snapshot-preview2";
+type WasiSocketsUdpAsync = SocketsUdpNamespace.WasiSocketsUdpAsync;
+
 import { SocketsIpNameLookupNamespace } from "@wasm-env/wasi-snapshot-preview2";
 type SocketsIpNameLookupAsync = SocketsIpNameLookupNamespace.WasiSocketsIpNameLookupAsync;
-import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost } from "./sockets.js";
+import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost, WasiSocketsUdpAsyncHost } from "./sockets.js";
 import { PollPollNamespace } from "@wasm-env/wasi-snapshot-preview2";
 type PollPollAsync = PollPollNamespace.WasiPollPollAsync;
 import { PollPollAsyncHost } from "./poll.js";
@@ -85,6 +90,8 @@ export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:sockets/network": SocketsNetworkAsync;
     "wasi:sockets/tcp": SocketsTcpAsync;
     "wasi:sockets/tcp-create-socket": SocketsTcpCreateSocketAsync;
+    "wasi:sockets/udp": WasiSocketsUdpAsync;
+    "wasi:sockets/udp-create-socket": WasiSocketsUdpCreateSocketAsync;
     "wasi:sockets/ip-name-lookup": SocketsIpNameLookupAsync;
     "wasi:random/random": RandomRandomAsync;
     "wasi:random/insecure": RandomInsecureAsync;
@@ -99,6 +106,7 @@ export type WasiSnapshotPreview2AsyncImportObject = {
 export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2AsyncImportObject {
     const socketsNetworkInstance = new SocketsNetworkAsyncHost(wasiOptions);
     const socketsTcpInstance = new SocketsTcpAsyncHost(wasiOptions);
+    const socketsUdpInstance = new WasiSocketsUdpAsyncHost(wasiOptions);
     const socketsIpNameLookupInstance = new SocketsIpNameLookupAsyncHost(wasiOptions);
     const wasiPreview2Imports: WasiSnapshotPreview2AsyncImportObject = {
         "wasi:cli/environment": new CliBaseEnvironmentAsyncHost(wasiOptions),
@@ -117,6 +125,8 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         "wasi:sockets/network": socketsNetworkInstance,
         "wasi:sockets/tcp": socketsTcpInstance,
         "wasi:sockets/tcp-create-socket": socketsTcpInstance,
+        "wasi:sockets/udp": socketsUdpInstance,
+        "wasi:sockets/udp-create-socket": socketsUdpInstance,
         "wasi:sockets/ip-name-lookup": socketsIpNameLookupInstance,
         "wasi:random/random": new RandomRandomAsynHost(wasiOptions),
         "wasi:random/insecure": new RandomInsecureAsyncHost(wasiOptions),

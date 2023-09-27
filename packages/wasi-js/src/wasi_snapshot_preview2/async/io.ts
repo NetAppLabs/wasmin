@@ -77,8 +77,11 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     }
 
     async checkWrite(this0: OutputStream): Promise<bigint> {
-        throw new Error("Method not implemented.");
+        // Default to 1MB
+        // TODO make more intelligent
+        return 1048576n;
     }
+
     async blockingWriteAndFlush(outstr: OutputStream, contents: Uint8Array): Promise<void> {
         try {
             return await this.write(outstr, contents);
@@ -111,13 +114,17 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             throw translateError(err);
         }
     }
-    skip(this0: number, len: bigint): Promise<[bigint, io.StreamStatus]> {
+    async skip(this0: number, len: bigint): Promise<[bigint, io.StreamStatus]> {
         throw new Error("Method not implemented.");
     }
-    flush(this0: number): Promise<void> {
-        throw new Error("Method not implemented.");
+    async flush(this0: number): Promise<void> {
+        // TODO revise this
+        // NOOP for now
+        return;
     }
-    blockingFlush(this0: number): Promise<void> {
-        throw new Error("Method not implemented.");
+    async blockingFlush(this0: number): Promise<void> {
+        // TODO revise this
+        // NOOP for now
+        return;
     }
 }

@@ -134,6 +134,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
                 return "character-device";
             }
         } catch (err: any) {
+            console.log(`filesystem:getType for fd: ${fd} err: `, err);
             throw translateError(err);
         }
     }

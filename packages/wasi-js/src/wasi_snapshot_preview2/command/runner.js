@@ -79,79 +79,89 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { blockingFlush, blockingRead, blockingWriteAndFlush, checkWrite, dropInputStream, dropOutputStream, read: read$1, subscribeToInputStream, subscribeToOutputStream, write: write$1 } = imports['wasi:io/streams'];
   const { dropPollable, pollOneoff } = imports['wasi:poll/poll'];
   const { getRandomBytes } = imports['wasi:random/random'];
+  const { accept, dropTcpSocket, shutdown } = imports['wasi:sockets/tcp'];
+  const { dropUdpSocket } = imports['wasi:sockets/udp'];
   let exports0;
   let exports1;
   
-  function lowering0() {
-    const ret = resolution();
-    return toUint64(ret);
-  }
-  
-  function lowering1() {
-    const ret = now();
-    return toUint64(ret);
-  }
-  
-  function lowering2(arg0) {
-    dropDirectoryEntryStream(arg0 >>> 0);
-  }
-  
-  function lowering3(arg0, arg1) {
+  function lowering0(arg0, arg1) {
     const bool0 = arg1;
     const ret = subscribe(BigInt.asUintN(64, arg0), bool0 == 0 ? false : (bool0 == 1 ? true : throwInvalidBool()));
     return toUint32(ret);
   }
   
-  function lowering4(arg0) {
+  function lowering1(arg0) {
     const ret = subscribeToOutputStream(arg0 >>> 0);
     return toUint32(ret);
   }
   
-  function lowering5(arg0) {
+  function lowering2(arg0) {
+    dropPollable(arg0 >>> 0);
+  }
+  
+  function lowering3(arg0) {
     const ret = subscribeToInputStream(arg0 >>> 0);
     return toUint32(ret);
   }
   
-  function lowering6(arg0) {
-    dropPollable(arg0 >>> 0);
+  function lowering4(arg0) {
+    dropDirectoryEntryStream(arg0 >>> 0);
+  }
+  
+  function lowering5() {
+    const ret = resolution();
+    return toUint64(ret);
+  }
+  
+  function lowering6() {
+    const ret = now();
+    return toUint64(ret);
   }
   
   function lowering7(arg0) {
-    dropInputStream(arg0 >>> 0);
-  }
-  
-  function lowering8(arg0) {
-    dropOutputStream(arg0 >>> 0);
-  }
-  
-  function lowering9(arg0) {
     dropDescriptor(arg0 >>> 0);
   }
   
-  function lowering10() {
+  function lowering8(arg0) {
+    dropInputStream(arg0 >>> 0);
+  }
+  
+  function lowering9(arg0) {
+    dropOutputStream(arg0 >>> 0);
+  }
+  
+  function lowering10(arg0) {
+    dropTcpSocket(arg0 >>> 0);
+  }
+  
+  function lowering11(arg0) {
+    dropUdpSocket(arg0 >>> 0);
+  }
+  
+  function lowering12() {
     const ret = getStdin();
     return toUint32(ret);
   }
   
-  function lowering11(arg0) {
+  function lowering13(arg0) {
     dropTerminalInput(arg0 >>> 0);
   }
   
-  function lowering12() {
+  function lowering14() {
     const ret = getStdout();
     return toUint32(ret);
   }
   
-  function lowering13(arg0) {
+  function lowering15(arg0) {
     dropTerminalOutput(arg0 >>> 0);
   }
   
-  function lowering14() {
+  function lowering16() {
     const ret = getStderr();
     return toUint32(ret);
   }
   
-  function lowering15(arg0) {
+  function lowering17(arg0) {
     let variant0;
     switch (arg0) {
       case 0: {
@@ -178,7 +188,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let memory0;
   let realloc0;
   
-  function lowering16(arg0) {
+  function lowering18(arg0) {
     const ret = getDirectories();
     const vec2 = ret;
     const len2 = vec2.length;
@@ -194,20 +204,6 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
     dataView(memory0).setInt32(arg0 + 4, len2, true);
     dataView(memory0).setInt32(arg0 + 0, result2, true);
-  }
-  
-  function lowering17(arg0) {
-    const ret = now$1();
-    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
-    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
-    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
-  }
-  
-  function lowering18(arg0) {
-    const ret = resolution$1();
-    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
-    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
-    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
   function lowering19(arg0, arg1, arg2) {
@@ -5694,7 +5690,21 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering46(arg0, arg1, arg2) {
+  function lowering46(arg0) {
+    const ret = now$1();
+    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
+    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
+    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
+  }
+  
+  function lowering47(arg0) {
+    const ret = resolution$1();
+    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
+    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
+    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
+  }
+  
+  function lowering48(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: read$1(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5747,7 +5757,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering47(arg0, arg1, arg2) {
+  function lowering49(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: blockingRead(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5800,7 +5810,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering48(arg0, arg1) {
+  function lowering50(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: checkWrite(arg0 >>> 0) };
@@ -5846,7 +5856,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering49(arg0, arg1, arg2, arg3) {
+  function lowering51(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -5894,7 +5904,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering50(arg0, arg1, arg2, arg3) {
+  function lowering52(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -5942,7 +5952,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering51(arg0, arg1) {
+  function lowering53(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: blockingFlush(arg0 >>> 0) };
@@ -5987,7 +5997,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering52(arg0, arg1, arg2) {
+  function lowering54(arg0, arg1, arg2) {
     const ptr0 = arg0;
     const len0 = arg1;
     const result0 = new Uint32Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 4));
@@ -6003,7 +6013,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 0, result1, true);
   }
   
-  function lowering53(arg0, arg1) {
+  function lowering55(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -6014,7 +6024,359 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function lowering54(arg0) {
+  function lowering56(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: accept(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const [tuple0_0, tuple0_1, tuple0_2] = e;
+        dataView(memory0).setInt32(arg1 + 4, toUint32(tuple0_0), true);
+        dataView(memory0).setInt32(arg1 + 8, toUint32(tuple0_1), true);
+        dataView(memory0).setInt32(arg1 + 12, toUint32(tuple0_2), true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering57(arg0, arg1, arg2) {
+    let enum0;
+    switch (arg1) {
+      case 0: {
+        enum0 = 'receive';
+        break;
+      }
+      case 1: {
+        enum0 = 'send';
+        break;
+      }
+      case 2: {
+        enum0 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: shutdown(arg0 >>> 0, enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering58(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -6035,7 +6397,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function lowering55(arg0) {
+  function lowering59(arg0) {
     const ret = getArguments();
     const vec1 = ret;
     const len1 = vec1.length;
@@ -6051,7 +6413,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result1, true);
   }
   
-  function lowering56(arg0) {
+  function lowering60(arg0) {
     const ret = getTerminalStdin();
     const variant0 = ret;
     if (variant0 === null || variant0=== undefined) {
@@ -6063,7 +6425,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering57(arg0) {
+  function lowering61(arg0) {
     const ret = getTerminalStdout();
     const variant0 = ret;
     if (variant0 === null || variant0=== undefined) {
@@ -6075,7 +6437,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering58(arg0) {
+  function lowering62(arg0) {
     const ret = getTerminalStderr();
     const variant0 = ret;
     if (variant0 === null || variant0=== undefined) {
@@ -6091,52 +6453,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     wasi_snapshot_preview1: {
-      args_get: exports0['43'],
-      args_sizes_get: exports0['44'],
-      clock_res_get: exports0['47'],
-      clock_time_get: exports0['48'],
-      environ_get: exports0['45'],
-      environ_sizes_get: exports0['46'],
-      fd_advise: exports0['49'],
-      fd_allocate: exports0['50'],
-      fd_close: exports0['51'],
-      fd_datasync: exports0['52'],
-      fd_fdstat_get: exports0['53'],
-      fd_fdstat_set_flags: exports0['54'],
-      fd_fdstat_set_rights: exports0['55'],
-      fd_filestat_get: exports0['56'],
-      fd_filestat_set_size: exports0['57'],
-      fd_filestat_set_times: exports0['58'],
-      fd_pread: exports0['59'],
-      fd_prestat_dir_name: exports0['61'],
-      fd_prestat_get: exports0['60'],
-      fd_pwrite: exports0['62'],
-      fd_read: exports0['63'],
-      fd_readdir: exports0['64'],
-      fd_renumber: exports0['65'],
-      fd_seek: exports0['66'],
-      fd_sync: exports0['67'],
-      fd_tell: exports0['68'],
-      fd_write: exports0['69'],
-      path_create_directory: exports0['70'],
-      path_filestat_get: exports0['71'],
-      path_filestat_set_times: exports0['72'],
-      path_link: exports0['73'],
-      path_open: exports0['74'],
-      path_readlink: exports0['75'],
-      path_remove_directory: exports0['76'],
-      path_rename: exports0['77'],
-      path_symlink: exports0['78'],
-      path_unlink_file: exports0['79'],
-      poll_oneoff: exports0['80'],
-      proc_exit: exports0['81'],
-      proc_raise: exports0['82'],
-      random_get: exports0['84'],
-      sched_yield: exports0['83'],
-      sock_accept: exports0['85'],
-      sock_recv: exports0['86'],
-      sock_send: exports0['87'],
-      sock_shutdown: exports0['88'],
+      args_get: exports0['45'],
+      args_sizes_get: exports0['46'],
+      clock_res_get: exports0['49'],
+      clock_time_get: exports0['50'],
+      environ_get: exports0['47'],
+      environ_sizes_get: exports0['48'],
+      fd_advise: exports0['51'],
+      fd_allocate: exports0['52'],
+      fd_close: exports0['53'],
+      fd_datasync: exports0['54'],
+      fd_fdstat_get: exports0['55'],
+      fd_fdstat_set_flags: exports0['56'],
+      fd_fdstat_set_rights: exports0['57'],
+      fd_filestat_get: exports0['58'],
+      fd_filestat_set_size: exports0['59'],
+      fd_filestat_set_times: exports0['60'],
+      fd_pread: exports0['61'],
+      fd_prestat_dir_name: exports0['63'],
+      fd_prestat_get: exports0['62'],
+      fd_pwrite: exports0['64'],
+      fd_read: exports0['65'],
+      fd_readdir: exports0['66'],
+      fd_renumber: exports0['67'],
+      fd_seek: exports0['68'],
+      fd_sync: exports0['69'],
+      fd_tell: exports0['70'],
+      fd_write: exports0['71'],
+      path_create_directory: exports0['72'],
+      path_filestat_get: exports0['73'],
+      path_filestat_set_times: exports0['74'],
+      path_link: exports0['75'],
+      path_open: exports0['76'],
+      path_readlink: exports0['77'],
+      path_remove_directory: exports0['78'],
+      path_rename: exports0['79'],
+      path_symlink: exports0['80'],
+      path_unlink_file: exports0['81'],
+      poll_oneoff: exports0['82'],
+      proc_exit: exports0['83'],
+      proc_raise: exports0['84'],
+      random_get: exports0['86'],
+      sched_yield: exports0['85'],
+      sock_accept: exports0['87'],
+      sock_recv: exports0['88'],
+      sock_send: exports0['89'],
+      sock_shutdown: exports0['90'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -6147,97 +6509,105 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli/environment': {
-      'get-arguments': exports0['39'],
-      'get-environment': exports0['38'],
+      'get-arguments': exports0['41'],
+      'get-environment': exports0['40'],
     },
     'wasi:cli/exit': {
-      exit: lowering15,
+      exit: lowering17,
     },
     'wasi:cli/stderr': {
-      'get-stderr': lowering14,
+      'get-stderr': lowering16,
     },
     'wasi:cli/stdin': {
-      'get-stdin': lowering10,
+      'get-stdin': lowering12,
     },
     'wasi:cli/stdout': {
-      'get-stdout': lowering12,
+      'get-stdout': lowering14,
     },
     'wasi:cli/terminal-input': {
-      'drop-terminal-input': lowering11,
+      'drop-terminal-input': lowering13,
     },
     'wasi:cli/terminal-output': {
-      'drop-terminal-output': lowering13,
+      'drop-terminal-output': lowering15,
     },
     'wasi:cli/terminal-stderr': {
-      'get-terminal-stderr': exports0['42'],
+      'get-terminal-stderr': exports0['44'],
     },
     'wasi:cli/terminal-stdin': {
-      'get-terminal-stdin': exports0['40'],
+      'get-terminal-stdin': exports0['42'],
     },
     'wasi:cli/terminal-stdout': {
-      'get-terminal-stdout': exports0['41'],
+      'get-terminal-stdout': exports0['43'],
     },
     'wasi:clocks/monotonic-clock': {
-      now: lowering1,
-      resolution: lowering0,
-      subscribe: lowering3,
+      now: lowering6,
+      resolution: lowering5,
+      subscribe: lowering0,
     },
     'wasi:clocks/wall-clock': {
-      now: exports0['1'],
-      resolution: exports0['2'],
+      now: exports0['28'],
+      resolution: exports0['29'],
     },
     'wasi:filesystem/preopens': {
       'get-directories': exports0['0'],
     },
     'wasi:filesystem/types': {
-      advise: exports0['6'],
-      'append-via-stream': exports0['5'],
-      'create-directory-at': exports0['16'],
-      'drop-descriptor': lowering9,
-      'drop-directory-entry-stream': lowering2,
-      'get-flags': exports0['8'],
-      'get-type': exports0['9'],
-      'link-at': exports0['20'],
-      'metadata-hash': exports0['28'],
-      'metadata-hash-at': exports0['29'],
-      'open-at': exports0['21'],
-      read: exports0['12'],
-      'read-directory': exports0['14'],
-      'read-directory-entry': exports0['27'],
-      'read-via-stream': exports0['3'],
-      'readlink-at': exports0['22'],
-      'remove-directory-at': exports0['23'],
-      'rename-at': exports0['24'],
-      'set-size': exports0['10'],
-      'set-times': exports0['11'],
-      'set-times-at': exports0['19'],
-      stat: exports0['17'],
-      'stat-at': exports0['18'],
-      'symlink-at': exports0['25'],
-      sync: exports0['15'],
-      'sync-data': exports0['7'],
-      'unlink-file-at': exports0['26'],
-      write: exports0['13'],
-      'write-via-stream': exports0['4'],
+      advise: exports0['4'],
+      'append-via-stream': exports0['3'],
+      'create-directory-at': exports0['14'],
+      'drop-descriptor': lowering7,
+      'drop-directory-entry-stream': lowering4,
+      'get-flags': exports0['6'],
+      'get-type': exports0['7'],
+      'link-at': exports0['18'],
+      'metadata-hash': exports0['26'],
+      'metadata-hash-at': exports0['27'],
+      'open-at': exports0['19'],
+      read: exports0['10'],
+      'read-directory': exports0['12'],
+      'read-directory-entry': exports0['25'],
+      'read-via-stream': exports0['1'],
+      'readlink-at': exports0['20'],
+      'remove-directory-at': exports0['21'],
+      'rename-at': exports0['22'],
+      'set-size': exports0['8'],
+      'set-times': exports0['9'],
+      'set-times-at': exports0['17'],
+      stat: exports0['15'],
+      'stat-at': exports0['16'],
+      'symlink-at': exports0['23'],
+      sync: exports0['13'],
+      'sync-data': exports0['5'],
+      'unlink-file-at': exports0['24'],
+      write: exports0['11'],
+      'write-via-stream': exports0['2'],
     },
     'wasi:io/streams': {
       'blocking-flush': exports0['35'],
       'blocking-read': exports0['31'],
       'blocking-write-and-flush': exports0['34'],
       'check-write': exports0['32'],
-      'drop-input-stream': lowering7,
-      'drop-output-stream': lowering8,
+      'drop-input-stream': lowering8,
+      'drop-output-stream': lowering9,
       read: exports0['30'],
-      'subscribe-to-input-stream': lowering5,
-      'subscribe-to-output-stream': lowering4,
+      'subscribe-to-input-stream': lowering3,
+      'subscribe-to-output-stream': lowering1,
       write: exports0['33'],
     },
     'wasi:poll/poll': {
-      'drop-pollable': lowering6,
+      'drop-pollable': lowering2,
       'poll-oneoff': exports0['36'],
     },
     'wasi:random/random': {
       'get-random-bytes': exports0['37'],
+    },
+    'wasi:sockets/tcp': {
+      accept: exports0['38'],
+      'drop-tcp-socket': lowering10,
+      shutdown: exports0['39'],
+    },
+    'wasi:sockets/udp': {
+      'drop-udp-socket': lowering11,
     },
   }));
   memory0 = exports1.memory;
@@ -6245,95 +6615,97 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,
-      '0': lowering16,
-      '1': lowering17,
-      '10': lowering26,
-      '11': lowering27,
-      '12': lowering28,
-      '13': lowering29,
-      '14': lowering30,
-      '15': lowering31,
-      '16': lowering32,
-      '17': lowering33,
-      '18': lowering34,
-      '19': lowering35,
-      '2': lowering18,
-      '20': lowering36,
-      '21': lowering37,
-      '22': lowering38,
-      '23': lowering39,
-      '24': lowering40,
-      '25': lowering41,
-      '26': lowering42,
-      '27': lowering43,
-      '28': lowering44,
-      '29': lowering45,
-      '3': lowering19,
-      '30': lowering46,
-      '31': lowering47,
-      '32': lowering48,
-      '33': lowering49,
-      '34': lowering50,
-      '35': lowering51,
-      '36': lowering52,
-      '37': lowering53,
-      '38': lowering54,
-      '39': lowering55,
-      '4': lowering20,
-      '40': lowering56,
-      '41': lowering57,
-      '42': lowering58,
-      '43': exports2.args_get,
-      '44': exports2.args_sizes_get,
-      '45': exports2.environ_get,
-      '46': exports2.environ_sizes_get,
-      '47': exports2.clock_res_get,
-      '48': exports2.clock_time_get,
-      '49': exports2.fd_advise,
-      '5': lowering21,
-      '50': exports2.fd_allocate,
-      '51': exports2.fd_close,
-      '52': exports2.fd_datasync,
-      '53': exports2.fd_fdstat_get,
-      '54': exports2.fd_fdstat_set_flags,
-      '55': exports2.fd_fdstat_set_rights,
-      '56': exports2.fd_filestat_get,
-      '57': exports2.fd_filestat_set_size,
-      '58': exports2.fd_filestat_set_times,
-      '59': exports2.fd_pread,
-      '6': lowering22,
-      '60': exports2.fd_prestat_get,
-      '61': exports2.fd_prestat_dir_name,
-      '62': exports2.fd_pwrite,
-      '63': exports2.fd_read,
-      '64': exports2.fd_readdir,
-      '65': exports2.fd_renumber,
-      '66': exports2.fd_seek,
-      '67': exports2.fd_sync,
-      '68': exports2.fd_tell,
-      '69': exports2.fd_write,
-      '7': lowering23,
-      '70': exports2.path_create_directory,
-      '71': exports2.path_filestat_get,
-      '72': exports2.path_filestat_set_times,
-      '73': exports2.path_link,
-      '74': exports2.path_open,
-      '75': exports2.path_readlink,
-      '76': exports2.path_remove_directory,
-      '77': exports2.path_rename,
-      '78': exports2.path_symlink,
-      '79': exports2.path_unlink_file,
-      '8': lowering24,
-      '80': exports2.poll_oneoff,
-      '81': exports2.proc_exit,
-      '82': exports2.proc_raise,
-      '83': exports2.sched_yield,
-      '84': exports2.random_get,
-      '85': exports2.sock_accept,
-      '86': exports2.sock_recv,
-      '87': exports2.sock_send,
-      '88': exports2.sock_shutdown,
-      '9': lowering25,
+      '0': lowering18,
+      '1': lowering19,
+      '10': lowering28,
+      '11': lowering29,
+      '12': lowering30,
+      '13': lowering31,
+      '14': lowering32,
+      '15': lowering33,
+      '16': lowering34,
+      '17': lowering35,
+      '18': lowering36,
+      '19': lowering37,
+      '2': lowering20,
+      '20': lowering38,
+      '21': lowering39,
+      '22': lowering40,
+      '23': lowering41,
+      '24': lowering42,
+      '25': lowering43,
+      '26': lowering44,
+      '27': lowering45,
+      '28': lowering46,
+      '29': lowering47,
+      '3': lowering21,
+      '30': lowering48,
+      '31': lowering49,
+      '32': lowering50,
+      '33': lowering51,
+      '34': lowering52,
+      '35': lowering53,
+      '36': lowering54,
+      '37': lowering55,
+      '38': lowering56,
+      '39': lowering57,
+      '4': lowering22,
+      '40': lowering58,
+      '41': lowering59,
+      '42': lowering60,
+      '43': lowering61,
+      '44': lowering62,
+      '45': exports2.args_get,
+      '46': exports2.args_sizes_get,
+      '47': exports2.environ_get,
+      '48': exports2.environ_sizes_get,
+      '49': exports2.clock_res_get,
+      '5': lowering23,
+      '50': exports2.clock_time_get,
+      '51': exports2.fd_advise,
+      '52': exports2.fd_allocate,
+      '53': exports2.fd_close,
+      '54': exports2.fd_datasync,
+      '55': exports2.fd_fdstat_get,
+      '56': exports2.fd_fdstat_set_flags,
+      '57': exports2.fd_fdstat_set_rights,
+      '58': exports2.fd_filestat_get,
+      '59': exports2.fd_filestat_set_size,
+      '6': lowering24,
+      '60': exports2.fd_filestat_set_times,
+      '61': exports2.fd_pread,
+      '62': exports2.fd_prestat_get,
+      '63': exports2.fd_prestat_dir_name,
+      '64': exports2.fd_pwrite,
+      '65': exports2.fd_read,
+      '66': exports2.fd_readdir,
+      '67': exports2.fd_renumber,
+      '68': exports2.fd_seek,
+      '69': exports2.fd_sync,
+      '7': lowering25,
+      '70': exports2.fd_tell,
+      '71': exports2.fd_write,
+      '72': exports2.path_create_directory,
+      '73': exports2.path_filestat_get,
+      '74': exports2.path_filestat_set_times,
+      '75': exports2.path_link,
+      '76': exports2.path_open,
+      '77': exports2.path_readlink,
+      '78': exports2.path_remove_directory,
+      '79': exports2.path_rename,
+      '8': lowering26,
+      '80': exports2.path_symlink,
+      '81': exports2.path_unlink_file,
+      '82': exports2.poll_oneoff,
+      '83': exports2.proc_exit,
+      '84': exports2.proc_raise,
+      '85': exports2.sched_yield,
+      '86': exports2.random_get,
+      '87': exports2.sock_accept,
+      '88': exports2.sock_recv,
+      '89': exports2.sock_send,
+      '9': lowering27,
+      '90': exports2.sock_shutdown,
     },
   }));
   

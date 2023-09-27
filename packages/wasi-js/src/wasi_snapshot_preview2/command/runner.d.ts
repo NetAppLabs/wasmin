@@ -15,6 +15,9 @@ import { ImportsTypes } from './imports/types';
 import { ImportsStreams } from './imports/streams';
 import { ImportsPoll } from './imports/poll';
 import { ImportsRandom } from './imports/random';
+import { ImportsNetwork } from './imports/network';
+import { ImportsTcp } from './imports/tcp';
+import { ImportsUdp } from './imports/udp';
 import { ExportsWasiCliRun } from './exports/wasi-cli-run';
 export interface ImportObject {
   'wasi:cli/environment': typeof ImportsEnvironment,
@@ -34,6 +37,9 @@ export interface ImportObject {
   'wasi:io/streams': typeof ImportsStreams,
   'wasi:poll/poll': typeof ImportsPoll,
   'wasi:random/random': typeof ImportsRandom,
+  'wasi:sockets/network': typeof ImportsNetwork,
+  'wasi:sockets/tcp': typeof ImportsTcp,
+  'wasi:sockets/udp': typeof ImportsUdp,
 }
 export interface Root {
   'wasi:cli/run': typeof ExportsWasiCliRun,

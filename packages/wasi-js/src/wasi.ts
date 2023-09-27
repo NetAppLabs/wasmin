@@ -556,7 +556,6 @@ export class WASI {
 
         let funcReturn, funcThrownError;
         try {
-            console.log(`binding func: ${importName}`, functionName);
             // Binding "this" to section object for fuction
             const boundFunc = func.bind(imp);
             funcReturn = await boundFunc(...args);

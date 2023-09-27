@@ -4,10 +4,7 @@ type CliBaseEnvironmentAsync = clibe.WasiCliEnvironmentAsync;
 import { CliBaseExitNamespace as clib } from "@wasm-env/wasi-snapshot-preview2";
 import { ExitStatus } from "../../wasiUtils.js";
 type Result<T, E> = clib.Result<T, E>;
-import { FilesystemPreopensNamespace as clibp } from "@wasm-env/wasi-snapshot-preview2";
-type PreopensAsync = clibp.WasiFilesystemPreopensAsync;
 import { wasiError } from "../../wasiUtils.js";
-type Descriptor = clibp.Descriptor;
 import { CliBaseStderrNamespace as clibsderrns } from "@wasm-env/wasi-snapshot-preview2";
 type CliBaseStderrAsync = clibsderrns.WasiCliStderrAsync;
 type OutputStream = clibsderrns.OutputStream;
@@ -49,7 +46,6 @@ export class CliBaseExitAsyncHost implements clib.WasiCliExitAsync {
     private _wasiEnv: WasiEnv;
 
     async exit(status: Result<any, any>): Promise<void> {
-        console.log("exit:status: ", status);
         let rval = 0;
         if (status.tag == "ok") {
             rval = 0;

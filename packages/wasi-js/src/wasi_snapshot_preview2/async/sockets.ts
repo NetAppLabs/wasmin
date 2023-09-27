@@ -4,6 +4,7 @@ type Network = socki.Network;
 import { SocketsNetworkNamespace as sockn } from "@wasm-env/wasi-snapshot-preview2";
 type SocketsNetworkAsync = sockn.WasiSocketsNetworkAsync;
 import { SocketsTcpCreateSocketNamespace as socktc } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasm-env/wasi-snapshot-preview2";
 type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocketAsync;
 import { SocketsIpNameLookupNamespace as socklookup } from "@wasm-env/wasi-snapshot-preview2";
 type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookupAsync;
@@ -11,8 +12,10 @@ import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
 type InputStream = io.InputStream;
 type OutputStream = io.InputStream;
 import { SocketsTcpNamespace as sockt } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsUdpNamespace as socku } from "@wasm-env/wasi-snapshot-preview2";
+
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { createTcpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";
+import { createTcpSocket, createUdpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";
 import {
     AddressFamily as AddressFamilyCommon,
     AddressInfo,
@@ -34,6 +37,9 @@ type Ipv4Address = sockn.Ipv4Address;
 type Ipv6Address = sockn.Ipv6Address;
 type IpAddressIpv4 = sockn.IpAddressIpv4;
 type IpAddressIpv6 = sockn.IpAddressIpv6;
+type WasiSocketsUdpAsync = socku.WasiSocketsUdpAsync;
+type WasiSocketsUdpCreateSocketAsync = sockuc.WasiSocketsUdpCreateSocketAsync;
+
 
 const DEFAULT_NETWORK: Network = 0;
 
@@ -222,6 +228,88 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
     }
 }
 
+export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,WasiSocketsUdpAsync {
+    constructor(wasiOptions: WasiOptions) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+    }
+    private _wasiEnv: WasiEnv;
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
+    async createUdpSocket(addressFamily: sockn.IpAddressFamily): Promise<number> {
+        try {
+            // TODO: addressFamily ignored for now
+            const addrFamily = IPAddressFamilyToAddressFamily(addressFamily);
+            const sock = await createUdpSocket(addrFamily);
+            const sockFd = this.openFiles.add(sock);
+            return sockFd;
+        } catch (err: any) {
+            throw translateError(err);
+        }
+    }
+    async startBind(this_: number, network: number, localAddress: sockn.IpSocketAddress): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async finishBind(this_: number): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async startConnect(this_: number, network: number, remoteAddress: sockn.IpSocketAddress): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async finishConnect(this_: number): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async receive(this_: number, maxResults: bigint): Promise<socku.Datagram[]> {
+        throw new Error("Method not implemented.");
+    }
+    async send(this_: number, datagrams: socku.Datagram[]): Promise<bigint> {
+        throw new Error("Method not implemented.");
+    }
+    async localAddress(this_: number): Promise<sockn.IpSocketAddress> {
+        throw new Error("Method not implemented.");
+    }
+    async remoteAddress(this_: number): Promise<sockn.IpSocketAddress> {
+        throw new Error("Method not implemented.");
+    }
+    async addressFamily(this_: number): Promise<sockn.IpAddressFamily> {
+        throw new Error("Method not implemented.");
+    }
+    async ipv6Only(this_: number): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+    async setIpv6Only(this_: number, value: boolean): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async unicastHopLimit(this_: number): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+    async setUnicastHopLimit(this_: number, value: number): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async receiveBufferSize(this_: number): Promise<bigint> {
+        throw new Error("Method not implemented.");
+    }
+    async setReceiveBufferSize(this_: number, value: bigint): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async sendBufferSize(this_: number): Promise<bigint> {
+        throw new Error("Method not implemented.");
+    }
+    async setSendBufferSize(this_: number, value: bigint): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    async subscribe(this_: number): Promise<number> {
+        throw new Error("Method not implemented.");
+    }
+    async dropUdpSocket(this_: number): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+}
+
 export class ResolveAddressIterator {
     constructor(public addresses: AddressInfo[], public position: number = 0) {}
     nextAddress(): AddressInfo | null {
@@ -369,5 +457,14 @@ export function AddressFamilyToIpAddressFamily(addrFamily: AddressFamilyCommon):
             return "ipv4";
         case "IPv6":
             return "ipv6";
+    }
+}
+
+export function IPAddressFamilyToAddressFamily(addrFamily: IpAddressFamily): AddressFamilyCommon {
+    switch (addrFamily) {
+        case "ipv4":
+            return "IPv4";
+        case "ipv6":
+            return "IPv6";
     }
 }
