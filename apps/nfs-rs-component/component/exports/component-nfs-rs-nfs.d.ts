@@ -1,4 +1,4 @@
-export namespace ExportsComponentNfsRsNfs {
+export namespace ComponentNfsRsNfs {
   export function parseUrlAndMount(url: string): Mount;
   export function null(mnt: Mount): void;
   export function access(mnt: Mount, fh: Uint8Array | ArrayBuffer, mode: number): number;
@@ -43,11 +43,6 @@ export namespace ExportsComponentNfsRsNfs {
   export function renamePath(mnt: Mount, fromPath: string, toPath: string): void;
   export function umount(mnt: Mount): void;
 }
-export type Mount = number;
-export interface Error {
-  nfsErrorCode?: number,
-  message: string,
-}
 export interface Time {
   seconds: number,
   nseconds: number,
@@ -88,3 +83,8 @@ export interface ReaddirplusEntry {
   attr?: Attr,
   handle: Uint8Array,
 }
+export interface Error {
+  nfsErrorCode?: number,
+  message: string,
+}
+export type Mount = number;
