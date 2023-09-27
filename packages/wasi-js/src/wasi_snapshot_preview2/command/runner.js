@@ -62,75 +62,106 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const module2 = compileCore('component.core3.wasm');
   const module3 = compileCore('component.core4.wasm');
   
-  const { getArguments, getEnvironment } = imports['wasi:cli-base/environment'];
-  const { exit } = imports['wasi:cli-base/exit'];
-  const { getDirectories } = imports['wasi:cli-base/preopens'];
-  const { getStderr } = imports['wasi:cli-base/stderr'];
-  const { getStdin } = imports['wasi:cli-base/stdin'];
-  const { getStdout } = imports['wasi:cli-base/stdout'];
+  const { getArguments, getEnvironment } = imports['wasi:cli/environment'];
+  const { exit } = imports['wasi:cli/exit'];
+  const { getStderr } = imports['wasi:cli/stderr'];
+  const { getStdin } = imports['wasi:cli/stdin'];
+  const { getStdout } = imports['wasi:cli/stdout'];
+  const { dropTerminalInput } = imports['wasi:cli/terminal-input'];
+  const { dropTerminalOutput } = imports['wasi:cli/terminal-output'];
+  const { getTerminalStderr } = imports['wasi:cli/terminal-stderr'];
+  const { getTerminalStdin } = imports['wasi:cli/terminal-stdin'];
+  const { getTerminalStdout } = imports['wasi:cli/terminal-stdout'];
   const { now, resolution, subscribe } = imports['wasi:clocks/monotonic-clock'];
   const { now: now$1, resolution: resolution$1 } = imports['wasi:clocks/wall-clock'];
-  const { advise, appendViaStream, createDirectoryAt, dropDescriptor, dropDirectoryEntryStream, getFlags, getType, linkAt, openAt, read, readDirectory, readDirectoryEntry, readViaStream, readlinkAt, removeDirectoryAt, renameAt, setSize, setTimes, setTimesAt, stat, statAt, symlinkAt, sync, syncData, unlinkFileAt, write, writeViaStream } = imports['wasi:filesystem/filesystem'];
-  const { blockingRead, blockingWrite, dropInputStream, dropOutputStream, read: read$1, subscribeToInputStream, subscribeToOutputStream, write: write$1 } = imports['wasi:io/streams'];
+  const { getDirectories } = imports['wasi:filesystem/preopens'];
+  const { advise, appendViaStream, createDirectoryAt, dropDescriptor, dropDirectoryEntryStream, getFlags, getType, linkAt, metadataHash, metadataHashAt, openAt, read, readDirectory, readDirectoryEntry, readViaStream, readlinkAt, removeDirectoryAt, renameAt, setSize, setTimes, setTimesAt, stat, statAt, symlinkAt, sync, syncData, unlinkFileAt, write, writeViaStream } = imports['wasi:filesystem/types'];
+  const { blockingFlush, blockingRead, blockingWriteAndFlush, checkWrite, dropInputStream, dropOutputStream, read: read$1, subscribeToInputStream, subscribeToOutputStream, write: write$1 } = imports['wasi:io/streams'];
   const { dropPollable, pollOneoff } = imports['wasi:poll/poll'];
   const { getRandomBytes } = imports['wasi:random/random'];
+  const { accept, dropTcpSocket, shutdown } = imports['wasi:sockets/tcp'];
+  const { dropUdpSocket } = imports['wasi:sockets/udp'];
   let exports0;
   let exports1;
   
-  function lowering0() {
-    const ret = resolution();
-    return toUint64(ret);
-  }
-  
-  function lowering1() {
-    const ret = now();
-    return toUint64(ret);
-  }
-  
-  function lowering2(arg0) {
-    dropDirectoryEntryStream(arg0 >>> 0);
-  }
-  
-  function lowering3(arg0) {
-    const ret = subscribeToOutputStream(arg0 >>> 0);
-    return toUint32(ret);
-  }
-  
-  function lowering4(arg0) {
-    const ret = subscribeToInputStream(arg0 >>> 0);
-    return toUint32(ret);
-  }
-  
-  function lowering5(arg0, arg1) {
+  function lowering0(arg0, arg1) {
     const bool0 = arg1;
     const ret = subscribe(BigInt.asUintN(64, arg0), bool0 == 0 ? false : (bool0 == 1 ? true : throwInvalidBool()));
     return toUint32(ret);
   }
   
-  function lowering6(arg0) {
+  function lowering1(arg0) {
+    const ret = subscribeToOutputStream(arg0 >>> 0);
+    return toUint32(ret);
+  }
+  
+  function lowering2(arg0) {
     dropPollable(arg0 >>> 0);
+  }
+  
+  function lowering3(arg0) {
+    const ret = subscribeToInputStream(arg0 >>> 0);
+    return toUint32(ret);
+  }
+  
+  function lowering4(arg0) {
+    dropDirectoryEntryStream(arg0 >>> 0);
+  }
+  
+  function lowering5() {
+    const ret = resolution();
+    return toUint64(ret);
+  }
+  
+  function lowering6() {
+    const ret = now();
+    return toUint64(ret);
   }
   
   function lowering7(arg0) {
     dropDescriptor(arg0 >>> 0);
   }
   
-  function lowering8() {
-    const ret = getStderr();
-    return toUint32(ret);
+  function lowering8(arg0) {
+    dropInputStream(arg0 >>> 0);
   }
   
-  function lowering9() {
+  function lowering9(arg0) {
+    dropOutputStream(arg0 >>> 0);
+  }
+  
+  function lowering10(arg0) {
+    dropTcpSocket(arg0 >>> 0);
+  }
+  
+  function lowering11(arg0) {
+    dropUdpSocket(arg0 >>> 0);
+  }
+  
+  function lowering12() {
     const ret = getStdin();
     return toUint32(ret);
   }
   
-  function lowering10() {
+  function lowering13(arg0) {
+    dropTerminalInput(arg0 >>> 0);
+  }
+  
+  function lowering14() {
     const ret = getStdout();
     return toUint32(ret);
   }
   
-  function lowering11(arg0) {
+  function lowering15(arg0) {
+    dropTerminalOutput(arg0 >>> 0);
+  }
+  
+  function lowering16() {
+    const ret = getStderr();
+    return toUint32(ret);
+  }
+  
+  function lowering17(arg0) {
     let variant0;
     switch (arg0) {
       case 0: {
@@ -153,19 +184,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
     exit(variant0);
   }
-  
-  function lowering12(arg0) {
-    dropInputStream(arg0 >>> 0);
-  }
-  
-  function lowering13(arg0) {
-    dropOutputStream(arg0 >>> 0);
-  }
   let exports2;
   let memory0;
   let realloc0;
   
-  function lowering14(arg0) {
+  function lowering18(arg0) {
     const ret = getDirectories();
     const vec2 = ret;
     const len2 = vec2.length;
@@ -183,21 +206,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result2, true);
   }
   
-  function lowering15(arg0) {
-    const ret = now$1();
-    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
-    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
-    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
-  }
-  
-  function lowering16(arg0) {
-    const ret = resolution$1();
-    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
-    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
-    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
-  }
-  
-  function lowering17(arg0, arg1, arg2) {
+  function lowering19(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: readViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -383,7 +392,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering18(arg0, arg1, arg2) {
+  function lowering20(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: writeViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -569,7 +578,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering19(arg0, arg1) {
+  function lowering21(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: appendViaStream(arg0 >>> 0) };
@@ -755,7 +764,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering20(arg0, arg1, arg2, arg3, arg4) {
+  function lowering22(arg0, arg1, arg2, arg3, arg4) {
     let enum0;
     switch (arg3) {
       case 0: {
@@ -970,7 +979,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering21(arg0, arg1) {
+  function lowering23(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: syncData(arg0 >>> 0) };
@@ -1155,7 +1164,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering22(arg0, arg1) {
+  function lowering24(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: getFlags(arg0 >>> 0) };
@@ -1347,7 +1356,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering23(arg0, arg1) {
+  function lowering25(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: getType(arg0 >>> 0) };
@@ -1576,7 +1585,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering24(arg0, arg1, arg2) {
+  function lowering26(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: setSize(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -1761,7 +1770,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering25(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function lowering27(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     let variant0;
     switch (arg1) {
       case 0: {
@@ -2002,7 +2011,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering26(arg0, arg1, arg2, arg3) {
+  function lowering28(arg0, arg1, arg2, arg3) {
     let ret;
     try {
       ret = { tag: 'ok', val: read(arg0 >>> 0, BigInt.asUintN(64, arg1), BigInt.asUintN(64, arg2)) };
@@ -2196,7 +2205,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering27(arg0, arg1, arg2, arg3, arg4) {
+  function lowering29(arg0, arg1, arg2, arg3, arg4) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -2385,7 +2394,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering28(arg0, arg1) {
+  function lowering30(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: readDirectory(arg0 >>> 0) };
@@ -2571,7 +2580,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering29(arg0, arg1) {
+  function lowering31(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: sync(arg0 >>> 0) };
@@ -2756,7 +2765,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering30(arg0, arg1, arg2, arg3) {
+  function lowering32(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -2944,7 +2953,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering31(arg0, arg1) {
+  function lowering33(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: stat(arg0 >>> 0) };
@@ -2956,10 +2965,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       case 'ok': {
         const e = variant6.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const {device: v0_0, inode: v0_1, type: v0_2, linkCount: v0_3, size: v0_4, dataAccessTimestamp: v0_5, dataModificationTimestamp: v0_6, statusChangeTimestamp: v0_7 } = e;
-        dataView(memory0).setBigInt64(arg1 + 8, toUint64(v0_0), true);
-        dataView(memory0).setBigInt64(arg1 + 16, toUint64(v0_1), true);
-        const val1 = v0_2;
+        const {type: v0_0, linkCount: v0_1, size: v0_2, dataAccessTimestamp: v0_3, dataModificationTimestamp: v0_4, statusChangeTimestamp: v0_5 } = e;
+        const val1 = v0_0;
         let enum1;
         switch (val1) {
           case 'unknown': {
@@ -2995,25 +3002,25 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
             break;
           }
           default: {
-            if ((v0_2) instanceof Error) {
-              console.error(v0_2);
+            if ((v0_0) instanceof Error) {
+              console.error(v0_0);
             }
             
             throw new TypeError(`"${val1}" is not one of the cases of descriptor-type`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 24, enum1, true);
-        dataView(memory0).setBigInt64(arg1 + 32, toUint64(v0_3), true);
-        dataView(memory0).setBigInt64(arg1 + 40, toUint64(v0_4), true);
-        const {seconds: v2_0, nanoseconds: v2_1 } = v0_5;
-        dataView(memory0).setBigInt64(arg1 + 48, toUint64(v2_0), true);
-        dataView(memory0).setInt32(arg1 + 56, toUint32(v2_1), true);
-        const {seconds: v3_0, nanoseconds: v3_1 } = v0_6;
-        dataView(memory0).setBigInt64(arg1 + 64, toUint64(v3_0), true);
-        dataView(memory0).setInt32(arg1 + 72, toUint32(v3_1), true);
-        const {seconds: v4_0, nanoseconds: v4_1 } = v0_7;
-        dataView(memory0).setBigInt64(arg1 + 80, toUint64(v4_0), true);
-        dataView(memory0).setInt32(arg1 + 88, toUint32(v4_1), true);
+        dataView(memory0).setInt8(arg1 + 8, enum1, true);
+        dataView(memory0).setBigInt64(arg1 + 16, toUint64(v0_1), true);
+        dataView(memory0).setBigInt64(arg1 + 24, toUint64(v0_2), true);
+        const {seconds: v2_0, nanoseconds: v2_1 } = v0_3;
+        dataView(memory0).setBigInt64(arg1 + 32, toUint64(v2_0), true);
+        dataView(memory0).setInt32(arg1 + 40, toUint32(v2_1), true);
+        const {seconds: v3_0, nanoseconds: v3_1 } = v0_4;
+        dataView(memory0).setBigInt64(arg1 + 48, toUint64(v3_0), true);
+        dataView(memory0).setInt32(arg1 + 56, toUint32(v3_1), true);
+        const {seconds: v4_0, nanoseconds: v4_1 } = v0_5;
+        dataView(memory0).setBigInt64(arg1 + 64, toUint64(v4_0), true);
+        dataView(memory0).setInt32(arg1 + 72, toUint32(v4_1), true);
         break;
       }
       case 'err': {
@@ -3187,7 +3194,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering32(arg0, arg1, arg2, arg3, arg4) {
+  function lowering34(arg0, arg1, arg2, arg3, arg4) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3208,10 +3215,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       case 'ok': {
         const e = variant8.val;
         dataView(memory0).setInt8(arg4 + 0, 0, true);
-        const {device: v2_0, inode: v2_1, type: v2_2, linkCount: v2_3, size: v2_4, dataAccessTimestamp: v2_5, dataModificationTimestamp: v2_6, statusChangeTimestamp: v2_7 } = e;
-        dataView(memory0).setBigInt64(arg4 + 8, toUint64(v2_0), true);
-        dataView(memory0).setBigInt64(arg4 + 16, toUint64(v2_1), true);
-        const val3 = v2_2;
+        const {type: v2_0, linkCount: v2_1, size: v2_2, dataAccessTimestamp: v2_3, dataModificationTimestamp: v2_4, statusChangeTimestamp: v2_5 } = e;
+        const val3 = v2_0;
         let enum3;
         switch (val3) {
           case 'unknown': {
@@ -3247,25 +3252,25 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
             break;
           }
           default: {
-            if ((v2_2) instanceof Error) {
-              console.error(v2_2);
+            if ((v2_0) instanceof Error) {
+              console.error(v2_0);
             }
             
             throw new TypeError(`"${val3}" is not one of the cases of descriptor-type`);
           }
         }
-        dataView(memory0).setInt8(arg4 + 24, enum3, true);
-        dataView(memory0).setBigInt64(arg4 + 32, toUint64(v2_3), true);
-        dataView(memory0).setBigInt64(arg4 + 40, toUint64(v2_4), true);
-        const {seconds: v4_0, nanoseconds: v4_1 } = v2_5;
-        dataView(memory0).setBigInt64(arg4 + 48, toUint64(v4_0), true);
-        dataView(memory0).setInt32(arg4 + 56, toUint32(v4_1), true);
-        const {seconds: v5_0, nanoseconds: v5_1 } = v2_6;
-        dataView(memory0).setBigInt64(arg4 + 64, toUint64(v5_0), true);
-        dataView(memory0).setInt32(arg4 + 72, toUint32(v5_1), true);
-        const {seconds: v6_0, nanoseconds: v6_1 } = v2_7;
-        dataView(memory0).setBigInt64(arg4 + 80, toUint64(v6_0), true);
-        dataView(memory0).setInt32(arg4 + 88, toUint32(v6_1), true);
+        dataView(memory0).setInt8(arg4 + 8, enum3, true);
+        dataView(memory0).setBigInt64(arg4 + 16, toUint64(v2_1), true);
+        dataView(memory0).setBigInt64(arg4 + 24, toUint64(v2_2), true);
+        const {seconds: v4_0, nanoseconds: v4_1 } = v2_3;
+        dataView(memory0).setBigInt64(arg4 + 32, toUint64(v4_0), true);
+        dataView(memory0).setInt32(arg4 + 40, toUint32(v4_1), true);
+        const {seconds: v5_0, nanoseconds: v5_1 } = v2_4;
+        dataView(memory0).setBigInt64(arg4 + 48, toUint64(v5_0), true);
+        dataView(memory0).setInt32(arg4 + 56, toUint32(v5_1), true);
+        const {seconds: v6_0, nanoseconds: v6_1 } = v2_5;
+        dataView(memory0).setBigInt64(arg4 + 64, toUint64(v6_0), true);
+        dataView(memory0).setInt32(arg4 + 72, toUint32(v6_1), true);
         break;
       }
       case 'err': {
@@ -3439,7 +3444,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering33(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
+  function lowering35(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3689,7 +3694,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering34(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function lowering36(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -3886,7 +3891,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering35(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function lowering37(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     if ((arg1 & 4294967294) !== 0) {
       throw new TypeError('flags have extraneous bits set');
     }
@@ -4109,7 +4114,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering36(arg0, arg1, arg2, arg3) {
+  function lowering38(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4301,7 +4306,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering37(arg0, arg1, arg2, arg3) {
+  function lowering39(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4489,7 +4494,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering38(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+  function lowering40(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4680,7 +4685,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering39(arg0, arg1, arg2, arg3, arg4, arg5) {
+  function lowering41(arg0, arg1, arg2, arg3, arg4, arg5) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -4871,7 +4876,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering40(arg0, arg1, arg2, arg3) {
+  function lowering42(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
@@ -5059,236 +5064,228 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering41(arg0, arg1) {
+  function lowering43(arg0, arg1) {
     let ret;
     try {
       ret = { tag: 'ok', val: readDirectoryEntry(arg0 >>> 0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant6 = ret;
-    switch (variant6.tag) {
+    const variant5 = ret;
+    switch (variant5.tag) {
       case 'ok': {
-        const e = variant6.val;
+        const e = variant5.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const variant4 = e;
-        if (variant4 === null || variant4=== undefined) {
-          dataView(memory0).setInt8(arg1 + 8, 0, true);
+        const variant3 = e;
+        if (variant3 === null || variant3=== undefined) {
+          dataView(memory0).setInt8(arg1 + 4, 0, true);
         } else {
-          const e = variant4;
-          dataView(memory0).setInt8(arg1 + 8, 1, true);
-          const {inode: v0_0, type: v0_1, name: v0_2 } = e;
-          const variant1 = v0_0;
-          if (variant1 === null || variant1=== undefined) {
-            dataView(memory0).setInt8(arg1 + 16, 0, true);
-          } else {
-            const e = variant1;
-            dataView(memory0).setInt8(arg1 + 16, 1, true);
-            dataView(memory0).setBigInt64(arg1 + 24, toUint64(e), true);
-          }
-          const val2 = v0_1;
-          let enum2;
-          switch (val2) {
+          const e = variant3;
+          dataView(memory0).setInt8(arg1 + 4, 1, true);
+          const {type: v0_0, name: v0_1 } = e;
+          const val1 = v0_0;
+          let enum1;
+          switch (val1) {
             case 'unknown': {
-              enum2 = 0;
+              enum1 = 0;
               break;
             }
             case 'block-device': {
-              enum2 = 1;
+              enum1 = 1;
               break;
             }
             case 'character-device': {
-              enum2 = 2;
+              enum1 = 2;
               break;
             }
             case 'directory': {
-              enum2 = 3;
+              enum1 = 3;
               break;
             }
             case 'fifo': {
-              enum2 = 4;
+              enum1 = 4;
               break;
             }
             case 'symbolic-link': {
-              enum2 = 5;
+              enum1 = 5;
               break;
             }
             case 'regular-file': {
-              enum2 = 6;
+              enum1 = 6;
               break;
             }
             case 'socket': {
-              enum2 = 7;
+              enum1 = 7;
               break;
             }
             default: {
-              if ((v0_1) instanceof Error) {
-                console.error(v0_1);
+              if ((v0_0) instanceof Error) {
+                console.error(v0_0);
               }
               
-              throw new TypeError(`"${val2}" is not one of the cases of descriptor-type`);
+              throw new TypeError(`"${val1}" is not one of the cases of descriptor-type`);
             }
           }
-          dataView(memory0).setInt8(arg1 + 32, enum2, true);
-          const ptr3 = utf8Encode(v0_2, realloc0, memory0);
-          const len3 = utf8EncodedLen;
-          dataView(memory0).setInt32(arg1 + 40, len3, true);
-          dataView(memory0).setInt32(arg1 + 36, ptr3, true);
+          dataView(memory0).setInt8(arg1 + 8, enum1, true);
+          const ptr2 = utf8Encode(v0_1, realloc0, memory0);
+          const len2 = utf8EncodedLen;
+          dataView(memory0).setInt32(arg1 + 16, len2, true);
+          dataView(memory0).setInt32(arg1 + 12, ptr2, true);
         }
         break;
       }
       case 'err': {
-        const e = variant6.val;
+        const e = variant5.val;
         dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val5 = e;
-        let enum5;
-        switch (val5) {
+        const val4 = e;
+        let enum4;
+        switch (val4) {
           case 'access': {
-            enum5 = 0;
+            enum4 = 0;
             break;
           }
           case 'would-block': {
-            enum5 = 1;
+            enum4 = 1;
             break;
           }
           case 'already': {
-            enum5 = 2;
+            enum4 = 2;
             break;
           }
           case 'bad-descriptor': {
-            enum5 = 3;
+            enum4 = 3;
             break;
           }
           case 'busy': {
-            enum5 = 4;
+            enum4 = 4;
             break;
           }
           case 'deadlock': {
-            enum5 = 5;
+            enum4 = 5;
             break;
           }
           case 'quota': {
-            enum5 = 6;
+            enum4 = 6;
             break;
           }
           case 'exist': {
-            enum5 = 7;
+            enum4 = 7;
             break;
           }
           case 'file-too-large': {
-            enum5 = 8;
+            enum4 = 8;
             break;
           }
           case 'illegal-byte-sequence': {
-            enum5 = 9;
+            enum4 = 9;
             break;
           }
           case 'in-progress': {
-            enum5 = 10;
+            enum4 = 10;
             break;
           }
           case 'interrupted': {
-            enum5 = 11;
+            enum4 = 11;
             break;
           }
           case 'invalid': {
-            enum5 = 12;
+            enum4 = 12;
             break;
           }
           case 'io': {
-            enum5 = 13;
+            enum4 = 13;
             break;
           }
           case 'is-directory': {
-            enum5 = 14;
+            enum4 = 14;
             break;
           }
           case 'loop': {
-            enum5 = 15;
+            enum4 = 15;
             break;
           }
           case 'too-many-links': {
-            enum5 = 16;
+            enum4 = 16;
             break;
           }
           case 'message-size': {
-            enum5 = 17;
+            enum4 = 17;
             break;
           }
           case 'name-too-long': {
-            enum5 = 18;
+            enum4 = 18;
             break;
           }
           case 'no-device': {
-            enum5 = 19;
+            enum4 = 19;
             break;
           }
           case 'no-entry': {
-            enum5 = 20;
+            enum4 = 20;
             break;
           }
           case 'no-lock': {
-            enum5 = 21;
+            enum4 = 21;
             break;
           }
           case 'insufficient-memory': {
-            enum5 = 22;
+            enum4 = 22;
             break;
           }
           case 'insufficient-space': {
-            enum5 = 23;
+            enum4 = 23;
             break;
           }
           case 'not-directory': {
-            enum5 = 24;
+            enum4 = 24;
             break;
           }
           case 'not-empty': {
-            enum5 = 25;
+            enum4 = 25;
             break;
           }
           case 'not-recoverable': {
-            enum5 = 26;
+            enum4 = 26;
             break;
           }
           case 'unsupported': {
-            enum5 = 27;
+            enum4 = 27;
             break;
           }
           case 'no-tty': {
-            enum5 = 28;
+            enum4 = 28;
             break;
           }
           case 'no-such-device': {
-            enum5 = 29;
+            enum4 = 29;
             break;
           }
           case 'overflow': {
-            enum5 = 30;
+            enum4 = 30;
             break;
           }
           case 'not-permitted': {
-            enum5 = 31;
+            enum4 = 31;
             break;
           }
           case 'pipe': {
-            enum5 = 32;
+            enum4 = 32;
             break;
           }
           case 'read-only': {
-            enum5 = 33;
+            enum4 = 33;
             break;
           }
           case 'invalid-seek': {
-            enum5 = 34;
+            enum4 = 34;
             break;
           }
           case 'text-file-busy': {
-            enum5 = 35;
+            enum4 = 35;
             break;
           }
           case 'cross-device': {
-            enum5 = 36;
+            enum4 = 36;
             break;
           }
           default: {
@@ -5296,10 +5293,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 8, enum5, true);
+        dataView(memory0).setInt8(arg1 + 4, enum4, true);
         break;
       }
       default: {
@@ -5308,7 +5305,406 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering42(arg0, arg1, arg2) {
+  function lowering44(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: metadataHash(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const {lower: v0_0, upper: v0_1 } = e;
+        dataView(memory0).setBigInt64(arg1 + 8, toUint64(v0_0), true);
+        dataView(memory0).setBigInt64(arg1 + 16, toUint64(v0_1), true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'access': {
+            enum1 = 0;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 1;
+            break;
+          }
+          case 'already': {
+            enum1 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum1 = 3;
+            break;
+          }
+          case 'busy': {
+            enum1 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum1 = 5;
+            break;
+          }
+          case 'quota': {
+            enum1 = 6;
+            break;
+          }
+          case 'exist': {
+            enum1 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum1 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum1 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum1 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum1 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum1 = 12;
+            break;
+          }
+          case 'io': {
+            enum1 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum1 = 14;
+            break;
+          }
+          case 'loop': {
+            enum1 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum1 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum1 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum1 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum1 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum1 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum1 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum1 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum1 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum1 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum1 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum1 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum1 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum1 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum1 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum1 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum1 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum1 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum1 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum1 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum1 = 36;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 8, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering45(arg0, arg1, arg2, arg3, arg4) {
+    if ((arg1 & 4294967294) !== 0) {
+      throw new TypeError('flags have extraneous bits set');
+    }
+    const flags0 = {
+      symlinkFollow: Boolean(arg1 & 1),
+    };
+    const ptr1 = arg2;
+    const len1 = arg3;
+    const result1 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr1, len1));
+    let ret;
+    try {
+      ret = { tag: 'ok', val: metadataHashAt(arg0 >>> 0, flags0, result1) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant4 = ret;
+    switch (variant4.tag) {
+      case 'ok': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg4 + 0, 0, true);
+        const {lower: v2_0, upper: v2_1 } = e;
+        dataView(memory0).setBigInt64(arg4 + 8, toUint64(v2_0), true);
+        dataView(memory0).setBigInt64(arg4 + 16, toUint64(v2_1), true);
+        break;
+      }
+      case 'err': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg4 + 0, 1, true);
+        const val3 = e;
+        let enum3;
+        switch (val3) {
+          case 'access': {
+            enum3 = 0;
+            break;
+          }
+          case 'would-block': {
+            enum3 = 1;
+            break;
+          }
+          case 'already': {
+            enum3 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum3 = 3;
+            break;
+          }
+          case 'busy': {
+            enum3 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum3 = 5;
+            break;
+          }
+          case 'quota': {
+            enum3 = 6;
+            break;
+          }
+          case 'exist': {
+            enum3 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum3 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum3 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum3 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum3 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum3 = 12;
+            break;
+          }
+          case 'io': {
+            enum3 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum3 = 14;
+            break;
+          }
+          case 'loop': {
+            enum3 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum3 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum3 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum3 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum3 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum3 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum3 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum3 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum3 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum3 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum3 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum3 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum3 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum3 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum3 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum3 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum3 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum3 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum3 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum3 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum3 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum3 = 36;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg4 + 8, enum3, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering46(arg0) {
+    const ret = now$1();
+    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
+    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
+    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
+  }
+  
+  function lowering47(arg0) {
+    const ret = resolution$1();
+    const {seconds: v0_0, nanoseconds: v0_1 } = ret;
+    dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
+    dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
+  }
+  
+  function lowering48(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: read$1(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5328,13 +5724,31 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
         dataView(memory0).setInt32(arg2 + 8, len1, true);
         dataView(memory0).setInt32(arg2 + 4, ptr1, true);
-        dataView(memory0).setInt8(arg2 + 12, tuple0_1 ? 1 : 0, true);
+        const val2 = tuple0_1;
+        let enum2;
+        switch (val2) {
+          case 'open': {
+            enum2 = 0;
+            break;
+          }
+          case 'ended': {
+            enum2 = 1;
+            break;
+          }
+          default: {
+            if ((tuple0_1) instanceof Error) {
+              console.error(tuple0_1);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of stream-status`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 12, enum2, true);
         break;
       }
       case 'err': {
         const e = variant3.val;
         dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const { } = e;
         break;
       }
       default: {
@@ -5343,7 +5757,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering43(arg0, arg1, arg2) {
+  function lowering49(arg0, arg1, arg2) {
     let ret;
     try {
       ret = { tag: 'ok', val: blockingRead(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
@@ -5363,13 +5777,31 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
         dataView(memory0).setInt32(arg2 + 8, len1, true);
         dataView(memory0).setInt32(arg2 + 4, ptr1, true);
-        dataView(memory0).setInt8(arg2 + 12, tuple0_1 ? 1 : 0, true);
+        const val2 = tuple0_1;
+        let enum2;
+        switch (val2) {
+          case 'open': {
+            enum2 = 0;
+            break;
+          }
+          case 'ended': {
+            enum2 = 1;
+            break;
+          }
+          default: {
+            if ((tuple0_1) instanceof Error) {
+              console.error(tuple0_1);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of stream-status`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 12, enum2, true);
         break;
       }
       case 'err': {
         const e = variant3.val;
         dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const { } = e;
         break;
       }
       default: {
@@ -5378,7 +5810,53 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering44(arg0, arg1, arg2, arg3) {
+  function lowering50(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: checkWrite(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant1 = ret;
+    switch (variant1.tag) {
+      case 'ok': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
+        break;
+      }
+      case 'err': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val0 = e;
+        let enum0;
+        switch (val0) {
+          case 'last-operation-failed': {
+            enum0 = 0;
+            break;
+          }
+          case 'closed': {
+            enum0 = 1;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val0}" is not one of the cases of write-error`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 8, enum0, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering51(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
@@ -5393,13 +5871,31 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       case 'ok': {
         const e = variant2.val;
         dataView(memory0).setInt8(arg3 + 0, 0, true);
-        dataView(memory0).setBigInt64(arg3 + 8, toUint64(e), true);
         break;
       }
       case 'err': {
         const e = variant2.val;
         dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const { } = e;
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'last-operation-failed': {
+            enum1 = 0;
+            break;
+          }
+          case 'closed': {
+            enum1 = 1;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of write-error`);
+          }
+        }
+        dataView(memory0).setInt8(arg3 + 1, enum1, true);
         break;
       }
       default: {
@@ -5408,13 +5904,13 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering45(arg0, arg1, arg2, arg3) {
+  function lowering52(arg0, arg1, arg2, arg3) {
     const ptr0 = arg1;
     const len0 = arg2;
     const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
     let ret;
     try {
-      ret = { tag: 'ok', val: blockingWrite(arg0 >>> 0, result0) };
+      ret = { tag: 'ok', val: blockingWriteAndFlush(arg0 >>> 0, result0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -5423,13 +5919,31 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       case 'ok': {
         const e = variant2.val;
         dataView(memory0).setInt8(arg3 + 0, 0, true);
-        dataView(memory0).setBigInt64(arg3 + 8, toUint64(e), true);
         break;
       }
       case 'err': {
         const e = variant2.val;
         dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const { } = e;
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'last-operation-failed': {
+            enum1 = 0;
+            break;
+          }
+          case 'closed': {
+            enum1 = 1;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of write-error`);
+          }
+        }
+        dataView(memory0).setInt8(arg3 + 1, enum1, true);
         break;
       }
       default: {
@@ -5438,7 +5952,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function lowering46(arg0, arg1, arg2) {
+  function lowering53(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: blockingFlush(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant1 = ret;
+    switch (variant1.tag) {
+      case 'ok': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant1.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val0 = e;
+        let enum0;
+        switch (val0) {
+          case 'last-operation-failed': {
+            enum0 = 0;
+            break;
+          }
+          case 'closed': {
+            enum0 = 1;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val0}" is not one of the cases of write-error`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 1, enum0, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering54(arg0, arg1, arg2) {
     const ptr0 = arg0;
     const len0 = arg1;
     const result0 = new Uint32Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 4));
@@ -5454,7 +6013,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 0, result1, true);
   }
   
-  function lowering47(arg0, arg1) {
+  function lowering55(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -5465,7 +6024,359 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function lowering48(arg0) {
+  function lowering56(arg0, arg1) {
+    let ret;
+    try {
+      ret = { tag: 'ok', val: accept(arg0 >>> 0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const [tuple0_0, tuple0_1, tuple0_2] = e;
+        dataView(memory0).setInt32(arg1 + 4, toUint32(tuple0_0), true);
+        dataView(memory0).setInt32(arg1 + 8, toUint32(tuple0_1), true);
+        dataView(memory0).setInt32(arg1 + 12, toUint32(tuple0_2), true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering57(arg0, arg1, arg2) {
+    let enum0;
+    switch (arg1) {
+      case 0: {
+        enum0 = 'receive';
+        break;
+      }
+      case 1: {
+        enum0 = 'send';
+        break;
+      }
+      case 2: {
+        enum0 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: shutdown(arg0 >>> 0, enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant2 = ret;
+    switch (variant2.tag) {
+      case 'ok': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant2.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val1 = e;
+        let enum1;
+        switch (val1) {
+          case 'unknown': {
+            enum1 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum1 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum1 = 2;
+            break;
+          }
+          case 'out-of-memory': {
+            enum1 = 3;
+            break;
+          }
+          case 'timeout': {
+            enum1 = 4;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum1 = 5;
+            break;
+          }
+          case 'not-in-progress': {
+            enum1 = 6;
+            break;
+          }
+          case 'would-block': {
+            enum1 = 7;
+            break;
+          }
+          case 'address-family-not-supported': {
+            enum1 = 8;
+            break;
+          }
+          case 'address-family-mismatch': {
+            enum1 = 9;
+            break;
+          }
+          case 'invalid-remote-address': {
+            enum1 = 10;
+            break;
+          }
+          case 'ipv4-only-operation': {
+            enum1 = 11;
+            break;
+          }
+          case 'ipv6-only-operation': {
+            enum1 = 12;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum1 = 13;
+            break;
+          }
+          case 'already-attached': {
+            enum1 = 14;
+            break;
+          }
+          case 'already-bound': {
+            enum1 = 15;
+            break;
+          }
+          case 'already-connected': {
+            enum1 = 16;
+            break;
+          }
+          case 'not-bound': {
+            enum1 = 17;
+            break;
+          }
+          case 'not-connected': {
+            enum1 = 18;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum1 = 19;
+            break;
+          }
+          case 'address-in-use': {
+            enum1 = 20;
+            break;
+          }
+          case 'ephemeral-ports-exhausted': {
+            enum1 = 21;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum1 = 22;
+            break;
+          }
+          case 'already-listening': {
+            enum1 = 23;
+            break;
+          }
+          case 'not-listening': {
+            enum1 = 24;
+            break;
+          }
+          case 'connection-refused': {
+            enum1 = 25;
+            break;
+          }
+          case 'connection-reset': {
+            enum1 = 26;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum1 = 27;
+            break;
+          }
+          case 'invalid-name': {
+            enum1 = 28;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum1 = 29;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum1 = 30;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum1 = 31;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum1, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function lowering58(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -5486,7 +6397,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function lowering49(arg0) {
+  function lowering59(arg0) {
     const ret = getArguments();
     const vec1 = ret;
     const len1 = vec1.length;
@@ -5501,57 +6412,93 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 4, len1, true);
     dataView(memory0).setInt32(arg0 + 0, result1, true);
   }
+  
+  function lowering60(arg0) {
+    const ret = getTerminalStdin();
+    const variant0 = ret;
+    if (variant0 === null || variant0=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant0;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
+    }
+  }
+  
+  function lowering61(arg0) {
+    const ret = getTerminalStdout();
+    const variant0 = ret;
+    if (variant0 === null || variant0=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant0;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
+    }
+  }
+  
+  function lowering62(arg0) {
+    const ret = getTerminalStderr();
+    const variant0 = ret;
+    if (variant0 === null || variant0=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant0;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
+    }
+  }
   let exports3;
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     wasi_snapshot_preview1: {
-      args_get: exports0['36'],
-      args_sizes_get: exports0['37'],
-      clock_res_get: exports0['40'],
-      clock_time_get: exports0['41'],
-      environ_get: exports0['38'],
-      environ_sizes_get: exports0['39'],
-      fd_advise: exports0['42'],
-      fd_allocate: exports0['43'],
-      fd_close: exports0['44'],
-      fd_datasync: exports0['45'],
-      fd_fdstat_get: exports0['46'],
-      fd_fdstat_set_flags: exports0['47'],
-      fd_fdstat_set_rights: exports0['48'],
-      fd_filestat_get: exports0['49'],
-      fd_filestat_set_size: exports0['50'],
-      fd_filestat_set_times: exports0['51'],
-      fd_pread: exports0['52'],
-      fd_prestat_dir_name: exports0['54'],
-      fd_prestat_get: exports0['53'],
-      fd_pwrite: exports0['55'],
-      fd_read: exports0['56'],
-      fd_readdir: exports0['57'],
-      fd_renumber: exports0['58'],
-      fd_seek: exports0['59'],
-      fd_sync: exports0['60'],
-      fd_tell: exports0['61'],
-      fd_write: exports0['62'],
-      path_create_directory: exports0['63'],
-      path_filestat_get: exports0['64'],
-      path_filestat_set_times: exports0['65'],
-      path_link: exports0['66'],
-      path_open: exports0['67'],
-      path_readlink: exports0['68'],
-      path_remove_directory: exports0['69'],
-      path_rename: exports0['70'],
-      path_symlink: exports0['71'],
-      path_unlink_file: exports0['72'],
-      poll_oneoff: exports0['73'],
-      proc_exit: exports0['74'],
-      proc_raise: exports0['75'],
-      random_get: exports0['77'],
-      sched_yield: exports0['76'],
-      sock_accept: exports0['78'],
-      sock_recv: exports0['79'],
-      sock_send: exports0['80'],
-      sock_shutdown: exports0['81'],
+      args_get: exports0['45'],
+      args_sizes_get: exports0['46'],
+      clock_res_get: exports0['49'],
+      clock_time_get: exports0['50'],
+      environ_get: exports0['47'],
+      environ_sizes_get: exports0['48'],
+      fd_advise: exports0['51'],
+      fd_allocate: exports0['52'],
+      fd_close: exports0['53'],
+      fd_datasync: exports0['54'],
+      fd_fdstat_get: exports0['55'],
+      fd_fdstat_set_flags: exports0['56'],
+      fd_fdstat_set_rights: exports0['57'],
+      fd_filestat_get: exports0['58'],
+      fd_filestat_set_size: exports0['59'],
+      fd_filestat_set_times: exports0['60'],
+      fd_pread: exports0['61'],
+      fd_prestat_dir_name: exports0['63'],
+      fd_prestat_get: exports0['62'],
+      fd_pwrite: exports0['64'],
+      fd_read: exports0['65'],
+      fd_readdir: exports0['66'],
+      fd_renumber: exports0['67'],
+      fd_seek: exports0['68'],
+      fd_sync: exports0['69'],
+      fd_tell: exports0['70'],
+      fd_write: exports0['71'],
+      path_create_directory: exports0['72'],
+      path_filestat_get: exports0['73'],
+      path_filestat_set_times: exports0['74'],
+      path_link: exports0['75'],
+      path_open: exports0['76'],
+      path_readlink: exports0['77'],
+      path_remove_directory: exports0['78'],
+      path_rename: exports0['79'],
+      path_symlink: exports0['80'],
+      path_unlink_file: exports0['81'],
+      poll_oneoff: exports0['82'],
+      proc_exit: exports0['83'],
+      proc_raise: exports0['84'],
+      random_get: exports0['86'],
+      sched_yield: exports0['85'],
+      sock_accept: exports0['87'],
+      sock_recv: exports0['88'],
+      sock_send: exports0['89'],
+      sock_shutdown: exports0['90'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -5561,79 +6508,106 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     env: {
       memory: exports1.memory,
     },
-    'wasi:cli-base/environment': {
-      'get-arguments': exports0['35'],
-      'get-environment': exports0['34'],
+    'wasi:cli/environment': {
+      'get-arguments': exports0['41'],
+      'get-environment': exports0['40'],
     },
-    'wasi:cli-base/exit': {
-      exit: lowering11,
+    'wasi:cli/exit': {
+      exit: lowering17,
     },
-    'wasi:cli-base/preopens': {
-      'get-directories': exports0['0'],
+    'wasi:cli/stderr': {
+      'get-stderr': lowering16,
     },
-    'wasi:cli-base/stderr': {
-      'get-stderr': lowering8,
+    'wasi:cli/stdin': {
+      'get-stdin': lowering12,
     },
-    'wasi:cli-base/stdin': {
-      'get-stdin': lowering9,
+    'wasi:cli/stdout': {
+      'get-stdout': lowering14,
     },
-    'wasi:cli-base/stdout': {
-      'get-stdout': lowering10,
+    'wasi:cli/terminal-input': {
+      'drop-terminal-input': lowering13,
+    },
+    'wasi:cli/terminal-output': {
+      'drop-terminal-output': lowering15,
+    },
+    'wasi:cli/terminal-stderr': {
+      'get-terminal-stderr': exports0['44'],
+    },
+    'wasi:cli/terminal-stdin': {
+      'get-terminal-stdin': exports0['42'],
+    },
+    'wasi:cli/terminal-stdout': {
+      'get-terminal-stdout': exports0['43'],
     },
     'wasi:clocks/monotonic-clock': {
-      now: lowering1,
-      resolution: lowering0,
-      subscribe: lowering5,
+      now: lowering6,
+      resolution: lowering5,
+      subscribe: lowering0,
     },
     'wasi:clocks/wall-clock': {
-      now: exports0['1'],
-      resolution: exports0['2'],
+      now: exports0['28'],
+      resolution: exports0['29'],
     },
-    'wasi:filesystem/filesystem': {
-      advise: exports0['6'],
-      'append-via-stream': exports0['5'],
-      'create-directory-at': exports0['16'],
+    'wasi:filesystem/preopens': {
+      'get-directories': exports0['0'],
+    },
+    'wasi:filesystem/types': {
+      advise: exports0['4'],
+      'append-via-stream': exports0['3'],
+      'create-directory-at': exports0['14'],
       'drop-descriptor': lowering7,
-      'drop-directory-entry-stream': lowering2,
-      'get-flags': exports0['8'],
-      'get-type': exports0['9'],
-      'link-at': exports0['20'],
-      'open-at': exports0['21'],
-      read: exports0['12'],
-      'read-directory': exports0['14'],
-      'read-directory-entry': exports0['27'],
-      'read-via-stream': exports0['3'],
-      'readlink-at': exports0['22'],
-      'remove-directory-at': exports0['23'],
-      'rename-at': exports0['24'],
-      'set-size': exports0['10'],
-      'set-times': exports0['11'],
-      'set-times-at': exports0['19'],
-      stat: exports0['17'],
-      'stat-at': exports0['18'],
-      'symlink-at': exports0['25'],
-      sync: exports0['15'],
-      'sync-data': exports0['7'],
-      'unlink-file-at': exports0['26'],
-      write: exports0['13'],
-      'write-via-stream': exports0['4'],
+      'drop-directory-entry-stream': lowering4,
+      'get-flags': exports0['6'],
+      'get-type': exports0['7'],
+      'link-at': exports0['18'],
+      'metadata-hash': exports0['26'],
+      'metadata-hash-at': exports0['27'],
+      'open-at': exports0['19'],
+      read: exports0['10'],
+      'read-directory': exports0['12'],
+      'read-directory-entry': exports0['25'],
+      'read-via-stream': exports0['1'],
+      'readlink-at': exports0['20'],
+      'remove-directory-at': exports0['21'],
+      'rename-at': exports0['22'],
+      'set-size': exports0['8'],
+      'set-times': exports0['9'],
+      'set-times-at': exports0['17'],
+      stat: exports0['15'],
+      'stat-at': exports0['16'],
+      'symlink-at': exports0['23'],
+      sync: exports0['13'],
+      'sync-data': exports0['5'],
+      'unlink-file-at': exports0['24'],
+      write: exports0['11'],
+      'write-via-stream': exports0['2'],
     },
     'wasi:io/streams': {
-      'blocking-read': exports0['29'],
-      'blocking-write': exports0['31'],
-      'drop-input-stream': lowering12,
-      'drop-output-stream': lowering13,
-      read: exports0['28'],
-      'subscribe-to-input-stream': lowering4,
-      'subscribe-to-output-stream': lowering3,
-      write: exports0['30'],
+      'blocking-flush': exports0['35'],
+      'blocking-read': exports0['31'],
+      'blocking-write-and-flush': exports0['34'],
+      'check-write': exports0['32'],
+      'drop-input-stream': lowering8,
+      'drop-output-stream': lowering9,
+      read: exports0['30'],
+      'subscribe-to-input-stream': lowering3,
+      'subscribe-to-output-stream': lowering1,
+      write: exports0['33'],
     },
     'wasi:poll/poll': {
-      'drop-pollable': lowering6,
-      'poll-oneoff': exports0['32'],
+      'drop-pollable': lowering2,
+      'poll-oneoff': exports0['36'],
     },
     'wasi:random/random': {
-      'get-random-bytes': exports0['33'],
+      'get-random-bytes': exports0['37'],
+    },
+    'wasi:sockets/tcp': {
+      accept: exports0['38'],
+      'drop-tcp-socket': lowering10,
+      shutdown: exports0['39'],
+    },
+    'wasi:sockets/udp': {
+      'drop-udp-socket': lowering11,
     },
   }));
   memory0 = exports1.memory;
@@ -5641,93 +6615,102 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,
-      '0': lowering14,
-      '1': lowering15,
-      '10': lowering24,
-      '11': lowering25,
-      '12': lowering26,
-      '13': lowering27,
-      '14': lowering28,
-      '15': lowering29,
-      '16': lowering30,
-      '17': lowering31,
-      '18': lowering32,
-      '19': lowering33,
-      '2': lowering16,
-      '20': lowering34,
-      '21': lowering35,
-      '22': lowering36,
-      '23': lowering37,
-      '24': lowering38,
-      '25': lowering39,
-      '26': lowering40,
-      '27': lowering41,
-      '28': lowering42,
-      '29': lowering43,
-      '3': lowering17,
-      '30': lowering44,
-      '31': lowering45,
-      '32': lowering46,
-      '33': lowering47,
-      '34': lowering48,
-      '35': lowering49,
-      '36': exports2.args_get,
-      '37': exports2.args_sizes_get,
-      '38': exports2.environ_get,
-      '39': exports2.environ_sizes_get,
-      '4': lowering18,
-      '40': exports2.clock_res_get,
-      '41': exports2.clock_time_get,
-      '42': exports2.fd_advise,
-      '43': exports2.fd_allocate,
-      '44': exports2.fd_close,
-      '45': exports2.fd_datasync,
-      '46': exports2.fd_fdstat_get,
-      '47': exports2.fd_fdstat_set_flags,
-      '48': exports2.fd_fdstat_set_rights,
-      '49': exports2.fd_filestat_get,
-      '5': lowering19,
-      '50': exports2.fd_filestat_set_size,
-      '51': exports2.fd_filestat_set_times,
-      '52': exports2.fd_pread,
-      '53': exports2.fd_prestat_get,
-      '54': exports2.fd_prestat_dir_name,
-      '55': exports2.fd_pwrite,
-      '56': exports2.fd_read,
-      '57': exports2.fd_readdir,
-      '58': exports2.fd_renumber,
-      '59': exports2.fd_seek,
-      '6': lowering20,
-      '60': exports2.fd_sync,
-      '61': exports2.fd_tell,
-      '62': exports2.fd_write,
-      '63': exports2.path_create_directory,
-      '64': exports2.path_filestat_get,
-      '65': exports2.path_filestat_set_times,
-      '66': exports2.path_link,
-      '67': exports2.path_open,
-      '68': exports2.path_readlink,
-      '69': exports2.path_remove_directory,
-      '7': lowering21,
-      '70': exports2.path_rename,
-      '71': exports2.path_symlink,
-      '72': exports2.path_unlink_file,
-      '73': exports2.poll_oneoff,
-      '74': exports2.proc_exit,
-      '75': exports2.proc_raise,
-      '76': exports2.sched_yield,
-      '77': exports2.random_get,
-      '78': exports2.sock_accept,
-      '79': exports2.sock_recv,
-      '8': lowering22,
-      '80': exports2.sock_send,
-      '81': exports2.sock_shutdown,
-      '9': lowering23,
+      '0': lowering18,
+      '1': lowering19,
+      '10': lowering28,
+      '11': lowering29,
+      '12': lowering30,
+      '13': lowering31,
+      '14': lowering32,
+      '15': lowering33,
+      '16': lowering34,
+      '17': lowering35,
+      '18': lowering36,
+      '19': lowering37,
+      '2': lowering20,
+      '20': lowering38,
+      '21': lowering39,
+      '22': lowering40,
+      '23': lowering41,
+      '24': lowering42,
+      '25': lowering43,
+      '26': lowering44,
+      '27': lowering45,
+      '28': lowering46,
+      '29': lowering47,
+      '3': lowering21,
+      '30': lowering48,
+      '31': lowering49,
+      '32': lowering50,
+      '33': lowering51,
+      '34': lowering52,
+      '35': lowering53,
+      '36': lowering54,
+      '37': lowering55,
+      '38': lowering56,
+      '39': lowering57,
+      '4': lowering22,
+      '40': lowering58,
+      '41': lowering59,
+      '42': lowering60,
+      '43': lowering61,
+      '44': lowering62,
+      '45': exports2.args_get,
+      '46': exports2.args_sizes_get,
+      '47': exports2.environ_get,
+      '48': exports2.environ_sizes_get,
+      '49': exports2.clock_res_get,
+      '5': lowering23,
+      '50': exports2.clock_time_get,
+      '51': exports2.fd_advise,
+      '52': exports2.fd_allocate,
+      '53': exports2.fd_close,
+      '54': exports2.fd_datasync,
+      '55': exports2.fd_fdstat_get,
+      '56': exports2.fd_fdstat_set_flags,
+      '57': exports2.fd_fdstat_set_rights,
+      '58': exports2.fd_filestat_get,
+      '59': exports2.fd_filestat_set_size,
+      '6': lowering24,
+      '60': exports2.fd_filestat_set_times,
+      '61': exports2.fd_pread,
+      '62': exports2.fd_prestat_get,
+      '63': exports2.fd_prestat_dir_name,
+      '64': exports2.fd_pwrite,
+      '65': exports2.fd_read,
+      '66': exports2.fd_readdir,
+      '67': exports2.fd_renumber,
+      '68': exports2.fd_seek,
+      '69': exports2.fd_sync,
+      '7': lowering25,
+      '70': exports2.fd_tell,
+      '71': exports2.fd_write,
+      '72': exports2.path_create_directory,
+      '73': exports2.path_filestat_get,
+      '74': exports2.path_filestat_set_times,
+      '75': exports2.path_link,
+      '76': exports2.path_open,
+      '77': exports2.path_readlink,
+      '78': exports2.path_remove_directory,
+      '79': exports2.path_rename,
+      '8': lowering26,
+      '80': exports2.path_symlink,
+      '81': exports2.path_unlink_file,
+      '82': exports2.poll_oneoff,
+      '83': exports2.proc_exit,
+      '84': exports2.proc_raise,
+      '85': exports2.sched_yield,
+      '86': exports2.random_get,
+      '87': exports2.sock_accept,
+      '88': exports2.sock_recv,
+      '89': exports2.sock_send,
+      '9': lowering27,
+      '90': exports2.sock_shutdown,
     },
   }));
   
   function run() {
-    const ret = exports2.run();
+    const ret = exports2['wasi:cli/run#run']();
     let variant0;
     switch (ret) {
       case 0: {
@@ -5753,6 +6736,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
     return variant0.val;
   }
+  const run$1 = {
+    run: run,
+    
+  };
   
-  return { run };
+  return { run: run$1, 'wasi:cli/run': run$1 };
 }

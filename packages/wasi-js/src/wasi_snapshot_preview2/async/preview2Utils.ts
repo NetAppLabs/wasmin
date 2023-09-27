@@ -1,8 +1,8 @@
-import { NewTimestamp } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
+import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
+type NewTimestamp = fs.NewTimestamp;
 import { SystemError } from "../../errors.js";
 import { translateErrorToErrorno } from "../../wasiUtils.js";
 import { Advice, AdviceN, ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
-import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
 import { SocketsNetworkNamespace as sock } from "@wasm-env/wasi-snapshot-preview2";
 import { ClocksWallClockNamespace as clockw } from "@wasm-env/wasi-snapshot-preview2";
 

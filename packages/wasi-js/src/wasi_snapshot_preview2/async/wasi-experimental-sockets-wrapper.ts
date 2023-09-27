@@ -1,15 +1,19 @@
-import { FilesystemFilesystemAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
-import { SocketsInstanceNetworkAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-instance-network.js";
-import { SocketsIpNameLookupAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-ip-name-lookup.js";
-import {
-    IpAddress,
-    IpSocketAddress,
-    Ipv4SocketAddress,
-    Ipv6SocketAddress,
-    SocketsNetworkAsync,
-} from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-network.js";
-import { SocketsTcpAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp.js";
-import { SocketsTcpCreateSocketAsync } from "@wasm-env/wasi-snapshot-preview2/dist/imports/sockets-tcp-create-socket.js";
+import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
+type FilesystemFilesystemAsync = fs.WasiFilesystemTypesAsync;
+import { SocketsInstanceNetworkNamespace as ins } from "@wasm-env/wasi-snapshot-preview2";
+type SocketsInstanceNetworkAsync = ins.WasiSocketsInstanceNetworkAsync;
+import { SocketsIpNameLookupNamespace as lookupns } from "@wasm-env/wasi-snapshot-preview2";
+type SocketsIpNameLookupAsync = lookupns.WasiSocketsIpNameLookupAsync;
+import { SocketsNetworkNamespace as sockns } from "@wasm-env/wasi-snapshot-preview2";
+type IpAddress = sockns.IpAddress;
+type IpSocketAddress = sockns.IpSocketAddress;
+type Ipv4SocketAddress = sockns.Ipv4SocketAddress;
+type Ipv6SocketAddress = sockns.Ipv6SocketAddress;
+type SocketsNetworkAsync = sockns.WasiSocketsNetworkAsync;
+import { SocketsTcpNamespace as socktcpns } from "@wasm-env/wasi-snapshot-preview2";
+type SocketsTcpAsync = socktcpns.WasiSocketsTcpAsync;
+import { SocketsTcpCreateSocketNamespace as sockcreatetcpns } from "@wasm-env/wasi-snapshot-preview2";
+type SocketsTcpCreateSocketAsync = sockcreatetcpns.WasiSocketsTcpCreateSocketAsync;
 
 const ERRNO_AGAIN = 6;
 
@@ -187,7 +191,7 @@ export class WasiExperimentalSocketsPreview2Wrapper {
 
     _filesystem: () => WasiSnapshotPreview2FilesystemImportObject;
     _sockets: () => WasiSnapshotPreview2SocketsImportObject;
-    _addrResolutions: Record<WasiExperimentalSocketsAddrResolveStream, WasiExperimentalSocketsIpPort | null> = {};
+    _addrResolutions: Record<WasiExperimentalSocketsAddrResolveStream, WasiExperimentalSocketsIpPort | undefined> = {};
 
     get filesystem(): WasiSnapshotPreview2FilesystemImportObject {
         return this._filesystem();
@@ -199,10 +203,10 @@ export class WasiExperimentalSocketsPreview2Wrapper {
 
     async addrResolve(
         host: string,
-        port: WasiExperimentalSocketsIpPort | null
+        port: WasiExperimentalSocketsIpPort | undefined
     ): Promise<WasiExperimentalSocketsAddrResolveStream> {
         const network = -1; // TODO: network value (unused by preview2 implementation)
-        const addressFamily = null; // TODO: address family (unused by preview2 implementation)
+        const addressFamily = undefined; // TODO: address family (unused by preview2 implementation)
         const includeUnavailable = true; // TODO: include unavailable flag (unused by preview2 implementation)
         const stream = await this.sockets.socketsIpNameLookup.resolveAddresses(
             network,

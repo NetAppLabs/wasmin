@@ -246,7 +246,7 @@ export class WASI {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
             const componentImportObject = this.componentImportObject as WasiSnapshotPreview2AsyncImportObject;
-            const filesystem = () => componentImportObject["wasi:filesystem/filesystem"];
+            const filesystem = () => componentImportObject["wasi:filesystem/types"];
             const sockets = () => {
                 let sock = {
                     socketsInstanceNetwork: componentImportObject["wasi:sockets/instance-network"],

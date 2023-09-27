@@ -1,41 +1,51 @@
-import { ImportsEnvironment } from './imports/environment';
-import { ImportsExit } from './imports/exit';
-import { ImportsPreopens } from './imports/preopens';
-import { ImportsStderr } from './imports/stderr';
-import { ImportsStdin } from './imports/stdin';
-import { ImportsStdout } from './imports/stdout';
-import { ImportsMonotonicClock } from './imports/monotonic-clock';
-import { ImportsWallClock } from './imports/wall-clock';
-import { ImportsFilesystem } from './imports/filesystem';
-import { ImportsStreams } from './imports/streams';
-import { ImportsPoll } from './imports/poll';
-import { ImportsRandom } from './imports/random';
-import { ImportsIpNameLookup } from './imports/ip-name-lookup';
-import { ImportsNetwork } from './imports/network';
-import { ImportsTcp } from './imports/tcp';
-import { ImportsTcpCreateSocket } from './imports/tcp-create-socket';
-import { ExportsComponentNfsRsNfs } from './exports/component-nfs-rs-nfs';
+import { WasiCliEnvironment } from './imports/wasi-cli-environment';
+import { WasiCliExit } from './imports/wasi-cli-exit';
+import { WasiCliStderr } from './imports/wasi-cli-stderr';
+import { WasiCliStdin } from './imports/wasi-cli-stdin';
+import { WasiCliStdout } from './imports/wasi-cli-stdout';
+import { WasiCliTerminalInput } from './imports/wasi-cli-terminal-input';
+import { WasiCliTerminalOutput } from './imports/wasi-cli-terminal-output';
+import { WasiCliTerminalStderr } from './imports/wasi-cli-terminal-stderr';
+import { WasiCliTerminalStdin } from './imports/wasi-cli-terminal-stdin';
+import { WasiCliTerminalStdout } from './imports/wasi-cli-terminal-stdout';
+import { WasiClocksMonotonicClock } from './imports/wasi-clocks-monotonic-clock';
+import { WasiClocksWallClock } from './imports/wasi-clocks-wall-clock';
+import { WasiFilesystemPreopens } from './imports/wasi-filesystem-preopens';
+import { WasiFilesystemTypes } from './imports/wasi-filesystem-types';
+import { WasiIoStreams } from './imports/wasi-io-streams';
+import { WasiPollPoll } from './imports/wasi-poll-poll';
+import { WasiRandomRandom } from './imports/wasi-random-random';
+import { WasiSocketsIpNameLookup } from './imports/wasi-sockets-ip-name-lookup';
+import { WasiSocketsNetwork } from './imports/wasi-sockets-network';
+import { WasiSocketsTcp } from './imports/wasi-sockets-tcp';
+import { WasiSocketsTcpCreateSocket } from './imports/wasi-sockets-tcp-create-socket';
+import { ComponentNfsRsNfs } from './exports/component-nfs-rs-nfs';
 export interface ImportObject {
-  'wasi:cli-base/environment': typeof ImportsEnvironment,
-  'wasi:cli-base/exit': typeof ImportsExit,
-  'wasi:cli-base/preopens': typeof ImportsPreopens,
-  'wasi:cli-base/stderr': typeof ImportsStderr,
-  'wasi:cli-base/stdin': typeof ImportsStdin,
-  'wasi:cli-base/stdout': typeof ImportsStdout,
-  'wasi:clocks/monotonic-clock': typeof ImportsMonotonicClock,
-  'wasi:clocks/wall-clock': typeof ImportsWallClock,
-  'wasi:filesystem/filesystem': typeof ImportsFilesystem,
-  'wasi:io/streams': typeof ImportsStreams,
-  'wasi:poll/poll': typeof ImportsPoll,
-  'wasi:random/random': typeof ImportsRandom,
-  'wasi:sockets/ip-name-lookup': typeof ImportsIpNameLookup,
-  'wasi:sockets/network': typeof ImportsNetwork,
-  'wasi:sockets/tcp': typeof ImportsTcp,
-  'wasi:sockets/tcp-create-socket': typeof ImportsTcpCreateSocket,
+  'wasi:cli/environment': typeof WasiCliEnvironment,
+  'wasi:cli/exit': typeof WasiCliExit,
+  'wasi:cli/stderr': typeof WasiCliStderr,
+  'wasi:cli/stdin': typeof WasiCliStdin,
+  'wasi:cli/stdout': typeof WasiCliStdout,
+  'wasi:cli/terminal-input': typeof WasiCliTerminalInput,
+  'wasi:cli/terminal-output': typeof WasiCliTerminalOutput,
+  'wasi:cli/terminal-stderr': typeof WasiCliTerminalStderr,
+  'wasi:cli/terminal-stdin': typeof WasiCliTerminalStdin,
+  'wasi:cli/terminal-stdout': typeof WasiCliTerminalStdout,
+  'wasi:clocks/monotonic-clock': typeof WasiClocksMonotonicClock,
+  'wasi:clocks/wall-clock': typeof WasiClocksWallClock,
+  'wasi:filesystem/preopens': typeof WasiFilesystemPreopens,
+  'wasi:filesystem/types': typeof WasiFilesystemTypes,
+  'wasi:io/streams': typeof WasiIoStreams,
+  'wasi:poll/poll': typeof WasiPollPoll,
+  'wasi:random/random': typeof WasiRandomRandom,
+  'wasi:sockets/ip-name-lookup': typeof WasiSocketsIpNameLookup,
+  'wasi:sockets/network': typeof WasiSocketsNetwork,
+  'wasi:sockets/tcp': typeof WasiSocketsTcp,
+  'wasi:sockets/tcp-create-socket': typeof WasiSocketsTcpCreateSocket,
 }
 export interface Root {
-  'component:nfs-rs/nfs': typeof ExportsComponentNfsRsNfs,
-  nfs: typeof ExportsComponentNfsRsNfs,
+  'component:nfs-rs/nfs': typeof ComponentNfsRsNfs,
+  nfs: typeof ComponentNfsRsNfs,
 }
 
 /**

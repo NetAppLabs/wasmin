@@ -19,7 +19,10 @@ async function compileCore(url) {
 const wasi = new WASIWorker({});
 await wasi.createWorker()
   .then((componentImports) => instantiate(compileCore, componentImports))
-  .then((rootInstance) => rootInstance.run())
+  .then((rootInstance) => {
+    const runner = rootInstance.run;
+    runner.run();
+  })
   .finally(() => {
     wasi.stopWorker();
     console.log("done");
