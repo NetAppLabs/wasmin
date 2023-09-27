@@ -1,5 +1,5 @@
 import { isTypedArray } from "util/types";
-import { Mount, ExportsComponentNfsRsNfs, ReaddirplusEntry } from "./exports/component-nfs-rs-nfs";
+import { Mount, ComponentNfsRsNfs, ReaddirplusEntry } from "./exports/component-nfs-rs-nfs";
 import { instantiate } from "./nfs_rs";
 import { WASIWorker } from "@wasm-env/wasi-js";
 import {
@@ -72,7 +72,7 @@ async function compileCore(url: string) {
     return await fetchCompile(new URL(url, import.meta.url));
 }
 
-var nfs: typeof ExportsComponentNfsRsNfs;
+var nfs: typeof ComponentNfsRsNfs;
 const wasi = new WASIWorker({});
 await wasi
     .createWorker()
