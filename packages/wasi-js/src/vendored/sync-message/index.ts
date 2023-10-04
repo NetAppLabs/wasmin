@@ -7,6 +7,10 @@ import { jsonStringify, jsonParse, toUint8Array, fromUint8Array } from "./deser.
 
 const BASE_URL_SUFFIX = "__SyncMessageServiceWorkerInput__";
 const VERSION = "__sync-message-v2__";
+// Default 128 KiB
+//const DEFAULT_BUFFER_SIZE = 128 * 1024;
+// Default 50 MiB
+const DEFAULT_BUFFER_SIZE = 50 * 1024 * 1024;
 
 interface ServiceWorkerReadRequest {
     messageId: string;
@@ -243,7 +247,7 @@ export function makeChannel(
 }
 
 export function makeAtomicsChannel({ bufferSize }: AtomicsChannelOptions = {}): AtomicsChannel {
-    const data = new Uint8Array(new SharedArrayBuffer(bufferSize || 128 * 1024));
+    const data = new Uint8Array(new SharedArrayBuffer(bufferSize || DEFAULT_BUFFER_SIZE));
     const meta = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * 2));
     return { type: "atomics", data, meta };
 }

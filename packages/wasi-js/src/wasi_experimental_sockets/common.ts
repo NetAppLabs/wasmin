@@ -38,6 +38,7 @@ export interface WasiSocket extends Socket {
     shutdown(): void;
     readFrom(len: number): Promise<RemoteChunk>;
     writeTo(buf: Uint8Array, remoteAddr?: AddressInfo): Promise<void>;
+    connectionCloser?: () => Promise<void>;
 }
 
 /**

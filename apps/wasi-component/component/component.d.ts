@@ -15,9 +15,13 @@ import { ImportsTypes } from './imports/types';
 import { ImportsStreams } from './imports/streams';
 import { ImportsPoll } from './imports/poll';
 import { ImportsRandom } from './imports/random';
+import { ImportsInstanceNetwork } from './imports/instance-network';
+import { ImportsIpNameLookup } from './imports/ip-name-lookup';
 import { ImportsNetwork } from './imports/network';
 import { ImportsTcp } from './imports/tcp';
+import { ImportsTcpCreateSocket } from './imports/tcp-create-socket';
 import { ImportsUdp } from './imports/udp';
+import { ImportsUdpCreateSocket } from './imports/udp-create-socket';
 import { ExportsWasiCliRun } from './exports/wasi-cli-run';
 export interface ImportObject {
   'wasi:cli/environment': typeof ImportsEnvironment,
@@ -37,9 +41,13 @@ export interface ImportObject {
   'wasi:io/streams': typeof ImportsStreams,
   'wasi:poll/poll': typeof ImportsPoll,
   'wasi:random/random': typeof ImportsRandom,
+  'wasi:sockets/instance-network': typeof ImportsInstanceNetwork,
+  'wasi:sockets/ip-name-lookup': typeof ImportsIpNameLookup,
   'wasi:sockets/network': typeof ImportsNetwork,
   'wasi:sockets/tcp': typeof ImportsTcp,
+  'wasi:sockets/tcp-create-socket': typeof ImportsTcpCreateSocket,
   'wasi:sockets/udp': typeof ImportsUdp,
+  'wasi:sockets/udp-create-socket': typeof ImportsUdpCreateSocket,
 }
 export interface Root {
   'wasi:cli/run': typeof ExportsWasiCliRun,

@@ -12,6 +12,14 @@ type Datetime = clockw.Datetime;
 
 type ErrorCode = ErrorCodeFS | ErrorCodeSockets;
 
+export function isErrorAgain(err: any): boolean{
+    const errCodeNo = translateErrorToErrorno(err);
+    if (errCodeNo == ErrnoN.AGAIN) {
+        return true;
+    }
+    return false;
+}
+
 export function translateError(err: any) {
     const errCodeNo = translateErrorToErrorno(err);
     let errCode: ErrorCode = "invalid";
@@ -29,7 +37,7 @@ export function translateError(err: any) {
             errCode = "address-in-use";
             break;
         case ErrnoN.ADDRNOTAVAIL:
-            errCode = "invalid-remote-address";
+            errCode = "access-denied";
             break;
         case ErrnoN.AFNOSUPPORT:
             errCode = "address-family-not-supported";
@@ -55,9 +63,9 @@ export function translateError(err: any) {
         //case ErrnoN.CHILD:
         //    errCode = 'child';
         //    break;
-        //case ErrnoN.CONNABORTED:
-        //    errCode = 'connection-aborted';
-        //    break;
+        case ErrnoN.CONNABORTED:
+            errCode = 'connection-reset';
+            break;
         case ErrnoN.CONNREFUSED:
             errCode = "connection-refused";
             break;
@@ -134,12 +142,6 @@ export function translateError(err: any) {
             errCode = "name-too-long";
             break;
         case ErrnoN.NETDOWN:
-            errCode = "remote-unreachable";
-            break;
-        case ErrnoN.NETDOWN:
-            errCode = "remote-unreachable";
-            break;
-        case ErrnoN.NETRESET:
             errCode = "remote-unreachable";
             break;
         case ErrnoN.NETRESET:
@@ -382,5 +384,16 @@ export class ResourceManager {
         if (fdhandle.close) {
             await fdhandle.close();
         }
+    }
+}
+
+declare let globalThis: any;
+if (!globalThis.WASI_PREVIEW2_DEBUG) {
+    globalThis.WASI_PREVIEW2_DEBUG = false;
+}
+
+export function wasiPreview2Debug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASI_PREVIEW2_DEBUG) {
+        console.debug(msg, ...optionalParams);
     }
 }

@@ -13,4 +13,4 @@ rm wasi_snapshot_preview1.reactor.wasm
 cp ../../../preview2-prototyping/wasi_snapshot_preview1.command.wasm .
 cp ../../../preview2-prototyping/wasi_snapshot_preview1.reactor.wasm .
 cp ../../../preview2-prototyping/wasi_snapshot_preview1.experimental_sockets.wasm .
-cp ../../../preview2-prototyping/wasi_snapshot_preview1.command_with_sockets.wasm .
+cp ../../../preview2-prototyping/wasi_snapshot_preview1.command_sockets.wasm .

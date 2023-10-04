@@ -93,28 +93,50 @@
     (func $sock_shutdown (param i32 i32) (result i32)))
 
 
-  (import "wasi_snapshot_preview1" "sock_getaddrinfo" 
-    (func $sock_getaddrinfo (param i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_getlocaladdr" 
-    (func $sock_getlocaladdr (param i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_getpeeraddr" 
-    (func $sock_getpeeraddr (param i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_open" 
+  (import "wasi_experimental_sockets" "addr_resolve" 
+    (func $addr_resolve (param i32 i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_addr_local" 
+    (func $sock_addr_local (param i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_addr_remote" 
+    (func $sock_addr_remote (param i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_open" 
     (func $sock_open (param i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_setsockopt" 
-    (func $sock_setsockopt (param i32 i32 i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_getsockopt" 
-    (func $sock_getsockopt (param i32 i32 i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_bind" 
-    (func $sock_bind (param i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_listen" 
+  (import "wasi_experimental_sockets" "sock_close" 
+    (func $sock_close (param i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_set_reuse_addr" 
+    (func $sock_set_reuse_addr (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_get_reuse_addr" 
+    (func $sock_get_reuse_addr (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_set_recv_buf_size" 
+    (func $sock_set_recv_buf_size (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_get_recv_buf_size" 
+    (func $sock_get_recv_buf_size (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_set_send_buf_size" 
+    (func $sock_set_send_buf_size (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_get_send_buf_size" 
+    (func $sock_get_send_buf_size (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_bind" 
+    (func $sock_bind (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_listen" 
     (func $sock_listen (param i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_connect" 
-    (func $sock_connect (param i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_recv_from" 
-    (func $sock_recv_from (param i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
-  (import "wasi_snapshot_preview1" "sock_send_to" 
-    (func $sock_send_to (param i32 i32 i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_accept" 
+    (func $sock_accept_2 (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_connect" 
+    (func $sock_connect (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_recv" 
+    (func $sock_recv_2 (param i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_recv_from" 
+    (func $sock_recv_from (param i32 i32 i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_send" 
+    (func $sock_send_2 (param i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_send_to" 
+    (func $sock_send_to (param i32 i32 i32 i32 i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_shutdown" 
+    (func $sock_shutdown_2 (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_set_reuse_port" 
+    (func $sock_set_reuse_port (param i32 i32) (result i32)))
+  (import "wasi_experimental_sockets" "sock_get_reuse_port" 
+    (func $sock_get_reuse_port (param i32 i32) (result i32)))
 
 
   (func (export "_start")

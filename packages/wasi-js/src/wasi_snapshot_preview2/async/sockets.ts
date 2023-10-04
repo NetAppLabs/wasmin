@@ -23,7 +23,7 @@ import {
     IPv6AddressToArray,
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
-import { ResourceManager, translateError } from "./preview2Utils.js";
+import { ResourceManager, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 type SocketsTcpAsync = sockt.WasiSocketsTcpAsync;
 type TcpSocket = socktc.TcpSocket;
 type Pollable = sockt.Pollable;
@@ -79,8 +79,8 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
 
     async createTcpSocket(addressFamily: sockn.IpAddressFamily): Promise<TcpSocket> {
         try {
-            // TODO: addressFamily ignored for now
-            const sock = await createTcpSocket();
+            const af = IPAddressFamilyToAddressFamily(addressFamily);
+            const sock = await createTcpSocket(af);
             const sockFd = this.openFiles.add(sock);
             return sockFd;
         } catch (err: any) {
@@ -130,22 +130,46 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
     }
     async accept(sockFd: TcpSocket): Promise<[TcpSocket, InputStream, OutputStream]> {
         try {
+            const connectionCloser = async () => {
+                if (clientSock) {
+                    wasiPreview2Debug(`accept connectionCloser clientSockFd: is ${clientSockFd}`);
+                    if (this.openFiles) {
+                        wasiPreview2Debug("accept connectionCloser this.openFiles is set");
+                        const sock = this.getSocket(sockFd);
+                        sock.shutdown();
+                        this.openFiles.close(clientSockFd);
+                    } else {
+                        wasiPreview2Debug("accept connectionCloser this.openFiles null");
+                    }
+                } else {
+                    wasiPreview2Debug("accept connectionCloser clientSockFd: is null");
+                }
+            }
             const sock = this.getSocket(sockFd);
             const clientSock = await sock.getAcceptedSocket();
-            const resultFd = this.openFiles.add(clientSock);
-            return [resultFd, resultFd, resultFd];
+            clientSock.connectionCloser = connectionCloser;
+            const clientSockFd = this.openFiles.add(clientSock);
+            wasiPreview2Debug(`accept: returning clientSockFd: ${clientSockFd}`);
+            return [clientSockFd, clientSockFd, clientSockFd];
         } catch (err: any) {
             throw translateError(err);
         }
     }
     async localAddress(sockFd: TcpSocket): Promise<sockn.IpSocketAddress> {
         try {
+            wasiPreview2Debug(`localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
+            wasiPreview2Debug("localAddress: sock: ", sock);
             const localAddrInfo = await sock.address();
+            wasiPreview2Debug("localAddress: localAddrInfo: ", localAddrInfo);
             const localAddr = AddressInfoToIpSocketAddress(localAddrInfo);
+            wasiPreview2Debug("localAddr: localAddr: ", localAddr);
             return localAddr;
         } catch (err: any) {
-            throw translateError(err);
+            wasiPreview2Debug("localAddress err:", err);
+            console.log("localAddress err: ", err);
+            //throw translateError(err);
+            throw 'address-family-mismatch';
         }
     }
     async remoteAddress(sockFd: TcpSocket): Promise<sockn.IpSocketAddress> {
@@ -155,7 +179,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
             return remoteAddr;
         } catch (err: any) {
-            throw translateError(err);
+            console.log("remoteAddress err: ", err);
+            //throw translateError(err);
+            throw 'invalid-remote-address'
         }
     }
     async addressFamily(sockFd: TcpSocket): Promise<sockn.IpAddressFamily> {
@@ -221,7 +247,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
     }
     async dropTcpSocket(sockFd: TcpSocket): Promise<void> {
         try {
-            this.openFiles.close(sockFd);
+            if (this.openFiles.exists(sockFd)) {
+                this.openFiles.close(sockFd);
+            }
         } catch (err: any) {
             throw translateError(err);
         }
@@ -305,18 +333,34 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
     async subscribe(this_: number): Promise<number> {
         throw new Error("Method not implemented.");
     }
-    async dropUdpSocket(this_: number): Promise<void> {
-        throw new Error("Method not implemented.");
+    async dropUdpSocket(sockFd: number): Promise<void> {
+        try {
+            if (this.openFiles.exists(sockFd)) {
+                this.openFiles.close(sockFd);
+            }
+        } catch (err: any) {
+            throw translateError(err);
+        }
     }
 }
 
 export class ResolveAddressIterator {
-    constructor(public addresses: AddressInfo[], public position: number = 0) {}
+    constructor(public addresses: AddressInfo[], public addressFamily: IpAddressFamily | undefined, public position: number = 0) {}
     nextAddress(): AddressInfo | null {
-        if (this.addresses.length > this.position) {
+        while (this.addresses.length > this.position) {
             const nextAddr = this.addresses[this.position];
-            this.position++;
-            return nextAddr;
+            if (this.addressFamily) {
+                const ipAddrFamily = IPAddressFamilyToAddressFamily(this.addressFamily);
+                if (nextAddr.family == ipAddrFamily) {
+                    this.position++;
+                    return nextAddr;    
+                } else {
+                    this.position++;
+                }
+            } else {
+                this.position++;
+                return nextAddr;
+            }
         }
         return null;
     }
@@ -339,7 +383,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
         const port = 0;
         const resolve = await getAddressResolver();
         const addresses = await resolve(host, port);
-        const iter = new ResolveAddressIterator(addresses);
+        const iter = new ResolveAddressIterator(addresses, addressFamily);
         const returnId = this._addressLookupManager.add(iter);
         return returnId;
     }
