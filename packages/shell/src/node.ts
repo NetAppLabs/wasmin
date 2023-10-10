@@ -11,6 +11,7 @@ import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirecto
 import { node } from "@wasm-env/node-fs-js";
 
 import { s3 } from "@wasm-env/s3-fs-js";
+import { nfs } from "@wasm-env/nfs-js";
 import { github } from "@wasm-env/github-fs-js";
 
 const DEBUG_MODE = false;
@@ -111,6 +112,8 @@ export async function getRootFS(): Promise<FileSystemDirectoryHandle> {
     let rootfs: FileSystemDirectoryHandle;
     if (USE_MEMORY) {
         rootfs = await getOriginPrivateDirectory(memory, nodePath, false);
+    } else if (process.env.WASM_ENV_MOUNT) {
+        rootfs = await getOriginPrivateDirectory(nfs, process.env.WASM_ENV_MOUNT, false);
     } else {
         rootfs = await getOriginPrivateDirectory(node, nodePath, false);
     }
@@ -166,6 +169,8 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     }
     // @ts-ignore
     RegisterProvider("github", github);
+    // @ts-ignore
+    RegisterProvider("nfs", nfs);
 
     process.stdin.resume();
     process.stdin.setEncoding("utf8");

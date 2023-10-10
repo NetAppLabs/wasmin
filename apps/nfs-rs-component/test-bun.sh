@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ ! -f /tmp/go-nfs/osnfs ]; then
+    rm -rf /tmp/go-nfs
+fi
+
 if [ ! -d /tmp/go-nfs ]; then
     git clone https://github.com/willscott/go-nfs.git /tmp/go-nfs
     pushd /tmp/go-nfs

@@ -19,6 +19,7 @@ while [ -n "$1" ] ; do
         echo "  -b                          Run with bun instead of the default node"
         echo "  -c                          Run in component mode"
         echo "  -d                          debug"
+        echo "  -m, --mount <nfs-url>       Mount NFS export and use as working dir"
         echo "  -w                          Run in worker"
         exit 0
         ;;
@@ -31,6 +32,10 @@ while [ -n "$1" ] ; do
         ;;
    -c)
 		export WASM_ENV_COMPONENT=true
+        ;;
+   -m|--mount)
+        shift
+        export WASM_ENV_MOUNT=$1
         ;;
    -w)
         export NODE_SHELL_WORKER=1

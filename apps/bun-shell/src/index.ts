@@ -14,6 +14,7 @@ import { bun as bunFs } from "@wasm-env/bun-fs-js";
 // s3 not currently working because of missing node:http2
 //import { s3 } from "@wasm-env/s3-fs-js";
 import { github } from "@wasm-env/github-fs-js";
+import { nfs } from "@wasm-env/nfs-js";
 
 const termGetRows = () => {
     const rows = process.stdout.rows;
@@ -122,16 +123,24 @@ const startShell = async () => {
 
     //RegisterProvider("s3", s3);
     RegisterProvider("github", github);
+    RegisterProvider("nfs", nfs);
 
     const preOpens: Record<string, FileSystemDirectoryHandle> = {};
 
-    let nodePath = process.env.NODE_ROOT_DIR;
-    if (!nodePath || nodePath == "") {
-        nodePath = process.cwd();
-    }
-    //const rootfs = await getOriginPrivateDirectory(node, nodePath);
-    //const rootfs = await getOriginPrivateDirectory(memory);
-    const rootfs = await getOriginPrivateDirectory(bunFs, nodePath, false);
+    const getRootFS = async () => {
+        if (process.env.WASM_ENV_MOUNT) {
+            return await getOriginPrivateDirectory(nfs, process.env.WASM_ENV_MOUNT, false);
+        }
+
+        let nodePath = process.env.NODE_ROOT_DIR;
+        if (!nodePath || nodePath == "") {
+            nodePath = process.cwd();
+        }
+        //return await getOriginPrivateDirectory(node, nodePath);
+        //return await getOriginPrivateDirectory(memory);
+        return await getOriginPrivateDirectory(bunFs, nodePath, false);
+    };
+    const rootfs = await getRootFS();
 
     const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
     const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;

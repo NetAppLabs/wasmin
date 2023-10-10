@@ -41,6 +41,7 @@
     "@wasm-env/github-fs-js": "*",
     "@wasm-env/node-fs-js": "*",
     "@wasm-env/s3-fs-js": "*",
+    "@wasm-env/nfs-js": "*",
     "@wasm-env/wasi-js": "*"
   }
 }

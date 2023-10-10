@@ -19,6 +19,7 @@
   "dependencies": {
     "@wasm-env/bun-fs-js": "*",
     "@wasm-env/fs-js": "*",
+    "@wasm-env/nfs-js": "*",
     "@wasm-env/s3-fs-js": "*",
     "@wasm-env/wasi-js": "*",
     "get-random-values": "^1.2.2",
