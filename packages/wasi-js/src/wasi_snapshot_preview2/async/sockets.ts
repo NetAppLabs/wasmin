@@ -23,7 +23,7 @@ import {
     IPv6AddressToArray,
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
-import { ResourceManager, translateError, wasiPreview2Debug } from "./preview2Utils.js";
+import { ResourceManager, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 type SocketsTcpAsync = sockt.WasiSocketsTcpAsync;
 type TcpSocket = socktc.TcpSocket;
 type Pollable = sockt.Pollable;
@@ -84,7 +84,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const sockFd = this.openFiles.add(sock);
             return sockFd;
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("createTcpSocket: err:", err);
+            throw 'not-supported';
         }
     }
     async startBind(sockFd: TcpSocket, network: number, localAddress: IpSocketAddress): Promise<void> {
@@ -93,7 +95,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const addrInfo = IpSocketAddressToAddrInfo(localAddress);
             await sock.bind(addrInfo);
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("startBind: err:", err);
+            throw 'address-not-bindable'
         }
     }
     async finishBind(sockFd: TcpSocket): Promise<void> {
@@ -105,9 +109,12 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
             const remoteAddr = remoteAddrInfo.address;
             const remotePort = remoteAddrInfo.port;
+            wasiPreview2Debug(`tcp startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
             await sock.connect(remoteAddr, remotePort);
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("startConnect: err:", err);
+            throw 'connection-refused'
         }
     }
     async finishConnect(sockFd: TcpSocket): Promise<[InputStream, OutputStream]> {
@@ -122,7 +129,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const backlog = 0;
             await sock.listen(backlog);
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("startListen: err:", err);
+            throw 'already-listening';
         }
     }
     async finishListen(sockFd: TcpSocket): Promise<void> {
@@ -135,9 +144,13 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
                     wasiPreview2Debug(`accept connectionCloser clientSockFd: is ${clientSockFd}`);
                     if (this.openFiles) {
                         wasiPreview2Debug("accept connectionCloser this.openFiles is set");
-                        const sock = this.getSocket(sockFd);
-                        sock.shutdown();
-                        this.openFiles.close(clientSockFd);
+                        try {
+                            if (this.openFiles.exists(clientSockFd)) {
+                                this.openFiles.close(clientSockFd);
+                            }
+                        } catch (err: any) {
+                            wasiPreview2Debug("accept connectionCloser close error:", err);
+                        }
                     } else {
                         wasiPreview2Debug("accept connectionCloser this.openFiles null");
                     }
@@ -152,14 +165,16 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             wasiPreview2Debug(`accept: returning clientSockFd: ${clientSockFd}`);
             return [clientSockFd, clientSockFd, clientSockFd];
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("accept: err:", err);
+            throw 'would-block';
         }
     }
     async localAddress(sockFd: TcpSocket): Promise<sockn.IpSocketAddress> {
         try {
             wasiPreview2Debug(`localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
-            wasiPreview2Debug("localAddress: sock: ", sock);
+            //wasiPreview2Debug("localAddress: sock: ", sock);
             const localAddrInfo = await sock.address();
             wasiPreview2Debug("localAddress: localAddrInfo: ", localAddrInfo);
             const localAddr = AddressInfoToIpSocketAddress(localAddrInfo);
@@ -167,9 +182,8 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             return localAddr;
         } catch (err: any) {
             wasiPreview2Debug("localAddress err:", err);
-            console.log("localAddress err: ", err);
             //throw translateError(err);
-            throw 'address-family-mismatch';
+            throw 'not-bound';
         }
     }
     async remoteAddress(sockFd: TcpSocket): Promise<sockn.IpSocketAddress> {
@@ -179,9 +193,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
             return remoteAddr;
         } catch (err: any) {
-            console.log("remoteAddress err: ", err);
+            wasiPreview2Debug("remoteAddress err: ", err);
             //throw translateError(err);
-            throw 'invalid-remote-address'
+            throw 'not-connected'
         }
     }
     async addressFamily(sockFd: TcpSocket): Promise<sockn.IpAddressFamily> {
@@ -192,14 +206,16 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const family = AddressFamilyToIpAddressFamily(aFamily);
             return family;
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("addressFamily err: ", err);
+            throw 'not-bound';
         }
     }
     async ipv6Only(sockFd: TcpSocket): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return false;
     }
     async setIpv6Only(sockFd: TcpSocket, value: boolean): Promise<void> {
-        throw new Error("Method not implemented.");
+        // no-op for now
     }
     async setListenBacklogSize(sockFd: TcpSocket, value: bigint): Promise<void> {
         throw new Error("Method not implemented.");
@@ -242,7 +258,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
             const sock = this.getSocket(sockFd);
             sock.shutdown();
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("shutdown err: ", err);
+            throw 'not-connected';
         }
     }
     async dropTcpSocket(sockFd: TcpSocket): Promise<void> {
@@ -251,7 +269,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
                 this.openFiles.close(sockFd);
             }
         } catch (err: any) {
-            throw translateError(err);
+            // Swallow error:
+            wasiPreview2Debug("dropTcpSocket err: ", err);
+            //throw translateError(err);
         }
     }
 }
@@ -268,49 +288,153 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
     get openFiles() {
         return this.wasiEnv.openFiles;
     }
+    getSocket(fd: number): WasiSocket {
+        const res = this.openFiles.get(fd);
+        return res as WasiSocket;
+    }
     async createUdpSocket(addressFamily: sockn.IpAddressFamily): Promise<number> {
         try {
-            // TODO: addressFamily ignored for now
             const addrFamily = IPAddressFamilyToAddressFamily(addressFamily);
             const sock = await createUdpSocket(addrFamily);
             const sockFd = this.openFiles.add(sock);
             return sockFd;
         } catch (err: any) {
-            throw translateError(err);
+            //throw translateError(err);
+            wasiPreview2Debug("udp createUdpSocket err:", err);
+            throw 'not-supported';
         }
     }
-    async startBind(this_: number, network: number, localAddress: sockn.IpSocketAddress): Promise<void> {
-        throw new Error("Method not implemented.");
+    async startBind(sockFd: number, network: number, localAddress: sockn.IpSocketAddress): Promise<void> {
+        try {
+            const sock = this.getSocket(sockFd);
+            const addrInfo = IpSocketAddressToAddrInfo(localAddress);
+            await sock.bind(addrInfo);
+        } catch (err: any) {
+            //throw translateError(err);
+            wasiPreview2Debug("udp startBind err:", err);
+            throw 'already-bound';
+        }
     }
     async finishBind(this_: number): Promise<void> {
-        throw new Error("Method not implemented.");
+        // no-op for now
     }
-    async startConnect(this_: number, network: number, remoteAddress: sockn.IpSocketAddress): Promise<void> {
-        throw new Error("Method not implemented.");
+    async startConnect(sockFd: number, network: number, remoteAddress: sockn.IpSocketAddress): Promise<void> {
+        try {
+            const sock = this.getSocket(sockFd);
+            const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
+            const remoteAddr = remoteAddrInfo.address;
+            const remotePort = remoteAddrInfo.port;
+            wasiPreview2Debug(`udp startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
+            await sock.connect(remoteAddr, remotePort);
+        } catch (err: any) {
+            //throw translateError(err);
+            wasiPreview2Debug("udp startConnect err:", err);
+            throw 'remote-unreachable';
+        }
     }
     async finishConnect(this_: number): Promise<void> {
-        throw new Error("Method not implemented.");
+        // no-op for now
     }
-    async receive(this_: number, maxResults: bigint): Promise<socku.Datagram[]> {
-        throw new Error("Method not implemented.");
+    async receive(sockFd: number, maxResults: bigint): Promise<socku.Datagram[]> {
+        try {
+            wasiPreview2Debug(`udp receive: calling this.getSocket: sockfd: ${sockFd}`);
+            const sock = this.getSocket(sockFd);
+            //wasiPreview2Debug("receive: sock: ", sock);
+            //let buf_size = this.receiveBufferSize(sockFd);
+            let buf_size = 4096;
+            let remoteChunk = await sock.readFrom(buf_size);
+            let data = remoteChunk.buf; 
+            let rinfo = remoteChunk.rinfo;
+            wasiPreview2Debug(`udp receive sockfd: ${sockFd} rinfo.address: ${rinfo.address} rinfo.port: ${rinfo.port}`);
+            wasiPreview2Debug(`udp receive sockfd: ${sockFd} data.length: ${data.length}`);
+
+            const raddr = AddressInfoToIpSocketAddress(rinfo);
+            wasiPreview2Debug(`udp receive sockfd: ${sockFd} raddr: `, raddr);
+
+            let datagram: socku.Datagram = {
+                data: data,
+                remoteAddress: raddr,
+            }
+
+            let datagrams = [datagram];
+            return datagrams;
+        } catch (err: any) {
+            wasiPreview2Debug("udp receive err:", err);
+            if (isErrorAgain(err)) {
+                throw 'would-block'
+            }
+            //throw translateError(err);
+            throw 'remote-unreachable';
+        }
     }
-    async send(this_: number, datagrams: socku.Datagram[]): Promise<bigint> {
-        throw new Error("Method not implemented.");
+    async send(sockFd: number, datagrams: socku.Datagram[]): Promise<bigint> {
+        try {
+            wasiPreview2Debug(`udp send: calling this.getSocket: sockfd: ${sockFd}`);
+            const sock = this.getSocket(sockFd);
+            wasiPreview2Debug("udp send: sock: ", sock);
+            let sent_count = 0n;
+            for (let datagram of datagrams) {
+                let buf = datagram.data;
+                let raddr = datagram.remoteAddress;
+                let raddrinfo = IpSocketAddressToAddrInfo(raddr);
+                let res = await sock.writeTo(buf, raddrinfo);
+                sent_count += BigInt(buf.length);
+            }
+            return sent_count;
+        } catch (err: any) {
+            wasiPreview2Debug("udp send err:", err);
+            if (isErrorAgain(err)) {
+                throw 'would-block'
+            }
+            //throw translateError(err);
+            throw 'remote-unreachable';
+        }
     }
-    async localAddress(this_: number): Promise<sockn.IpSocketAddress> {
-        throw new Error("Method not implemented.");
+    async localAddress(sockFd: number): Promise<sockn.IpSocketAddress> {
+        try {
+            wasiPreview2Debug(`localAddress: calling this.getSocket: sockfd: ${sockFd}`);
+            const sock = this.getSocket(sockFd);
+            //wasiPreview2Debug("localAddress: sock: ", sock);
+            const localAddrInfo = await sock.address();
+            wasiPreview2Debug("localAddress: localAddrInfo: ", localAddrInfo);
+            const localAddr = AddressInfoToIpSocketAddress(localAddrInfo);
+            wasiPreview2Debug("localAddr: localAddr: ", localAddr);
+            return localAddr;
+        } catch (err: any) {
+            wasiPreview2Debug("localAddress err:", err);
+            //throw translateError(err);
+            throw 'not-bound';
+        }
     }
-    async remoteAddress(this_: number): Promise<sockn.IpSocketAddress> {
-        throw new Error("Method not implemented.");
+    async remoteAddress(sockFd: number): Promise<sockn.IpSocketAddress> {
+        try {
+            const sock = this.getSocket(sockFd);
+            const remoteAddrInfo = await sock.remoteAddress();
+            const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
+            return remoteAddr;
+        } catch (err: any) {
+            wasiPreview2Debug("remoteAddress err: ", err);
+            //throw translateError(err);
+            throw 'not-connected'
+        }
     }
-    async addressFamily(this_: number): Promise<sockn.IpAddressFamily> {
-        throw new Error("Method not implemented.");
+    async addressFamily(sockFd: number): Promise<sockn.IpAddressFamily> {
+        try {
+            const sock = this.getSocket(sockFd);
+            const localAddrInfo = await sock.address();
+            const aFamily = localAddrInfo.family;
+            const family = AddressFamilyToIpAddressFamily(aFamily);
+            return family;
+        } catch (err: any) {
+            wasiPreview2Debug("udp addressFamily err: ", err);
+            throw 'not-bound';
+        }
     }
     async ipv6Only(this_: number): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return false;
     }
     async setIpv6Only(this_: number, value: boolean): Promise<void> {
-        throw new Error("Method not implemented.");
+        // no-op for now
     }
     async unicastHopLimit(this_: number): Promise<number> {
         throw new Error("Method not implemented.");
@@ -339,7 +463,9 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
                 this.openFiles.close(sockFd);
             }
         } catch (err: any) {
-            throw translateError(err);
+            // swallow error
+            //throw translateError(err);
+            wasiPreview2Debug("udp dropUdpSocket err: ", err);
         }
     }
 }
@@ -379,23 +505,37 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
         addressFamily: IpAddressFamily | undefined,
         includeUnavailable: boolean
     ): Promise<ResolveAddressStream> {
-        const host = name;
-        const port = 0;
-        const resolve = await getAddressResolver();
-        const addresses = await resolve(host, port);
-        const iter = new ResolveAddressIterator(addresses, addressFamily);
-        const returnId = this._addressLookupManager.add(iter);
-        return returnId;
+        try {
+            const host = name;
+            const port = 0;
+            const resolve = await getAddressResolver();
+            const addresses = await resolve(host, port);
+            const iter = new ResolveAddressIterator(addresses, addressFamily);
+            const returnId = this._addressLookupManager.add(iter);
+            return returnId;
+        } catch (err: any) {
+            // swallow error
+            //throw translateError(err);
+            wasiPreview2Debug("resolveAddresses err: ", err);
+            throw 'invalid-name';
+        }
     }
     async resolveNextAddress(resId: ResolveAddressStream): Promise<IpAddress | undefined> {
-        const res = this._addressLookupManager.get(resId);
-        if (res) {
-            const iter = res as ResolveAddressIterator;
-            const addrInfo = iter.nextAddress();
-            if (addrInfo) {
-                const ipAddr = AddressInfoToIpAddress(addrInfo);
-                return ipAddr;
+        try {
+            const res = this._addressLookupManager.get(resId);
+            if (res) {
+                const iter = res as ResolveAddressIterator;
+                const addrInfo = iter.nextAddress();
+                if (addrInfo) {
+                    const ipAddr = AddressInfoToIpAddress(addrInfo);
+                    return ipAddr;
+                }
             }
+        } catch (err: any) {
+            // swallow error
+            //throw translateError(err);
+            wasiPreview2Debug("resolveNextAddress err: ", err);
+            throw 'name-unresolvable';
         }
         return undefined;
     }
@@ -433,7 +573,7 @@ export function IpSocketAddressToAddrInfo(sockAddr: IpSocketAddress): AddressInf
             const h1s = ipv6[5];
             const h2s = ipv6[6];
             const h3s = ipv6[7];
-            hostAddr = `${n0s}:${n1s}:${n2s}}:${n3s}:${h0s}:${h1s}:${h2s}}:${h3s}`;
+            hostAddr = `${n0s}:${n1s}:${n2s}:${n3s}:${h0s}:${h1s}:${h2s}:${h3s}`;
             break;
         }
     }

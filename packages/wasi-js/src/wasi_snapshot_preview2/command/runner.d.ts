@@ -1,57 +1,57 @@
-import { ImportsEnvironment } from './imports/environment';
-import { ImportsExit } from './imports/exit';
-import { ImportsStderr } from './imports/stderr';
-import { ImportsStdin } from './imports/stdin';
-import { ImportsStdout } from './imports/stdout';
-import { ImportsTerminalInput } from './imports/terminal-input';
-import { ImportsTerminalOutput } from './imports/terminal-output';
-import { ImportsTerminalStderr } from './imports/terminal-stderr';
-import { ImportsTerminalStdin } from './imports/terminal-stdin';
-import { ImportsTerminalStdout } from './imports/terminal-stdout';
-import { ImportsMonotonicClock } from './imports/monotonic-clock';
-import { ImportsWallClock } from './imports/wall-clock';
-import { ImportsPreopens } from './imports/preopens';
-import { ImportsTypes } from './imports/types';
-import { ImportsStreams } from './imports/streams';
-import { ImportsPoll } from './imports/poll';
-import { ImportsRandom } from './imports/random';
-import { ImportsInstanceNetwork } from './imports/instance-network';
-import { ImportsIpNameLookup } from './imports/ip-name-lookup';
-import { ImportsNetwork } from './imports/network';
-import { ImportsTcp } from './imports/tcp';
-import { ImportsTcpCreateSocket } from './imports/tcp-create-socket';
-import { ImportsUdp } from './imports/udp';
-import { ImportsUdpCreateSocket } from './imports/udp-create-socket';
-import { ExportsWasiCliRun } from './exports/wasi-cli-run';
+import { WasiCliEnvironment } from './interfaces/wasi-cli-environment';
+import { WasiCliExit } from './interfaces/wasi-cli-exit';
+import { WasiCliStderr } from './interfaces/wasi-cli-stderr';
+import { WasiCliStdin } from './interfaces/wasi-cli-stdin';
+import { WasiCliStdout } from './interfaces/wasi-cli-stdout';
+import { WasiCliTerminalInput } from './interfaces/wasi-cli-terminal-input';
+import { WasiCliTerminalOutput } from './interfaces/wasi-cli-terminal-output';
+import { WasiCliTerminalStderr } from './interfaces/wasi-cli-terminal-stderr';
+import { WasiCliTerminalStdin } from './interfaces/wasi-cli-terminal-stdin';
+import { WasiCliTerminalStdout } from './interfaces/wasi-cli-terminal-stdout';
+import { WasiClocksMonotonicClock } from './interfaces/wasi-clocks-monotonic-clock';
+import { WasiClocksWallClock } from './interfaces/wasi-clocks-wall-clock';
+import { WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens';
+import { WasiFilesystemTypes } from './interfaces/wasi-filesystem-types';
+import { WasiIoStreams } from './interfaces/wasi-io-streams';
+import { WasiPollPoll } from './interfaces/wasi-poll-poll';
+import { WasiRandomRandom } from './interfaces/wasi-random-random';
+import { WasiSocketsInstanceNetwork } from './interfaces/wasi-sockets-instance-network';
+import { WasiSocketsIpNameLookup } from './interfaces/wasi-sockets-ip-name-lookup';
+import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network';
+import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp';
+import { WasiSocketsTcpCreateSocket } from './interfaces/wasi-sockets-tcp-create-socket';
+import { WasiSocketsUdp } from './interfaces/wasi-sockets-udp';
+import { WasiSocketsUdpCreateSocket } from './interfaces/wasi-sockets-udp-create-socket';
+import { WasiCliRun } from './interfaces/wasi-cli-run';
 export interface ImportObject {
-  'wasi:cli/environment': typeof ImportsEnvironment,
-  'wasi:cli/exit': typeof ImportsExit,
-  'wasi:cli/stderr': typeof ImportsStderr,
-  'wasi:cli/stdin': typeof ImportsStdin,
-  'wasi:cli/stdout': typeof ImportsStdout,
-  'wasi:cli/terminal-input': typeof ImportsTerminalInput,
-  'wasi:cli/terminal-output': typeof ImportsTerminalOutput,
-  'wasi:cli/terminal-stderr': typeof ImportsTerminalStderr,
-  'wasi:cli/terminal-stdin': typeof ImportsTerminalStdin,
-  'wasi:cli/terminal-stdout': typeof ImportsTerminalStdout,
-  'wasi:clocks/monotonic-clock': typeof ImportsMonotonicClock,
-  'wasi:clocks/wall-clock': typeof ImportsWallClock,
-  'wasi:filesystem/preopens': typeof ImportsPreopens,
-  'wasi:filesystem/types': typeof ImportsTypes,
-  'wasi:io/streams': typeof ImportsStreams,
-  'wasi:poll/poll': typeof ImportsPoll,
-  'wasi:random/random': typeof ImportsRandom,
-  'wasi:sockets/instance-network': typeof ImportsInstanceNetwork,
-  'wasi:sockets/ip-name-lookup': typeof ImportsIpNameLookup,
-  'wasi:sockets/network': typeof ImportsNetwork,
-  'wasi:sockets/tcp': typeof ImportsTcp,
-  'wasi:sockets/tcp-create-socket': typeof ImportsTcpCreateSocket,
-  'wasi:sockets/udp': typeof ImportsUdp,
-  'wasi:sockets/udp-create-socket': typeof ImportsUdpCreateSocket,
+  'wasi:cli/environment': typeof WasiCliEnvironment,
+  'wasi:cli/exit': typeof WasiCliExit,
+  'wasi:cli/stderr': typeof WasiCliStderr,
+  'wasi:cli/stdin': typeof WasiCliStdin,
+  'wasi:cli/stdout': typeof WasiCliStdout,
+  'wasi:cli/terminal-input': typeof WasiCliTerminalInput,
+  'wasi:cli/terminal-output': typeof WasiCliTerminalOutput,
+  'wasi:cli/terminal-stderr': typeof WasiCliTerminalStderr,
+  'wasi:cli/terminal-stdin': typeof WasiCliTerminalStdin,
+  'wasi:cli/terminal-stdout': typeof WasiCliTerminalStdout,
+  'wasi:clocks/monotonic-clock': typeof WasiClocksMonotonicClock,
+  'wasi:clocks/wall-clock': typeof WasiClocksWallClock,
+  'wasi:filesystem/preopens': typeof WasiFilesystemPreopens,
+  'wasi:filesystem/types': typeof WasiFilesystemTypes,
+  'wasi:io/streams': typeof WasiIoStreams,
+  'wasi:poll/poll': typeof WasiPollPoll,
+  'wasi:random/random': typeof WasiRandomRandom,
+  'wasi:sockets/instance-network': typeof WasiSocketsInstanceNetwork,
+  'wasi:sockets/ip-name-lookup': typeof WasiSocketsIpNameLookup,
+  'wasi:sockets/network': typeof WasiSocketsNetwork,
+  'wasi:sockets/tcp': typeof WasiSocketsTcp,
+  'wasi:sockets/tcp-create-socket': typeof WasiSocketsTcpCreateSocket,
+  'wasi:sockets/udp': typeof WasiSocketsUdp,
+  'wasi:sockets/udp-create-socket': typeof WasiSocketsUdpCreateSocket,
 }
 export interface Root {
-  'wasi:cli/run': typeof ExportsWasiCliRun,
-  run: typeof ExportsWasiCliRun,
+  'wasi:cli/run': typeof WasiCliRun,
+  run: typeof WasiCliRun,
 }
 
 /**

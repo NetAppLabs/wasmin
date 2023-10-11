@@ -20,6 +20,14 @@ export function isErrorAgain(err: any): boolean{
     return false;
 }
 
+export function isBadFileDescriptor(err: any): boolean{
+    const errCodeNo = translateErrorToErrorno(err);
+    if (errCodeNo == ErrnoN.BADF) {
+        return true;
+    }
+    return false;
+}
+
 export function translateError(err: any) {
     const errCodeNo = translateErrorToErrorno(err);
     let errCode: ErrorCode = "invalid";

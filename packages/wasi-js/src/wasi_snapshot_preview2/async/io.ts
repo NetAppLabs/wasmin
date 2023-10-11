@@ -1,9 +1,11 @@
 import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
 type IoStreamsAsync = io.WasiIoStreamsAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
+import { isBadFileDescriptor, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 import { FsPollable, OpenFiles } from "../../wasiFileSystem.js";
 import { sleep } from "../../wasiUtils.js";
+import { USE_ACCEPTED_SOCKET_PROMISE } from "../../wasi_experimental_sockets/net.js";
+import { delay } from "../../wasi_experimental_sockets/common.js";
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
@@ -23,7 +25,8 @@ export class InputStreamPollable implements FsPollable {
             const ofda = ofd as any;
             if (ofda.peek) {
                 let peekBytes = await ofda.peek();
-                if (peekBytes>0) {
+                wasiPreview2Debug(`[io/streams] InputStreamPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
+                if (peekBytes > 0) {
                     return true;
                 }
             }
@@ -34,7 +37,10 @@ export class InputStreamPollable implements FsPollable {
                 }
             }
         } catch (err: any) {
-            //wasiPreview2Debug("InputStreamPollable.done err:",err);
+            wasiPreview2Debug(`[io/streams] InputStreamPollable.done fd: ${this.fd} err:`, err);
+            if (isBadFileDescriptor(err)) {
+                return true;
+            }
         } 
         return false;
     }
@@ -58,7 +64,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     async read(instr: InputStream, len: bigint): Promise<[Uint8Array, StreamStatus]> {
         let streamStatus: StreamStatus = 'ended';
         try {
-            wasiPreview2Debug(`io:read ${instr} starting`);
+            wasiPreview2Debug(`[io/streams] io:read ${instr} starting`);
             if (len == 0n) {
                 return [new Uint8Array(), streamStatus];
             }
@@ -74,10 +80,10 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             } else {
                 streamStatus = 'open';
             }
-            wasiPreview2Debug(`io:read ${instr} returning`,[buffer, streamStatus]);
+            wasiPreview2Debug(`[io/streams] io:read ${instr} returning`,[buffer, streamStatus]);
             return [buffer, streamStatus];    
         } catch (err: any) {
-            wasiPreview2Debug(`io:read ${instr} catching err:`, err);
+            wasiPreview2Debug(`[io/streams] io:read ${instr} catching err:`, err);
             if (isErrorAgain(err)) {
                 streamStatus = 'open';
             }
@@ -100,10 +106,11 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     }
 
     async dropInputStream(instr: InputStream): Promise<void> {
+        wasiPreview2Debug(`[io/streams] dropInputStream fd: ${instr}`);
         try {
-            await this.openFiles.close(instr);
+            this.openFiles.closeReader(instr);
         } catch (err: any) {
-            wasiPreview2Debug("dropInputStream err: ",err);
+            wasiPreview2Debug("[io/streams] dropInputStream err: ",err);
         }
     }
     async write(outstr: OutputStream, contents: Uint8Array): Promise<void> {
@@ -113,13 +120,14 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
             const written = contents.length;
             return;
         } catch (err: any) {
-            wasiPreview2Debug("dropInputStream err: ",err);
+            wasiPreview2Debug("[io/streams] write err: ",err);
         }
     }
 
     async checkWrite(this0: OutputStream): Promise<bigint> {
         // Default to 1MB
         // TODO make more intelligent
+        //return 4096n;
         return 1048576n;
     }
 
@@ -127,7 +135,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         try {
             return await this.write(outstr, contents);
         } catch (err: any) {
-            wasiPreview2Debug("dropInputStream err: ",err);
+            wasiPreview2Debug("[io/streams] blockingWriteAndFlush err: ",err);
         }
     }
 
@@ -156,10 +164,11 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     }
 
     async dropOutputStream(outstr: OutputStream): Promise<void> {
+        wasiPreview2Debug(`[io/streams] dropOutputStream for fd: ${outstr}`);
         try {
-            await this.openFiles.close(outstr);
+            await this.openFiles.closeWriter(outstr);
         } catch (err: any) {
-            wasiPreview2Debug("dropInputStream err: ",err);
+            wasiPreview2Debug("[io/streams] dropOutputStream err: ",err);
         }
     }
 

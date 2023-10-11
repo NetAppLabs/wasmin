@@ -171,7 +171,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             // TODO: gracefully handle bigint
             const lengthNumber = Number(length);
             const chunk = await input.read(lengthNumber);
-            this.openFiles.closeFileClone(newFd);
+            this.openFiles.closeReader(newFd);
             let isEnd = false;
             if (chunk.length < length) {
                 isEnd = true;
@@ -187,7 +187,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             const out = this.openFiles.getAsWritable(newFd);
             await out.write(buffer);
             const readNo = buffer.length;
-            this.openFiles.closeFileClone(newFd);
+            this.openFiles.closeWriter(newFd);
             return BigInt(readNo);
         } catch (err: any) {
             throw translateError(err);

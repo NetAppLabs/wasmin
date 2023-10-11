@@ -145,11 +145,12 @@ export function IPv4AddressToArray(addr: string): [number, number, number, numbe
         retAddrs[i] = parseInt(saddr);
         i++;
     }
-    wasiSocketsDebug("IPv4AddressToArray: retAddrs: ", retAddrs);
+    wasiSocketsDebug(`IPv4AddressToArray: addr: ${addr} retAddrs: `, retAddrs);
     return retAddrs;
 }
 
 export function IPv6AddressToArray(addr: string): [number, number, number, number, number, number, number, number] {
+
     // TODO: handle IPv6 representation of IPv4 address? (e.g. '::ffff:192.168.1.1')
     let a = addr;
     // handle short hand form
@@ -171,7 +172,7 @@ export function IPv6AddressToArray(addr: string): [number, number, number, numbe
         }
         i++;
     }
-    wasiSocketsDebug("IPv6AddressToArray: retAddrs: ", retAddrs);
+    wasiSocketsDebug(`IPv6AddressToArray: addr: ${addr} retAddrs: `, retAddrs);
     return retAddrs;
 }
 

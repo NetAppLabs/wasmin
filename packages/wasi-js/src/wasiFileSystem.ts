@@ -658,8 +658,15 @@ export class OpenFiles {
         }
     }
 
-    closeFileClone(fd: Fd) {
-        filesystemDebug("[closeFileClone]");
+    closeReader(fd: Fd) {
+        filesystemDebug("[closeReader]");
+        if (this.isFile(fd)) {
+            this._take(fd);
+        }
+    }
+
+    closeWriter(fd: Fd) {
+        filesystemDebug("[closeWriter]");
         if (this.isFile(fd)) {
             this._take(fd);
         }

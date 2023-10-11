@@ -1,3 +1,4 @@
+import { wasmWorkerThreadDebug } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../async/preview2Utils.js";
 import { instantiate, Root, ImportObject } from "./runner.js";
 import * as comlink from "comlink";
@@ -13,6 +14,11 @@ async function fetchCompile(url: URL) {
 }
 
 export type WasiCommand = Root;
+
+export function importProxyDebug(msg?: any, ...optionalParams: any[]) {
+    console.debug(msg, ...optionalParams);
+    //wasmWorkerThreadDebug(msg, ...optionalParams);
+}
 
 
 const instantiateCoreProxied = async (module: WebAssembly.Module, importObject: Record<string, any>) => {
@@ -33,23 +39,23 @@ const instantiateCoreProxied = async (module: WebAssembly.Module, importObject: 
             }
 
             if (doLogCore) {
-                console.log(`--- [${namespace}] [${name}]`, args);
+                importProxyDebug(`--- [${namespace}] [${name}]`, args);
             }
             if (doLogComponent) {
-                console.log(`<---> [component] [${namespace}] [${name}]`, args);
+                importProxyDebug(`<---> [component] [${namespace}] [${name}]`, args);
             }
             const value = fn(...args);
             if (doLogCore) {
-                console.log(`--- [${namespace}] [${name}] returning: `, value);
+                importProxyDebug(`--- [${namespace}] [${name}] returning: `, value);
             }
             return value;
         };
     }
     
     let proxyTransformer = (namespace: string, name: string, value: any): any => {
-        //console.log("--- transforming ", name);
+        //importProxyDebug("--- transforming ", name);
         //const typeValue = typeof value;
-        //console.log(`typeof value: ${typeValue}`)
+        //importProxyDebug(`typeof value: ${typeValue}`)
         if (typeof value === "function") {
             return importFunctionWrapper(namespace, name, value);
         } else if (typeof value === "object") {

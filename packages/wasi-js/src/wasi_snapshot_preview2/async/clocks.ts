@@ -6,7 +6,7 @@ import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-previ
 import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, sleep } from "../../wasiUtils.js";
-import { toDateTimeFromMs, wasiPreview2Debug } from "./preview2Utils.js";
+import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
 type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
@@ -24,6 +24,15 @@ export class ClocksMonotonicPollable implements FsPollable {
     private _when: Instant;
 
     async done(): Promise<boolean> {
+        return await this.doneWithWaiting();
+    }
+
+    async doneWithoutWaiting(): Promise<boolean> {
+        const hrTimeNow = await getHrTime();
+        return (this._when < hrTimeNow)
+    }
+
+    async doneWithWaiting(): Promise<boolean> {
         // XXX: mimic behavior of preview1 - waiting until done and, therefor, always returning true
         const hrTimeNow = await getHrTime();
         const ns = Number(this._when - hrTimeNow);
