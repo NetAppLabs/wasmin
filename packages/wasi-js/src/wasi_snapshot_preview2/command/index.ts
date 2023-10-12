@@ -1,6 +1,6 @@
 import { wasmWorkerThreadDebug } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../async/preview2Utils.js";
-import { instantiate, Root, ImportObject } from "./runner.js";
+import { instantiate, Root, ImportObject } from "@wasmin/wasi-snapshot-preview1-command-component";
 import * as comlink from "comlink";
 
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;

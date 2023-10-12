@@ -1,0 +1,16 @@
+{
+    "version": "0.1.0",
+    "name": "@wasmin/wasi-snapshot-preview1-command-component",
+    "type": "module",
+    "main": "component/component.js",
+    "files": [
+        "component/component.d.ts"
+    ],
+    "scripts": {
+        "build": "./build.sh"
+    },
+    "devDependencies": {
+    },
+    "dependencies": {
+    }
+}

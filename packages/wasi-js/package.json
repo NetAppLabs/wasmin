@@ -1,6 +1,6 @@
 {
   "name": "@wasmin/wasi-js",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "type": "module",
   "source": "src/index.ts",
   "exports": {
@@ -64,6 +64,7 @@
   "dependencies": {
     "@wasmin/fs-js": "*",
     "@wasmin/wasi-snapshot-preview2": "*",
+    "@wasmin/wasi-snapshot-preview1-command-component": "*",
     "comlink": "^4.4.1",
     "events": "^3.3.0",
     "typeson": "^9.0.3",
