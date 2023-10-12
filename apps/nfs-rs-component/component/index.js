@@ -59,7 +59,7 @@ async function compileCore(url) {
     url = "./" + url;
     return await fetchCompile(new URL(url, import.meta.url));
 }
-var nfsComponent;
+let nfsComponent;
 const wasi = new WASIWorker({});
 await wasi
     .createWorker()
@@ -146,12 +146,12 @@ export class NfsDirectoryHandle extends NfsHandle {
      */
     isDirectory;
     constructor(param) {
-        var mount;
-        var fhDir;
-        var fh;
-        var kind;
-        var fullName;
-        var name;
+        let mount;
+        let fhDir;
+        let fh;
+        let kind;
+        let fullName;
+        let name;
         if (typeof param === "string") {
             const url = param;
             mount = nfsComponent.parseUrlAndMount(url);
@@ -468,15 +468,20 @@ export class NfsFile {
         return blob;
     }
     stream() {
-        var pulled = false;
-        const file = this;
+        let pos = 0;
+        let size = this.size;
+        const readChunk = () => {
+            const count = Math.min(size, MAX_READ_SIZE);
+            const chunk = nfsComponent.read(this._mount, this._fh, BigInt(pos), count);
+            pos += count;
+            size -= count;
+            return chunk;
+        };
         return new ReadableStream({
             type: "bytes",
             pull(controller) {
-                if (!pulled) {
-                    const buf = file.uint8Array();
-                    controller.enqueue(buf);
-                    pulled = true;
+                if (size > 0) {
+                    controller.enqueue(readChunk());
                 }
                 else {
                     controller.close();
@@ -515,7 +520,7 @@ export class NfsBlob {
         return blob;
     }
     stream() {
-        var pulled = false;
+        let pulled = false;
         const data = this._data;
         return new ReadableStream({
             type: "bytes",
@@ -542,6 +547,7 @@ export class NfsSink {
     _fhDir;
     _fh;
     _fhTmp;
+    _fileName;
     _fileNameTmp;
     _keepExisting;
     _valid;
@@ -550,14 +556,12 @@ export class NfsSink {
     _newSize;
     _position;
     constructor(mount, fhDir, fh, fullName, options) {
-        const x = fullName.lastIndexOf("/");
-        const fileName = fullName.slice(x + 1);
-        const fileNameTmp = "." + fileName + "-tmp" + Date.now();
+        this._fileName = fullName.slice(fullName.lastIndexOf("/") + 1);
+        this._fileNameTmp = "." + this._fileName + "-tmp" + Date.now();
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
-        this._fhTmp = nfsComponent.create(mount, this._fhDir, fileNameTmp, 0o664);
-        this._fileNameTmp = fileNameTmp;
+        this._fhTmp = nfsComponent.create(mount, this._fhDir, this._fileNameTmp, 0o664);
         this._keepExisting = !!options?.keepExistingData;
         this._valid = true;
         this._locked = false;
@@ -610,7 +614,6 @@ export class NfsSink {
                     .catch((e) => reject(e));
                 return;
             }
-            var buffer;
             if (anyData.type === "write") {
                 if (!("data" in anyData)) {
                     return reject(new SyntaxError("write requires a data argument"));
@@ -620,6 +623,7 @@ export class NfsSink {
                 }
                 data = anyData.data;
             }
+            let buffer;
             if (data instanceof ArrayBuffer) {
                 buffer = data;
             }
@@ -690,12 +694,11 @@ export class NfsSink {
             try {
                 if (!this._keepExisting) {
                     // XXX: if this._keepExisting is still set, no writes or truncates have occurred
-                    this.copyContents(this._fhTmp, this._fh, this._newSize);
-                    if (this._newSize < this._orgSize) {
-                        nfsComponent.setattr(this._mount, this._fh, null, null, null, null, BigInt(this._newSize), null, null);
-                    }
+                    nfsComponent.rename(this._mount, this._fhDir, this._fileNameTmp, this._fhDir, this._fileName);
                 }
-                nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
+                else {
+                    nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
+                }
                 this._valid = false;
                 return resolve();
             }

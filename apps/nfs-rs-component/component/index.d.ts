@@ -107,6 +107,7 @@ export declare class NfsSink implements FileSystemWritableFileStream {
     private _fhDir;
     private _fh;
     private _fhTmp;
+    private _fileName;
     private _fileNameTmp;
     private _keepExisting;
     private _valid;

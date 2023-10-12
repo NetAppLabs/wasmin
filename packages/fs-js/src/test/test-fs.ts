@@ -321,6 +321,41 @@ export const TestsFileSystemHandle = (
             expect(actualContents).toStrictEqual(fileContents.slice(1, fileContents.length));
         });
 
+        test("getFile() provides a file that can be read via arrayBuffer()", async () => {
+            const fileContents = "average content";
+            const handle = await createFileWithContents("average.txt", fileContents, root);
+            const file = await handle.getFile();
+            const actualContents = await file.arrayBuffer();
+            expect(actualContents).toStrictEqual(new TextEncoder().encode(fileContents));
+        });
+
+        test("getFile() provides a file that can be read via stream()", async () => {
+            const fileContents = "superb content";
+            const handle = await createFileWithContents("superb.txt", fileContents, root);
+            const file = await handle.getFile();
+            const stream = file.stream();
+            const reader = stream.getReader();
+            const actualContents = new Uint8Array(file.size);
+            let idx = 0;
+            do {
+                const chunk = await reader.read();
+                if (chunk.done) {
+                    break;
+                }
+                actualContents.set(chunk.value, idx);
+                idx += chunk.value.byteLength;
+            } while (true);
+            expect(actualContents).toStrictEqual(new TextEncoder().encode(fileContents));
+        });
+
+        test("getFile() provides a file that can be read via text()", async () => {
+            const fileContents = "abysmal content";
+            const handle = await createFileWithContents("abysmal.txt", fileContents, root);
+            const file = await handle.getFile();
+            const actualContents = await file.text();
+            expect(actualContents).toStrictEqual(fileContents);
+        });
+
         test("getFile() returns last modified time", async () => {
             const handle = await createEmptyFile("mtime.txt", root);
             const first_mtime = (await handle.getFile()).lastModified;

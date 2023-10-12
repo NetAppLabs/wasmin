@@ -75,7 +75,7 @@ async function compileCore(url: string) {
     return await fetchCompile(new URL(url, import.meta.url));
 }
 
-var nfsComponent: typeof ComponentNfsRsNfs;
+let nfsComponent: typeof ComponentNfsRsNfs;
 const wasi = new WASIWorker({});
 await wasi
     .createWorker()
@@ -170,12 +170,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
     constructor(url: string);
     constructor(toWrap: NfsHandle);
     constructor(param: string | NfsHandle) {
-        var mount: Mount;
-        var fhDir: Uint8Array;
-        var fh: Uint8Array;
-        var kind: FileSystemHandleKind;
-        var fullName: string;
-        var name: string;
+        let mount: Mount;
+        let fhDir: Uint8Array;
+        let fh: Uint8Array;
+        let kind: FileSystemHandleKind;
+        let fullName: string;
+        let name: string;
         if (typeof param === "string") {
             const url = param;
             mount = nfsComponent.parseUrlAndMount(url);
@@ -514,15 +514,20 @@ export class NfsFile implements File {
         return blob as Blob;
     }
     stream(): ReadableStream<Uint8Array> {
-        var pulled = false;
-        const file = this;
+        let pos = 0;
+        let size = this.size;
+        const readChunk = (): Uint8Array => {
+            const count = Math.min(size, MAX_READ_SIZE);
+            const chunk = nfsComponent.read(this._mount, this._fh, BigInt(pos), count);
+            pos += count;
+            size -= count;
+            return chunk;
+        };
         return new ReadableStream({
             type: "bytes",
             pull(controller) {
-                if (!pulled) {
-                    const buf = file.uint8Array();
-                    controller.enqueue(buf);
-                    pulled = true;
+                if (size > 0) {
+                    controller.enqueue(readChunk());
                 } else {
                     controller.close();
                 }
@@ -561,7 +566,7 @@ export class NfsBlob implements Blob {
         return blob as Blob;
     }
     stream(): ReadableStream<Uint8Array> {
-        var pulled = false;
+        let pulled = false;
         const data = this._data;
         return new ReadableStream({
             type: "bytes",
@@ -588,6 +593,7 @@ export class NfsSink implements FileSystemWritableFileStream {
     private _fhDir: Uint8Array;
     private _fh: Uint8Array;
     private _fhTmp: Uint8Array;
+    private _fileName: string;
     private _fileNameTmp: string;
     private _keepExisting: boolean;
     private _valid: boolean;
@@ -596,15 +602,12 @@ export class NfsSink implements FileSystemWritableFileStream {
     private _newSize: number;
     private _position: number;
     constructor(mount: Mount, fhDir: Uint8Array, fh: Uint8Array, fullName: string, options?: FileSystemCreateWritableOptions) {
-        const x = fullName.lastIndexOf("/");
-        const fileName = fullName.slice(x + 1);
-        const fileNameTmp = "." + fileName + "-tmp" + Date.now();
-
+        this._fileName = fullName.slice(fullName.lastIndexOf("/") + 1);
+        this._fileNameTmp = "." + this._fileName + "-tmp" + Date.now();
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
-        this._fhTmp = nfsComponent.create(mount, this._fhDir, fileNameTmp, 0o664);
-        this._fileNameTmp = fileNameTmp;
+        this._fhTmp = nfsComponent.create(mount, this._fhDir, this._fileNameTmp, 0o664);
         this._keepExisting = !!options?.keepExistingData;
         this._valid = true;
         this._locked = false;
@@ -658,7 +661,6 @@ export class NfsSink implements FileSystemWritableFileStream {
                 return;
             }
 
-            var buffer: ArrayBuffer;
             if (anyData.type === "write") {
                 if (!("data" in anyData)) {
                     return reject(new SyntaxError("write requires a data argument"));
@@ -669,6 +671,7 @@ export class NfsSink implements FileSystemWritableFileStream {
                 data = anyData.data;
             }
 
+            let buffer: ArrayBuffer;
             if (data instanceof ArrayBuffer) {
                 buffer = data;
             } else if (ArrayBuffer.isView(data)) {
@@ -733,12 +736,10 @@ export class NfsSink implements FileSystemWritableFileStream {
             try {
                 if (!this._keepExisting) {
                     // XXX: if this._keepExisting is still set, no writes or truncates have occurred
-                    this.copyContents(this._fhTmp, this._fh, this._newSize);
-                    if (this._newSize < this._orgSize) {
-                        nfsComponent.setattr(this._mount, this._fh, null, null, null, null, BigInt(this._newSize), null, null);
-                    }
+                    nfsComponent.rename(this._mount, this._fhDir, this._fileNameTmp, this._fhDir, this._fileName);
+                } else {
+                    nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
                 }
-                nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
                 this._valid = false;
                 return resolve();
             } catch (e: any) {
