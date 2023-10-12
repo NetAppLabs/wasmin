@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/node-fs-js",
+  "name": "@wasmin/node-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -23,10 +23,10 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasm-env/fs-js": "*"
+    "@wasmin/fs-js": "*"
   },
   "devDependencies": {
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "eslint-config-custom": "*",
     "vitest": "^0.32.2"
   }

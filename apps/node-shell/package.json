@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/node-shell",
+  "name": "@wasmin/node-shell",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -13,14 +13,14 @@
   },
   "devDependencies": {
     "@types/node": "^18.14.5",
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "esbuild": "^0.15.12",
     "vite": "^3.1.8"
   },
   "dependencies": {
-    "@wasm-env/fs-js": "*",
-    "@wasm-env/node-fs-js": "*",
-    "@wasm-env/shell": "*",
-    "@wasm-env/wasi-js": "*"
+    "@wasmin/fs-js": "*",
+    "@wasmin/node-fs-js": "*",
+    "@wasmin/shell": "*",
+    "@wasmin/wasi-js": "*"
   }
 }

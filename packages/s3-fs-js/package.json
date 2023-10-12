@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/s3-fs-js",
+  "name": "@wasmin/s3-fs-js",
   "version": "0.1.0",
   "description": "S3 implementation of FileSystem Standard",
   "type": "module",
@@ -25,10 +25,10 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.282.0",
     "@aws-sdk/signature-v4-crt": "^3.282.0",
-    "@wasm-env/fs-js": "*"
+    "@wasmin/fs-js": "*"
   },
   "devDependencies": {
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "eslint-config-custom": "*"
   }
 }

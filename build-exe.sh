@@ -3,7 +3,7 @@
 set -ex
 
 
-EXE_NAME="wasm-env"
+EXE_NAME="wasmin"
 
 rm ${EXE_NAME} || true
 

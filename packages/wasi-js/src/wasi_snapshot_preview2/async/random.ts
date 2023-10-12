@@ -1,9 +1,9 @@
-import { RandomRandomNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { RandomRandomNamespace } from "@wasmin/wasi-snapshot-preview2";
 type RandomRandomAsync = RandomRandomNamespace.WasiRandomRandomAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { RandomInsecureNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { RandomInsecureNamespace } from "@wasmin/wasi-snapshot-preview2";
 type RandomInsecureAsync = RandomInsecureNamespace.WasiRandomInsecureAsync;
-import { RandomInsecureSeedNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { RandomInsecureSeedNamespace } from "@wasmin/wasi-snapshot-preview2";
 type RandomInsecureSeedAsync = RandomInsecureSeedNamespace.WasiRandomInsecureSeedAsync;
 export class RandomRandomAsynHost implements RandomRandomAsync {
     constructor(wasiOptions: WasiOptions) {

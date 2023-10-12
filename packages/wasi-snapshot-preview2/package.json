@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/wasi-snapshot-preview2",
+  "name": "@wasmin/wasi-snapshot-preview2",
   "version": "0.0.9",
   "description": "WASI Snapshot Preview2 Interface Definitions",
   "type": "module",

@@ -1,15 +1,15 @@
-import { TerminalStdInNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { TerminalStdInNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalStdinAsync = TerminalStdInNamespace.WasiCliTerminalStdinAsync;
 type TerminalInput = TerminalStdInNamespace.TerminalInput;
-import { TerminalStdOutNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { TerminalStdOutNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalStdoutAsync = TerminalStdOutNamespace.WasiCliTerminalStdoutAsync;
 type TerminalOutput = TerminalStdOutNamespace.TerminalOutput;
-import { TerminalStErrNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { TerminalStErrNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalStderrAsync = TerminalStErrNamespace.WasiCliTerminalStderrAsync;
 type TerminalOutputErr = TerminalStErrNamespace.TerminalOutput;
-import { TerminalInputNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { TerminalInputNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalInputAsync = TerminalInputNamespace.WasiCliTerminalInputAsync;
-import { TerminalOutputNamespace } from "@wasm-env/wasi-snapshot-preview2";
+import { TerminalOutputNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalOutputAsync = TerminalOutputNamespace.WasiCliTerminalOutputAsync;
 
 

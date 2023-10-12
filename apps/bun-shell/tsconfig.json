@@ -7,7 +7,7 @@
     // "bun-types" is the important part
     "types": ["bun-types"],
     "paths": {
-      "@wasm-env/fs-js": ["../../../packages/fs-js"]
+      "@wasmin/fs-js": ["../../../packages/fs-js"]
     },
     "baseUrl": "./src"
   }

@@ -5,7 +5,7 @@ export default defineConfig({
         target: "esnext",
         lib: {
             entry: "src/index.ts",
-            name: "@wasm-env/node-shell",
+            name: "@wasmin/node-shell",
         },
         rollupOptions: {
             external: [

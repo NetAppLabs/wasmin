@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/github-fs-js",
+  "name": "@wasmin/github-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -24,10 +24,10 @@
   "author": "tryggvil",
   "license": "MIT",
   "dependencies": {
-    "@wasm-env/fs-js": "*"
+    "@wasmin/fs-js": "*"
   },
   "devDependencies": {
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "eslint-config-custom": "*"
   }
 }

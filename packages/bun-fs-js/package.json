@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/bun-fs-js",
+  "name": "@wasmin/bun-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -24,10 +24,10 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasm-env/fs-js": "*"
+    "@wasmin/fs-js": "*"
   },
   "devDependencies": {
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "bun-types": "^1.0.0",
     "eslint-config-custom": "*"
   }

@@ -17,8 +17,8 @@ import {
     Statable,
     SyntaxError,
     TypeMismatchError,
-} from "@wasm-env/fs-js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
 
 // @ts-ignore
 import { WritableStreamDefaultWriter, FileBlob, BunFile } from "bun";

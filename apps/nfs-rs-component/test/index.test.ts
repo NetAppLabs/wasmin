@@ -1,4 +1,4 @@
-import { TestsFileSystemHandle, getOriginPrivateDirectory } from "@wasm-env/fs-js";
+import { TestsFileSystemHandle, getOriginPrivateDirectory } from "@wasmin/fs-js";
 import { NfsDirectoryHandle } from "../component/index.js";
 
 // Needed specifically for bun:

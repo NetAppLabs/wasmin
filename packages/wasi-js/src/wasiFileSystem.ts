@@ -15,17 +15,17 @@
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
-import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
+import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-import { Statable, openDirectoryHandle } from "@wasm-env/fs-js";
+import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
 import {
     FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemWritableFileStream,
-} from "@wasm-env/fs-js";
-import { Descriptor } from "@wasm-env/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
+} from "@wasmin/fs-js";
+import { Descriptor } from "@wasmin/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
 
 declare let globalThis: any;
 globalThis.WASI_FS_DEBUG = false;

@@ -14,10 +14,10 @@ import {
     Stat,
     FileSystemHandlePermissionDescriptor,
     Statable,
-} from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasm-env/fs-js";
-import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasm-env/fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
+import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
 import type { MyFile } from "./fetch-blob/file.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;

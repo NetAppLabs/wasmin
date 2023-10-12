@@ -1,20 +1,20 @@
-import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
+import { WASI, OpenFiles, TTY } from "@wasmin/wasi-js";
 import {
     getOriginPrivateDirectory,
     FileSystemDirectoryHandle,
     RegisterProvider,
     NFileSystemDirectoryHandle,
-} from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
 
 import { readFileSync } from "fs";
 import { default as process } from "node:process";
 
-import { bun as bunFs } from "@wasm-env/bun-fs-js";
+import { bun as bunFs } from "@wasmin/bun-fs-js";
 
 // s3 not currently working because of missing node:http2
-//import { s3 } from "@wasm-env/s3-fs-js";
-import { github } from "@wasm-env/github-fs-js";
-import { nfs } from "@wasm-env/nfs-js";
+//import { s3 } from "@wasmin/s3-fs-js";
+import { github } from "@wasmin/github-fs-js";
+import { nfs } from "@wasmin/nfs-js";
 
 const termGetRows = () => {
     const rows = process.stdout.rows;

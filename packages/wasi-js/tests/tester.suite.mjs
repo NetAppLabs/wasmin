@@ -5,9 +5,9 @@ import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { constructOneTestForTestSuite, constructWasiForTest } from "@wasm-env/wasi-js/tests/utils.js";
-import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
-import { isBun } from "@wasm-env/wasi-js/index.js";
+import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+import { getOriginPrivateDirectory } from "@wasmin/fs-js";
+import { isBun } from "@wasmin/wasi-js/index.js";
 import { default as process } from "node:process";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));

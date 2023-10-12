@@ -1,4 +1,4 @@
-import { PollPollNamespace as pollns } from "@wasm-env/wasi-snapshot-preview2";
+import { PollPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2";
 type PollAsync = pollns.WasiPollPollAsync;
 type Pollable = pollns.Pollable;
 

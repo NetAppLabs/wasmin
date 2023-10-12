@@ -3,7 +3,7 @@ import { HostManagerInstance } from "./host.js";
 import { getLogger } from "./log.js";
 import { Host, Process } from "./types.js";
 
-import { TypeMismatchError } from "@wasm-env/fs-js";
+import { TypeMismatchError } from "@wasmin/fs-js";
 import {
     PermissionState,
     FileSystemHandle,
@@ -12,7 +12,7 @@ import {
     FileSystemSyncAccessHandle,
     FileSystemHandlePermissionDescriptor,
     FileSystemWritableFileStream,
-} from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
 
 /*
 declare var File: {

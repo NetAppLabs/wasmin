@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@wasmin/fs-js";
 import { node } from "../src/index.js";
 
-import { TestsFileSystemHandle } from "@wasm-env/fs-js";
+import { TestsFileSystemHandle } from "@wasmin/fs-js";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";

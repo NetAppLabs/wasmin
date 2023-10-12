@@ -9,10 +9,10 @@ globalThis.describe = describe;
 globalThis.expect = expect;
 globalThis.test = test;
 
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@wasmin/fs-js";
 import { bun } from "../src/index.js";
 
-import { TestsFileSystemHandle } from "@wasm-env/fs-js";
+import { TestsFileSystemHandle } from "@wasmin/fs-js";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";

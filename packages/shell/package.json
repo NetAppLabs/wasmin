@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/shell",
+  "name": "@wasmin/shell",
   "version": "0.0.1",
   "description": "WASI Shell",
   "type": "module",
@@ -33,15 +33,15 @@
     }
   ],
   "devDependencies": {
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "eslint-config-custom": "*"
   },
   "dependencies": {
-    "@wasm-env/fs-js": "*",
-    "@wasm-env/github-fs-js": "*",
-    "@wasm-env/node-fs-js": "*",
-    "@wasm-env/s3-fs-js": "*",
-    "@wasm-env/nfs-js": "*",
-    "@wasm-env/wasi-js": "*"
+    "@wasmin/fs-js": "*",
+    "@wasmin/github-fs-js": "*",
+    "@wasmin/node-fs-js": "*",
+    "@wasmin/s3-fs-js": "*",
+    "@wasmin/nfs-js": "*",
+    "@wasmin/wasi-js": "*"
   }
 }

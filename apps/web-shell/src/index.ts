@@ -3,15 +3,15 @@ import "xterm/css/xterm.css";
 import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
-import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasm-env/wasi-js";
-import { s3 } from "@wasm-env/s3-fs-js";
-import { github } from "@wasm-env/github-fs-js";
-import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasmin/wasi-js";
+import { s3 } from "@wasmin/s3-fs-js";
+import { github } from "@wasmin/github-fs-js";
+import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 
 // @ts-ignore
 import LocalEchoController from "local-echo";
 
-import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@wasmin/fs-js";
 
 const DEBUG_MODE = false;
 const REGISTER_GITHUB = true;
@@ -183,7 +183,7 @@ if (REGISTER_GITHUB) {
     writeIndented(`
     #
     # Welcome to a shell powered by Nushell, WebAssembly, WASI, Asyncify and File System Access API!
-    # Github repo with the source code: https://github.com/NetAppLabs/wasm-env
+    # Github repo with the source code: https://github.com/NetAppLabs/wasmin
     #
 
   `);

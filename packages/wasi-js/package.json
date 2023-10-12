@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/wasi-js",
+  "name": "@wasmin/wasi-js",
   "version": "0.0.2",
   "type": "module",
   "source": "src/index.ts",
@@ -38,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NetAppLabs/wasm-env.git"
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
   },
   "keywords": [],
   "author": "Tryggvi Larusson <tryggvi@netapp.com>",
@@ -58,12 +58,12 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/NetAppLabs/wasm-env/issues"
+    "url": "https://github.com/NetAppLabs/wasmin/issues"
   },
-  "homepage": "https://github.com/NetAppLabs/wasm-env#readme",
+  "homepage": "https://github.com/NetAppLabs/wasmin#readme",
   "dependencies": {
-    "@wasm-env/fs-js": "*",
-    "@wasm-env/wasi-snapshot-preview2": "*",
+    "@wasmin/fs-js": "*",
+    "@wasmin/wasi-snapshot-preview2": "*",
     "comlink": "^4.4.1",
     "events": "^3.3.0",
     "typeson": "^9.0.3",
@@ -72,8 +72,8 @@
   "devDependencies": {
     "@types/jest": "^29.4.0",
     "@vitest/coverage-c8": "^0.32.2",
-    "@wasm-env/node-fs-js": "*",
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/node-fs-js": "*",
+    "@wasmin/tsconfig": "*",
     "cpy-cli": "^5.0.0",
     "eslint-config-custom": "^0.0.0",
     "jest-extended": "^4.0.0",

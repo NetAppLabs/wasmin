@@ -1,18 +1,18 @@
-import { SocketsInstanceNetworkNamespace as socki } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsInstanceNetworkNamespace as socki } from "@wasmin/wasi-snapshot-preview2";
 type SocketsInstanceNetworkAsync = socki.WasiSocketsInstanceNetworkAsync;
 type Network = socki.Network;
-import { SocketsNetworkNamespace as sockn } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsNetworkNamespace as sockn } from "@wasmin/wasi-snapshot-preview2";
 type SocketsNetworkAsync = sockn.WasiSocketsNetworkAsync;
-import { SocketsTcpCreateSocketNamespace as socktc } from "@wasm-env/wasi-snapshot-preview2";
-import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsTcpCreateSocketNamespace as socktc } from "@wasmin/wasi-snapshot-preview2";
+import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasmin/wasi-snapshot-preview2";
 type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocketAsync;
-import { SocketsIpNameLookupNamespace as socklookup } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsIpNameLookupNamespace as socklookup } from "@wasmin/wasi-snapshot-preview2";
 type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookupAsync;
-import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
+import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2";
 type InputStream = io.InputStream;
 type OutputStream = io.InputStream;
-import { SocketsTcpNamespace as sockt } from "@wasm-env/wasi-snapshot-preview2";
-import { SocketsUdpNamespace as socku } from "@wasm-env/wasi-snapshot-preview2";
+import { SocketsTcpNamespace as sockt } from "@wasmin/wasi-snapshot-preview2";
+import { SocketsUdpNamespace as socku } from "@wasmin/wasi-snapshot-preview2";
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { createTcpSocket, createUdpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";

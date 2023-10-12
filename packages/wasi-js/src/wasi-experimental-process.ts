@@ -1,11 +1,11 @@
-import { getOriginPrivateDirectory, join, memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, join, memory } from "@wasmin/fs-js";
 import { FileOrDir, OpenFiles } from "./wasiFileSystem.js";
 import { UTF8_DECODER, clamp_host } from "./intrinsics.js";
 import { WASI, WasiEnv } from "./wasi.js";
 import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils.js";
 import { Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { TextDecoderWrapper } from "./utils.js";
-import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 
 export function addWasiExperimentalProcessToImports(
     imports: any,

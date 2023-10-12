@@ -1,7 +1,7 @@
 import path from "node:path";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
-import { memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
+import { memory } from "@wasmin/fs-js";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let backend: backendType = "memory";
@@ -25,7 +25,7 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default: {
             if (isBun()) {
-                const bunmod = await import("@wasm-env/bun-fs-js");
+                const bunmod = await import("@wasmin/bun-fs-js");
                 const bun = bunmod.bun;
                 return getOriginPrivateDirectory(bun, path.resolve(path.join("tests", "fixtures")));
             } else {

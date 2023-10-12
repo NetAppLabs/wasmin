@@ -3,8 +3,8 @@ import "jest-extended";
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "@wasm-env/wasi-js";
-import { FileSystemFileHandle } from "@wasm-env/fs-js";
+import { WASI, stringOut, OpenFiles, bufferIn } from "@wasmin/wasi-js";
+import { FileSystemFileHandle } from "@wasmin/fs-js";
 import { backend, getRootHandle } from "./utils.js";
 
 const EOL = "\n";

@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY } from "@wasm-env/wasi-js";
+import { WASI, OpenFiles, TTY } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
 
 // File & Blob is now in node v19 (19.2)
@@ -6,13 +6,13 @@ import { promises } from "node:fs";
 // @ts-ignore
 //import { File, Blob } from 'node:buffer';
 
-import { FileSystemDirectoryHandle, isBun } from "@wasm-env/fs-js";
-import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
+import { FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
+import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
 
-import { s3 } from "@wasm-env/s3-fs-js";
-import { nfs } from "@wasm-env/nfs-js";
-import { github } from "@wasm-env/github-fs-js";
+import { s3 } from "@wasmin/s3-fs-js";
+import { nfs } from "@wasmin/nfs-js";
+import { github } from "@wasmin/github-fs-js";
 
 const DEBUG_MODE = false;
 const USE_MEMORY = false;
@@ -223,7 +223,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         useWorker = true;
     }
     if (useWorker) {
-        const { WASIWorker } = await import("@wasm-env/wasi-js");
+        const { WASIWorker } = await import("@wasmin/wasi-js");
         try {
             const openFilesMap = {};
             const wasi = new WASIWorker({
