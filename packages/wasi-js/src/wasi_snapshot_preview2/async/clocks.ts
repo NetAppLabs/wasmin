@@ -3,10 +3,10 @@ type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace as clockw } from "@wasm-env/wasi-snapshot-preview2";
 type ClocksWallClockAsync = clockw.WasiClocksWallClockAsync;
 import { ClocksTimezoneNamespace as clockt } from "@wasm-env/wasi-snapshot-preview2";
-import { Pollable as FSPollable } from "../../wasiFileSystem.js";
+import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, sleep } from "../../wasiUtils.js";
-import { toDateTimeFromMs } from "./preview2Utils.js";
+import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
 type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
@@ -16,7 +16,7 @@ type Pollable = clockm.Pollable;
 
 let hrTimeStart: bigint;
 
-export class ClocksMonotonicPollable implements FSPollable {
+export class ClocksMonotonicPollable implements FsPollable {
     constructor(when: Instant) {
         this._when = when;
     }
@@ -24,12 +24,22 @@ export class ClocksMonotonicPollable implements FSPollable {
     private _when: Instant;
 
     async done(): Promise<boolean> {
+        return await this.doneWithWaiting();
+    }
+
+    async doneWithoutWaiting(): Promise<boolean> {
+        const hrTimeNow = await getHrTime();
+        return (this._when < hrTimeNow)
+    }
+
+    async doneWithWaiting(): Promise<boolean> {
         // XXX: mimic behavior of preview1 - waiting until done and, therefor, always returning true
         const hrTimeNow = await getHrTime();
         const ns = Number(this._when - hrTimeNow);
-        if (ns > 1_000_000) {
-            await sleep(ns / 1_000_000);
-        }
+        wasiPreview2Debug(`attempting to sleep for ${ns} nanoseconds`);
+        const millis = ns / 1_000_000;
+        wasiPreview2Debug(`sleep for ${millis} milliseconds`);
+        await sleep(millis);
         return true;
     }
 }
@@ -52,6 +62,7 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         return 1n;
     }
     async subscribe(when: Instant, absolute: boolean): Promise<Pollable> {
+        wasiPreview2Debug(`subscribe instant: ${when} absolute: ${absolute}`);
         if (!absolute) {
             const hrTimeNow = await getHrTime();
             when += hrTimeNow;
@@ -75,7 +86,7 @@ export class ClocksWallClockAsyncHost implements ClocksWallClockAsync {
     }
     async resolution(): Promise<Datetime> {
         // 1 ms
-        const res = 1_000_000;
+        const res = 1;
         const dt = toDateTimeFromMs(res);
         return dt;
     }

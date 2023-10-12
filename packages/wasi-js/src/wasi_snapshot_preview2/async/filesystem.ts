@@ -15,6 +15,7 @@ import {
     toNanosFromDatetime,
     toNanosFromTimestamp,
     translateError,
+    wasiPreview2Debug,
 } from "./preview2Utils.js";
 import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
 
@@ -70,7 +71,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
     async readViaStream(fd: Descriptor, offset: FileSize): Promise<InputStream> {
         try {
             const newFd = await this.openFiles.openReader(fd, offset);
-            // console.log("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
+            wasiPreview2Debug("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);
@@ -79,7 +80,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
     async writeViaStream(fd: Descriptor, offset: FileSize): Promise<OutputStream> {
         try {
             const newFd = await this.openFiles.openWriter(fd, offset);
-            // console.log("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
+            wasiPreview2Debug("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
             return newFd;
         } catch (err: any) {
             throw translateError(err);
@@ -134,7 +135,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
                 return "character-device";
             }
         } catch (err: any) {
-            console.log(`filesystem:getType for fd: ${fd} err: `, err);
+            wasiPreview2Debug(`filesystem:getType for fd: ${fd} err: `, err);
             throw translateError(err);
         }
     }
@@ -170,7 +171,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             // TODO: gracefully handle bigint
             const lengthNumber = Number(length);
             const chunk = await input.read(lengthNumber);
-            this.openFiles.closeFileClone(newFd);
+            this.openFiles.closeReader(newFd);
             let isEnd = false;
             if (chunk.length < length) {
                 isEnd = true;
@@ -186,7 +187,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             const out = this.openFiles.getAsWritable(newFd);
             await out.write(buffer);
             const readNo = buffer.length;
-            this.openFiles.closeFileClone(newFd);
+            this.openFiles.closeWriter(newFd);
             return BigInt(readNo);
         } catch (err: any) {
             throw translateError(err);
@@ -324,8 +325,15 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             throw translateError(err);
         }
     }
-    readlinkAt(fd: Descriptor, path: string): Promise<string> {
-        throw new Error("Method not implemented.");
+    async readlinkAt(fd: Descriptor, path: string): Promise<string> {
+        /*
+        const fd = await this.openAt(fd, {symlinkFollow: false});
+        const openDir = this.openFiles.getAsDir(fd);
+        const handle = await openDir.getFileOrDir(path, FileOrDir.Any);
+        const resultFd = await this.openFiles.open(openDir, path, oflags, fdflags);
+        return path;
+        */
+        throw 'not-permitted';
     }
     async removeDirectoryAt(fd: Descriptor, path: string): Promise<void> {
         try {
@@ -336,13 +344,13 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             throw translateError(err);
         }
     }
-    renameAt(fd: Descriptor, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async renameAt(fd: Descriptor, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void> {
+        throw 'not-permitted';
     }
-    symlinkAt(fd: Descriptor, oldPath: string, newPath: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async symlinkAt(fd: Descriptor, oldPath: string, newPath: string): Promise<void> {
+        throw 'not-permitted';
     }
-    accessAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, type: fs.AccessType): Promise<void> {
+    async accessAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, type: fs.AccessType): Promise<void> {
         throw new Error("Method not implemented.");
     }
     async unlinkFileAt(fd: Descriptor, path: string): Promise<void> {
@@ -354,16 +362,16 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             throw translateError(err);
         }
     }
-    changeFilePermissionsAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, modes: fs.Modes): Promise<void> {
-        throw new Error("Method not implemented.");
+    async changeFilePermissionsAt(fd: Descriptor, pathFlags: fs.PathFlags, path: string, modes: fs.Modes): Promise<void> {
+        throw 'not-permitted';
     }
-    changeDirectoryPermissionsAt(
+    async changeDirectoryPermissionsAt(
         fd: Descriptor,
         pathFlags: fs.PathFlags,
         path: string,
         modes: fs.Modes
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        throw 'not-permitted';
     }
     lockShared(fd: Descriptor): Promise<void> {
         throw new Error("Method not implemented.");
@@ -393,7 +401,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
             const next = await dirIter.next();
             return next;
         } catch (err: any) {
-            //console.log("readDirectoryEntry err:", err);
+            wasiPreview2Debug("readDirectoryEntry err:", err);
             throw translateError(err);
         }
     }

@@ -1,4 +1,4 @@
-export namespace ImportsNetwork {
+export namespace WasiSocketsNetwork {
 }
 export type Network = number;
 /**

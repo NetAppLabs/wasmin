@@ -12,6 +12,7 @@ import { CliBaseStdinNamespace as clibsdinns } from "@wasm-env/wasi-snapshot-pre
 type CliBaseStdinAsync = clibsdinns.WasiCliStdinAsync;
 type InputStream = clibsdinns.InputStream;
 import { CliBaseStdoutNamespace as clibsdoutns } from "@wasm-env/wasi-snapshot-preview2";
+import { wasiPreview2Debug } from "./preview2Utils.js";
 type CliBaseStdoutAsync = clibsdoutns.WasiCliStdoutAsync;
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
@@ -49,10 +50,10 @@ export class CliBaseExitAsyncHost implements clib.WasiCliExitAsync {
         let rval = 0;
         if (status.tag == "ok") {
             rval = 0;
-            //console.log("CliBaseExitAsyncHost exit ok: ", status.val);
+            wasiPreview2Debug("CliBaseExitAsyncHost exit ok: ", status.val);
         } else if (status.tag == "err") {
             if (status.val) {
-                console.log("CliBaseExitAsyncHost exit err: ", status.val);
+                wasiPreview2Debug("CliBaseExitAsyncHost exit err: ", status.val);
                 // TODO: figure out correct handling for status.val
                 rval = Number(status.val);
             } else {

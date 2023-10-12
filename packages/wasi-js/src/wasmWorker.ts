@@ -1,6 +1,6 @@
 import { initializeComlinkHandlers, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-import { isNode, wasiDebug } from "./wasiUtils.js";
+import { isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";
@@ -145,8 +145,10 @@ export function createComponentModuleImportProxyPerImportForChannel(
                 wasmHandlerDebug("lastTypedArray post transfer: ", lastTypedArray);
                 if (ret.error) {
                     wasmHandlerDebug("ret.error: ", ret.error);
+                    wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, ret.err);
                     throw ret.error;
                 }
+                wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] return: `, ret.return);
                 return ret.return;
             };
         },

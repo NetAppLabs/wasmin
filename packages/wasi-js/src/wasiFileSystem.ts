@@ -62,13 +62,13 @@ export class Socket implements Writable, Readable {
     }
 }
 
-export interface Pollable {
+export interface FsPollable {
     done(): Promise<boolean>;
 }
 
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | Pollable;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -529,6 +529,15 @@ export class OpenFiles {
         return openFile;
     }
 
+    exists(fd: Fd): boolean {
+        filesystemDebug(`[exists] fd: ${fd}`);
+        const openFile = this._files.get(fd);
+        if (!openFile) {
+            return false;
+        }
+        return true;
+    }
+
     set(fd: Fd, res: OpenResource) {
         filesystemDebug(`[set] fd: ${fd}`);
         this._files.set(fd, res);
@@ -649,8 +658,15 @@ export class OpenFiles {
         }
     }
 
-    closeFileClone(fd: Fd) {
-        filesystemDebug("[closeFileClone]");
+    closeReader(fd: Fd) {
+        filesystemDebug("[closeReader]");
+        if (this.isFile(fd)) {
+            this._take(fd);
+        }
+    }
+
+    closeWriter(fd: Fd) {
+        filesystemDebug("[closeWriter]");
         if (this.isFile(fd)) {
             this._take(fd);
         }

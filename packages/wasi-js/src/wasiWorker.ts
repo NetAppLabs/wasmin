@@ -72,7 +72,6 @@ export class WASIWorker {
                 await this.wasiWorkerThread.setOptions(wasiOptionsProxied);
             } catch (err: any) {
                 wasiWorkerDebug("wasiWorkerThread.setOptions err: ", err);
-                console.trace(err);
             }
 
             wasiWorkerDebug("WASIWorker run: ");
