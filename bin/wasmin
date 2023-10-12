@@ -3,12 +3,12 @@
 BIN_SRC="$(realpath -- "${BASH_SOURCE[0]}"; )";
 BIN_DIR="$(dirname -- "${BIN_SRC}" )";
 
-if [ -z "${WASM_ENV_ROOT}" ]; then
-	WASM_ENV_ROOT="$(dirname "${BIN_DIR}"; )";
+if [ -z "${WASMIN_ROOT}" ]; then
+	WASMIN_ROOT="$(dirname "${BIN_DIR}"; )";
 fi
 
-if [ -z "${WASM_ENV_RUNTIME}" ]; then
-	WASM_ENV_RUNTIME="node"
+if [ -z "${WASMIN_RUNTIME}" ]; then
+	WASMIN_RUNTIME="node"
 fi
 
 while [ -n "$1" ] ; do
@@ -24,18 +24,18 @@ while [ -n "$1" ] ; do
         exit 0
         ;;
    -b)
-        WASM_ENV_RUNTIME="bun"
+        WASMIN_RUNTIME="bun"
         ;;
    -d)
         set -x
-		export WASM_ENV_DEBUG=true
+		export WASMIN_DEBUG=true
         ;;
    -c)
-		export WASM_ENV_COMPONENT=true
+		export WASMIN_COMPONENT=true
         ;;
    -m|--mount)
         shift
-        export WASM_ENV_MOUNT=$1
+        export WASMIN_MOUNT=$1
         ;;
    -w)
         export NODE_SHELL_WORKER=1
@@ -58,19 +58,19 @@ if [ -n "${NODE_SHELL_BINARY}" ]; then
 fi
 
 
-if [ "${WASM_ENV_RUNTIME}" == "node" ]; then
+if [ "${WASMIN_RUNTIME}" == "node" ]; then
 	# run with node.js
 	# TODO allow extra flags to node such as
-	#node --experimental-vm-modules --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
-	#node --experimental-specifier-resolution=node --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
-	#node --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
-	#node --trace-warnings --enable-source-maps ${WASM_ENV_ROOT}/dist/node-shell.umd.js $*
-	#node --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/dist/index.js $*
-	#node --experimental-import-meta-resolve --trace-exit --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
-	#node --trace-warnings --experimental-import-meta-resolve --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
+	#node --experimental-vm-modules --enable-source-maps ${WASMIN_ROOT}/dist/node-shell.umd.js $*
+	#node --experimental-specifier-resolution=node --enable-source-maps ${WASMIN_ROOT}/dist/node-shell.umd.js $*
+	#node --trace-exit --enable-source-maps ${WASMIN_ROOT}/dist/node-shell.umd.js $*
+	#node --trace-warnings --enable-source-maps ${WASMIN_ROOT}/dist/node-shell.umd.js $*
+	#node --trace-exit --enable-source-maps ${WASMIN_ROOT}/dist/index.js $*
+	#node --experimental-import-meta-resolve --trace-exit --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
+	#node --trace-warnings --experimental-import-meta-resolve --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 
-	node --no-warnings --trace-warnings --enable-source-maps ${WASM_ENV_ROOT}/apps/node-shell/dist/index.js $*
-elif [ "${WASM_ENV_RUNTIME}" == "bun" ]; then
+	node --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
+elif [ "${WASMIN_RUNTIME}" == "bun" ]; then
 	# run with bun.sh
-	bun ${WASM_ENV_ROOT}/apps/bun-shell/src/index.ts $* 
+	bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 
 fi

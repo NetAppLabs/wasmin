@@ -128,8 +128,8 @@ const startShell = async () => {
     const preOpens: Record<string, FileSystemDirectoryHandle> = {};
 
     const getRootFS = async () => {
-        if (process.env.WASM_ENV_MOUNT) {
-            return await getOriginPrivateDirectory(nfs, process.env.WASM_ENV_MOUNT, false);
+        if (process.env.WASMIN_MOUNT) {
+            return await getOriginPrivateDirectory(nfs, process.env.WASMIN_MOUNT, false);
         }
 
         let nodePath = process.env.NODE_ROOT_DIR;
@@ -176,9 +176,9 @@ const startShell = async () => {
     if (binaryFromEnv && binaryFromEnv != " ") {
         wasmBinary = binaryFromEnv;
     }
-    const runDebug = process.env.WASM_ENV_DEBUG;
+    const runDebug = process.env.WASMIN_DEBUG;
     let componentMode = false;
-    const componentFlag = process.env.WASM_ENV_COMPONENT;
+    const componentFlag = process.env.WASMIN_COMPONENT;
     if (componentFlag) {
         componentMode = true;
     }

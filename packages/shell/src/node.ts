@@ -112,8 +112,8 @@ export async function getRootFS(): Promise<FileSystemDirectoryHandle> {
     let rootfs: FileSystemDirectoryHandle;
     if (USE_MEMORY) {
         rootfs = await getOriginPrivateDirectory(memory, nodePath, false);
-    } else if (process.env.WASM_ENV_MOUNT) {
-        rootfs = await getOriginPrivateDirectory(nfs, process.env.WASM_ENV_MOUNT, false);
+    } else if (process.env.WASMIN_MOUNT) {
+        rootfs = await getOriginPrivateDirectory(nfs, process.env.WASMIN_MOUNT, false);
     } else {
         rootfs = await getOriginPrivateDirectory(node, nodePath, false);
     }
@@ -207,9 +207,9 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     const args: string[] = [];
 
     const workerEnv = process.env.NODE_SHELL_WORKER;
-    const runDebug = process.env.WASM_ENV_DEBUG;
+    const runDebug = process.env.WASMIN_DEBUG;
     let componentMode = false;
-    const componentFlag = process.env.WASM_ENV_COMPONENT;
+    const componentFlag = process.env.WASMIN_COMPONENT;
     if (componentFlag) {
         componentMode = true;
     }
