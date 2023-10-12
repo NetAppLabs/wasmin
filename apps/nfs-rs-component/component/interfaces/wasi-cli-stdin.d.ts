@@ -1,5 +1,5 @@
 export namespace WasiCliStdin {
   export function getStdin(): InputStream;
 }
-import type { InputStream } from '../imports/wasi-io-streams';
+import type { InputStream } from '../interfaces/wasi-io-streams';
 export { InputStream };

@@ -1,4 +1,4 @@
-import { Mount } from "./exports/component-nfs-rs-nfs";
+import { Mount } from "./interfaces/component-nfs-rs-nfs";
 export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
 }

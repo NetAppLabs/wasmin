@@ -3,8 +3,8 @@ export namespace WasiIoStreams {
   export function subscribeToInputStream(this_: InputStream): Pollable;
   export function dropInputStream(this_: InputStream): void;
   export function checkWrite(this_: OutputStream): bigint;
-  export function write(this_: OutputStream, contents: Uint8Array | ArrayBuffer): void;
-  export function blockingWriteAndFlush(this_: OutputStream, contents: Uint8Array | ArrayBuffer): void;
+  export function write(this_: OutputStream, contents: Uint8Array): void;
+  export function blockingWriteAndFlush(this_: OutputStream, contents: Uint8Array): void;
   export function blockingFlush(this_: OutputStream): void;
   export function subscribeToOutputStream(this_: OutputStream): Pollable;
   export function dropOutputStream(this_: OutputStream): void;
@@ -27,5 +27,5 @@ export type OutputStream = number;
  * ## `"closed"`
  */
 export type WriteError = 'last-operation-failed' | 'closed';
-import type { Pollable } from '../exports/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-poll-poll';
 export { Pollable };

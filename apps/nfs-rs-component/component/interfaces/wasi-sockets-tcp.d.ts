@@ -6,15 +6,15 @@ export namespace WasiSocketsTcp {
   export function dropTcpSocket(this_: TcpSocket): void;
 }
 export type TcpSocket = number;
-import type { Network } from '../exports/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network';
 export { Network };
-import type { IpSocketAddress } from '../exports/wasi-sockets-network';
+import type { IpSocketAddress } from '../interfaces/wasi-sockets-network';
 export { IpSocketAddress };
-import type { ErrorCode } from '../exports/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network';
 export { ErrorCode };
-import type { InputStream } from '../exports/wasi-io-streams';
+import type { InputStream } from '../interfaces/wasi-io-streams';
 export { InputStream };
-import type { OutputStream } from '../exports/wasi-io-streams';
+import type { OutputStream } from '../interfaces/wasi-io-streams';
 export { OutputStream };
 /**
  * # Variants
