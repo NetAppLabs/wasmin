@@ -1,6 +1,6 @@
 export namespace ComponentNfsRsNfs {
   export function parseUrlAndMount(url: string): Mount;
-  export function null(mnt: Mount): void;
+  export function nullOp(mnt: Mount): void;
   export function access(mnt: Mount, fh: Uint8Array | ArrayBuffer, mode: number): number;
   export function accessPath(mnt: Mount, path: string, mode: number): number;
   export function close(mnt: Mount, seqid: number, stateid: bigint): void;

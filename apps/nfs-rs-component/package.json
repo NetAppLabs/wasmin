@@ -1,6 +1,6 @@
 {
     "version": "0.1.0",
-    "name": "nfs-rs-component",
+    "name": "@wasm-env/nfs-js",
     "type": "module",
     "main": "component/index.js",
     "files": [

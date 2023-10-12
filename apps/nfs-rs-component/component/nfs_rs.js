@@ -3092,7 +3092,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     },
   }));
   postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#parse-url-and-mount'];
-  postReturn1 = exports1['cabi_post_component:nfs-rs/nfs#null'];
+  postReturn1 = exports1['cabi_post_component:nfs-rs/nfs#null-op'];
   postReturn2 = exports1['cabi_post_component:nfs-rs/nfs#access'];
   postReturn3 = exports1['cabi_post_component:nfs-rs/nfs#access-path'];
   postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#close'];
@@ -3186,8 +3186,8 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return variant3.val;
   }
   
-  function _null(arg0) {
-    const ret = exports1['component:nfs-rs/nfs#null'](toUint32(arg0));
+  function nullOp(arg0) {
+    const ret = exports1['component:nfs-rs/nfs#null-op'](toUint32(arg0));
     let variant2;
     switch (dataView(memory0).getUint8(ret + 0, true)) {
       case 0: {
@@ -5923,7 +5923,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     lookupPath: lookupPath,
     mkdir: mkdir,
     mkdirPath: mkdirPath,
-    'null': _null,
+    nullOp: nullOp,
     parseUrlAndMount: parseUrlAndMount,
     pathconf: pathconf,
     pathconfPath: pathconfPath,
