@@ -4,15 +4,15 @@ import {
     NotAllowedError,
     NotFoundError,
     TypeMismatchError,
-} from "@wasm-env/fs-js";
-import { join, streamToBuffer, streamToBufferNode, substituteSecretValue } from "@wasm-env/fs-js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
+import { join, streamToBuffer, streamToBufferNode, substituteSecretValue } from "@wasmin/fs-js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
 import {
     FileSystemWritableFileStream,
     FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
-} from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
 
 import { default as urlparse } from "url-parse";
 

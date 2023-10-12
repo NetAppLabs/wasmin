@@ -1,6 +1,6 @@
-//import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasm-env/wasi-snapshot-preview2"
-import { FilesystemFilesystemNamespace as fs } from "@wasm-env/wasi-snapshot-preview2";
-import { FilesystemPreopensNamespace } from "@wasm-env/wasi-snapshot-preview2";
+//import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasmin/wasi-snapshot-preview2"
+import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
+import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2";
 type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopensAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
@@ -17,7 +17,7 @@ import {
     translateError,
     wasiPreview2Debug,
 } from "./preview2Utils.js";
-import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasm-env/fs-js";
+import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 
 type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;

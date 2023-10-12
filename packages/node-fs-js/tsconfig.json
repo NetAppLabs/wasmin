@@ -1,5 +1,5 @@
 {
-  "extends": "@wasm-env/tsconfig",
+  "extends": "@wasmin/tsconfig",
   "compilerOptions": {
     "lib": [
       "dom",

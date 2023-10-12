@@ -2,10 +2,10 @@
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles } from "@wasm-env/wasi-js";
+import { WASI, stringOut, OpenFiles } from "@wasmin/wasi-js";
 
-import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
+import { getOriginPrivateDirectory } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
 
 describe("export", () => {
     test("main", async () => {

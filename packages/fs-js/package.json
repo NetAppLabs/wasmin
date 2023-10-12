@@ -1,5 +1,5 @@
 {
-  "name": "@wasm-env/fs-js",
+  "name": "@wasmin/fs-js",
   "version": "0.0.4",
   "description": "File System Standard Implementation",
   "type": "module",
@@ -22,7 +22,7 @@
     "test": "vitest run --globals",
     "test:ui": "vitest run --globals --ui"
   },
-  "repository": "ssh://git@github.com/NetAppLabs/wasm-env.git",
+  "repository": "ssh://git@github.com/NetAppLabs/wasmin.git",
   "keywords": [
     "filesystem",
     "file",
@@ -37,9 +37,9 @@
   ],
   "author": "Jimmy Wärting",
   "license": "MIT",
-  "homepage": "https://github.com/NetAppLabs/wasm-env#readme",
+  "homepage": "https://github.com/NetAppLabs/wasmin#readme",
   "bugs": {
-    "url": "https://github.com/NetAppLabs/wasm-env/issues"
+    "url": "https://github.com/NetAppLabs/wasmin/issues"
   },
   "contributors": [
     {
@@ -62,7 +62,7 @@
     "@types/url-parse": "^1.4.8",
     "@vitest/coverage-v8": "^0.32.2",
     "@vitest/ui": "^0.32.2",
-    "@wasm-env/tsconfig": "*",
+    "@wasmin/tsconfig": "*",
     "eslint-config-custom": "*",
     "vitest": "^0.34.3"
   },

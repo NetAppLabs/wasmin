@@ -1,5 +1,5 @@
 import { instantiate  } from "./component.js";
-import { WASIWorker } from "@wasm-env/wasi-js";
+import { WASIWorker } from "@wasmin/wasi-js";
 
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 let _fs;

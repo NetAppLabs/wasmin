@@ -13,9 +13,9 @@ import {
     writeMessage,
 } from "./vendored/sync-message/index.js";
 import { OpenFiles } from "./wasiFileSystem.js";
-import { getDirectoryHandleByURL } from "@wasm-env/fs-js";
+import { getDirectoryHandleByURL } from "@wasmin/fs-js";
 import { TTY } from "./tty.js";
-import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
 
 export type ProviderUrl = string;

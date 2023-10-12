@@ -5,8 +5,8 @@ import { backend, getRootHandle } from "./utils.js";
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "@wasm-env/wasi-js";
-import { FileSystemFileHandle } from "@wasm-env/fs-js";
+import { WASI, stringOut, OpenFiles, bufferIn } from "@wasmin/wasi-js";
+import { FileSystemFileHandle } from "@wasmin/fs-js";
 
 const EOL = "\n";
 

@@ -1,5 +1,5 @@
 {
-  "name": "wasm-env",
+  "name": "wasmin",
   "version": "0.0.0",
   "private": true,
   "workspaces": [

@@ -1,10 +1,10 @@
-import { getDirectoryHandleByURL } from "@wasm-env/fs-js";
+import { getDirectoryHandleByURL } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { clamp_host, data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN } from "./intrinsics.js";
 import { WasiEnv } from "./wasi.js";
 import { wasiDebug, unimplemented, translateErrorToErrorno } from "./wasiUtils.js";
 import { ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
-import { showDirectoryPicker } from "@wasm-env/fs-js";
+import { showDirectoryPicker } from "@wasmin/fs-js";
 
 export function addWasiExperimentalFilesystemsToImports(
     imports: any,

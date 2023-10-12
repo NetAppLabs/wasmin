@@ -7,15 +7,15 @@ import {
     TypeMismatchError,
     FileSystemHandlePermissionDescriptor,
     NFileSystemWritableFileStream,
-} from "@wasm-env/fs-js";
-import { join, substituteSecretValue } from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
+import { join, substituteSecretValue } from "@wasmin/fs-js";
 import {
     FileSystemWritableFileStream,
     FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
-} from "@wasm-env/fs-js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
 import { default as urlparse } from "url-parse";
 
 const GITHUB_DEBUG = false;

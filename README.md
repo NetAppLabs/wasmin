@@ -1,4 +1,4 @@
-# wasm-env
+# wasmin
 
 Thiis is a monorepo for wasm/wasi based runtimes.
 
@@ -30,7 +30,7 @@ This turborepo has some additional tools already setup for you:
 Clone from github:
 
 ```
-git clone git@github.com:NetAppLabs/wasm-env.git
+git clone git@github.com:NetAppLabs/wasmin.git
 ```
 
 ### Build
@@ -38,7 +38,7 @@ git clone git@github.com:NetAppLabs/wasm-env.git
 To build all apps and packages, run the following command:
 
 ```
-cd wasm-env
+cd wasmin
 yarn
 yarn build
 ```
@@ -48,6 +48,6 @@ yarn build
 To develop all apps and packages, run the following command:
 
 ```
-cd wasm-env
+cd wasmin
 yarn dev
 ```

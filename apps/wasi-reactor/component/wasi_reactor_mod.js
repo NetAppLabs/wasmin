@@ -1,11 +1,11 @@
-import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/filesystem';
-import { exit as lowering3Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/exit';
-import { getRandomBytes as lowering9Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/random';
-import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/streams';
-import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/preopens';
-import { getEnvironment as lowering10Callee } from '@wasm-env/wasi-js/wasi_snapshot_preview2/environment';
+import { writeViaStream as lowering0Callee, appendViaStream as lowering1Callee, dropDescriptor as lowering2Callee, getType as lowering8Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/filesystem';
+import { exit as lowering3Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/exit';
+import { getRandomBytes as lowering9Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/random';
+import { dropInputStream as lowering4Callee, dropOutputStream as lowering5Callee, write as lowering11Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/streams';
+import { getStdio as lowering6Callee, getDirectories as lowering7Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/preopens';
+import { getEnvironment as lowering10Callee } from '@wasmin/wasi-js/wasi_snapshot_preview2/environment';
 
-import { WASI } from '@wasm-env/wasi-js';
+import { WASI } from '@wasmin/wasi-js';
 
 const base64Compile = str => WebAssembly.compile(typeof Buffer !== 'undefined' ? Buffer.from(str, 'base64') : Uint8Array.from(atob(str), b => b.charCodeAt(0)));
 

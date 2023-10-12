@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, stringOut, bufferIn } from "@wasm-env/wasi-js";
+import { WASI, OpenFiles, stringOut, bufferIn } from "@wasmin/wasi-js";
 
 const EOL = "\n";
 

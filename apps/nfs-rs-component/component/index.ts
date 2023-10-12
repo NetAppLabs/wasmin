@@ -1,6 +1,6 @@
 import { Mount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs";
 import { instantiate } from "./nfs_rs.js";
-import { WASIWorker } from "@wasm-env/wasi-js";
+import { WASIWorker } from "@wasmin/wasi-js";
 import {
     NFileSystemWritableFileStream,
     PreNameCheck,
@@ -8,7 +8,7 @@ import {
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
-} from "@wasm-env/fs-js";
+} from "@wasmin/fs-js";
 
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;

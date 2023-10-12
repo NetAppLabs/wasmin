@@ -1,9 +1,9 @@
 import path from "path";
 import { readdir, readFile } from "fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn, isBun } from "../index.js";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
-import { memory } from "@wasm-env/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
+import { memory } from "@wasmin/fs-js";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -57,7 +57,7 @@ export async function getRootHandle(backend: string, rootPath: string): Promise<
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default:
             if (isBun()) {
-                const bunmod = await import("@wasm-env/bun-fs-js");
+                const bunmod = await import("@wasmin/bun-fs-js");
                 const bun = bunmod.bun;
                 dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
             } else {

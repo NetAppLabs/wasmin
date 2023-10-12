@@ -31,7 +31,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.android-arm64.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-android-arm64')
+            nativeBinding = require('@wasmin/bun-console-android-arm64')
           }
         } catch (e) {
           loadError = e
@@ -43,7 +43,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.android-arm-eabi.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-android-arm-eabi')
+            nativeBinding = require('@wasmin/bun-console-android-arm-eabi')
           }
         } catch (e) {
           loadError = e
@@ -61,7 +61,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.win32-x64-msvc.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-win32-x64-msvc')
+            nativeBinding = require('@wasmin/bun-console-win32-x64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -73,7 +73,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.win32-ia32-msvc.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-win32-ia32-msvc')
+            nativeBinding = require('@wasmin/bun-console-win32-ia32-msvc')
           }
         } catch (e) {
           loadError = e
@@ -85,7 +85,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.win32-arm64-msvc.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-win32-arm64-msvc')
+            nativeBinding = require('@wasmin/bun-console-win32-arm64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -101,7 +101,7 @@ switch (platform) {
       if (localFileExisted) {
         nativeBinding = require('./bun-console.darwin-universal.node')
       } else {
-        nativeBinding = require('@wasm-env/bun-console-darwin-universal')
+        nativeBinding = require('@wasmin/bun-console-darwin-universal')
       }
       break
     } catch {}
@@ -112,7 +112,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.darwin-x64.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-darwin-x64')
+            nativeBinding = require('@wasmin/bun-console-darwin-x64')
           }
         } catch (e) {
           loadError = e
@@ -124,7 +124,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.darwin-arm64.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-darwin-arm64')
+            nativeBinding = require('@wasmin/bun-console-darwin-arm64')
           }
         } catch (e) {
           loadError = e
@@ -143,7 +143,7 @@ switch (platform) {
       if (localFileExisted) {
         nativeBinding = require('./bun-console.freebsd-x64.node')
       } else {
-        nativeBinding = require('@wasm-env/bun-console-freebsd-x64')
+        nativeBinding = require('@wasmin/bun-console-freebsd-x64')
       }
     } catch (e) {
       loadError = e
@@ -158,7 +158,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./bun-console.linux-x64-musl.node')
             } else {
-              nativeBinding = require('@wasm-env/bun-console-linux-x64-musl')
+              nativeBinding = require('@wasmin/bun-console-linux-x64-musl')
             }
           } catch (e) {
             loadError = e
@@ -169,7 +169,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./bun-console.linux-x64-gnu.node')
             } else {
-              nativeBinding = require('@wasm-env/bun-console-linux-x64-gnu')
+              nativeBinding = require('@wasmin/bun-console-linux-x64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -183,7 +183,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./bun-console.linux-arm64-musl.node')
             } else {
-              nativeBinding = require('@wasm-env/bun-console-linux-arm64-musl')
+              nativeBinding = require('@wasmin/bun-console-linux-arm64-musl')
             }
           } catch (e) {
             loadError = e
@@ -194,7 +194,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./bun-console.linux-arm64-gnu.node')
             } else {
-              nativeBinding = require('@wasm-env/bun-console-linux-arm64-gnu')
+              nativeBinding = require('@wasmin/bun-console-linux-arm64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -207,7 +207,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./bun-console.linux-arm-gnueabihf.node')
           } else {
-            nativeBinding = require('@wasm-env/bun-console-linux-arm-gnueabihf')
+            nativeBinding = require('@wasmin/bun-console-linux-arm-gnueabihf')
           }
         } catch (e) {
           loadError = e

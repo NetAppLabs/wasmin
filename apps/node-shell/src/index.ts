@@ -1,4 +1,4 @@
-import { startShell } from "@wasm-env/shell";
+import { startShell } from "@wasmin/shell";
 
 // File class was added as experimental in node v19.2
 import { File } from "node:buffer";

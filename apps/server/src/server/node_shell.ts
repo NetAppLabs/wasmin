@@ -1,10 +1,10 @@
 import { getHostsFsHandle, getProcFsHandle } from "./procfs.js";
 import { HostManagerInstance } from "./host.js";
 
-import { startShell, getSecretStore } from "@wasm-env/shell";
-import { getOriginPrivateDirectory, memory, NFileSystemDirectoryHandle } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
-import { FileSystemDirectoryHandle } from "@wasm-env/fs-js";
+import { startShell, getSecretStore } from "@wasmin/shell";
+import { getOriginPrivateDirectory, memory, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
+import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { isBun } from "./util.js";
 
 const USE_MEMORY = true;
@@ -20,7 +20,7 @@ async function getRootFS(): Promise<FileSystemDirectoryHandle> {
     if (USE_MEMORY) {
         rootfs = await getOriginPrivateDirectory(memory, nodePath);
     } else if (isBun()) {
-        const bunfs = await import("@wasm-env/bun-fs-js");
+        const bunfs = await import("@wasmin/bun-fs-js");
         const bun = bunfs.bun;
         rootfs = await getOriginPrivateDirectory(bun, nodePath);
     } else {

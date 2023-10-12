@@ -1,6 +1,6 @@
 {
     "version": "0.1.0",
-    "name": "@wasm-env/nfs-js",
+    "name": "@wasmin/nfs-js",
     "type": "module",
     "main": "component/index.js",
     "files": [
@@ -15,7 +15,7 @@
         "vitest": "^0.34.3"
     },
     "dependencies": {
-        "@wasm-env/fs-js": "*",
-        "@wasm-env/wasi-js": "*"
+        "@wasmin/fs-js": "*",
+        "@wasmin/wasi-js": "*"
     }
 }

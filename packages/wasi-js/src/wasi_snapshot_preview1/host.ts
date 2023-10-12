@@ -61,7 +61,7 @@ import {
     isNode,
 } from "../wasiUtils.js";
 import { WasiEnv } from "../wasi.js";
-import { Statable } from "@wasm-env/fs-js";
+import { Statable } from "@wasmin/fs-js";
 import { WasiSocket } from "../wasi_experimental_sockets/common.js";
 
 export function initializeWasiSnapshotPreview1AsyncToImports(

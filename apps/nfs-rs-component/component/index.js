@@ -1,6 +1,6 @@
 import { instantiate } from "./nfs_rs.js";
-import { WASIWorker } from "@wasm-env/wasi-js";
-import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@wasm-env/fs-js";
+import { WASIWorker } from "@wasmin/wasi-js";
+import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@wasmin/fs-js";
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;
 const ACCESS3_MODIFY = 0x0004;

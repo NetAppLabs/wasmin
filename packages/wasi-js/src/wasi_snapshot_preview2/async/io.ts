@@ -1,4 +1,4 @@
-import { IoStreamsNamespace as io } from "@wasm-env/wasi-snapshot-preview2";
+import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2";
 type IoStreamsAsync = io.WasiIoStreamsAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isBadFileDescriptor, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";

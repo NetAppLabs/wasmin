@@ -8,7 +8,7 @@ export default defineConfig({
         lib: {
             formats: ["cjs"],
             entry: "src/server/index.ts",
-            name: "@wasm-env/server",
+            name: "@wasmin/server",
         },
         rollupOptions: {
             external: [
@@ -55,8 +55,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
-      name: "@wasm-env/fs-js",
-      fileName: (format) => `dist/@wasm-env/fs-js.${format}.js`,
+      name: "@wasmin/fs-js",
+      fileName: (format) => `dist/@wasmin/fs-js.${format}.js`,
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
@@ -83,7 +83,7 @@ export default defineConfig({
     target: "esnext",
     lib: {
       entry: "src/index.ts",
-      name: "@wasm-env/fs-js",
+      name: "@wasmin/fs-js",
     },
     rollupOptions: {
       external: ["fs", "path", "node"],

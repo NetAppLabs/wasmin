@@ -5,11 +5,11 @@ import { spawn } from "node:child_process";
 import { resolve, join, dirname } from "node:path";
 import fs from "node:fs/promises";
 import { readFile } from "fs/promises";
-import { WASI, OpenFiles, stringOut, bufferIn } from "@wasm-env/wasi-js";
-import { getOriginPrivateDirectory } from "@wasm-env/fs-js";
-import { node } from "@wasm-env/node-fs-js";
+import { WASI, OpenFiles, stringOut, bufferIn } from "@wasmin/wasi-js";
+import { getOriginPrivateDirectory } from "@wasmin/fs-js";
+import { node } from "@wasmin/node-fs-js";
 import { fileURLToPath } from "node:url";
-import { isBun } from "@wasm-env/wasi-js/index.js";
+import { isBun } from "@wasmin/wasi-js/index.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -24,7 +24,7 @@ async function getRootHandle(backend) {
             return getOriginPrivateDirectory(memory);
         default: {
             if (isBun()) {
-                const bunmod = await import("@wasm-env/bun-fs-js");
+                const bunmod = await import("@wasmin/bun-fs-js");
                 const bun = bunmod.bun;
                 return getOriginPrivateDirectory(bun, resolve(join(baseDir, "fixtures")));
             } else {
