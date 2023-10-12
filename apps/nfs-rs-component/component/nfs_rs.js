@@ -202,7 +202,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     let variant2;
     switch (arg3) {
       case 0: {
-        variant2 = null;
+        variant2 = undefined;
         break;
       }
       case 1: {
@@ -3152,7 +3152,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3201,7 +3201,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {
@@ -3255,7 +3255,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3306,7 +3306,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3355,7 +3355,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {
@@ -3409,7 +3409,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3460,7 +3460,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3519,7 +3519,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -3573,7 +3573,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -3622,7 +3622,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {
@@ -3671,7 +3671,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {
@@ -3748,7 +3748,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3822,7 +3822,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -3942,7 +3942,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant12;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant12 = null;
+            variant12 = undefined;
             break;
           }
           case 1: {
@@ -4050,7 +4050,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant10;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant10 = null;
+            variant10 = undefined;
             break;
           }
           case 1: {
@@ -4099,7 +4099,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {
@@ -4183,7 +4183,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -4259,7 +4259,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4320,7 +4320,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant4;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant4 = null;
+            variant4 = undefined;
             break;
           }
           case 1: {
@@ -4376,7 +4376,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -4433,7 +4433,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4487,7 +4487,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4546,7 +4546,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -4600,7 +4600,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4647,7 +4647,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -4703,7 +4703,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant6;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant6 = null;
+            variant6 = undefined;
             break;
           }
           case 1: {
@@ -4747,7 +4747,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -4803,7 +4803,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant6;
         switch (dataView(memory0).getUint8(ret + 8, true)) {
           case 0: {
-            variant6 = null;
+            variant6 = undefined;
             break;
           }
           case 1: {
@@ -4860,7 +4860,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4914,7 +4914,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -4973,7 +4973,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5029,7 +5029,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5097,7 +5097,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -5162,7 +5162,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -5217,7 +5217,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           let variant2;
           switch (dataView(memory0).getUint8(base + 24, true)) {
             case 0: {
-              variant2 = null;
+              variant2 = undefined;
               break;
             }
             case 1: {
@@ -5272,7 +5272,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant5;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant5 = null;
+            variant5 = undefined;
             break;
           }
           case 1: {
@@ -5324,7 +5324,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           let variant2;
           switch (dataView(memory0).getUint8(base + 24, true)) {
             case 0: {
-              variant2 = null;
+              variant2 = undefined;
               break;
             }
             case 1: {
@@ -5379,7 +5379,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant5;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant5 = null;
+            variant5 = undefined;
             break;
           }
           case 1: {
@@ -5438,7 +5438,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant3;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant3 = null;
+            variant3 = undefined;
             break;
           }
           case 1: {
@@ -5492,7 +5492,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5548,7 +5548,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5599,7 +5599,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -5655,7 +5655,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5706,7 +5706,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant1;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant1 = null;
+            variant1 = undefined;
             break;
           }
           case 1: {
@@ -5769,7 +5769,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant4;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant4 = null;
+            variant4 = undefined;
             break;
           }
           case 1: {
@@ -5822,7 +5822,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant2;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant2 = null;
+            variant2 = undefined;
             break;
           }
           case 1: {
@@ -5871,7 +5871,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         let variant0;
         switch (dataView(memory0).getUint8(ret + 4, true)) {
           case 0: {
-            variant0 = null;
+            variant0 = undefined;
             break;
           }
           case 1: {

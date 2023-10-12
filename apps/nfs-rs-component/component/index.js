@@ -120,7 +120,7 @@ export class NfsHandle {
         return new Promise(async (resolve, reject) => {
             const mode = perm.mode === "readwrite" ? AccessReadWrite : AccessRead;
             try {
-                nfsComponent.setattr(this._mount, this._fh, null, mode, null, null, null, null, null);
+                nfsComponent.setattr(this._mount, this._fh, undefined, mode, undefined, undefined, undefined, undefined, undefined);
                 resolve("granted");
             }
             catch (e) {
@@ -646,7 +646,7 @@ export class NfsSink {
             }
             try {
                 this.ensureExistingIfToBeKept();
-                nfsComponent.write(this._mount, this._fhTmp, BigInt(this._position), buffer);
+                nfsComponent.write(this._mount, this._fhTmp, BigInt(this._position), new Uint8Array(buffer));
                 this._position += buffer.byteLength;
                 if (this._position > this._newSize) {
                     this._newSize = this._position;
@@ -674,7 +674,7 @@ export class NfsSink {
             }
             try {
                 this.ensureExistingIfToBeKept();
-                nfsComponent.setattr(this._mount, this._fhTmp, null, null, null, null, BigInt(size), null, null);
+                nfsComponent.setattr(this._mount, this._fhTmp, undefined, undefined, undefined, undefined, BigInt(size), undefined, undefined);
                 if (this._position > size) {
                     this._position = size;
                 }
