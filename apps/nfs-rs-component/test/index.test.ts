@@ -1,5 +1,5 @@
 import { TestsFileSystemHandle, getOriginPrivateDirectory } from "@wasmin/fs-js";
-import { NfsDirectoryHandle } from "../component/index.js";
+import { nfs } from "../component/index.js";
 
 // Needed specifically for bun:
 import { test, describe, beforeAll, beforeEach, expect, afterAll } from "vitest";
@@ -14,14 +14,13 @@ const testNonWrappedURL =
     "nfs://localhost/tmp/nfs-rs-component-test-non-wrapped?uid=502&gid=20&nfsport=20490&mountport=20490&auto-traverse-mounts=0";
 const testWrappedURL =
     "nfs://localhost/tmp/nfs-rs-component-test-wrapped?uid=502&gid=20&nfsport=20940&mountport=20940&auto-traverse-mounts=0";
-const driver = (url: string) => new NfsDirectoryHandle(url);
 
 const getComponentRoot = async () => {
-    return getOriginPrivateDirectory(driver, testNonWrappedURL, false);
+    return getOriginPrivateDirectory(nfs, testNonWrappedURL, false);
 };
 
 const getComponentRootWrapped = async () => {
-    return getOriginPrivateDirectory(driver, testWrappedURL, true);
+    return getOriginPrivateDirectory(nfs, testWrappedURL, true);
 };
 
 TestsFileSystemHandle("component", getComponentRoot);

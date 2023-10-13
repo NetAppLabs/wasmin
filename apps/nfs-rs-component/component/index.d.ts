@@ -126,6 +126,6 @@ export declare class NfsSink implements FileSystemWritableFileStream {
     abort(_reason: string): Promise<void>;
     getWriter(): WritableStreamDefaultWriter;
 }
-export declare const nfs: (path: string) => NfsDirectoryHandle;
+export declare function nfs(path: string): Promise<NfsDirectoryHandle>;
 export default nfs;
 //# sourceMappingURL=index.d.ts.map

@@ -59,12 +59,17 @@ async function compileCore(url) {
     url = "./" + url;
     return await fetchCompile(new URL(url, import.meta.url));
 }
+let wasi;
 let nfsComponent;
-const wasi = new WASIWorker({});
-await wasi
-    .createWorker()
-    .then((componentImports) => instantiate(compileCore, componentImports))
-    .then((instance) => (nfsComponent = instance.nfs));
+async function ensureInstantiation() {
+    if (!wasi) {
+        wasi = new WASIWorker({});
+        await wasi
+            .createWorker()
+            .then((componentImports) => instantiate(compileCore, componentImports))
+            .then((instance) => (nfsComponent = instance.nfs));
+    }
+}
 export class NfsHandle {
     _mount;
     _fhDir;
@@ -752,6 +757,9 @@ export class NfsSink {
         return writer;
     }
 }
-export const nfs = (path) => new NfsDirectoryHandle(path);
+export async function nfs(path) {
+    await ensureInstantiation();
+    return new NfsDirectoryHandle(path);
+}
 export default nfs;
 //# sourceMappingURL=index.js.map

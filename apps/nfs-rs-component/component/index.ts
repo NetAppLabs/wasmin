@@ -75,12 +75,18 @@ async function compileCore(url: string) {
     return await fetchCompile(new URL(url, import.meta.url));
 }
 
+let wasi: WASIWorker | undefined;
 let nfsComponent: typeof ComponentNfsRsNfs;
-const wasi = new WASIWorker({});
-await wasi
-    .createWorker()
-    .then((componentImports) => instantiate(compileCore, componentImports as any))
-    .then((instance) => (nfsComponent = instance.nfs));
+
+async function ensureInstantiation() {
+    if (!wasi) {
+        wasi = new WASIWorker({});
+        await wasi
+            .createWorker()
+            .then((componentImports) => instantiate(compileCore, componentImports as any))
+            .then((instance) => (nfsComponent = instance.nfs));
+    }
+}
 
 export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
@@ -793,5 +799,8 @@ export class NfsSink implements FileSystemWritableFileStream {
     }
 }
 
-export const nfs = (path: string) => new NfsDirectoryHandle(path);
+export async function nfs(path: string): Promise<NfsDirectoryHandle> {
+    await ensureInstantiation();
+    return new NfsDirectoryHandle(path);
+}
 export default nfs;
