@@ -636,7 +636,13 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         const entry = this._entries[name];
         if (!entry) throw new NotFoundError();
         try {
-            await entry.destroy(opts.recursive);
+            let isRecursive = false;
+            if (opts) {
+                if (opts.recursive) {
+                    isRecursive = true;
+                }
+            }
+            await entry.destroy(isRecursive);
             delete this._entries[name];
         } catch (err: any) {
             console.log("removeEntry err: ", err);

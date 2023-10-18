@@ -40,3 +40,6 @@ packages/nfs-js
 *.log
 
 nu.async.wasm
+sea-prep.blob
+wasmin-node
+wasmin-bun

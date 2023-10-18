@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
-    "build": "echo build",
+    "build": "bun build.ts",
+    "build-dummy": "echo build",
     "bun-build": "bun bun src/index.ts",
     "esbuild": "esbuild --bundle src/index.ts --format=esm --platform=node --outfile=dist/out.js --main-fields=main,module",
     "clean": "rm -rf node_modules",
@@ -22,6 +23,7 @@
     "@wasmin/nfs-js": "*",
     "@wasmin/s3-fs-js": "*",
     "@wasmin/wasi-js": "*",
+    "@wasmin/shell": "*",
     "get-random-values": "^1.2.2",
     "node-fetch": "^3.2.10",
     "web-file-polyfill": "^1.0.4"

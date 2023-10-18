@@ -18,6 +18,7 @@ import { TTY } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
 
+
 export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
 export interface WasiWorkerOptions {
@@ -87,7 +88,21 @@ export class WASIWorker {
             workerUrlString = "./wasiWorkerThreadNode.js";
         }
         const workerUrl = new URL(workerUrlString, import.meta.url);
-        wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
+        // @ts-ignore
+        //const workerUrl = await import.meta.resolve(workerUrlString);
+        //const workerUrl = import.meta.resolveSync(workerUrlString);
+        const filePath = import.meta.file;
+        // @ts-ignore
+        const metaDir = import.meta.dir;
+        // @ts-ignore
+        const metaPath = import.meta.path;
+        const metaUrl = import.meta.url;
+
+        console.log("WASIWorker metaUrl: ", metaUrl);
+        console.log("WASIWorker metaPath: ", metaPath);
+        console.log("WASIWorker metaDir: ", metaDir);
+        console.log("WASIWorker filePath: ", filePath);
+        console.log("WASIWorker workerUrl: ", workerUrl);
 
         this.worker = await createWorker(workerUrl, { type: "module" });
 

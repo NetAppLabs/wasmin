@@ -18,6 +18,7 @@ import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
+type Descriptor = fs.Descriptor;
 import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
 import {
     FileSystemHandle,
@@ -25,7 +26,6 @@ import {
     FileSystemFileHandle,
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
-import { Descriptor } from "@wasmin/wasi-snapshot-preview2/dist/imports/filesystem-filesystem.js";
 
 declare let globalThis: any;
 globalThis.WASI_FS_DEBUG = false;

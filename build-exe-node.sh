@@ -3,7 +3,7 @@
 set -ex
 
 
-EXE_NAME="wasmin"
+EXE_NAME="wasmin-node"
 
 rm ${EXE_NAME} || true
 
