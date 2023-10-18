@@ -88,6 +88,7 @@ export class WASIWorker {
             workerUrlString = "./wasiWorkerThreadNode.js";
         }
         const workerUrl = new URL(workerUrlString, import.meta.url);
+		/*
         // @ts-ignore
         //const workerUrl = await import.meta.resolve(workerUrlString);
         //const workerUrl = import.meta.resolveSync(workerUrlString);
@@ -103,6 +104,7 @@ export class WASIWorker {
         console.log("WASIWorker metaDir: ", metaDir);
         console.log("WASIWorker filePath: ", filePath);
         console.log("WASIWorker workerUrl: ", workerUrl);
+	   	*/
 
         this.worker = await createWorker(workerUrl, { type: "module" });
 
