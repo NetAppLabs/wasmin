@@ -1,0 +1,19 @@
+#!/bin/bash
+
+BIN_SRC="$(realpath -- "${BASH_SOURCE[0]}"; )";
+BIN_DIR="$(dirname -- "${BIN_SRC}" )";
+#export WASMIN_COMPONENT=true
+
+if [ -z "${WASMIN_ROOT}" ]; then
+	WASMIN_ROOT="$(dirname "${BIN_DIR}"; )";
+fi
+
+if [ -z "${WASMIN_RUNTIME}" ]; then
+	WASMIN_RUNTIME="bun"
+fi
+
+if [ "${WASMIN_RUNTIME}" == "node" ]; then
+	node --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
+elif [ "${WASMIN_RUNTIME}" == "bun" ]; then
+	bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 
+fi
