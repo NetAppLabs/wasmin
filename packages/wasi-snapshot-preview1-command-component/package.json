@@ -2,14 +2,21 @@
     "version": "0.1.0",
     "name": "@wasmin/wasi-snapshot-preview1-command-component",
     "type": "module",
-    "main": "component/component.js",
+    "main": "component/index.js",
     "files": [
-        "component/component.d.ts"
+        "component/index.d.ts",
+        "component/component.js",
+        "component/component.core.wasm",
+        "component/component.core2.wasm",
+        "component/component.core3.wasm",
+        "component/component.core4.wasm",
+        "component/component.core5.wasm"
     ],
     "scripts": {
         "build": "./build.sh"
     },
     "devDependencies": {
+        "@wasmin/tsconfig": "*"
     },
     "dependencies": {
     }

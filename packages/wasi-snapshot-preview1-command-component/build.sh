@@ -9,3 +9,5 @@ wasm-tools validate component.wasm --features component-model
 wasm-tools component wit component.wasm
 
 jco transpile component.wasm -o component -I --no-wasi-shim
+
+npx tsc -p .

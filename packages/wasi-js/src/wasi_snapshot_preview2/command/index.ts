@@ -1,17 +1,7 @@
 import { wasmWorkerThreadDebug } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../async/preview2Utils.js";
-import { instantiate, Root, ImportObject } from "@wasmin/wasi-snapshot-preview1-command-component";
+import { instantiate, Root, ImportObject, compileCore } from "@wasmin/wasi-snapshot-preview1-command-component";
 import * as comlink from "comlink";
-
-const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
-
-async function fetchCompile(url: URL) {
-    if (isNode) {
-        let _fs = await import("fs/promises");
-        return WebAssembly.compile(await _fs.readFile(url));
-    }
-    return fetch(url).then(WebAssembly.compileStreaming);
-}
 
 export type WasiCommand = Root;
 
@@ -109,7 +99,7 @@ export class CommandRunner {
         this.importObject = importObject;
     }
 
-    async compileCore(url: string) {
+    async compileCoreLocal(url: string) {
         // special case for main core module of component
         if (url == "component.core.wasm") {
             if (this.wasmModOrBufferSource) {
@@ -124,15 +114,13 @@ export class CommandRunner {
                 throw new Error("Wasm module source not set");
             }
         }
-        url = "./" + url;
-        const metaUrl = new URL(url, import.meta.url);
-        return await fetchCompile(metaUrl);
+        return await compileCore(url);
     }
 
     async instantiate(wasmModOrBufferSource: WebAssembly.Module | BufferSource): Promise<WasiCommand> {
         this.wasmModOrBufferSource = wasmModOrBufferSource;
         const importObject = this.importObject;
-        const compileFunc = this.compileCore;
+        const compileFunc = this.compileCoreLocal;
         const boundCompilerFunc = compileFunc.bind(this);
 
         const instantiateCore = getInstantiateCoreFunc();

@@ -237,7 +237,9 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
 export class BunFolderHandle
     implements ImplFolderHandle<BunFileHandle, BunFolderHandle>, FileSystemDirectoryHandle, Statable
 {
-    constructor(public path: string, public name = "") {}
+    constructor(public path: string, public name = "") {
+        bunFsDebug(`constructing BunFolderHandle for path: ${path}`);
+    }
 
     public writable = true;
     public kind = "directory" as const;
