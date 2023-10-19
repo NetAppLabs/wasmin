@@ -1,6 +1,7 @@
 import "xterm/css/xterm.css";
 
 import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
+import { ImageAddon, IImageAddonOptions } from 'xterm-addon-image';
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
 import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasmin/wasi-js";
@@ -64,6 +65,11 @@ if (REGISTER_GITHUB) {
 
     const localEcho = new LocalEchoController();
     term.loadAddon(localEcho);
+
+    // initialization
+    const imageCustomSettings = {};
+    const imageAddon = new ImageAddon(imageCustomSettings);
+    term.loadAddon(imageAddon);
 
     //const modes: IModes{
     //  await writeSync(page, '\\x1b[?1h');
