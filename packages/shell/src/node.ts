@@ -130,7 +130,7 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     buffer: BufferSource;
     path: string;
 }> {
-    const moduleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm"];
+    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm"];
 
     //let wasmBinary = "";
     let wasmBuf: BufferSource | undefined;
@@ -143,7 +143,7 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
             wasmBuf = binaryFromEnvBuf;
         } catch (err: any) {}
     } else {
-        for (const modulePathTry of moduleSearchPaths) {
+        for (const modulePathTry of defaultModuleSearchPaths) {
             try {
                 const wasmBinaryTry = modulePathTry;
                 const wasmBufTry = await promises.readFile(wasmBinaryTry);
@@ -176,6 +176,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
             '--env': [String],
             '--worker': Boolean,
             '--overlay': Boolean,
+            '--count': Number,
 
             // Aliases
             '-c': '--component',
@@ -194,6 +195,7 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
         let args: string[] = [];
+        let runCount = 1;
 
         if (cmdArgs['--help']) {
             isHelp = true;
@@ -212,6 +214,9 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         }
         if (cmdArgs['--overlay']) {
             useOverlayFs = true;
+        }
+        if (cmdArgs['--count']) {
+            runCount = cmdArgs['--count'];
         }
 
         let runtimeName = "undefined";
@@ -240,7 +245,8 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
     ${fl('-d')}                          Debug Mode
     ${fl('-o')}                          Enable Overlay FileSystem
     ${fl('-m, --mount')}   ${flv('[path|url]')}    Mount Path or URL and use as root
-    ${fl('-w')}                          Run in worker`);
+    ${fl('-w')}                          Run in worker
+    ${fl('--count')}                     Number of identical runs`);
             process.exit(0);
         }
 
@@ -292,66 +298,82 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         const abortController = new AbortController();
         const openFiles = new OpenFiles(preOpens);
 
-        const modResponse = await getWasmModuleBufer(wasmBinaryFromArgs);
-        const wasmBuf = modResponse.buffer;
-        const wasmBinary = modResponse.path;
 
-        if (runDebug) {
-            // @ts-ignore
-            globalThis.WASI_CALL_DEBUG=true;
-        }
-        if (workerMode) {
-            const { WASIWorker } = await import("@wasmin/wasi-js");
-            try {
-                const openFilesMap = {};
-                const wasi = new WASIWorker({
-                    abortSignal: abortController.signal,
-                    openFiles: openFilesMap,
-                    stdin: stdin,
-                    stdout: stdout,
-                    stderr: stderr,
-                    args: args,
-                    env: env,
-                    tty: tty,
-                });
-                const statusCode = await wasi.run(wasmBinary);
-                if (statusCode !== 0) {
-                    console.log(`Exit code: ${statusCode}`);
-                }
-            } catch (err: any) {
-                console.log(err.message);
-            } finally {
-                if (DEBUG_MODE) {
-                    console.log("finally");
-                }
-                process.exit(0);
+        let runs = 0;
+        while (runs < runCount) {
+            let startTime = performance.now();
+
+            const modResponse = await getWasmModuleBufer(wasmBinaryFromArgs);
+            const wasmBuf = modResponse.buffer;
+            const wasmBinary = modResponse.path;    
+
+            let newEnv = {...env};
+            let newArgs = [...args];
+            //console.log(`run is: ${runs}`);
+            if (runDebug) {
+                // @ts-ignore
+                globalThis.WASI_CALL_DEBUG=true;
             }
-        } else {
-            try {
-                const wasi = new WASI({
-                    abortSignal: abortController.signal,
-                    openFiles: openFiles,
-                    stdin: stdin,
-                    stdout: stdout,
-                    stderr: stderr,
-                    args: args,
-                    env: env,
-                    tty: tty,
-                });
-                wasi.component = componentMode;
-                const statusCode = await wasi.run(wasmBuf);
-                if (statusCode !== 0) {
-                    console.log(`Exit code: ${statusCode}`);
+            if (workerMode) {
+                const { WASIWorker } = await import("@wasmin/wasi-js");
+                try {
+                    const openFilesMap = {};
+                    const wasi = new WASIWorker({
+                        abortSignal: abortController.signal,
+                        openFiles: openFilesMap,
+                        stdin: stdin,
+                        stdout: stdout,
+                        stderr: stderr,
+                        args: newArgs,
+                        env: newEnv,
+                        tty: tty,
+                    });
+                    const statusCode = await wasi.run(wasmBinary);
+                    if (statusCode !== 0) {
+                        console.log(`Exit code: ${statusCode}`);
+                    }
+                } catch (err: any) {
+                    console.log(err.message);
+                } finally {
+                    if (DEBUG_MODE) {
+                        console.log("finally");
+                    }
+                    process.exit(0);
                 }
-            } catch (err: any) {
-                console.log(err.message);
-            } finally {
-                if (DEBUG_MODE) {
-                    console.log("finally");
+            } else {
+                try {
+                    const wasi = new WASI({
+                        abortSignal: abortController.signal,
+                        openFiles: openFiles,
+                        stdin: stdin,
+                        stdout: stdout,
+                        stderr: stderr,
+                        args: newArgs,
+                        env: newEnv,
+                        tty: tty,
+                    });
+                    wasi.component = componentMode;
+                    const statusCode = await wasi.run(wasmBuf);
+                    if (statusCode !== 0) {
+                        console.log(`Exit code: ${statusCode}`);
+                    }
+                } catch (err: any) {
+                    console.log(err.message);
+                } finally {
+                    if (DEBUG_MODE) {
+                        console.log("finally");
+                    }
+                    //process.exit(0);
                 }
-                process.exit(0);
+            }
+            runs++;
+            let endTime = performance.now();
+            let timeElapsedMs = endTime - startTime;
+            if (runCount>1) {
+                console.log(`run took ${timeElapsedMs} ms`);
             }
         }
+        process.exit(0);
     } catch (err: any) {
         if (err.code === 'ARG_UNKNOWN_OPTION') {
             console.log(err.message);

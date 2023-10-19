@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
-    "build": "bun build.ts",
+    "build": "tsc -p .",
+    "build-bun": "bun build.ts",
     "build-dummy": "echo build",
     "bun-build": "bun bun src/index.ts",
     "esbuild": "esbuild --bundle src/index.ts --format=esm --platform=node --outfile=dist/out.js --main-fields=main,module",
@@ -15,7 +16,7 @@
   "devDependencies": {
     "bun-types": "^0.8.1",
     "esbuild": "^0.14.39",
-    "typescript": "^4.7.3"
+    "@wasmin/tsconfig": "*"
   },
   "dependencies": {
     "@wasmin/bun-fs-js": "*",

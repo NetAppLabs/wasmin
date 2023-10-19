@@ -4,8 +4,8 @@ import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
 import { initializeComlinkHandlers, wasmWorkerThreadDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
-import { default as process } from "node:process";
-import { default as events } from "node:events";
+//import { default as process } from "node:process";
+//import { default as events } from "node:events";
 
 export class WasmComponentWorkerThreadRunner {
     commandRunner?: CommandRunner;
@@ -13,7 +13,7 @@ export class WasmComponentWorkerThreadRunner {
     _channel?: Channel | null;
     constructor() {
         // TODO: find better way than setting high limit
-        events.defaultMaxListeners = 600;
+        //events.defaultMaxListeners = 600;
         process.on("warning", (e) => wasmWorkerThreadDebug("warn", e));
         wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner creating");
         initializeComlinkHandlers();

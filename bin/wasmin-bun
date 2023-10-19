@@ -15,5 +15,6 @@ fi
 if [ "${WASMIN_RUNTIME}" == "node" ]; then
 	node --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 elif [ "${WASMIN_RUNTIME}" == "bun" ]; then
-	bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 
+	#bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 
+	bun ${WASMIN_ROOT}/apps/bun-shell/dist/index.js $* 
 fi

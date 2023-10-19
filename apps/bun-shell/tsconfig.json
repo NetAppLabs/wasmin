@@ -1,14 +1,15 @@
 {
+  "extends": "@wasmin/tsconfig",
   "compilerOptions": {
-	"moduleResolution": "node",
-    "lib": ["ESNext"],
-    "module": "esnext",
-    "target": "esnext",
-    // "bun-types" is the important part
-    "types": ["bun-types"],
-    "paths": {
-      "@wasmin/fs-js": ["../../../packages/fs-js"]
-    },
-    "baseUrl": "./src"
-  }
+    "lib": [
+      "dom",
+      "webworker",
+      "esnext"
+    ],
+    "outDir": "./dist"
+  },
+  "types": ["bun-types"],
+  "include": [
+    "./src"
+  ]
 }
