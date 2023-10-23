@@ -77,15 +77,21 @@ async function compileCore(url: string) {
 
 let wasi: WASIWorker | undefined;
 let nfsComponent: typeof ComponentNfsRsNfs;
+let instantiation: Promise<WASIWorker> | undefined;
 
 async function ensureInstantiation() {
-    if (!wasi) {
-        wasi = new WASIWorker({});
-        await wasi
-            .createWorker()
-            .then((componentImports) => instantiate(compileCore, componentImports as any))
-            .then((instance) => (nfsComponent = instance.nfs));
+    if (!instantiation) {
+        instantiation = new Promise(async (resolve, reject) => {
+            wasi = new WASIWorker({});
+            await wasi
+                .createWorker()
+                .then((componentImports) => instantiate(compileCore, componentImports as any))
+                .then((instance) => (nfsComponent = instance.nfs))
+                .catch((e) => reject(e));
+            resolve(wasi);
+        });
     }
+    await instantiation;
 }
 
 export interface NfsHandlePermissionDescriptor {
@@ -204,8 +210,6 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         this.kind = "directory";
         this.isFile = false;
         this.isDirectory = true;
-        this.getFile = this.getFileHandle;
-        this.getDirectory = this.getDirectoryHandle;
         this.getEntries = this.values;
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
@@ -405,14 +409,6 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
     }
 
     /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    getFile: NfsDirectoryHandle["getFileHandle"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-     */
-    getDirectory: NfsDirectoryHandle["getDirectoryHandle"];
-    /**
      * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
      */
     getEntries: NfsDirectoryHandle["values"];
@@ -484,7 +480,7 @@ export class NfsFile implements File {
         this.prototype = new File([], name);
         this._mount = mount;
         this._fh = fh;
-        this.lastModified = attr.mtime.seconds * 1000 + attr.mtime.nseconds / 1000;
+        this.lastModified = attr.mtime.seconds * 1000 + Math.round(attr.mtime.nseconds / 1000);
         this.name = name;
         this.webkitRelativePath = name;
         this.size = Number(attr.filesize);
