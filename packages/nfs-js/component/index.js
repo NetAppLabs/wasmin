@@ -456,7 +456,7 @@ export class NfsFile {
     arrayBuffer() {
         return new Promise(async (resolve, reject) => {
             try {
-                return resolve(this.uint8Array());
+                return resolve(this.uint8Array().buffer);
             }
             catch (e) {
                 return reject(e);

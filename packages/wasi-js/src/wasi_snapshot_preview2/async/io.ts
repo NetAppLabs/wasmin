@@ -108,7 +108,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     async dropInputStream(instr: InputStream): Promise<void> {
         wasiPreview2Debug(`[io/streams] dropInputStream fd: ${instr}`);
         try {
-            this.openFiles.closeReader(instr);
+            await this.openFiles.closeReader(instr);
         } catch (err: any) {
             wasiPreview2Debug("[io/streams] dropInputStream err: ",err);
         }

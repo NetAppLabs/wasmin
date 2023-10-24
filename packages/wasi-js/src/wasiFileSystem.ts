@@ -657,17 +657,19 @@ export class OpenFiles {
         }
     }
 
-    closeReader(fd: Fd) {
+    async closeReader(fd: Fd) {
         filesystemDebug("[closeReader]");
         if (this.isFile(fd)) {
-            this._take(fd);
+            const reader = this._take(fd) as OpenFile;
+            await reader.close();
         }
     }
 
-    closeWriter(fd: Fd) {
+    async closeWriter(fd: Fd) {
         filesystemDebug("[closeWriter]");
         if (this.isFile(fd)) {
-            this._take(fd);
+            const writer = this._take(fd) as OpenFile;
+            await writer.close();
         }
     }
 
