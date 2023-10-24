@@ -1,0 +1,5 @@
+#!/bin/bash
+
+jco transpile nfs_rs.wasm -o component -I --no-wasi-shim
+
+tsc -p .

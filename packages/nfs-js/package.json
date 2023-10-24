@@ -1,0 +1,21 @@
+{
+    "version": "0.1.0",
+    "name": "@wasmin/nfs-js",
+    "type": "module",
+    "main": "component/index.js",
+    "files": [
+        "component/index.ts"
+    ],
+    "scripts": {
+        "build": "./build.sh",
+        "test": "./test.sh",
+        "bun-test": "./test-bun.sh"
+    },
+    "devDependencies": {
+        "vitest": "^0.34.3"
+    },
+    "dependencies": {
+        "@wasmin/fs-js": "*",
+        "@wasmin/wasi-js": "*"
+    }
+}

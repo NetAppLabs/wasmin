@@ -91,7 +91,16 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
         }
     }
     async blockingRead(instr: InputStream, len: bigint): Promise<[Uint8Array, StreamStatus]> {
-        return await this.read(instr, len);
+        while (true) {
+            // XXX: in case of ErrnoN.AGAIN, this.read() will return [new Uint8Array(), 'open']
+            //      however, documentation for wasi:io/streams/blocking-read specifies that it
+            //      will block until at least one byte can be read, so we should sleep and retry
+            const res = await this.read(instr, len);
+            if (res[0].byteLength !== 0 || res[1] !== 'open') {
+                return res;
+            }
+            await sleep(1);
+        }
     }
 
     async blockingSkip(instr: InputStream, len: bigint): Promise<[bigint, StreamStatus]> {
@@ -108,7 +117,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     async dropInputStream(instr: InputStream): Promise<void> {
         wasiPreview2Debug(`[io/streams] dropInputStream fd: ${instr}`);
         try {
-            this.openFiles.closeReader(instr);
+            await this.openFiles.closeReader(instr);
         } catch (err: any) {
             wasiPreview2Debug("[io/streams] dropInputStream err: ",err);
         }

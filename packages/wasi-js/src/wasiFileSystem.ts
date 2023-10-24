@@ -214,10 +214,6 @@ export class OpenDirectory {
             if ((handle as any).isDirectory || handle.kind === "directory") {
                 throw new SystemError(ErrnoN.ISDIR);
             }
-            const writable = await (handle as FileSystemFileHandle).createWritable({
-                keepExistingData: false,
-            });
-            await writable.close();
         }
         return handle;
     }
@@ -657,17 +653,19 @@ export class OpenFiles {
         }
     }
 
-    closeReader(fd: Fd) {
+    async closeReader(fd: Fd) {
         filesystemDebug("[closeReader]");
         if (this.isFile(fd)) {
-            this._take(fd);
+            const reader = this._take(fd) as OpenFile;
+            await reader.close();
         }
     }
 
-    closeWriter(fd: Fd) {
+    async closeWriter(fd: Fd) {
         filesystemDebug("[closeWriter]");
         if (this.isFile(fd)) {
-            this._take(fd);
+            const writer = this._take(fd) as OpenFile;
+            await writer.close();
         }
     }
 

@@ -326,7 +326,8 @@ export const TestsFileSystemHandle = (
             const handle = await createFileWithContents("average.txt", fileContents, root);
             const file = await handle.getFile();
             const actualContents = await file.arrayBuffer();
-            expect(actualContents).toStrictEqual(new TextEncoder().encode(fileContents));
+            const expectedContents = new TextEncoder().encode(fileContents);
+            expect(actualContents).toStrictEqual(expectedContents.buffer);
         });
 
         test("getFile() provides a file that can be read via stream()", async () => {
