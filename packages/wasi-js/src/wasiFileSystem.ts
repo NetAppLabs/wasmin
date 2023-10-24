@@ -214,10 +214,6 @@ export class OpenDirectory {
             if ((handle as any).isDirectory || handle.kind === "directory") {
                 throw new SystemError(ErrnoN.ISDIR);
             }
-            const writable = await (handle as FileSystemFileHandle).createWritable({
-                keepExistingData: false,
-            });
-            await writable.close();
         }
         return handle;
     }
