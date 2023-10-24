@@ -480,7 +480,7 @@ export class NfsFile implements File {
         this.prototype = new File([], name);
         this._mount = mount;
         this._fh = fh;
-        this.lastModified = attr.mtime.seconds * 1000 + Math.round(attr.mtime.nseconds / 1000);
+        this.lastModified = attr.mtime.seconds * 1000 + Math.round(attr.mtime.nseconds / 1_000_000);
         this.name = name;
         this.webkitRelativePath = name;
         this.size = Number(attr.filesize);
