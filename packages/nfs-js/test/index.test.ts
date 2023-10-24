@@ -11,17 +11,17 @@ globalThis.expect = expect;
 globalThis.test = test;
 
 const testNonWrappedURL =
-    "nfs://localhost/tmp/nfs-rs-component-test-non-wrapped?uid=502&gid=20&nfsport=20490&mountport=20490&auto-traverse-mounts=0";
+    "nfs://localhost/tmp/nfs-js-test-non-wrapped?uid=502&gid=20&nfsport=20990&mountport=20990&auto-traverse-mounts=0";
 const testWrappedURL =
-    "nfs://localhost/tmp/nfs-rs-component-test-wrapped?uid=502&gid=20&nfsport=20940&mountport=20940&auto-traverse-mounts=0";
+    "nfs://localhost/tmp/nfs-js-test-wrapped?uid=502&gid=20&nfsport=20940&mountport=20940&auto-traverse-mounts=0";
 
-const getComponentRoot = async () => {
+const getNfsRoot = async () => {
     return getOriginPrivateDirectory(nfs, testNonWrappedURL, false);
 };
 
-const getComponentRootWrapped = async () => {
+const getNfsRootWrapped = async () => {
     return getOriginPrivateDirectory(nfs, testWrappedURL, true);
 };
 
-TestsFileSystemHandle("component", getComponentRoot);
-TestsFileSystemHandle("component", getComponentRootWrapped);
+TestsFileSystemHandle("nfs", getNfsRoot);
+TestsFileSystemHandle("nfs", getNfsRootWrapped);

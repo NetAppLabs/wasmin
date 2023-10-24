@@ -11,12 +11,12 @@ if [ ! -d /tmp/go-nfs ]; then
     popd
 fi
 
-mkdir -p /tmp/nfs-rs-component-test-non-wrapped /tmp/nfs-rs-component-test-wrapped
+mkdir -p /tmp/nfs-js-test-non-wrapped /tmp/nfs-js-test-wrapped
 
-/tmp/go-nfs/osnfs /tmp/nfs-rs-component-test-non-wrapped 20490 &> /tmp/go-nfs/osnfs-non-wrapped.log &
+/tmp/go-nfs/osnfs /tmp/nfs-js-test-non-wrapped 20990 &> /tmp/go-nfs/osnfs-non-wrapped.log &
 GO_NFS_NON_WRAPPED_PID=$!
 
-/tmp/go-nfs/osnfs /tmp/nfs-rs-component-test-wrapped 20940 &> /tmp/go-nfs/osnfs-wrapped.log &
+/tmp/go-nfs/osnfs /tmp/nfs-js-test-wrapped 20940 &> /tmp/go-nfs/osnfs-wrapped.log &
 GO_NFS_WRAPPED_PID=$!
 
 function kill_go_nfs() {
