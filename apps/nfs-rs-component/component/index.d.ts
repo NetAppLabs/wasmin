@@ -46,14 +46,6 @@ export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemD
     resolve(possibleDescendant: FileSystemHandle): Promise<Array<string> | null>;
     private resolveDirectory;
     /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    getFile: NfsDirectoryHandle["getFileHandle"];
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-     */
-    getDirectory: NfsDirectoryHandle["getDirectoryHandle"];
-    /**
      * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
      */
     getEntries: NfsDirectoryHandle["values"];

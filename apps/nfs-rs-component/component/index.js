@@ -61,14 +61,20 @@ async function compileCore(url) {
 }
 let wasi;
 let nfsComponent;
+let instantiation;
 async function ensureInstantiation() {
-    if (!wasi) {
-        wasi = new WASIWorker({});
-        await wasi
-            .createWorker()
-            .then((componentImports) => instantiate(compileCore, componentImports))
-            .then((instance) => (nfsComponent = instance.nfs));
+    if (!instantiation) {
+        instantiation = new Promise(async (resolve, reject) => {
+            wasi = new WASIWorker({});
+            await wasi
+                .createWorker()
+                .then((componentImports) => instantiate(compileCore, componentImports))
+                .then((instance) => (nfsComponent = instance.nfs))
+                .catch((e) => reject(e));
+            resolve(wasi);
+        });
     }
+    await instantiation;
 }
 export class NfsHandle {
     _mount;
@@ -180,8 +186,6 @@ export class NfsDirectoryHandle extends NfsHandle {
         this.kind = "directory";
         this.isFile = false;
         this.isDirectory = true;
-        this.getFile = this.getFileHandle;
-        this.getDirectory = this.getDirectoryHandle;
         this.getEntries = this.values;
     }
     async *entryHandles() {
@@ -358,14 +362,6 @@ export class NfsDirectoryHandle extends NfsHandle {
         return null;
     }
     /**
-     * @deprecated Old property just for Chromium <=85. Use `.getFileHandle()` in the new API.
-     */
-    getFile;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `.getDirectoryHandle()` in the new API.
-     */
-    getDirectory;
-    /**
      * @deprecated Old property just for Chromium <=85. Use `.keys()`, `.values()`, `.entries()`, or the directory itself as an async iterable in the new API.
      */
     getEntries;
@@ -436,7 +432,7 @@ export class NfsFile {
         this.prototype = new File([], name);
         this._mount = mount;
         this._fh = fh;
-        this.lastModified = attr.mtime.seconds * 1000 + attr.mtime.nseconds / 1000;
+        this.lastModified = attr.mtime.seconds * 1000 + Math.round(attr.mtime.nseconds / 1000);
         this.name = name;
         this.webkitRelativePath = name;
         this.size = Number(attr.filesize);
