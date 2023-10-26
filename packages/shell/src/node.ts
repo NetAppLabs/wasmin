@@ -104,21 +104,20 @@ export function getSecretStore(): Record<string, Record<string, string | undefin
     return secretStore;
 }
 
-export async function getRootFS(mountUrl: string, overlay: boolean): Promise<FileSystemDirectoryHandle> {
-    // if environment variable NODE_ROOT_DIR is set it will use it as root path
-    // else current directory
-    let nodePath = process.env.NODE_ROOT_DIR;
-    if (!nodePath || nodePath == "") {
-        nodePath = process.cwd();
-    }
+export async function getRootFS(driver: any, mountUrl: string, overlay: boolean): Promise<FileSystemDirectoryHandle> {
     const secretStore = getSecretStore();
     let rootfs: FileSystemDirectoryHandle;
-    if (USE_MEMORY) {
-        rootfs = await getOriginPrivateDirectory(memory, nodePath, overlay);
-    } else if (mountUrl != "") {
+    if (mountUrl != "") {
         rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, overlay);
     } else {
-        rootfs = await getOriginPrivateDirectory(node, nodePath, overlay);
+        // if environment variable NODE_ROOT_DIR is set it will use it as root path
+        // else current directory
+        let nodePath = process.env.NODE_ROOT_DIR;
+        if (!nodePath || nodePath == "") {
+            nodePath = process.cwd();
+        }
+
+        rootfs = await getOriginPrivateDirectory(driver, nodePath, overlay);
     }
     if (rootfs instanceof NFileSystemDirectoryHandle) {
         rootfs.secretStore = secretStore;
@@ -164,7 +163,7 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     }
 }
 
-export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: Record<string, string>) {
+export async function startNodeShell(rootfsDriver?: any, env?: Record<string, string>) {
 
     try {
         const cmdArgs = arg({
@@ -275,9 +274,8 @@ export async function startNodeShell(rootfs?: FileSystemDirectoryHandle, env?: R
         const preOpens: Record<string, FileSystemDirectoryHandle> = {};
         const rootDir = "/";
         const init_pwd = "/";
-        if (!rootfs) {
-            rootfs = await getRootFS(mountUrl, useOverlayFs);
-        }
+        const driver = USE_MEMORY ? memory : rootfsDriver || node;
+        const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
         if (!env) {
             env = {
                 RUST_BACKTRACE: "full",

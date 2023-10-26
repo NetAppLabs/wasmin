@@ -53,5 +53,5 @@ export async function startLocalShell() {
         FORCE_COLOR: "true",
         PROMPT_INDICATOR: ` ${username}@${hostname}> `,
     };
-    await startShell(await getRootFS(), env);
+    await startShell(getRootFS, env);
 }
