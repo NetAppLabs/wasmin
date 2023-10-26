@@ -8,6 +8,7 @@ import {
     NotFoundError,
     SyntaxError,
     TypeMismatchError,
+    Stat,
 } from "@wasmin/fs-js";
 
 const ACCESS3_READ = 0x0001;
@@ -211,6 +212,18 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         this.isFile = false;
         this.isDirectory = true;
         this.getEntries = this.values;
+    }
+    async stat(): Promise<Stat> {
+        const attr = nfsComponent.getattr(this._mount, this._fh);
+        const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
+        const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);
+        const stats: Stat = {
+            inode: attr.fileid,
+            creationTime: mtime,
+            modifiedTime: mtime,
+            accessedTime: atime,
+        };
+        return stats;
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
         try {
