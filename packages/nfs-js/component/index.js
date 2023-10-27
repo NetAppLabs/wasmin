@@ -194,6 +194,7 @@ export class NfsDirectoryHandle extends NfsHandle {
         const atime = BigInt(attr.atime.seconds) * 1000000000n + BigInt(attr.atime.nseconds);
         const stats = {
             inode: attr.fileid,
+            size: attr.filesize,
             creationTime: mtime,
             modifiedTime: mtime,
             accessedTime: atime,

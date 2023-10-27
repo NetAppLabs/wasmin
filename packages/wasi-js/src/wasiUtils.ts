@@ -110,11 +110,7 @@ export const bufferIn = (buffer: Uint8Array): In => {
 
 export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, filestat_ptr: ptr<Filestat>) {
     wasiDebug("populateFileStat:");
-    let file: File | undefined = undefined;
-    if ((handle as any).getFile) {
-        const fhandle = handle as unknown as FileSystemFileHandle;
-        file = await fhandle.getFile();
-    }
+    const isFile: boolean = (handle as any).getFile;
 
     let inode = 0n;
     let size = 0n;
@@ -122,12 +118,6 @@ export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, file
     let mtime = 0n;
     let atime = 0n;
 
-    if (file) {
-        size = BigInt(file.size);
-        ctime = BigInt(file.lastModified) * 1_000_000n;
-        mtime = ctime;
-        atime = ctime;
-    }
     if ((handle as any).stat) {
         const statable = handle as unknown as Statable;
         const s = await statable.stat();
@@ -139,12 +129,20 @@ export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, file
         ctime = creationTime;
         mtime = s.modifiedTime;
         atime = s.accessedTime;
+        size = s.size;
+    } else if (isFile) {
+        const fhandle = handle as unknown as FileSystemFileHandle;
+        const file = await fhandle.getFile();
+        size = BigInt(file.size);
+        ctime = BigInt(file.lastModified) * 1_000_000n;
+        mtime = ctime;
+        atime = ctime;
     }
 
     const newFstat: Filestat = {
         dev: 0n,
         ino: inode,
-        filetype: file ? FiletypeN.REGULAR_FILE : FiletypeN.DIRECTORY,
+        filetype: isFile ? FiletypeN.REGULAR_FILE : FiletypeN.DIRECTORY,
         nlink: 0n,
         size,
         atim: atime,

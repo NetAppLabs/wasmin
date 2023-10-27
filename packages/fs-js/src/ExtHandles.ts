@@ -22,6 +22,8 @@ export interface Statable {
 export interface Stat {
     // fs inode
     readonly inode?: bigint;
+    // size in bytes
+    readonly size: bigint;
     // creationTime in nanoseconds
     readonly creationTime: bigint;
     // modifiedTime in nanoseconds
