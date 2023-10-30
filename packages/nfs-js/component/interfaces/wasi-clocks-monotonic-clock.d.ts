@@ -3,5 +3,5 @@ export namespace WasiClocksMonotonicClock {
   export function subscribe(when: Instant, absolute: boolean): Pollable;
 }
 export type Instant = bigint;
-import type { Pollable } from '../interfaces/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-poll-poll.js';
 export { Pollable };

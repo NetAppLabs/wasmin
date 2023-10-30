@@ -27,5 +27,5 @@ export type OutputStream = number;
  * ## `"closed"`
  */
 export type WriteError = 'last-operation-failed' | 'closed';
-import type { Pollable } from '../interfaces/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-poll-poll.js';
 export { Pollable };

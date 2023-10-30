@@ -3,12 +3,12 @@ export namespace WasiSocketsIpNameLookup {
   export function resolveNextAddress(this_: ResolveAddressStream): IpAddress | undefined;
   export function dropResolveAddressStream(this_: ResolveAddressStream): void;
 }
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network';
+import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
 export { IpAddressFamily };
 export type ResolveAddressStream = number;
-import type { ErrorCode } from '../interfaces/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
 export { ErrorCode };
-import type { IpAddress } from '../interfaces/wasi-sockets-network';
+import type { IpAddress } from '../interfaces/wasi-sockets-network.js';
 export { IpAddress };
