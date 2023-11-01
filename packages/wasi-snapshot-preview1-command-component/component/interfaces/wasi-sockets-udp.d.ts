@@ -10,11 +10,11 @@ export namespace WasiSocketsUdp {
   export function dropUdpSocket(this_: UdpSocket): void;
 }
 export type UdpSocket = number;
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
-import type { IpSocketAddress } from '../interfaces/wasi-sockets-network';
+import type { IpSocketAddress } from '../interfaces/wasi-sockets-network.js';
 export { IpSocketAddress };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
 export { ErrorCode };
 export interface Datagram {
   data: Uint8Array,

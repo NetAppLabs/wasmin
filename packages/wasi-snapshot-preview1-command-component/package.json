@@ -16,8 +16,8 @@
         "build": "./build.sh"
     },
     "devDependencies": {
+        "@bytecodealliance/jco": "^0.13.2",
         "@wasmin/tsconfig": "*"
     },
-    "dependencies": {
-    }
+    "dependencies": {}
 }

@@ -19,7 +19,7 @@ export type InputStream = number;
  * ## `"ended"`
  */
 export type StreamStatus = 'open' | 'ended';
-import type { Pollable } from '../interfaces/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-poll-poll.js';
 export { Pollable };
 export type OutputStream = number;
 /**
