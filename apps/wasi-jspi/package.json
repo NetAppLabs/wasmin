@@ -10,5 +10,6 @@
     "@wasmin/tsconfig": "*"
   },
   "dependencies": {
+    "wasmati": "^0.1.10"
   }
 }
