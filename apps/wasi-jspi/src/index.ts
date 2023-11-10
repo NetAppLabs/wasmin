@@ -1,23 +1,64 @@
-// @ts-ignore
-export type WebAssemblyFunction = WebAssembly.Function;
+import { JSPI_DEBUG, WebAssemblyFunction, WebAssemblyImportFunctions, constructWebAssemblyImportFunctionMap, jspiDebug } from "./util.js";
+import { PromisifiedWasmGenerator } from "./wasmgen.js";
 
-type WebAssemblyImportFunctions = Record<string, Record<string, WebAssemblyFunction>>;
+
+
+const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 
 export declare interface WASI {
     fd_write(fd: number, iovsPtr: number, iovsLength: number, bytesWrittenPtr: number): Promise<number>;
 }
 
-let JSPI_DEBUG = false;
-export function jspiDebug(message?: any, ...optionalParams: any[]) {
-    if (JSPI_DEBUG) {
-        console.debug(message, optionalParams);
+
+async function writeFile(path: string, buf: Uint8Array) {
+    if (isNode) {
+      let _fs = await import("fs/promises");
+      return await _fs.writeFile(path, buf);
     }
-}
+  }
 
 function getInstanceFuncionNames(obj: any) {
     return Object
         .getOwnPropertyNames (Object.getPrototypeOf (obj))
         .filter(name => (name !== 'constructor' && typeof obj[name] === 'function'));
+}
+
+export async function getPromisifiedInstance(mainModule: WebAssembly.Module, importObject: any): Promise<WebAssembly.Module>{
+
+    const gen = new PromisifiedWasmGenerator(mainModule);
+
+    const proxyRes = await gen.generateImportsProxyAndWrappedImports();
+    const wrappedImportsToImportsProxy = proxyRes.imports;
+    const table = proxyRes.table;
+
+    const instanceMain = await WebAssembly.instantiate(mainModule, wrappedImportsToImportsProxy)
+    const memory = instanceMain.exports.memory;
+
+    const bytesAdapterArr = gen.generateAdapter();
+    const bytesAdapter = bytesAdapterArr.buffer;
+    if (JSPI_DEBUG) {
+        await writeFile("./greeting_adapter_gen.wasm", bytesAdapterArr);
+    }
+    const modAdapter = await WebAssembly.compile(bytesAdapter);
+
+    const importsForAdapter = promisifyImportObject(importObject, modAdapter);
+
+    importsForAdapter[""] = {
+        "_start": instanceMain.exports._start,
+        "$imports": table,
+    };
+    importsForAdapter["env"] = {
+        "memory": memory,
+    };
+
+    const instanceAdapter = await WebAssembly.instantiate(modAdapter, importsForAdapter)
+
+    const promisifiedInstance = Object.create(WebAssembly.Instance.prototype)
+    //Object.defineProperty(promisifiedInstance, 'exports', { value: promisifyWebAssemblyExports(instance_adapter.exports, ['_start']) })
+    const promisifiedExports = promisifyWebAssemblyExports(instanceAdapter.exports);
+    Object.defineProperty(promisifiedInstance, 'exports', { value: promisifiedExports })
+    promisifiedInstance.exports.memory = memory;
+    return promisifiedInstance;
 }
 
 export function promisifyImportObject(importObj: any, mod: WebAssembly.Module) {
@@ -141,53 +182,6 @@ function initializeWebAssemblyFunction(): any {
         )
     }
     return WebAssemblyFunction
-}
-export function constructWebAssemblyImportFunctionMap(mod: WebAssembly.Module): WebAssemblyImportFunctions {
-    const newImports: WebAssemblyImportFunctions = {};
-
-    for (let imp of WebAssembly.Module.imports(mod)) {
-        switch (imp.kind) {
-          case "table":
-            //value = new WebAssembly.Table(imp.type);
-            //jspiDebug("table value: ", value);
-            break;
-          case "memory":
-            //value = new WebAssembly.Memory(imp.type);
-            //jspiDebug("memory value: ", value);
-            break;
-          case "global":
-            //value = new WebAssembly.Global(imp.type, undefined);
-            //jspiDebug("global value: ", value);
-            break;
-          case "function":
-            jspiDebug("funcion imp value: ", imp);
-            let wfmodule = imp.module;
-            let wffuncname = imp.name;
-            // @ts-ignore
-            let wffunc = imp.type;
-            let newImportNs = newImports[wfmodule];
-            jspiDebug("newImportNs: ", newImportNs);
-            if (!newImportNs) {
-                newImportNs = {};
-                jspiDebug("!newImportNs: ", newImportNs);
-                Object.defineProperty(newImports, wfmodule, {
-                    enumerable: true,
-                    value: newImportNs,
-                });
-            }
-            jspiDebug("newImports1: ", newImports);
-            Object.defineProperty(newImportNs, wffuncname, {
-                enumerable: true,
-                value: wffunc
-            });
-            jspiDebug("newImports2: ", newImports);
-            jspiDebug("function module name: ", wfmodule);
-            jspiDebug("function name: ", wffuncname);
-            jspiDebug("function : ", wffunc);
-            break;
-        }
-    }
-    return newImports
 }
 
 export function promisifyWebAssemblyImports<T extends WebAssembly.Imports, U extends Array<keyof T>>(imports: T, importFuncs: WebAssemblyImportFunctions): WebAssembly.Imports {

@@ -8470,6 +8470,13 @@ vm-browserify@^1.1.2:
   resolved "https://registry.npmjs.org/vm-browserify/-/vm-browserify-1.1.2.tgz"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
 
+wasmati@^0.1.10:
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/wasmati/-/wasmati-0.1.10.tgz#457e456ba36dee7212537e85c2efdc787bfc5871"
+  integrity sha512-6JyCxMzwx6fVYPLLTfD1crA0OAINPCDxqDR1qVXyfIVwDeFCZK/yjfUKINW4BxPjmjgziLW9im9OZwB6J6MHmg==
+  dependencies:
+    ieee754 "^1.2.1"
+
 wcwidth@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/wcwidth/-/wcwidth-1.0.1.tgz#f0b0dcf915bc5ff1528afadb2c0e17b532da2fe8"
