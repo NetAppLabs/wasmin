@@ -65,6 +65,7 @@
     "@wasmin/fs-js": "*",
     "@wasmin/wasi-snapshot-preview2": "*",
     "@wasmin/wasi-snapshot-preview1-command-component": "*",
+    "@wasmin/wasm-promisify": "*",
     "comlink": "^4.4.1",
     "events": "^3.3.0",
     "typeson": "^9.0.3",

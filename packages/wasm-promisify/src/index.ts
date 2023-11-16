@@ -23,7 +23,12 @@ function getInstanceFuncionNames(obj: any) {
         .filter(name => (name !== 'constructor' && typeof obj[name] === 'function'));
 }
 
-export async function getPromisifiedInstance(mainModule: WebAssembly.Module, importObject: any): Promise<WebAssembly.Module>{
+function getObjectFunctionProperties(obj: any) {
+    return Object
+        .keys (obj);
+}
+
+export async function getPromisifiedInstance(mainModule: WebAssembly.Module, importObject: any): Promise<WebAssembly.Instance>{
 
     const gen = new PromisifiedWasmGenerator(mainModule);
 
@@ -62,12 +67,29 @@ export async function getPromisifiedInstance(mainModule: WebAssembly.Module, imp
 }
 
 export function promisifyImportObject(importObj: any, mod: WebAssembly.Module) {
+    const newImports: Record<string, any> = {};
+    Object.keys(importObj).forEach((importNamespace: string) => {
+        const importNsObj = importObj[importNamespace];
+        newImports[importNamespace] = promisifyImportObjectNamespace(importNsObj, mod);
+    })
+    const wasmImportFuncs = constructWebAssemblyImportFunctionMap(mod);
+    jspiDebug("nsImports: ", newImports);
+    jspiDebug("wasmImportFuncs: ", wasmImportFuncs);
+    const wrappedImports = promisifyWebAssemblyImports(newImports, wasmImportFuncs);
+    jspiDebug("wrappedImports: ", wrappedImports);
+    return wrappedImports;
+}
 
-    let importFuncNames = getInstanceFuncionNames(importObj);
-    const wasip1imports = {} as WebAssembly.ModuleImports;
+export function promisifyImportObjectNamespace(nsImportObj: any, mod: WebAssembly.Module) {
+
+    jspiDebug("promisifyImportObject: nsImportObj: ", nsImportObj);
+
+    let importFuncNames = getObjectFunctionProperties(nsImportObj);
+    const nsImports = {} as WebAssembly.ModuleImports;
 
     importFuncNames.forEach((importFuncName: string) => {
-        const myObj = importObj as any;
+        const myObj = nsImportObj as any;
+        jspiDebug("realImportFunc importFuncName: ", importFuncName);
         const realImportFunc = myObj[importFuncName];
         jspiDebug("realImportFunc: ", realImportFunc);
         if (typeof realImportFunc === 'function') {
@@ -87,22 +109,17 @@ export function promisifyImportObject(importObj: any, mod: WebAssembly.Module) {
                     let boundOwnFunc = realImportFunc.bind(myObj);
                     return await boundOwnFunc(...params);
                 }
-                wasip1imports[importFuncName] = newWrappedImportFunc;
+                nsImports[importFuncName] = newWrappedImportFunc;
                 jspiDebug("importFuncName: ", importFuncName);
             } else {
                 jspiDebug("importFuncName: skipping: ", importFuncName);
             }
         }
     });
-    
-    const imports = {
-        'wasi_snapshot_preview1': wasip1imports,
-    }
-    const wasmImportFuncs = constructWebAssemblyImportFunctionMap(mod);
-    jspiDebug("wasmImportFuncs: ", wasmImportFuncs);
-    const wrappedImports = promisifyWebAssemblyImports(imports, wasmImportFuncs);
-    jspiDebug("wrappedImports: ", wrappedImports);
-    return wrappedImports;
+    //const imports = {
+    //    'wasi_snapshot_preview1': wasip1imports,
+    //}
+    return nsImports;
 }
 
 
@@ -153,7 +170,6 @@ export class WasiImpl {
             const dataView = new DataView(memory.buffer);
             dataView.setInt32(bytesWrittenPtr, totalBytesWritten, true);
             jspiDebug("decodedString: ", decodedString);
-            console.log(decodedString);
         }
         return 0;
     }
@@ -205,12 +221,16 @@ export function promisifyWebAssemblyImports<T extends WebAssembly.Imports, U ext
         jspiDebug("promisifyWebAssemblyImports name: ", importFuncName);
         jspiDebug("promisifyWebAssemblyImports importNs: ", importNs);
         jspiDebug("promisifyWebAssemblyImports importFuncs: ", importFuncs);
-        const wsFunc = importFuncs[importNs][importFuncName];
-        if (wsFunc) {
-            return isNotFunction ? importValue : promisifyImportFunctionWithTypeReflection(importValue as any, wsFunc)
-        } else {
-            return undefined;
+        const importNsFuncs = importFuncs[importNs];
+        if (importNsFuncs) {
+            jspiDebug("promisifyWebAssemblyImports importNsFuncs: ", importNsFuncs);
+            const wsFunc = importNsFuncs[importFuncName];
+            if (wsFunc) {
+                jspiDebug("promisifyWebAssemblyImports wsFunc: ", wsFunc);
+                return isNotFunction ? importValue : promisifyImportFunctionWithTypeReflection(importValue as any, wsFunc)
+            }
         }
+        return undefined;
     }) as PromisifiedExports<T, U>
 }
 
@@ -260,6 +280,9 @@ export function promisifyImportFunction<T extends (...args: any[]) => any>(
         throw new TypeError('Only supported for Function')
     }
     let needsAddingSuspendingExternRef = true;
+    jspiDebug("promisifyImportFunction: func: ", func);
+    jspiDebug("promisifyImportFunction: parameterTypes: ", parameterTypes);
+    jspiDebug("promisifyImportFunction: returnTypes: ", returnTypes);
     if (parameterTypes.length>0) {
         if (parameterTypes[0] == 'externref') {
             needsAddingSuspendingExternRef=false;

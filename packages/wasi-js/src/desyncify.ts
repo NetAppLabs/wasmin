@@ -6,6 +6,7 @@ import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
+import { getPromisifiedInstance } from "@wasmin/wasm-promisify"; 
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -15,6 +16,7 @@ import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 //
 
 declare let globalThis: any;
+let promisifyEnabled = true;
 
 export type ImportExportReference = {
     moduleInstanceId: string;
@@ -83,8 +85,10 @@ export async function instantiateWithAsyncDetection(
         const asyncifiedInstance = await WebAssembly.instantiate(wasmMod, state.wrapImports(imports));
         state.init(asyncifiedInstance, imports);
         return { instance: asyncifiedInstance, isAsyncified: isAsyncified };
+    } else if (promisifyEnabled) {
+        const promInstance = await getPromisifiedInstance(wasmMod, imports);
+        return { instance: promInstance, isAsyncified: false };
     }
-
     return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);
 }
 

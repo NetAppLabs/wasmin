@@ -1,0 +1,30 @@
+{
+  "name": "@wasmin/wasm-promisify",
+  "version": "0.10.0",
+  "description": "Promisify Wasm for JSPI",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "wasmati": "^0.1.10"
+  }
+}
