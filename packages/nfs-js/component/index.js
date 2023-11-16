@@ -188,6 +188,19 @@ export class NfsDirectoryHandle extends NfsHandle {
         this.isDirectory = true;
         this.getEntries = this.values;
     }
+    async stat() {
+        const attr = nfsComponent.getattr(this._mount, this._fh);
+        const mtime = BigInt(attr.mtime.seconds) * 1000000000n + BigInt(attr.mtime.nseconds);
+        const atime = BigInt(attr.atime.seconds) * 1000000000n + BigInt(attr.atime.nseconds);
+        const stats = {
+            inode: attr.fileid,
+            size: attr.filesize,
+            creationTime: mtime,
+            modifiedTime: mtime,
+            accessedTime: atime,
+        };
+        return stats;
+    }
     async *entryHandles() {
         try {
             const entries = nfsComponent.readdirplus(this._mount, this._fh);

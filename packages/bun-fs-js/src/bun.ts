@@ -414,11 +414,13 @@ function bunStatToStat(stat: BunStats): Stat {
     const mtimeNs = stat.mtimeNs;
     const atimeNs = stat.atimeNs;
     const ino = stat.ino;
+    const size = stat.size;
     const s: Stat = {
         creationTime: ctimeNs,
         accessedTime: atimeNs,
         modifiedTime: mtimeNs,
         inode: ino,
+        size
     };
     return s;
 }
