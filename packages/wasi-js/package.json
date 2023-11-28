@@ -63,13 +63,13 @@
   "homepage": "https://github.com/NetAppLabs/wasmin#readme",
   "dependencies": {
     "@wasmin/fs-js": "*",
-    "@wasmin/wasi-snapshot-preview2": "*",
     "@wasmin/wasi-snapshot-preview1-command-component": "*",
+    "@wasmin/wasi-snapshot-preview2": "*",
     "@wasmin/wasm-promisify": "*",
     "comlink": "^4.4.1",
     "events": "^3.3.0",
     "typeson": "^9.0.3",
-    "typeson-registry": "^7.2.1"
+    "typeson-registry": "^9.1.1"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",

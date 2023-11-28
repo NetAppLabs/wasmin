@@ -84,8 +84,10 @@ export class WASIWorker {
 
     public async createWorker(wasiExperimentalSocketsNamespace?: string): Promise<{}> {
         let workerUrlString = "./wasiWorkerThread.js";
+        //let workerUrl = new URL("./wasiWorkerThread.js", import.meta.url);
         if (isNode()) {
             workerUrlString = "./wasiWorkerThreadNode.js";
+            //workerUrl = new URL("./wasiWorkerThreadNode.js", import.meta.url);
         }
         const workerUrl = new URL(workerUrlString, import.meta.url);
 		/*

@@ -1,6 +1,6 @@
 
 import { promisifyWebAssemblyExports, promisifyImportObject } from "./dist/index.js";
-import { WasiImpl, getPromisifiedInstance } from "./dist/index.js";
+import { WasiImpl, instantiatePromisified } from "./dist/index.js";
 import { testConstructProxyModule, testConstructAdapterModule } from "./dist/wasmgen.js";
 
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
@@ -26,6 +26,6 @@ const wasi = new WasiImpl();
 const bytesMainModule = await (await fetchOrReadFile('./greeting.wasm')).buffer
 const mainModule = await WebAssembly.compile(bytesMainModule);
 
-const promInstance = await getPromisifiedInstance(mainModule, wasi);
+const promInstance = await instantiatePromisified(mainModule, wasi);
 
 const p = await wasi.start(promInstance)

@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
-    "build": "tsc -p .",
+    "build": "node esbuild.mjs",
+    "build-tsc": "tsc -p .",
     "build-bun": "bun build.ts",
     "build-dummy": "echo build",
     "bun-build": "bun bun src/index.ts",
@@ -14,17 +15,18 @@
     "dev": "echo dev"
   },
   "devDependencies": {
+    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
+    "@wasmin/tsconfig": "*",
     "bun-types": "^0.8.1",
-    "esbuild": "^0.14.39",
-    "@wasmin/tsconfig": "*"
+    "esbuild": "^0.14.39"
   },
   "dependencies": {
     "@wasmin/bun-fs-js": "*",
     "@wasmin/fs-js": "*",
     "@wasmin/nfs-js": "*",
     "@wasmin/s3-fs-js": "*",
-    "@wasmin/wasi-js": "*",
     "@wasmin/shell": "*",
+    "@wasmin/wasi-js": "*",
     "get-random-values": "^1.2.2",
     "node-fetch": "^3.2.10",
     "web-file-polyfill": "^1.0.4"

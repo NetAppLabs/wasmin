@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "source": "src/index.ts",
   "scripts": {
-    "build": "node esbuild.mjs",
+    "build-esbuild": "node esbuild.mjs",
     "build-esbuild1": "node esbuild.mjs",
-    "build-tsc": "tsc -p .",
+    "build": "tsc -p .",
     "build-bun": "bun build ./src/index.ts --outdir ./dist --target node",
     "build-vite": "vite build --sourcemap && yarn tsc",
     "start": "node --enable-source-maps dist/node-shell.umd.js",

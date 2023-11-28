@@ -56,8 +56,27 @@ async function fetchCompile(url) {
     return fetch(url).then(WebAssembly.compileStreaming);
 }
 async function compileCore(url) {
-    url = "./" + url;
-    return await fetchCompile(new URL(url, import.meta.url));
+    //url = "./" + url;
+    //return await fetchCompile(new URL(url, import.meta.url));
+    if (url == "nfs_rs.core.wasm") {
+        const metaUrl = new URL("./nfs_rs.core.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    }
+    else if (url == "nfs_rs.core2.wasm") {
+        const metaUrl = new URL("./nfs_rs.core2.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    }
+    else if (url == "nfs_rs.core3.wasm") {
+        const metaUrl = new URL("./nfs_rs.core3.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    }
+    else if (url == "nfs_rs.core4.wasm") {
+        const metaUrl = new URL("./nfs_rs.core4.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    }
+    else {
+        throw new Error(`unsupported wasm URL: ${url}`);
+    }
 }
 let wasi;
 let nfsComponent;

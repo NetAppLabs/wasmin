@@ -11,3 +11,8 @@ if (!globalThis.File) {
 (async () => {
     await startShell();
 })();
+
+
+export async function main() {
+	await startShell();
+}

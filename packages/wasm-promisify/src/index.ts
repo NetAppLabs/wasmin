@@ -28,7 +28,13 @@ function getObjectFunctionProperties(obj: any) {
         .keys (obj);
 }
 
-export async function getPromisifiedInstance(mainModule: WebAssembly.Module, importObject: any): Promise<WebAssembly.Instance>{
+/**
+ * Takes in a WebAssembly.Module with desired importObject
+ * @param mainModule main module to instantiate
+ * @param importObject populated importObject with optionally async functions
+ * @returns an adapted WebAssembly.Instance that is wired with the input main WebAssembly.Module and a proxy Module Instance in the background
+ */
+export async function instantiatePromisified(mainModule: WebAssembly.Module, importObject: WebAssembly.Imports): Promise<WebAssembly.Instance>{
 
     const gen = new PromisifiedWasmGenerator(mainModule);
 

@@ -41,6 +41,7 @@ export default defineConfig({
                     "node:util": "util",
                     "node:crypto": "crypto",
                     "node:url": "url",
+                    "node:worker_threads": "worker_threads",
                 },
             },
         },

@@ -1,13 +1,12 @@
 import esbuild from 'esbuild';
 import metaUrlPlugin from '@chialab/esbuild-plugin-meta-url';
 
-
 await esbuild.build({
   entryPoints: [
     "src/index.ts",
-    //"src/wasmComponentWorkerThreadNode.ts",
-    "src/wasmCoreWorkerThreadNode.ts",
-    "src/wasiWorkerThreadNode.ts"
+    "src/wasmComponentWorkerThread.ts",
+    "src/wasmCoreWorkerThread.ts",
+    "src/wasiWorkerThread.ts"
   ],
   bundle: true,
   //outfile: 'dist/index.js',
@@ -15,7 +14,9 @@ await esbuild.build({
   //outbase: 'src',
 
   sourcemap: true,
+  //plugins: [envPlugin],
   plugins: [metaUrlPlugin({emit: true})],
+  //plugins: [excludeImportMetaUrl()],
   format: "esm",
   platform: "browser",
   external: [
@@ -31,6 +32,7 @@ await esbuild.build({
     "fs/promises",
     "node:path",
     "node:fs",
-    "node:fs/promises"
+    "node:fs/promises",
+    "bun",
   ]
 })

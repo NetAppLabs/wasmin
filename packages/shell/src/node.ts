@@ -10,7 +10,7 @@ import { FileSystemDirectoryHandle, getDirectoryHandleByURL, isBun } from "@wasm
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
 
-import { s3 } from "@wasmin/s3-fs-js";
+//import { s3 } from "@wasmin/s3-fs-js";
 import { nfs } from "@wasmin/nfs-js";
 import { github } from "@wasmin/github-fs-js";
 import arg from "arg";
@@ -260,9 +260,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
 
         // @ts-ignore
-        if (!isBun()) {
-            RegisterProvider("s3", s3);
-        }
+        //if (!isBun()) {
+        //    RegisterProvider("s3", s3);
+        //}
         // @ts-ignore
         RegisterProvider("github", github);
         // @ts-ignore

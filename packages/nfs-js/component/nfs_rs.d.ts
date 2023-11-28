@@ -1,25 +1,25 @@
-import { WasiCliEnvironment } from './interfaces/wasi-cli-environment';
-import { WasiCliExit } from './interfaces/wasi-cli-exit';
-import { WasiCliStderr } from './interfaces/wasi-cli-stderr';
-import { WasiCliStdin } from './interfaces/wasi-cli-stdin';
-import { WasiCliStdout } from './interfaces/wasi-cli-stdout';
-import { WasiCliTerminalInput } from './interfaces/wasi-cli-terminal-input';
-import { WasiCliTerminalOutput } from './interfaces/wasi-cli-terminal-output';
-import { WasiCliTerminalStderr } from './interfaces/wasi-cli-terminal-stderr';
-import { WasiCliTerminalStdin } from './interfaces/wasi-cli-terminal-stdin';
-import { WasiCliTerminalStdout } from './interfaces/wasi-cli-terminal-stdout';
-import { WasiClocksMonotonicClock } from './interfaces/wasi-clocks-monotonic-clock';
-import { WasiClocksWallClock } from './interfaces/wasi-clocks-wall-clock';
-import { WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens';
-import { WasiFilesystemTypes } from './interfaces/wasi-filesystem-types';
-import { WasiIoStreams } from './interfaces/wasi-io-streams';
-import { WasiPollPoll } from './interfaces/wasi-poll-poll';
-import { WasiRandomRandom } from './interfaces/wasi-random-random';
-import { WasiSocketsIpNameLookup } from './interfaces/wasi-sockets-ip-name-lookup';
-import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network';
-import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp';
-import { WasiSocketsTcpCreateSocket } from './interfaces/wasi-sockets-tcp-create-socket';
-import { ComponentNfsRsNfs } from './interfaces/component-nfs-rs-nfs';
+import { WasiCliEnvironment } from './interfaces/wasi-cli-environment.js';
+import { WasiCliExit } from './interfaces/wasi-cli-exit.js';
+import { WasiCliStderr } from './interfaces/wasi-cli-stderr.js';
+import { WasiCliStdin } from './interfaces/wasi-cli-stdin.js';
+import { WasiCliStdout } from './interfaces/wasi-cli-stdout.js';
+import { WasiCliTerminalInput } from './interfaces/wasi-cli-terminal-input.js';
+import { WasiCliTerminalOutput } from './interfaces/wasi-cli-terminal-output.js';
+import { WasiCliTerminalStderr } from './interfaces/wasi-cli-terminal-stderr.js';
+import { WasiCliTerminalStdin } from './interfaces/wasi-cli-terminal-stdin.js';
+import { WasiCliTerminalStdout } from './interfaces/wasi-cli-terminal-stdout.js';
+import { WasiClocksMonotonicClock } from './interfaces/wasi-clocks-monotonic-clock.js';
+import { WasiClocksWallClock } from './interfaces/wasi-clocks-wall-clock.js';
+import { WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens.js';
+import { WasiFilesystemTypes } from './interfaces/wasi-filesystem-types.js';
+import { WasiIoStreams } from './interfaces/wasi-io-streams.js';
+import { WasiPollPoll } from './interfaces/wasi-poll-poll.js';
+import { WasiRandomRandom } from './interfaces/wasi-random-random.js';
+import { WasiSocketsIpNameLookup } from './interfaces/wasi-sockets-ip-name-lookup.js';
+import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network.js';
+import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp.js';
+import { WasiSocketsTcpCreateSocket } from './interfaces/wasi-sockets-tcp-create-socket.js';
+import { ComponentNfsRsNfs } from './interfaces/component-nfs-rs-nfs.js';
 export interface ImportObject {
   'wasi:cli/environment': typeof WasiCliEnvironment,
   'wasi:cli/exit': typeof WasiCliExit,
