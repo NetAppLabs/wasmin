@@ -452,7 +452,6 @@ export class WASI {
     }
 
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
-        console.log("before wasi.run");
         if (this.component) {
             const ret = await this.runComponent(wasmModOrBufSource);
             return ret;
@@ -469,7 +468,7 @@ export class WASI {
         if (this._worker) {
             try {
                 if (this._worker && this._worker.componentRunner) {
-                    console.log("before _worker.componentRunner");
+                    wasiDebug("before _worker.componentRunner");
                     await this._worker.componentRunner.run();
                 } else {
                     throw new Error("Worker or ComponentRunner not set");
@@ -565,7 +564,6 @@ export class WASI {
             funcThrownError = err;
         }
         if (funcThrownError) {
-            //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, ` funcThrownError: `, funcThrownError)
             wasiWorkerDebug(
                 `WASI: handleComponentImport: importName: ${importName} functionName: ${functionName}: args: `,
                 args,
@@ -573,7 +571,6 @@ export class WASI {
                 funcThrownError
             );
         } else {
-            //console.log(`WASI: handleComponentImport: importName: ${importName}, sectionName: ${sectionName}, functionName: ${functionName}: args: `,args, `return: `, funcReturn)
             wasiWorkerDebug(
                 `WASI: handleComponentImport: importName: ${importName}, functionName: ${functionName}: args: `,
                 args,

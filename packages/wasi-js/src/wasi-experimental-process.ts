@@ -213,7 +213,6 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 })
                 .catch((err: any) => {
                     wasiDebug(`exec:run:catch exitCode: ${exitCode} err: ${err}`);
-                    console.log("wasi-experimental-process:exec error: ", err);
                     resolve(translateErrorToErrorno(err));
                 })
                 .finally(() => {

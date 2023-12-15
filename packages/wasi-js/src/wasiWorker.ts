@@ -1,6 +1,6 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-import { getWasmBuffer, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
 import { HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
 import { In, Out, isNode } from "./wasiUtils.js";
@@ -89,7 +89,7 @@ export class WASIWorker {
             workerUrlString = "./wasiWorkerThreadNode.js";
             //workerUrl = new URL("./wasiWorkerThreadNode.js", import.meta.url);
         }
-        const workerUrl = new URL(workerUrlString, import.meta.url);
+        const workerUrl = getWorkerUrl(workerUrlString);
 		/*
         // @ts-ignore
         //const workerUrl = await import.meta.resolve(workerUrlString);
@@ -101,11 +101,11 @@ export class WASIWorker {
         const metaPath = import.meta.path;
         const metaUrl = import.meta.url;
 
-        console.log("WASIWorker metaUrl: ", metaUrl);
-        console.log("WASIWorker metaPath: ", metaPath);
-        console.log("WASIWorker metaDir: ", metaDir);
-        console.log("WASIWorker filePath: ", filePath);
-        console.log("WASIWorker workerUrl: ", workerUrl);
+        wasiWorkerDebug("WASIWorker metaUrl: ", metaUrl);
+        wasiWorkerDebug("WASIWorker metaPath: ", metaPath);
+        wasiWorkerDebug("WASIWorker metaDir: ", metaDir);
+        wasiWorkerDebug("WASIWorker filePath: ", filePath);
+        wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
 	   	*/
 
         this.worker = await createWorker(workerUrl, { type: "module" });

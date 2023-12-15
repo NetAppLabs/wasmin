@@ -17,9 +17,22 @@
 import URL from "node:url";
 import VM from "vm";
 import threads from "node:worker_threads";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+
 
 const WORKER = Symbol.for("worker");
 const EVENTS = Symbol.for("events");
+
+const NODE_WORKER_DEBUG = false;
+
+function debugMessage(...args: any) {
+    if (NODE_WORKER_DEBUG) {
+        console.debug(...args);
+    }
+}
 
 class EventTarget {
     constructor() {
@@ -113,13 +126,47 @@ function mainThread() {
             const { name, type } = options || {};
             url += "";
             let mod: string;
+            let doEval = false;
             if (/^data:/.test(url)) {
+                debugMessage(`new Worker data: url: ${url}`)
                 mod = url;
-            } else {
+            }
+            else if (/^file:/.test(url)) {
+                debugMessage(`new Worker file: url: ${url}`)
                 mod = URL.fileURLToPath(new URL.URL(url, baseUrl));
+                debugMessage(`new Worker file: mod:`, mod)
+            }
+            else if (/^sea:/.test(url)) {
+                debugMessage(`new Worker sea: url: ${url}`);
+                let filePaths = url.split("/");
+                let fileName = filePaths[filePaths.length-1];
+                // replace .js to .mjs because of node issues for esm module worker
+                fileName = fileName.replace(".js",".mjs")
+                var binData = fs.readFileSync(url);
+
+                //@ts-ignore
+                //const tmpDir = globalThis.NODE_SEA_TMP_DIR;
+                const tmpDir = "/tmp/wasmin-tmp";
+                const filePath = path.join(tmpDir, fileName);
+                const fileUrl = URL.pathToFileURL(filePath);
+                const fileUrlString = fileUrl.toString();
+
+                debugMessage("writing worker out to path", filePath);
+                debugMessage("writing worker out to url ", fileUrl);
+                debugMessage("writing worker out to url string ", fileUrlString);
+
+                fs.writeFileSync(filePath, binData);
+
+                mod = URL.fileURLToPath(new URL.URL(fileUrlString, baseUrl));
+            } else {
+                debugMessage(`new Worker else: url: ${url}`)
+                debugMessage(`node worker: url: ${url}`);
+                debugMessage(`node worker: baseUrl: ${baseUrl}`);
+                mod = url;
             }
             const threadsWorker = new threads.Worker(mod, {
-                workerData: { mod, name, type },
+                workerData: { name, type },
+                eval: doEval,
             });
             /*Object.defineProperty(this, WORKER, {
                 value: worker,
@@ -132,9 +179,11 @@ function mainThread() {
             });
             threadsWorker.on("error", (error: any) => {
                 error.type = "error";
+                debugMessage("threadsWorker.on error: ", error);
                 this.dispatchEvent(error);
             });
             threadsWorker.on("exit", () => {
+                debugMessage("threadsWorker.on exit: ");
                 this.dispatchEvent(new WorkerEvent("close"));
             });
         }
@@ -150,13 +199,13 @@ function mainThread() {
         }
 
         onmessage(msg: any) {
-            console.log("node.Worker onmessage: ", msg);
+            debugMessage("node.Worker onmessage: ", msg);
         }
         onerror(msg: any) {
-            console.log("node.Worker onerror: ", msg);
+            debugMessage("node.Worker onerror: ", msg);
         }
         onmessageerror(msg: any) {
-            console.log("node.Worker onmessageerror: ", msg);
+            debugMessage("node.Worker onmessageerror: ", msg);
         }
     }
     //Worker.prototype.onmessage = Worker.prototype.onerror = Worker.prototype.onclose = null;

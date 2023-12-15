@@ -25,6 +25,7 @@ export class WasmComponentWorkerThreadRunner {
         importNames: string[],
         handleComponentImportFunc: HandleWasmComponentImportFunc
     ) {
+        wasmWorkerThreadDebug("wasmComponentThreadRunner init");
         this._channel = channel;
         const impObject: Record<string, any> = this.createComponentModuleImportProxy(
             importNames,
@@ -36,11 +37,12 @@ export class WasmComponentWorkerThreadRunner {
     }
 
     async run() {
+        wasmWorkerThreadDebug("wasmComponentThreadRunner run");
         if (this.commandRunner) {
             try {
                 await this.commandRunner?.run();
             } finally {
-                //console.log("finally1");
+                wasmWorkerThreadDebug("wasmComponentThreadRunner run finally");
                 this.cleanup();
             }
         } else {

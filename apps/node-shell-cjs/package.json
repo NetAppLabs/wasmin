@@ -3,23 +3,29 @@
   "version": "0.0.0",
   "source": "src/index.ts",
   "scripts": {
-    "build-esbuild": "node esbuild.mjs",
-    "build-esbuild1": "node esbuild.mjs",
-    "build": "tsc -p .",
+    "build-sea": "npm-run-all build-sea:*",
+    "build-sea:copy-assets": "./copy-assets.sh",
+    "build-sea:js": "tsc -p .",
+    "build-sea:sea": "node -r @pipobscure/sea dist/app.js",
+    "build": "node esbuild.mjs",
     "build-bun": "bun build ./src/index.ts --outdir ./dist --target node",
     "build-vite": "vite build --sourcemap && yarn tsc",
-    "start": "node --enable-source-maps dist/node-shell.umd.js",
-    "build-esbuild": "esbuild --bundle src/index.ts --sourcemap --platform=node --outfile=dist/index.js --main-fields=main,module",
-    "start-esbuild": "node --enable-source-maps dist/index.js",
+    "start": "node --enable-source-maps dist/index.js",
     "clean": "rm -rf dist && rm -rf node_modules",
-    "run": "node dist/out.js"
+    "run": "node dist/index.js"
   },
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
+    "@pipobscure/sea": "^1.0.2",
     "@types/node": "^18.14.5",
     "@wasmin/tsconfig": "*",
     "esbuild": "^0.19.4"
   },
+  "sea": {
+		"executable": "wasmin-node",
+		"useCodeCache": false,
+		"assets": [ "assets/**/*" ]
+	},
   "dependencies": {
     "@wasmin/fs-js": "*",
     "@wasmin/node-fs-js": "*",

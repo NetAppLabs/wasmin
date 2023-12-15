@@ -16,7 +16,6 @@ import { instantiatePromisified } from "@wasmin/wasm-promisify";
 //
 
 declare let globalThis: any;
-let promisifyEnabled = true;
 
 export type ImportExportReference = {
     moduleInstanceId: string;
@@ -66,6 +65,7 @@ export async function instantiateWithAsyncDetection(
     let isAsyncified = false;
     let wasmMod: WebAssembly.Module;
     let sourceBuffer: BufferSource | null = null;
+    let promisifyEnabled = isStackSwitchingEnabled();
     if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
         sourceBuffer = wasmModOrBufSource as BufferSource;
         wasmMod = await WebAssembly.compile(sourceBuffer);
@@ -90,6 +90,14 @@ export async function instantiateWithAsyncDetection(
         return { instance: promInstance, isAsyncified: false };
     }
     return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);
+}
+
+function isStackSwitchingEnabled(): boolean {
+    const WebAssemblyFunction = (WebAssembly as any).Function
+    if (typeof WebAssemblyFunction !== 'function') {
+        return false;
+    }
+    return true
 }
 
 export async function instantiateOnWasmWorker(
@@ -167,8 +175,8 @@ async function handlerInstanciateProxy(
                 return undefined;
             }
 
-            // console.log("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
-            // console.log("instantiateProxy get:", name);
+            // wasmHandlerDebug("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
+            // wasmHandlerDebug("instantiateProxy get:", name);
             if (threadRemote && moduleInstanceId) {
                 wasmHandlerDebug("instantiateProxy creating wrappedExportFunction");
                 // hack - refine this:

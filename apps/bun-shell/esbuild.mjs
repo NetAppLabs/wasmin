@@ -4,6 +4,7 @@ import metaUrlPlugin from '@chialab/esbuild-plugin-meta-url';
 await esbuild.build({
   entryPoints: [
     "src/index.ts",
+    "src/entry.ts",
     "src/wasmComponentWorkerThread.ts",
     "src/wasmCoreWorkerThread.ts",
     "src/wasiWorkerThread.ts"
@@ -31,6 +32,7 @@ await esbuild.build({
     "crypto",
     "fs/promises",
     "node:path",
+    "node:os",
     "node:fs",
     "node:fs/promises",
     "bun",

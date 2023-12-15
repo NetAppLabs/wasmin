@@ -85,14 +85,11 @@ export async function createWorker(scriptURL: string | URL, options?: WorkerOpti
             const w = new nodeWorker(stringScriptUrl, options);
             return w;
         } catch (err: any) {
-            console.log("createWorker err: ", err);
             throw err;
         }
     } else {
         const worker = new Worker(scriptURL, options);
         return worker;
-        //const wProxy = new WorkerProxy(worker);
-        //return wProxy;
     }
 }
 
@@ -111,7 +108,6 @@ export class WorkerProxy implements Worker {
         return this.worker.onmessage;
     }
     public set onmessage(value: ((this: Worker, ev: MessageEvent<any>) => any) | null) {
-        console.log("onmessage: value:", value);
         this.worker.onmessageerror = value;
     }
     public get onerror(): ((this: AbstractWorker, ev: ErrorEvent) => any) | null {
@@ -124,7 +120,6 @@ export class WorkerProxy implements Worker {
     postMessage(message: any, transfer: Transferable[]): void;
     postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
     postMessage(message: unknown, options?: any): void {
-        console.log("postMessage: message:", message, "options: ", options)
         return this.worker.postMessage(message, options);
     }
     terminate(): void {
