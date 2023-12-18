@@ -13,7 +13,7 @@ await esbuild.build({
   //outfile: 'dist/index.js',
   outdir: 'dist',
   //outbase: 'src',
-
+  loader: {'.wasm': 'file'},
   sourcemap: true,
   plugins: [metaUrlPlugin({emit: true})],
   format: "esm",

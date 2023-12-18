@@ -9,15 +9,17 @@ import worker2 from "./wasmCoreWorkerThread.wjs";
 import worker3 from "./wasiWorkerThread.wjs";
 
 // @ts-ignore
-import wasm2 from "./component.core2-d5e61b33.wasm";
-import wasm3 from "./component.core3-d5291b63.wasm";
-import wasm4 from "./component.core4-bb5bc228.wasm";
-import wasm5 from "./component.core5-a334057e.wasm";
+import wasm2 from "./component.core2-00000000.wasm";
+import wasm3 from "./component.core3-00000000.wasm";
+import wasm4 from "./component.core4-00000000.wasm";
+import wasm5 from "./component.core5-00000000.wasm";
 
-import nfs_wasm1 from "./nfs_rs.core-7d17e485.wasm";
-import nfs_wasm2 from "./nfs_rs.core2-e2392bca.wasm";
-import nfs_wasm3 from "./nfs_rs.core3-caf2841d.wasm";
-import nfs_wasm4 from "./nfs_rs.core4-ea2802d5.wasm";
+import nfs_wasm1 from "./nfs_rs.core-00000000.wasm";
+import nfs_wasm2 from "./nfs_rs.core2-00000000.wasm";
+import nfs_wasm3 from "./nfs_rs.core3-00000000.wasm";
+import nfs_wasm4 from "./nfs_rs.core4-00000000.wasm";
+
+import nu_shell_wasm from "./nu.async.wasm";
 
 const runTmpDir = "/tmp/wasmin-tmp";
 
@@ -55,6 +57,8 @@ function debugMessage(...args) {
     await copyFileToTmp(nfs_wasm2);
     await copyFileToTmp(nfs_wasm3);
     await copyFileToTmp(nfs_wasm4);
+
+    await copyFileToTmp(nu_shell_wasm);
 
 
     setWorkerOverrideUrl('./wasmComponentWorkerThread.js', newWorker1TmpFileUrl);

@@ -8,6 +8,7 @@ await esbuild.build({
     "src/wasmCoreWorkerThread.ts",
     "src/wasiWorkerThread.ts"
   ],
+  loader: {'.wasm': 'file'},
   bundle: true,
   //outfile: 'dist/index.js',
   outdir: 'dist',
