@@ -8,6 +8,10 @@ if (!globalThis.File) {
     globalThis.File = File;
 }
 
+export async function main() {
+	await startShell();
+}
+
 (async () => {
-    await startShell();
+    await main();
 })();

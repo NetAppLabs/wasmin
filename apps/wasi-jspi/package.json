@@ -1,0 +1,15 @@
+{
+  "name": "@wasmin/wasi-jspi",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "run": "node dist/out.js"
+  },
+  "devDependencies": {
+    "@wasmin/tsconfig": "*"
+  },
+  "dependencies": {
+    "wasmati": "^0.1.10"
+  }
+}

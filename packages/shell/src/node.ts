@@ -10,7 +10,7 @@ import { FileSystemDirectoryHandle, getDirectoryHandleByURL, isBun } from "@wasm
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
 
-import { s3 } from "@wasmin/s3-fs-js";
+//import { s3 } from "@wasmin/s3-fs-js";
 import { nfs } from "@wasmin/nfs-js";
 import { github } from "@wasmin/github-fs-js";
 import arg from "arg";
@@ -129,7 +129,9 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     buffer: BufferSource;
     path: string;
 }> {
-    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm"];
+    const defaultUrl = new URL("./nu.async.wasm", import.meta.url);
+    const defaultUrlAlt = new URL("./nu.async.wasm", "file:///tmp/wasmin-tmp/");
+    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrl, defaultUrlAlt];
 
     //let wasmBinary = "";
     let wasmBuf: BufferSource | undefined;
@@ -147,15 +149,12 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
                 const wasmBinaryTry = modulePathTry;
                 const wasmBufTry = await promises.readFile(wasmBinaryTry);
                 wasmBuf = wasmBufTry;
-                wasmBinary = wasmBinaryTry;
+                wasmBinary = wasmBinaryTry.toString();
                 break;
             } catch (err: any) {}
         }
     }
 
-    // TODO: figure out to make import.meta.url work:
-    //const wasmRes = await fetch(new URL('./nu.async.wasm', import.meta.url))
-    //const wasmBuf = await wasmRes.arrayBuffer();
     if (wasmBuf) {
         return { buffer: wasmBuf, path: wasmBinary };
     } else {
@@ -260,9 +259,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
 
         // @ts-ignore
-        if (!isBun()) {
-            RegisterProvider("s3", s3);
-        }
+        //if (!isBun()) {
+        //    RegisterProvider("s3", s3);
+        //}
         // @ts-ignore
         RegisterProvider("github", github);
         // @ts-ignore

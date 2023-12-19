@@ -3,14 +3,13 @@
   "version": "0.0.1",
   "description": "WASI Shell",
   "type": "module",
-  "source": "src/index.ts",
-  "exports": "./dist/index.js",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "src/index.ts",
   "files": [
-    "src",
-    "dist"
+    "dist/index.d.ts",
+    "dist/index.js",
+    "dist/node.d.ts",
+    "dist/node.js",
+    "dist/nu.async.wasm"
   ],
   "scripts": {
     "build": "tsc -p .",

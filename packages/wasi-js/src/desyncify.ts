@@ -6,6 +6,7 @@ import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
+import { instantiatePromisified } from "@wasmin/wasm-promisify"; 
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -64,6 +65,7 @@ export async function instantiateWithAsyncDetection(
     let isAsyncified = false;
     let wasmMod: WebAssembly.Module;
     let sourceBuffer: BufferSource | null = null;
+    let promisifyEnabled = isStackSwitchingEnabled();
     if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
         sourceBuffer = wasmModOrBufSource as BufferSource;
         wasmMod = await WebAssembly.compile(sourceBuffer);
@@ -83,9 +85,19 @@ export async function instantiateWithAsyncDetection(
         const asyncifiedInstance = await WebAssembly.instantiate(wasmMod, state.wrapImports(imports));
         state.init(asyncifiedInstance, imports);
         return { instance: asyncifiedInstance, isAsyncified: isAsyncified };
+    } else if (promisifyEnabled) {
+        const promInstance = await instantiatePromisified(wasmMod, imports);
+        return { instance: promInstance, isAsyncified: false };
     }
-
     return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);
+}
+
+function isStackSwitchingEnabled(): boolean {
+    const WebAssemblyFunction = (WebAssembly as any).Function
+    if (typeof WebAssemblyFunction !== 'function') {
+        return false;
+    }
+    return true
 }
 
 export async function instantiateOnWasmWorker(
@@ -163,8 +175,8 @@ async function handlerInstanciateProxy(
                 return undefined;
             }
 
-            // console.log("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
-            // console.log("instantiateProxy get:", name);
+            // wasmHandlerDebug("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
+            // wasmHandlerDebug("instantiateProxy get:", name);
             if (threadRemote && moduleInstanceId) {
                 wasmHandlerDebug("instantiateProxy creating wrappedExportFunction");
                 // hack - refine this:

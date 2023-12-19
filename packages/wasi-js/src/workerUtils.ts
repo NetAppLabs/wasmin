@@ -50,6 +50,32 @@ export function wasiWorkerSerializeDebug(msg?: any, ...optionalParams: any[]): v
     }
 }
 
+export function getWorkerOverrideUrls(): Record<string,string> {
+    if (!globalThis.WASMIN_WORKER_OVERRIDE_URLS) {
+        globalThis.WASMIN_WORKER_OVERRIDE_URLS = {};
+    }
+    return globalThis.WASMIN_WORKER_OVERRIDE_URLS;
+ }
+
+
+export function getWorkerUrl(workerUrlString: string): URL{
+    let workerUrl = new URL(workerUrlString, import.meta.url);
+    const workerOverrideUrls = getWorkerOverrideUrls();
+    const overrideUrl = workerOverrideUrls[workerUrlString];
+    if (overrideUrl !== undefined) {
+        wasmHandlerDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);
+        workerUrl = new URL(overrideUrl);
+    }
+    wasmHandlerDebug(`getWorkerUrl workerUrlString: ${workerUrlString} url:`, workerUrl);
+    return workerUrl;
+}
+
+export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlString: string) {
+    wasmHandlerDebug(`setWorkerOverrideUrl set overrided url ${workerOverrideUrlString} for ${workerUrlString}`);
+    const workerOverrideUrls = getWorkerOverrideUrls();
+    workerOverrideUrls[workerUrlString] = workerOverrideUrlString;
+}
+
 export async function getWasmModuleSource(urlOrPath: string) {
     let url;
     try {

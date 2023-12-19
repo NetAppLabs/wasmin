@@ -94,7 +94,25 @@ export async function compileCore(url: string) {
             throw new Error("Wasm module source not set");
         }
     }*/
-    url = "./" + url;
+    if (url == "component.core.wasm") {
+        throw new Error("unsupported component.core.wasm");
+    } else if (url == "component.core2.wasm") {
+        const metaUrl = new URL("./component.core2.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "component.core3.wasm") {
+        const metaUrl = new URL("./component.core3.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "component.core4.wasm") {
+        const metaUrl = new URL("./component.core4.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "component.core5.wasm") {
+        const metaUrl = new URL("./component.core5.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else {
+        throw new Error(`unsupported wasm URL: ${url}`);
+    }
+    /*url = "./" + url;
     const metaUrl = new URL(url, import.meta.url);
     return await fetchCompile(metaUrl);
+    */
 }

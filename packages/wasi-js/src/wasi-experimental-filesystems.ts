@@ -146,7 +146,7 @@ class WasiExperimentalFilesystemsHost implements WasiExperimentalFilesystems {
                 resolve(ErrnoN.SUCCESS);
             });
         } catch (err: any) {
-            console.log("WasiExperimentalFilesystemsHost: error: ", err);
+            wasiDebug("WasiExperimentalFilesystemsHost: error: ", err);
             return translateErrorToErrorno(err);
         }
     }

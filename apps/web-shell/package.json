@@ -1,5 +1,6 @@
 {
   "name": "@wasmin/web-shell",
+  "type": "module",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
@@ -7,7 +8,9 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*"
+    "@wasmin/tsconfig": "*",
+    "@web/rollup-plugin-import-meta-assets": "^2.2.1",
+    "vite": "^5.0.2"
   },
   "dependencies": {
     "@wasmin/fs-js": "*",

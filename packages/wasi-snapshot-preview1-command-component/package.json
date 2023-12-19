@@ -5,6 +5,7 @@
     "main": "component/index.js",
     "files": [
         "component/index.d.ts",
+        "component/index.js",
         "component/component.js",
         "component/component.core.wasm",
         "component/component.core2.wasm",

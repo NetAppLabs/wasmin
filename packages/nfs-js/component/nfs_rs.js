@@ -439,7 +439,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               break;
             }
             default: {
-              throw new TypeError('invalid variant specified for IpAddress');
+              throw new TypeError(`invalid variant ${JSON.stringify(variant2.tag)} specified for IpAddress`);
             }
           }
         }
@@ -1284,7 +1284,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
             break;
           }
           default: {
-            throw new TypeError('invalid variant specified for IpSocketAddress');
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for IpSocketAddress`);
           }
         }
         break;

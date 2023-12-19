@@ -2,38 +2,36 @@ import esbuild from 'esbuild';
 import metaUrlPlugin from '@chialab/esbuild-plugin-meta-url';
 
 
-let envPlugin = {
-  plugins: [
-    metaUrlPlugin(),
-  ],
-  name: 'env',
-  setup(build) {
-    // Intercept import paths called "env" so esbuild doesn't attempt
-    // to map them to a file system location. Tag them with the "env-ns"
-    // namespace to reserve them for this plugin.
-    build.onResolve({ filter: /^env$/ }, args => ({
-      path: args.path,
-      namespace: 'env-ns',
-    }))
-
-    // Load paths tagged with the "env-ns" namespace and behave as if
-    // they point to a JSON file containing the environment variables.
-    build.onLoad({ filter: /.*/, namespace: 'env-ns' }, () => ({
-      contents: JSON.stringify(process.env),
-      loader: 'json',
-    }))
-  },
-}
-
 await esbuild.build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: [
+    "src/index.ts",
+    "src/wasmComponentWorkerThreadNode.ts",
+    "src/wasmCoreWorkerThreadNode.ts",
+    "src/wasiWorkerThreadNode.ts"
+  ],
   bundle: true,
   //outfile: 'dist/index.js',
   outdir: 'dist',
-  outbase: 'src',
+  //outbase: 'src',
+  loader: {'.wasm': 'file'},
   sourcemap: true,
-  //plugins: [envPlugin],
-  plugins: [metaUrlPlugin()],
+  plugins: [metaUrlPlugin({emit: true})],
   format: "esm",
-  platform: "node"
+  platform: "browser",
+  external: [
+    "node:buffer",
+    "node:dns",
+    "node:dgram",
+    "node:net",
+    "node:worker_threads",
+    "node:process",
+    "node:url",
+    "vm",
+    "crypto",
+    "fs/promises",
+    "node:path",
+    "node:os",
+    "node:fs",
+    "node:fs/promises"
+  ]
 })

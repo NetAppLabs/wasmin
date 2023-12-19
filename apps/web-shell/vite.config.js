@@ -1,7 +1,20 @@
 import { defineConfig } from 'vite'
+import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
+
+/*
+export default {
+  input: 'src/index.js',
+  output: {
+    dir: 'output',
+    format: 'es',
+  },
+  plugins: [importMetaAssets()],
+};
+*/
 
 export default defineConfig({
   plugins: [
+    //importMetaAssets(),
     {
       name: "configure-response-headers",
       configureServer: (server) => {

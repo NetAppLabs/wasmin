@@ -64,6 +64,11 @@ function fullNameFromReaddirplusEntry(parentName: string, entry: ReaddirplusEntr
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 let _fs: any;
 async function fetchCompile(url: URL) {
+    if (url.protocol === "compiled:") {
+        const filePaths = url.pathname.split("/");
+        const fileName = filePaths[filePaths.length-1];
+        url = new URL(fileName, "file:///tmp/wasmin-tmp/");
+    }
     if (isNode) {
         _fs = _fs || (await import("fs/promises"));
         return WebAssembly.compile(await _fs.readFile(url));
@@ -72,8 +77,23 @@ async function fetchCompile(url: URL) {
 }
 
 async function compileCore(url: string) {
-    url = "./" + url;
-    return await fetchCompile(new URL(url, import.meta.url));
+    //url = "./" + url;
+    //return await fetchCompile(new URL(url, import.meta.url));
+    if (url == "nfs_rs.core.wasm") {
+        const metaUrl = new URL("./nfs_rs.core.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "nfs_rs.core2.wasm") {
+        const metaUrl = new URL("./nfs_rs.core2.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "nfs_rs.core3.wasm") {
+        const metaUrl = new URL("./nfs_rs.core3.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else if (url == "nfs_rs.core4.wasm") {
+        const metaUrl = new URL("./nfs_rs.core4.wasm", import.meta.url);
+        return await fetchCompile(metaUrl);
+    } else {
+        throw new Error(`unsupported wasm URL: ${url}`);
+    }
 }
 
 let wasi: WASIWorker | undefined;

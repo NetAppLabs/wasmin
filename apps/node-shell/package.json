@@ -2,12 +2,13 @@
   "name": "@wasmin/node-shell",
   "version": "0.0.0",
   "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p .",
+    "build-tsc": "tsc -p .",
     "build-vite": "vite build --sourcemap && yarn tsc",
     "start": "node --enable-source-maps dist/node-shell.umd.js",
     "build-esbuild2": "esbuild --bundle src/index.ts --sourcemap --platform=node --outfile=dist/index.js --format=esm --main-fields=main,module",
-    "build-esbuild": "node esbuild.mjs",
+    "build": "node esbuild.mjs",
     "clean": "rm -rf dist && rm -rf node_modules",
     "run": "node dist/out.js"
   },
@@ -15,8 +16,8 @@
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
     "@types/node": "^18.14.5",
     "@wasmin/tsconfig": "*",
-    "esbuild": "^0.19.4",
-    "vite": "^3.1.8"
+    "esbuild": "^0.19.8",
+    "vite": "^5.0.2"
   },
   "dependencies": {
     "@wasmin/fs-js": "*",

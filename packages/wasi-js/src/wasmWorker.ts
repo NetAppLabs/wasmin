@@ -1,6 +1,6 @@
-import { initializeComlinkHandlers, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
+import { getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-import { isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
+import { isBun, isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";
@@ -22,8 +22,8 @@ export class WasmWorker {
         if (isNode()) {
             workerUrlString = "./wasmCoreWorkerThreadNode.js";
         }
-        const workerUrl = new URL(workerUrlString, import.meta.url);
-
+        const workerUrl = getWorkerUrl(workerUrlString);
+        
         wasmHandlerDebug("workerUrl:", workerUrl);
         worker = await createWorker(workerUrl, { type: "module" });
         wasmHandlerDebug("createWorker: ", worker);
@@ -32,7 +32,7 @@ export class WasmWorker {
             // @ts-ignore
             if (globalThis.WASM_WORKER_THREAD_DEBUG) {
                 worker.addEventListener("message", (ev: MessageEvent<any>) => {
-                    console.log("WasmThread worker message received: ", ev);
+                    wasmHandlerDebug("WasmThread worker message received: ", ev);
                 });
             }
             //worker.on("error", err => console.log("`Worker error:", err));
@@ -51,9 +51,8 @@ export class WasmWorker {
         if (isNode()) {
             workerUrlString = "./wasmComponentWorkerThreadNode.js";
         }
-        const workerUrl = new URL(workerUrlString, import.meta.url);
-
-        wasmHandlerDebug("workerUrl:", workerUrl);
+        const workerUrl = getWorkerUrl(workerUrlString);
+        wasmHandlerDebug("createComponentWorker workerUrl:", workerUrl);
         worker = await createWorker(workerUrl, { type: "module" });
         wasmHandlerDebug("createWorker: ", worker);
 
@@ -63,7 +62,8 @@ export class WasmWorker {
                 worker.addEventListener("message", (ev: MessageEvent<any>) => {
                     console.log("WasmThread worker message received: ", ev);
                 });
-            } //worker.on("error", err => console.log("`Worker error:", err));
+            }
+            //worker.on("error", err => console.log("`Worker error:", err));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
         }
         wasmHandlerDebug("createComponentWorker started worker");

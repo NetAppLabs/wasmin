@@ -22,7 +22,7 @@ if (!globalThis.WASI_DEBUG) {
 if (!globalThis.WASI_CALL_DEBUG) {
     globalThis.WASI_CALL_DEBUG = false;
 }
-if (!globalThis.WASI_DEBUG) {
+if (!globalThis.WASI_FD_DEBUG) {
     globalThis.WASI_FD_DEBUG = false;
 }
 
