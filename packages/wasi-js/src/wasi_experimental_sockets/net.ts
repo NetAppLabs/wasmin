@@ -1,6 +1,6 @@
 import { SystemError } from "../errors.js";
 import { Socket } from "../wasiFileSystem.js";
-import { isNode, isNodeorBun } from "../wasiUtils.js";
+import { isNode, isNodeorBunorDeno } from "../wasiUtils.js";
 
 import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
 import {
@@ -694,7 +694,7 @@ export class NetUdpSocket extends Socket implements WasiSocket {
 }
 
 export async function createTcpSocket(af?: AddressFamily): Promise<NetTcpSocket> {
-    if (isNodeorBun()) {
+    if (isNodeorBunorDeno()) {
         const nodeImpl = await import("./net_node.js");
         const createSocket = nodeImpl.createNodeTcpSocket;
         const createServer = nodeImpl.createNodeTcpServer;
@@ -720,7 +720,7 @@ export async function createTcpSocket(af?: AddressFamily): Promise<NetTcpSocket>
 }
 
 export async function createUdpSocket(af?: AddressFamily): Promise<NetUdpSocket> {
-    if (isNodeorBun()) {
+    if (isNodeorBunorDeno()) {
         const nodeImpl = await import("./net_node.js");
         const createSocket = nodeImpl.createNodeUdpSocket;
         wasiSocketsDebug(`net createUdpSocket attempting to create socket af: ${af}:`);
@@ -747,7 +747,7 @@ export function addrFamilyNoToAddrFamily(afno: AddressFamilyNo): AddressFamily {
 export type AddressResolve = (host: string, port: number) => Promise<AddressInfo[]>;
 
 export async function getAddressResolver(): Promise<AddressResolve> {
-    if (isNodeorBun()) {
+    if (isNodeorBunorDeno()) {
         const nodeImpl = await import("./net_node.js");
         const addrResolve = nodeImpl.addrResolve;
         return addrResolve;

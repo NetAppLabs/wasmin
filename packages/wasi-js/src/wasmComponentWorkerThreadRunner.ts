@@ -14,7 +14,7 @@ export class WasmComponentWorkerThreadRunner {
     constructor() {
         // TODO: find better way than setting high limit
         //events.defaultMaxListeners = 600;
-        process.on("warning", (e) => wasmWorkerThreadDebug("warn", e));
+        //process.on("warning", (e) => wasmWorkerThreadDebug("warn", e));
         wasmWorkerThreadDebug("WasmComponentWorkerThreadRunner creating");
         initializeComlinkHandlers();
     }

@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@wasmin/*": "../../packages/*"
+  },
+  "tasks": {
+    "run": "deno run --allow-all --unstable-net --no-npm ./dist/index.js",
+    "compile": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --allow-all --unstable-net -o ./wasmin-deno --no-npm ./dist/index.js"
+  }
+}
