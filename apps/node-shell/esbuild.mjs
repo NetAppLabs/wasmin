@@ -17,7 +17,7 @@ await esbuild.build({
   sourcemap: true,
   plugins: [metaUrlPlugin({emit: true})],
   format: "esm",
-  platform: "browser",
+  platform: "node",
   external: [
     "node:buffer",
     "node:dns",

@@ -11,7 +11,7 @@
  * (node-postgres).
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { TextDecoderWrapper } from "../../utils.js";
 import { AddressInfo, NodeNetTcpSocket } from "../../wasi_experimental_sockets/common.js";
 //import { startTls, TrustedCert, ReadQueue } from 'subtls';

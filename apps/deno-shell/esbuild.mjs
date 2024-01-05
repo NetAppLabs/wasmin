@@ -19,7 +19,7 @@ await esbuild.build({
   plugins: [metaUrlPlugin({emit: true})],
   //plugins: [excludeImportMetaUrl()],
   format: "esm",
-  platform: "browser",
+  platform: "node",
   external: [
     "node:buffer",
     "node:dns",
