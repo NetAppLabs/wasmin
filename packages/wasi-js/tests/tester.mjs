@@ -46,13 +46,13 @@ let actualStderr = "";
 //let test = "readdir";
 //let test = "write_file";
 //let test = "cant_dotdot";
-//let test = "stat";
+let test = "stat";
 //let test = "ftruncate";
 
 //let test = "freopen";
 //let test = "read_file";
 //let test = "read_file_twice";
-let test = "poll";
+//let test = "poll";
 //let test = "preopen_populates";
 
 let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
@@ -82,7 +82,6 @@ const w = new WASI({
         NODE_PLATFORM: "win32",
     },
 });
-w.component = true;
 let actualExitCode = 0;
 try {
     w.component = true;

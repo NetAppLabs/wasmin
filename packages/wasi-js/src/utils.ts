@@ -1,12 +1,13 @@
 export class TextDecoderWrapper implements TextDecoder {
-    constructor(encoding?: string) {
+    constructor(label?: string | undefined, options?: TextDecoderOptions | undefined) {
+        let encoding = label;
         if (!encoding) {
             encoding = "utf8";
         }
         this.encoding = encoding;
         this.fatal = false;
         this.ignoreBOM = true;
-        this.innerDecoder = new TextDecoder(this.encoding);
+        this.innerDecoder = new TextDecoder(this.encoding, options);
     }
     encoding: string;
     fatal: boolean;

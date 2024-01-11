@@ -23,7 +23,7 @@ type RandomInsecureSeedAsync = RandomInsecureSeedNamespace.WasiRandomInsecureSee
 
 import { WasiOptions } from "../../wasi.js";
 import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
-import { IoStreamsAsyncHost } from "./io.js";
+import { IoPollAsyncHost, IoStreamsAsyncHost } from "./io.js";
 import { RandomInsecureSeedAsyncHost, RandomRandomAsynHost } from "./random.js";
 import { RandomInsecureAsyncHost } from "./random.js";
 import { CliBaseEnvironmentAsyncHost } from "./cli.js";
@@ -32,13 +32,11 @@ import { CliBaseExitAsyncHost } from "./cli.js";
 import { CliBaseStdinAsyncHost } from "./cli.js";
 import { CliBaseStdoutAsyncHost } from "./cli.js";
 import { CliBaseStderrAsyncHost } from "./cli.js";
-import { ClocksMonotonicClockAsyncHost, ClocksTimezoneAsyncHost, ClocksWallClockAsyncHost } from "./clocks.js";
+import { ClocksMonotonicClockAsyncHost, ClocksWallClockAsyncHost } from "./clocks.js";
 import { ClocksMonotonicClockNamespace } from "@wasmin/wasi-snapshot-preview2";
 type ClocksMonotonicClockAsync = ClocksMonotonicClockNamespace.WasiClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace } from "@wasmin/wasi-snapshot-preview2";
 type ClocksWallClockAsync = ClocksWallClockNamespace.WasiClocksWallClockAsync;
-import { ClocksTimezoneNamespace } from "@wasmin/wasi-snapshot-preview2";
-type ClocksTimezoneAsync = ClocksTimezoneNamespace.WasiClocksTimezoneAsync;
 import { SocketsInstanceNetworkNamespace } from "@wasmin/wasi-snapshot-preview2";
 type SocketsInstanceNetworkAsync = SocketsInstanceNetworkNamespace.WasiSocketsInstanceNetworkAsync;
 import { SocketsNetworkNamespace } from "@wasmin/wasi-snapshot-preview2";
@@ -55,9 +53,8 @@ type WasiSocketsUdpAsync = SocketsUdpNamespace.WasiSocketsUdpAsync;
 import { SocketsIpNameLookupNamespace } from "@wasmin/wasi-snapshot-preview2";
 type SocketsIpNameLookupAsync = SocketsIpNameLookupNamespace.WasiSocketsIpNameLookupAsync;
 import { SocketsIpNameLookupAsyncHost, SocketsNetworkAsyncHost, SocketsTcpAsyncHost, WasiSocketsUdpAsyncHost } from "./sockets.js";
-import { PollPollNamespace } from "@wasmin/wasi-snapshot-preview2";
-type PollPollAsync = PollPollNamespace.WasiPollPollAsync;
-import { PollPollAsyncHost } from "./poll.js";
+import { IOPollNamespace } from "@wasmin/wasi-snapshot-preview2";
+type IoPollAsync = IOPollNamespace.WasiIoPollAsync;
 import { TerminalStdInNamespace } from "@wasmin/wasi-snapshot-preview2";
 type TerminalStdinAsync = TerminalStdInNamespace.WasiCliTerminalStdinAsync;
 type TerminalInput = TerminalStdInNamespace.TerminalInput;
@@ -80,12 +77,11 @@ export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:cli/stdout": CliBaseStdoutAsync;
     "wasi:cli/stderr": CliBaseStderrAsync;
     "wasi:clocks/monotonic-clock": ClocksMonotonicClockAsync;
-    "wasi:clocks/timezone": ClocksTimezoneAsync;
     "wasi:clocks/wall-clock": ClocksWallClockAsync;
     "wasi:filesystem/preopens": FilesystemPreopensAsync;
     "wasi:filesystem/types": FilesystemFilesystemAsync;
     "wasi:io/streams": IoStreamsAsync;
-    "wasi:poll/poll": PollPollAsync;
+    "wasi:io/poll": IoPollAsync;
     "wasi:sockets/instance-network": SocketsInstanceNetworkAsync;
     "wasi:sockets/network": SocketsNetworkAsync;
     "wasi:sockets/tcp": SocketsTcpAsync;
@@ -115,12 +111,11 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         "wasi:cli/stdout": new CliBaseStdoutAsyncHost(wasiOptions),
         "wasi:cli/stderr": new CliBaseStderrAsyncHost(wasiOptions),
         "wasi:clocks/monotonic-clock": new ClocksMonotonicClockAsyncHost(wasiOptions),
-        "wasi:clocks/timezone": new ClocksTimezoneAsyncHost(wasiOptions),
         "wasi:clocks/wall-clock": new ClocksWallClockAsyncHost(wasiOptions),
         "wasi:filesystem/preopens": new FileSystemPreopensAsyncHost(wasiOptions),
         "wasi:filesystem/types": new FileSystemFileSystemAsyncHost(wasiOptions),
         "wasi:io/streams": new IoStreamsAsyncHost(wasiOptions),
-        "wasi:poll/poll": new PollPollAsyncHost(wasiOptions),
+        "wasi:io/poll": new IoPollAsyncHost(wasiOptions),
         "wasi:sockets/instance-network": socketsNetworkInstance,
         "wasi:sockets/network": socketsNetworkInstance,
         "wasi:sockets/tcp": socketsTcpInstance,

@@ -122,13 +122,16 @@ export function createComponentModuleImportProxyPerImportForChannel(
                     if (ArrayBuffer.isView(arg)) {
                         wasmHandlerDebug("istransfer:", arg);
                         let typedArray = arg as ArrayBufferView;
-                        lastBuffer = typedArray.buffer;
-                        wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
-                        lastTypedArray = arr;
-                        wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
-                        // Simply marking the ArrayBuffer under the array as Transferrable
-                        // This puts the ArrayBuffer in the transfer cache
-                        comlink.transfer(newArgs,[lastBuffer]);
+                        const lastBufferArrayBufferLike = typedArray.buffer;
+                        if (lastBufferArrayBufferLike instanceof ArrayBuffer) {
+                            lastBuffer = lastBufferArrayBufferLike as ArrayBuffer;
+                            wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
+                            lastTypedArray = arr;
+                            wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
+                            // Simply marking the ArrayBuffer under the array as Transferrable
+                            // This puts the ArrayBuffer in the transfer cache
+                            comlink.transfer(newArgs,[lastBuffer]);
+                        }
                     }
                     i++;
                 }

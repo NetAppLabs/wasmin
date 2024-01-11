@@ -1,35 +1,8 @@
 export namespace WasiFilesystemTypes {
-  export function readViaStream(this_: Descriptor, offset: Filesize): InputStream;
-  export function writeViaStream(this_: Descriptor, offset: Filesize): OutputStream;
-  export function appendViaStream(this_: Descriptor): OutputStream;
-  export function advise(this_: Descriptor, offset: Filesize, length: Filesize, advice: Advice): void;
-  export function syncData(this_: Descriptor): void;
-  export function getFlags(this_: Descriptor): DescriptorFlags;
-  export function getType(this_: Descriptor): DescriptorType;
-  export function setSize(this_: Descriptor, size: Filesize): void;
-  export function setTimes(this_: Descriptor, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
-  export function read(this_: Descriptor, length: Filesize, offset: Filesize): [Uint8Array, boolean];
-  export function write(this_: Descriptor, buffer: Uint8Array, offset: Filesize): Filesize;
-  export function readDirectory(this_: Descriptor): DirectoryEntryStream;
-  export function sync(this_: Descriptor): void;
-  export function createDirectoryAt(this_: Descriptor, path: string): void;
-  export function stat(this_: Descriptor): DescriptorStat;
-  export function statAt(this_: Descriptor, pathFlags: PathFlags, path: string): DescriptorStat;
-  export function setTimesAt(this_: Descriptor, pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
-  export function linkAt(this_: Descriptor, oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): void;
-  export function openAt(this_: Descriptor, pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags, modes: Modes): Descriptor;
-  export function readlinkAt(this_: Descriptor, path: string): string;
-  export function removeDirectoryAt(this_: Descriptor, path: string): void;
-  export function renameAt(this_: Descriptor, oldPath: string, newDescriptor: Descriptor, newPath: string): void;
-  export function symlinkAt(this_: Descriptor, oldPath: string, newPath: string): void;
-  export function unlinkFileAt(this_: Descriptor, path: string): void;
-  export function dropDescriptor(this_: Descriptor): void;
-  export function readDirectoryEntry(this_: DirectoryEntryStream): DirectoryEntry | undefined;
-  export function dropDirectoryEntryStream(this_: DirectoryEntryStream): void;
-  export function metadataHash(this_: Descriptor): MetadataHashValue;
-  export function metadataHashAt(this_: Descriptor, pathFlags: PathFlags, path: string): MetadataHashValue;
+  export { Descriptor };
+  export { DirectoryEntryStream };
+  export function filesystemErrorCode(err: Error): ErrorCode | undefined;
 }
-export type Descriptor = number;
 export type Filesize = bigint;
 import type { InputStream } from '../interfaces/wasi-io-streams.js';
 export { InputStream };
@@ -170,15 +143,14 @@ export interface NewTimestampTimestamp {
   tag: 'timestamp',
   val: Datetime,
 }
-export type DirectoryEntryStream = number;
 export type LinkCount = bigint;
 export interface DescriptorStat {
   type: DescriptorType,
   linkCount: LinkCount,
   size: Filesize,
-  dataAccessTimestamp: Datetime,
-  dataModificationTimestamp: Datetime,
-  statusChangeTimestamp: Datetime,
+  dataAccessTimestamp?: Datetime,
+  dataModificationTimestamp?: Datetime,
+  statusChangeTimestamp?: Datetime,
 }
 export interface PathFlags {
   symlinkFollow?: boolean,
@@ -189,16 +161,46 @@ export interface OpenFlags {
   exclusive?: boolean,
   truncate?: boolean,
 }
-export interface Modes {
-  readable?: boolean,
-  writable?: boolean,
-  executable?: boolean,
+export interface MetadataHashValue {
+  lower: bigint,
+  upper: bigint,
 }
 export interface DirectoryEntry {
   type: DescriptorType,
   name: string,
 }
-export interface MetadataHashValue {
-  lower: bigint,
-  upper: bigint,
+import type { Error } from '../interfaces/wasi-io-streams.js';
+export { Error };
+
+export class Descriptor {
+  readViaStream(offset: Filesize): InputStream;
+  writeViaStream(offset: Filesize): OutputStream;
+  appendViaStream(): OutputStream;
+  advise(offset: Filesize, length: Filesize, advice: Advice): void;
+  syncData(): void;
+  getFlags(): DescriptorFlags;
+  getType(): DescriptorType;
+  setSize(size: Filesize): void;
+  setTimes(dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
+  read(length: Filesize, offset: Filesize): [Uint8Array, boolean];
+  write(buffer: Uint8Array, offset: Filesize): Filesize;
+  readDirectory(): DirectoryEntryStream;
+  sync(): void;
+  createDirectoryAt(path: string): void;
+  stat(): DescriptorStat;
+  statAt(pathFlags: PathFlags, path: string): DescriptorStat;
+  setTimesAt(pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): void;
+  linkAt(oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): void;
+  openAt(pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags): Descriptor;
+  readlinkAt(path: string): string;
+  removeDirectoryAt(path: string): void;
+  renameAt(oldPath: string, newDescriptor: Descriptor, newPath: string): void;
+  symlinkAt(oldPath: string, newPath: string): void;
+  unlinkFileAt(path: string): void;
+  metadataHash(): MetadataHashValue;
+  metadataHashAt(pathFlags: PathFlags, path: string): MetadataHashValue;
+}
+
+export class DirectoryEntryStream {
+  readDirectoryEntry(): DirectoryEntry | undefined;
 }

@@ -2,16 +2,16 @@ import { ClocksMonotonicClockNamespace as clockm } from "@wasmin/wasi-snapshot-p
 type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2";
 type ClocksWallClockAsync = clockw.WasiClocksWallClockAsync;
-import { ClocksTimezoneNamespace as clockt } from "@wasmin/wasi-snapshot-preview2";
+//import { ClocksTimezoneNamespace as clockt } from "@wasmin/wasi-snapshot-preview2";
 import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, isNodeorBunorDeno, sleep } from "../../wasiUtils.js";
 import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
-type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
+//type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
-type Timezone = clockt.Timezone;
-type TimezoneDisplay = clockt.TimezoneDisplay;
+//type Timezone = clockt.Timezone;
+//type TimezoneDisplay = clockt.TimezoneDisplay;
 type Pollable = clockm.Pollable;
 
 let hrTimeStart: bigint;
@@ -20,11 +20,15 @@ export class ClocksMonotonicPollable implements FsPollable {
     constructor(when: Instant) {
         this._when = when;
     }
+    
+    async ready(): Promise<boolean> {
+        return await this.doneWithoutWaiting();
+    }
 
     private _when: Instant;
 
-    async done(): Promise<boolean> {
-        return await this.doneWithWaiting();
+    async block(): Promise<void> {
+        await this.doneWithWaiting();
     }
 
     async doneWithoutWaiting(): Promise<boolean> {
@@ -49,6 +53,12 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
     }
+    async subscribeInstant(when: bigint): Promise<clockm.Pollable> {
+        return this.subscribe(when, true);
+    }
+    async subscribeDuration(when: bigint): Promise<clockm.Pollable> {
+        return this.subscribe(when, false);
+    }
     private _wasiEnv: WasiEnv;
 
     async now(): Promise<Instant> {
@@ -68,7 +78,8 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
             when += hrTimeNow;
         }
         const pollable = new ClocksMonotonicPollable(when);
-        return this._wasiEnv.openFiles.add(pollable);
+        this._wasiEnv.openFiles.add(pollable);
+        return pollable;
     }
 }
 
@@ -92,6 +103,7 @@ export class ClocksWallClockAsyncHost implements ClocksWallClockAsync {
     }
 }
 
+/*
 export class ClocksTimezoneAsyncHost implements ClocksTimezoneAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
@@ -109,6 +121,7 @@ export class ClocksTimezoneAsyncHost implements ClocksTimezoneAsync {
         throw new Error("Method not implemented.");
     }
 }
+*/
 
 // Get HR time in nanoseconds
 export async function getHrTime(): Promise<bigint> {

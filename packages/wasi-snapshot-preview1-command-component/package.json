@@ -14,7 +14,7 @@
         "component/component.core5.wasm"
     ],
     "scripts": {
-        "build": "./build.sh"
+        "build": "./build-without-sockets.sh"
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^0.13.2",

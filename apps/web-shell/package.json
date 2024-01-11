@@ -10,7 +10,7 @@
   "devDependencies": {
     "@wasmin/tsconfig": "*",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
-    "vite": "^5.0.2"
+    "vite": "^5.0.11"
   },
   "dependencies": {
     "@wasmin/fs-js": "*",

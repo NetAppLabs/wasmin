@@ -5,15 +5,14 @@ export interface WasiSocketsUdpCreateSocketAsync {
    * Similar to `socket(AF_INET or AF_INET6, SOCK_DGRAM, IPPROTO_UDP)` in POSIX.
    * 
    * This function does not require a network capability handle. This is considered to be safe because
-   * at time of creation, the socket is not bound to any `network` yet. Up to the moment `bind`/`connect` is called,
+   * at time of creation, the socket is not bound to any `network` yet. Up to the moment `bind` is called,
    * the socket is effectively an in-memory configuration object, unable to communicate with the outside world.
    * 
    * All sockets are non-blocking. Use the wasi-poll interface to block on asynchronous operations.
    * 
    * # Typical errors
-   * - `not-supported`:                The host does not support UDP sockets. (EOPNOTSUPP)
-   * - `address-family-not-supported`: The specified `address-family` is not supported. (EAFNOSUPPORT)
-   * - `new-socket-limit`:             The new socket resource could not be created because of a system limit. (EMFILE, ENFILE)
+   * - `not-supported`:     The specified `address-family` is not supported. (EAFNOSUPPORT)
+   * - `new-socket-limit`:  The new socket resource could not be created because of a system limit. (EMFILE, ENFILE)
    * 
    * # References:
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html>
@@ -23,11 +22,11 @@ export interface WasiSocketsUdpCreateSocketAsync {
    */
    createUdpSocket(addressFamily: IpAddressFamily): Promise<UdpSocket>;
 }
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
 export { ErrorCode };
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network';
+import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
 export { IpAddressFamily };
-import type { UdpSocket } from '../interfaces/wasi-sockets-udp';
+import type { UdpSocket } from '../interfaces/wasi-sockets-udp.js';
 export { UdpSocket };

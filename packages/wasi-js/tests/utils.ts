@@ -2,6 +2,7 @@ import path from "node:path";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
 import { memory } from "@wasmin/fs-js";
+import { constructWasiForTest, Test } from "@wasmin/wasi-js/tests/utils.js";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let backend: backendType = "memory";
@@ -32,5 +33,15 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
                 return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
             }
         }
+    }
+}
+
+export async function constructWasiForTestRuntimeDetection(testCase: Test) {
+    if (isBun()) {
+        const bunmod = await import("@wasmin/bun-fs-js");
+        const bun = bunmod.bun;
+        return constructWasiForTest(testCase, bun);
+    } else {
+        return constructWasiForTest(testCase, node);
     }
 }

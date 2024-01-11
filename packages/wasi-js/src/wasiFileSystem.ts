@@ -18,7 +18,8 @@ import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-type Descriptor = fs.Descriptor;
+//type Descriptor = fs.Descriptor;
+type Descriptor = number;
 import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
 import {
     FileSystemHandle,
@@ -63,7 +64,8 @@ export class Socket implements Writable, Readable {
 }
 
 export interface FsPollable {
-    done(): Promise<boolean>;
+    block(): Promise<void>;
+    ready(): Promise<boolean>;
 }
 
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
@@ -319,6 +321,10 @@ export class OpenDirectoryIterator {
     }
     public set openDir(value: OpenDirectory) {
         this._openDir = value;
+    }
+
+    async readDirectoryEntry(): Promise<DirectoryEntry | undefined> {
+        return await this.next();
     }
 
     async next(): Promise<DirectoryEntry | undefined> {

@@ -5,5 +5,5 @@ export interface WasiCliTerminalStdinAsync {
    */
    getTerminalStdin(): Promise<TerminalInput | undefined>;
 }
-import type { TerminalInput } from '../interfaces/wasi-cli-terminal-input';
+import type { TerminalInput } from '../interfaces/wasi-cli-terminal-input.js';
 export { TerminalInput };

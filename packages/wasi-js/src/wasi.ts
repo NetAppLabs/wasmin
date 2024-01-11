@@ -37,7 +37,7 @@ import {
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
 import { wasiWorkerDebug } from "./workerUtils.js";
-import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
+//import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -257,11 +257,11 @@ export class WASI {
                 };
                 return sock;
             };
-            const componentImportObjectAny = this.componentImportObject as any;
+            /*const componentImportObjectAny = this.componentImportObject as any;
             componentImportObjectAny[wasiExperimentalSocketsNamespace] = new WasiExperimentalSocketsPreview2Wrapper(
                 filesystem,
                 sockets
-            );
+            );*/
         }
 
         const importNames: string[] = [];
@@ -396,7 +396,7 @@ export class WASI {
                 importName: string,
                 functionName: string,
                 args: any[],
-                buf: ArrayBuffer
+                buf: ArrayBufferLike
             ) => {
                 const moduleImports = imports;
                 try {
@@ -442,7 +442,7 @@ export class WASI {
             let wasmMod: WebAssembly.Module;
             if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
                 const modSource = wasmModOrBufSource as ArrayBufferView;
-                wasmMod = WebAssembly.compile(modSource);
+                wasmMod = await WebAssembly.compile(modSource);
             } else {
                 wasmMod = wasmModOrBufSource as WebAssembly.Module;
             }
@@ -590,7 +590,7 @@ export class WASI {
         importName: string,
         functionName: string,
         args: any[],
-        buf: ArrayBuffer,
+        buf: ArrayBufferLike,
         moduleImports: WebAssembly.Imports
     ): Promise<void> {
         wasiDebug(`WASI handleImport: messageId: ${messageId} importName: ${importName} functionName: ${functionName}`);
@@ -603,7 +603,7 @@ export class WASI {
         const channel = this._channel;
         if (channel) {
             if (moduleImports) {
-                let wasmBuf: ArrayBuffer;
+                let wasmBuf: ArrayBufferLike;
                 wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
                 wasmBuf = buf;
                 const mem: WebAssembly.Memory = {

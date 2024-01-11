@@ -9,7 +9,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This allows using `read-stream`, which is similar to `read` in POSIX.
    */
-   readViaStream(this_: Descriptor, offset: Filesize): Promise<InputStream>;
   /**
    * Return a stream for writing to a file, if available.
    * 
@@ -18,7 +17,6 @@ export interface WasiFilesystemTypesAsync {
    * Note: This allows using `write-stream`, which is similar to `write` in
    * POSIX.
    */
-   writeViaStream(this_: Descriptor, offset: Filesize): Promise<OutputStream>;
   /**
    * Return a stream for appending to a file, if available.
    * 
@@ -27,13 +25,11 @@ export interface WasiFilesystemTypesAsync {
    * Note: This allows using `write-stream`, which is similar to `write` with
    * `O_APPEND` in in POSIX.
    */
-   appendViaStream(this_: Descriptor): Promise<OutputStream>;
   /**
    * Provide file advisory information on a descriptor.
    * 
    * This is similar to `posix_fadvise` in POSIX.
    */
-   advise(this_: Descriptor, offset: Filesize, length: Filesize, advice: Advice): Promise<void>;
   /**
    * Synchronize the data of a file to disk.
    * 
@@ -42,7 +38,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `fdatasync` in POSIX.
    */
-   syncData(this_: Descriptor): Promise<void>;
   /**
    * Get flags associated with a descriptor.
    * 
@@ -51,7 +46,6 @@ export interface WasiFilesystemTypesAsync {
    * Note: This returns the value that was the `fs_flags` value returned
    * from `fdstat_get` in earlier versions of WASI.
    */
-   getFlags(this_: Descriptor): Promise<DescriptorFlags>;
   /**
    * Get the dynamic type of a descriptor.
    * 
@@ -64,14 +58,12 @@ export interface WasiFilesystemTypesAsync {
    * Note: This returns the value that was the `fs_filetype` value returned
    * from `fdstat_get` in earlier versions of WASI.
    */
-   getType(this_: Descriptor): Promise<DescriptorType>;
   /**
    * Adjust the size of an open file. If this increases the file's size, the
    * extra bytes are filled with zeros.
    * 
    * Note: This was called `fd_filestat_set_size` in earlier versions of WASI.
    */
-   setSize(this_: Descriptor, size: Filesize): Promise<void>;
   /**
    * Adjust the timestamps of an open file or directory.
    * 
@@ -79,7 +71,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This was called `fd_filestat_set_times` in earlier versions of WASI.
    */
-   setTimes(this_: Descriptor, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
   /**
    * Read from a descriptor, without using and updating the descriptor's offset.
    * 
@@ -93,7 +84,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `pread` in POSIX.
    */
-   read(this_: Descriptor, length: Filesize, offset: Filesize): Promise<[Uint8Array, boolean]>;
   /**
    * Write to a descriptor, without using and updating the descriptor's offset.
    * 
@@ -105,7 +95,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `pwrite` in POSIX.
    */
-   write(this_: Descriptor, buffer: Uint8Array, offset: Filesize): Promise<Filesize>;
   /**
    * Read directory entries from a directory.
    * 
@@ -117,7 +106,6 @@ export interface WasiFilesystemTypesAsync {
    * directory. Multiple streams may be active on the same directory, and they
    * do not interfere with each other.
    */
-   readDirectory(this_: Descriptor): Promise<DirectoryEntryStream>;
   /**
    * Synchronize the data and metadata of a file to disk.
    * 
@@ -126,13 +114,11 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `fsync` in POSIX.
    */
-   sync(this_: Descriptor): Promise<void>;
   /**
    * Create a directory.
    * 
    * Note: This is similar to `mkdirat` in POSIX.
    */
-   createDirectoryAt(this_: Descriptor, path: string): Promise<void>;
   /**
    * Return the attributes of an open file or directory.
    * 
@@ -144,7 +130,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This was called `fd_filestat_get` in earlier versions of WASI.
    */
-   stat(this_: Descriptor): Promise<DescriptorStat>;
   /**
    * Return the attributes of a file or directory.
    * 
@@ -154,7 +139,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This was called `path_filestat_get` in earlier versions of WASI.
    */
-   statAt(this_: Descriptor, pathFlags: PathFlags, path: string): Promise<DescriptorStat>;
   /**
    * Adjust the timestamps of a file or directory.
    * 
@@ -163,13 +147,11 @@ export interface WasiFilesystemTypesAsync {
    * Note: This was called `path_filestat_set_times` in earlier versions of
    * WASI.
    */
-   setTimesAt(this_: Descriptor, pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
   /**
    * Create a hard link.
    * 
    * Note: This is similar to `linkat` in POSIX.
    */
-   linkAt(this_: Descriptor, oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void>;
   /**
    * Open a file or directory.
    * 
@@ -190,7 +172,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `openat` in POSIX.
    */
-   openAt(this_: Descriptor, pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags, modes: Modes): Promise<Descriptor>;
   /**
    * Read the contents of a symbolic link.
    * 
@@ -199,7 +180,6 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `readlinkat` in POSIX.
    */
-   readlinkAt(this_: Descriptor, path: string): Promise<string>;
   /**
    * Remove a directory.
    * 
@@ -207,13 +187,11 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `unlinkat(fd, path, AT_REMOVEDIR)` in POSIX.
    */
-   removeDirectoryAt(this_: Descriptor, path: string): Promise<void>;
   /**
    * Rename a filesystem object.
    * 
    * Note: This is similar to `renameat` in POSIX.
    */
-   renameAt(this_: Descriptor, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void>;
   /**
    * Create a symbolic link (also known as a "symlink").
    * 
@@ -222,167 +200,12 @@ export interface WasiFilesystemTypesAsync {
    * 
    * Note: This is similar to `symlinkat` in POSIX.
    */
-   symlinkAt(this_: Descriptor, oldPath: string, newPath: string): Promise<void>;
-  /**
-   * Check accessibility of a filesystem path.
-   * 
-   * Check whether the given filesystem path names an object which is
-   * readable, writable, or executable, or whether it exists.
-   * 
-   * This does not a guarantee that subsequent accesses will succeed, as
-   * filesystem permissions may be modified asynchronously by external
-   * entities.
-   * 
-   * Note: This is similar to `faccessat` with the `AT_EACCESS` flag in POSIX.
-   */
-   accessAt(this_: Descriptor, pathFlags: PathFlags, path: string, type: AccessType): Promise<void>;
   /**
    * Unlink a filesystem object that is not a directory.
    * 
    * Return `error-code::is-directory` if the path refers to a directory.
    * Note: This is similar to `unlinkat(fd, path, 0)` in POSIX.
    */
-   unlinkFileAt(this_: Descriptor, path: string): Promise<void>;
-  /**
-   * Change the permissions of a filesystem object that is not a directory.
-   * 
-   * Note that the ultimate meanings of these permissions is
-   * filesystem-specific.
-   * 
-   * Note: This is similar to `fchmodat` in POSIX.
-   */
-   changeFilePermissionsAt(this_: Descriptor, pathFlags: PathFlags, path: string, modes: Modes): Promise<void>;
-  /**
-   * Change the permissions of a directory.
-   * 
-   * Note that the ultimate meanings of these permissions is
-   * filesystem-specific.
-   * 
-   * Unlike in POSIX, the `executable` flag is not reinterpreted as a "search"
-   * flag. `read` on a directory implies readability and searchability, and
-   * `execute` is not valid for directories.
-   * 
-   * Note: This is similar to `fchmodat` in POSIX.
-   */
-   changeDirectoryPermissionsAt(this_: Descriptor, pathFlags: PathFlags, path: string, modes: Modes): Promise<void>;
-  /**
-   * Request a shared advisory lock for an open file.
-   * 
-   * This requests a *shared* lock; more than one shared lock can be held for
-   * a file at the same time.
-   * 
-   * If the open file has an exclusive lock, this function downgrades the lock
-   * to a shared lock. If it has a shared lock, this function has no effect.
-   * 
-   * This requests an *advisory* lock, meaning that the file could be accessed
-   * by other programs that don't hold the lock.
-   * 
-   * It is unspecified how shared locks interact with locks acquired by
-   * non-WASI programs.
-   * 
-   * This function blocks until the lock can be acquired.
-   * 
-   * Not all filesystems support locking; on filesystems which don't support
-   * locking, this function returns `error-code::unsupported`.
-   * 
-   * Note: This is similar to `flock(fd, LOCK_SH)` in Unix.
-   */
-   lockShared(this_: Descriptor): Promise<void>;
-  /**
-   * Request an exclusive advisory lock for an open file.
-   * 
-   * This requests an *exclusive* lock; no other locks may be held for the
-   * file while an exclusive lock is held.
-   * 
-   * If the open file has a shared lock and there are no exclusive locks held
-   * for the file, this function upgrades the lock to an exclusive lock. If the
-   * open file already has an exclusive lock, this function has no effect.
-   * 
-   * This requests an *advisory* lock, meaning that the file could be accessed
-   * by other programs that don't hold the lock.
-   * 
-   * It is unspecified whether this function succeeds if the file descriptor
-   * is not opened for writing. It is unspecified how exclusive locks interact
-   * with locks acquired by non-WASI programs.
-   * 
-   * This function blocks until the lock can be acquired.
-   * 
-   * Not all filesystems support locking; on filesystems which don't support
-   * locking, this function returns `error-code::unsupported`.
-   * 
-   * Note: This is similar to `flock(fd, LOCK_EX)` in Unix.
-   */
-   lockExclusive(this_: Descriptor): Promise<void>;
-  /**
-   * Request a shared advisory lock for an open file.
-   * 
-   * This requests a *shared* lock; more than one shared lock can be held for
-   * a file at the same time.
-   * 
-   * If the open file has an exclusive lock, this function downgrades the lock
-   * to a shared lock. If it has a shared lock, this function has no effect.
-   * 
-   * This requests an *advisory* lock, meaning that the file could be accessed
-   * by other programs that don't hold the lock.
-   * 
-   * It is unspecified how shared locks interact with locks acquired by
-   * non-WASI programs.
-   * 
-   * This function returns `error-code::would-block` if the lock cannot be
-   * acquired.
-   * 
-   * Not all filesystems support locking; on filesystems which don't support
-   * locking, this function returns `error-code::unsupported`.
-   * 
-   * Note: This is similar to `flock(fd, LOCK_SH | LOCK_NB)` in Unix.
-   */
-   tryLockShared(this_: Descriptor): Promise<void>;
-  /**
-   * Request an exclusive advisory lock for an open file.
-   * 
-   * This requests an *exclusive* lock; no other locks may be held for the
-   * file while an exclusive lock is held.
-   * 
-   * If the open file has a shared lock and there are no exclusive locks held
-   * for the file, this function upgrades the lock to an exclusive lock. If the
-   * open file already has an exclusive lock, this function has no effect.
-   * 
-   * This requests an *advisory* lock, meaning that the file could be accessed
-   * by other programs that don't hold the lock.
-   * 
-   * It is unspecified whether this function succeeds if the file descriptor
-   * is not opened for writing. It is unspecified how exclusive locks interact
-   * with locks acquired by non-WASI programs.
-   * 
-   * This function returns `error-code::would-block` if the lock cannot be
-   * acquired.
-   * 
-   * Not all filesystems support locking; on filesystems which don't support
-   * locking, this function returns `error-code::unsupported`.
-   * 
-   * Note: This is similar to `flock(fd, LOCK_EX | LOCK_NB)` in Unix.
-   */
-   tryLockExclusive(this_: Descriptor): Promise<void>;
-  /**
-   * Release a shared or exclusive lock on an open file.
-   * 
-   * Note: This is similar to `flock(fd, LOCK_UN)` in Unix.
-   */
-   unlock(this_: Descriptor): Promise<void>;
-  /**
-   * Dispose of the specified `descriptor`, after which it may no longer
-   * be used.
-   */
-   dropDescriptor(this_: Descriptor): Promise<void>;
-  /**
-   * Read a single directory entry from a `directory-entry-stream`.
-   */
-   readDirectoryEntry(this_: DirectoryEntryStream): Promise<DirectoryEntry | undefined>;
-  /**
-   * Dispose of the specified `directory-entry-stream`, after which it may no longer
-   * be used.
-   */
-   dropDirectoryEntryStream(this_: DirectoryEntryStream): Promise<void>;
   /**
    * Test whether two descriptors refer to the same filesystem object.
    * 
@@ -391,7 +214,6 @@ export interface WasiFilesystemTypesAsync {
    * wasi-filesystem does not expose device and inode numbers, so this function
    * may be used instead.
    */
-   isSameObject(this_: Descriptor, other: Descriptor): Promise<boolean>;
   /**
    * Return a hash of the metadata associated with a filesystem object referred
    * to by a descriptor.
@@ -413,20 +235,36 @@ export interface WasiFilesystemTypesAsync {
    * 
    * However, none of these is required.
    */
-   metadataHash(this_: Descriptor): Promise<MetadataHashValue>;
   /**
    * Return a hash of the metadata associated with a filesystem object referred
    * to by a directory descriptor and a relative path.
    * 
    * This performs the same hash computation as `metadata-hash`.
    */
-   metadataHashAt(this_: Descriptor, pathFlags: PathFlags, path: string): Promise<MetadataHashValue>;
+  /**
+   * Read a single directory entry from a `directory-entry-stream`.
+   */
+  /**
+   * Attempts to extract a filesystem-related `error-code` from the stream
+   * `error` provided.
+   * 
+   * Stream operations which return `stream-error::last-operation-failed`
+   * have a payload with more information about the operation that failed.
+   * This payload can be passed through to this function to see if there's
+   * filesystem-related information about the error to return.
+   * 
+   * Note that this function is fallible because not all stream-related
+   * errors are filesystem-related errors.
+   */
+   filesystemErrorCode(err: Error): Promise<ErrorCode | undefined>;
 }
-import type { InputStream } from '../interfaces/wasi-io-streams';
+import type { InputStream } from '../interfaces/wasi-io-streams.js';
 export { InputStream };
-import type { OutputStream } from '../interfaces/wasi-io-streams';
+import type { OutputStream } from '../interfaces/wasi-io-streams.js';
 export { OutputStream };
-import type { Datetime } from '../interfaces/wasi-clocks-wall-clock';
+import type { Error } from '../interfaces/wasi-io-streams.js';
+export { Error };
+import type { Datetime } from '../interfaces/wasi-clocks-wall-clock.js';
 export { Datetime };
 /**
  * File size or length of a region within a file.
@@ -553,44 +391,6 @@ export interface OpenFlags {
   truncate?: boolean,
 }
 /**
- * Permissions mode used by `open-at`, `change-file-permissions-at`, and
- * similar.
- */
-export interface Modes {
-  /**
-   * True if the resource is considered readable by the containing
-   * filesystem.
-   */
-  readable?: boolean,
-  /**
-   * True if the resource is considered writable by the containing
-   * filesystem.
-   */
-  writable?: boolean,
-  /**
-   * True if the resource is considered executable by the containing
-   * filesystem. This does not apply to directories.
-   */
-  executable?: boolean,
-}
-/**
- * Access type used by `access-at`.
- */
-export type AccessType = AccessTypeAccess | AccessTypeExists;
-/**
- * Test for readability, writeability, or executability.
- */
-export interface AccessTypeAccess {
-  tag: 'access',
-  val: Modes,
-}
-/**
- * Test whether the path exists.
- */
-export interface AccessTypeExists {
-  tag: 'exists',
-}
-/**
  * Number of hard links to an inode.
  */
 export type LinkCount = bigint;
@@ -615,16 +415,25 @@ export interface DescriptorStat {
   size: Filesize,
   /**
    * Last data access timestamp.
+   * 
+   * If the `option` is none, the platform doesn't maintain an access
+   * timestamp for this file.
    */
-  dataAccessTimestamp: Datetime,
+  dataAccessTimestamp?: Datetime,
   /**
    * Last data modification timestamp.
+   * 
+   * If the `option` is none, the platform doesn't maintain a
+   * modification timestamp for this file.
    */
-  dataModificationTimestamp: Datetime,
+  dataModificationTimestamp?: Datetime,
   /**
-   * Last file status change timestamp.
+   * Last file status-change timestamp.
+   * 
+   * If the `option` is none, the platform doesn't maintain a
+   * status-change timestamp for this file.
    */
-  statusChangeTimestamp: Datetime,
+  statusChangeTimestamp?: Datetime,
 }
 /**
  * When setting a timestamp, this gives the value to set it to.
@@ -814,14 +623,6 @@ export type ErrorCode = 'access' | 'would-block' | 'already' | 'bad-descriptor' 
  */
 export type Advice = 'normal' | 'sequential' | 'random' | 'will-need' | 'dont-need' | 'no-reuse';
 /**
- * A descriptor is a reference to a filesystem object, which may be a file,
- * directory, named pipe, special file, or other object on which filesystem
- * calls may be made.
- * 
- * This [represents a resource](https://github.com/WebAssembly/WASI/blob/main/docs/WitInWasi.md#Resources).
- */
-export type Descriptor = number;
-/**
  * A 128-bit hash value, split into parts because wasm doesn't have a
  * 128-bit integer type.
  */
@@ -835,9 +636,37 @@ export interface MetadataHashValue {
    */
   upper: bigint,
 }
-/**
- * A stream of directory entries.
- * 
- * This [represents a stream of `dir-entry`](https://github.com/WebAssembly/WASI/blob/main/docs/WitInWasi.md#Streams).
- */
-export type DirectoryEntryStream = number;
+
+export interface Descriptor {
+  readViaStream(offset: Filesize): Promise<InputStream>;
+  writeViaStream(offset: Filesize): Promise<OutputStream>;
+  appendViaStream(): Promise<OutputStream>;
+  advise(offset: Filesize, length: Filesize, advice: Advice): Promise<void>;
+  syncData(): Promise<void>;
+  getFlags(): Promise<DescriptorFlags>;
+  getType(): Promise<DescriptorType>;
+  setSize(size: Filesize): Promise<void>;
+  setTimes(dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
+  read(length: Filesize, offset: Filesize): Promise<[Uint8Array, boolean]>;
+  write(buffer: Uint8Array, offset: Filesize): Promise<Filesize>;
+  readDirectory(): Promise<DirectoryEntryStream>;
+  sync(): Promise<void>;
+  createDirectoryAt(path: string): Promise<void>;
+  stat(): Promise<DescriptorStat>;
+  statAt(pathFlags: PathFlags, path: string): Promise<DescriptorStat>;
+  setTimesAt(pathFlags: PathFlags, path: string, dataAccessTimestamp: NewTimestamp, dataModificationTimestamp: NewTimestamp): Promise<void>;
+  linkAt(oldPathFlags: PathFlags, oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void>;
+  openAt(pathFlags: PathFlags, path: string, openFlags: OpenFlags, flags: DescriptorFlags): Promise<Descriptor>;
+  readlinkAt(path: string): Promise<string>;
+  removeDirectoryAt(path: string): Promise<void>;
+  renameAt(oldPath: string, newDescriptor: Descriptor, newPath: string): Promise<void>;
+  symlinkAt(oldPath: string, newPath: string): Promise<void>;
+  unlinkFileAt(path: string): Promise<void>;
+  isSameObject(other: Descriptor): Promise<boolean>;
+  metadataHash(): Promise<MetadataHashValue>;
+  metadataHashAt(pathFlags: PathFlags, path: string): Promise<MetadataHashValue>;
+}
+
+export interface DirectoryEntryStream {
+  readDirectoryEntry(): Promise<DirectoryEntry | undefined>;
+}

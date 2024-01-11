@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
 import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
 import { WASI, isBun } from "@wasmin/wasi-js";
+import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -73,7 +74,7 @@ describe("wasi-testsuite", () => {
                 } else {
                     throw Error("wasmPath is not set");
                 }
-                ret = await constructWasiForTest(testCase);
+                ret = await constructWasiForTestRuntimeDetection(testCase);
                 const w = ret.wasi;
                 if (w) {
                     //w.component = true;

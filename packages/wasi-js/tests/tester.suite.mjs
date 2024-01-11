@@ -5,10 +5,11 @@ import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+import { constructOneTestForTestSuite } from "@wasmin/wasi-js/tests/utils.js";
 import { getOriginPrivateDirectory } from "@wasmin/fs-js";
 import { isBun } from "@wasmin/wasi-js/index.js";
 import { default as process } from "node:process";
+import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
@@ -62,7 +63,7 @@ async function runCase(testCase) {
         }
         console.log("exitCode: ", exitCode);
         let w = undefined;
-        ret = await constructWasiForTest(testCase);
+        ret = await constructWasiForTestRuntimeDetection(testCase);
         w = ret.wasi;
         console.log("wasi: ", w);
 

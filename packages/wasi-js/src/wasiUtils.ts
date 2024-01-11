@@ -356,7 +356,7 @@ export function isNode() {
     }
 }
 
-export function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer) {
+export function copyBuffer(src: ArrayBufferLike, dst: ArrayBufferLike) {
     const srcBytes = new Uint8Array(src);
     const size = src.byteLength;
     const view = new DataView(dst);

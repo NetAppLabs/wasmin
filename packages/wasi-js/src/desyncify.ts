@@ -31,16 +31,16 @@ export type WrappedExportedFunction = {
 export type ImportReference = ImportExportReference | string | SharedArrayBuffer;
 
 // Function for storing memory for wasm instance received from worker
-export type StoreReceivedMemoryFunc = (buf: ArrayBuffer) => void;
+export type StoreReceivedMemoryFunc = (buf: ArrayBufferLike) => void;
 // Function for preparing memory to be sent over to worker
-export type GetMemoryForSendFunc = (functionName: string) => ArrayBuffer;
+export type GetMemoryForSendFunc = (functionName: string) => ArrayBufferLike;
 
 export type HandleWasmImportFunc = (
     messageId: string,
     importName: string,
     functionName: string,
     args: any[],
-    memory: ArrayBuffer
+    memory: ArrayBufferLike
 ) => any;
 
 export type HandleWasmComponentImportFunc = (

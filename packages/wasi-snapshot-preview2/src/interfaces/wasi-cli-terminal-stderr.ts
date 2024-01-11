@@ -5,5 +5,5 @@ export interface WasiCliTerminalStderrAsync {
    */
    getTerminalStderr(): Promise<TerminalOutput | undefined>;
 }
-import type { TerminalOutput } from '../interfaces/wasi-cli-terminal-output';
+import type { TerminalOutput } from '../interfaces/wasi-cli-terminal-output.js';
 export { TerminalOutput };

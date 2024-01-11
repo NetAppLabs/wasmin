@@ -4,7 +4,6 @@ export * as CliBaseStderrNamespace from "./interfaces/wasi-cli-stderr";
 export * as CliBaseStdinNamespace from "./interfaces/wasi-cli-stdin";
 export * as CliBaseStdoutNamespace from "./interfaces/wasi-cli-stdout";
 export * as ClocksMonotonicClockNamespace from "./interfaces/wasi-clocks-monotonic-clock";
-export * as ClocksTimezoneNamespace from "./interfaces/wasi-clocks-timezone";
 export * as ClocksWallClockNamespace from "./interfaces/wasi-clocks-wall-clock";
 export * as FilesystemPreopensNamespace from "./interfaces/wasi-filesystem-preopens";
 export * as FilesystemFilesystemNamespace from "./interfaces/wasi-filesystem-types";
@@ -12,7 +11,7 @@ export * as FilesystemFilesystemNamespace from "./interfaces/wasi-filesystem-typ
 //export * as HttpTypesNamespace from "./interfaces/wasi-outgoing-http-handler-types";
 export * as IoStreamsNamespace from "./interfaces/wasi-io-streams";
 //export * as LoggingHandlerNamespace from "./interfaces/wasi-logging";
-export * as PollPollNamespace from "./interfaces/wasi-poll-poll";
+export * as IOPollNamespace from "./interfaces/wasi-io-poll";
 export * as RandomInsecureSeedNamespace from "./interfaces/wasi-random-insecure-seed";
 export * as RandomInsecureNamespace from "./interfaces/wasi-random-insecure";
 export * as RandomRandomNamespace from "./interfaces/wasi-random-random";

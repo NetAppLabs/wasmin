@@ -47,6 +47,7 @@ export async function copyFsInto(rootPath: string, rootHandle: FileSystemDirecto
     }
 }
 
+
 export async function getRootHandle(backend: string, rootPath: string): Promise<FileSystemDirectoryHandle> {
     //const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     let dirHandle: FileSystemDirectoryHandle;
@@ -56,16 +57,17 @@ export async function getRootHandle(backend: string, rootPath: string): Promise<
             await copyFsInto(rootPath, dirHandle);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default:
-            if (isBun()) {
-                const bunmod = await import("@wasmin/bun-fs-js");
-                const bun = bunmod.bun;
-                dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
-            } else {
+            //if (isBun()) {
+                //const bunmod = await import("@wasmin/bun-fs-js");
+                //const bun = bunmod.bun;
+                //dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
+            //} else {
                 dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
-            }
+            //}
     }
     return dirHandle;
 }
+
 
 export type Test = Partial<{
     test: string;

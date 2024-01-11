@@ -7,18 +7,31 @@ export interface WasiClocksMonotonicClockAsync {
    */
    now(): Promise<Instant>;
   /**
-   * Query the resolution of the clock.
+   * Query the resolution of the clock. Returns the duration of time
+   * corresponding to a clock tick.
    */
-   resolution(): Promise<Instant>;
+   resolution(): Promise<Duration>;
   /**
-   * Create a `pollable` which will resolve once the specified time has been
-   * reached.
+   * Create a `pollable` which will resolve once the specified instant
+   * occured.
    */
-   subscribe(when: Instant, absolute: boolean): Promise<Pollable>;
+   subscribeInstant(when: Instant): Promise<Pollable>;
+  /**
+   * Create a `pollable` which will resolve once the given duration has
+   * elapsed, starting at the time at which this function was called.
+   * occured.
+   */
+   subscribeDuration(when: Duration): Promise<Pollable>;
 }
-import type { Pollable } from '../interfaces/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-io-poll.js';
 export { Pollable };
 /**
- * A timestamp in nanoseconds.
+ * An instant in time, in nanoseconds. An instant is relative to an
+ * unspecified initial value, and can only be compared to instances from
+ * the same monotonic-clock.
  */
 export type Instant = bigint;
+/**
+ * A duration of time, in nanoseconds.
+ */
+export type Duration = bigint;

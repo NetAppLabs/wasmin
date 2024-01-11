@@ -89,7 +89,7 @@ export async function createWorker(scriptURL: string | URL, options?: WorkerOpti
         }
     } else {
         const worker = new Worker(scriptURL, options);
-        return worker;
+        return worker as Worker;
     }
 }
 

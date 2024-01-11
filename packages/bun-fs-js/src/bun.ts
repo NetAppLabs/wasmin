@@ -7,7 +7,6 @@ import {
     FileSystemFileHandle,
     FileSystemHandlePermissionDescriptor,
     FileSystemSyncAccessHandle,
-    FileSystemWritableFileStream,
     InvalidModificationError,
     InvalidStateError,
     NFileSystemWritableFileStream,
@@ -21,8 +20,7 @@ import {
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
 
 // @ts-ignore
-import { WritableStreamDefaultWriter, FileBlob, BunFile } from "bun";
-//import { WritableStreamDefaultWriter, FileBlob, BunFile } from "bun-types";
+import { WritableStreamDefaultWriter, FileSystemWritableFileStream, FileBlob, BunFile } from "bun";
 
 const BUN_FS_DEBUG = false;
 
@@ -45,6 +43,12 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
+function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
+    // return fh.fd;
+    // bun seems to use number as fsSync.promises.FileHandle
+    return fh as unknown as number;
+}
+
 export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
@@ -58,7 +62,7 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
 
     get fileHandleNumber() {
         const fh = this.fileHandle;
-        const fhNumber = fh as number;
+        const fhNumber = fileHandleToFileDescriptorNumber(fh);
         return fhNumber;
     }
 
@@ -154,7 +158,7 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
     async getFile() {
         try {
             // @ts-ignore
-            const bf = Bun.file(this.path) as BunFile;
+            const bf = Bun.file(this.path) as File;
             const f = bf;
             return f;
         } catch (err: any) {
@@ -180,7 +184,7 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
-        const fhNumber = fileHandle as number;
+        const fhNumber = fileHandleToFileDescriptorNumber(fileHandle);
         const { size } = fsSync.fstatSync(fhNumber);
         fSize = size;
         const sink = new BunSink(fileHandle, fSize);
@@ -346,7 +350,8 @@ export class BunFolderHandle
         }
         if (!opts.create) throw new NotFoundError();
         const fHandle = await fs.open(path, "w");
-        fsSync.closeSync(fHandle);
+        const fHandleNumber = fileHandleToFileDescriptorNumber(fHandle);
+        fsSync.closeSync(fHandleNumber);
         return new BunFileHandle(path, name);
     }
 
