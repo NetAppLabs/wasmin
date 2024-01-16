@@ -2,7 +2,7 @@ import path from "node:path";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
 import { memory } from "@wasmin/fs-js";
-import { constructWasiForTest, Test } from "@wasmin/wasi-js/tests/utils.js";
+import { constructWasiForTest, Test } from "@wasmin/wasi-js";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let backend: backendType = "memory";

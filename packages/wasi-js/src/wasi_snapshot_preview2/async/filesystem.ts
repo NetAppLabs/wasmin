@@ -31,6 +31,7 @@ type Filesize = fs.Filesize;
 
 import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
 import { InStream, OutStream } from "./io.js";
+import { Resource } from "../../wasiResources.js";
 
 export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -76,9 +77,9 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
     }
 }
 
-export class FileSystemFileDescriptor implements fs.Descriptor {
+export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     private _wasiEnv: WasiEnv;
-    private resource: number;
+    public resource: number;
     private _path: string;
 
     get wasiEnv() {

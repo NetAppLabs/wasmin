@@ -7,6 +7,7 @@ import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, isNodeorBunorDeno, sleep } from "../../wasiUtils.js";
 import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
+import { Resource } from "../../wasiResources.js";
 //type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
@@ -16,11 +17,12 @@ type Pollable = clockm.Pollable;
 
 let hrTimeStart: bigint;
 
-export class ClocksMonotonicPollable implements FsPollable {
+export class ClocksMonotonicPollable implements FsPollable, Resource {
     constructor(when: Instant) {
         this._when = when;
+        this.resource = -1;
     }
-    public resource?: number;
+    public resource: number;
     
     async ready(): Promise<boolean> {
         return await this.doneWithoutWaiting();

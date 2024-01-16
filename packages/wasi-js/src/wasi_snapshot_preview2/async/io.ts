@@ -7,6 +7,7 @@ import { sleep } from "../../wasiUtils.js";
 import { USE_ACCEPTED_SOCKET_PROMISE } from "../../wasi_experimental_sockets/net.js";
 import { delay } from "../../wasi_experimental_sockets/common.js";
 import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2";
+import { Resource } from "../../wasiResources.js";
 type IOPollAsync = pollns.WasiIoPollAsync;
 
 type InputStream = io.InputStream;
@@ -70,7 +71,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
 
 }
 
-export class InStream implements InputStream {
+export class InStream implements InputStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -165,7 +166,7 @@ export class InStream implements InputStream {
 }
 
 
-export class OutStream implements OutputStream {
+export class OutStream implements OutputStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -175,7 +176,7 @@ export class OutStream implements OutputStream {
         throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
-    private resource: number;
+    public resource: number;
     get wasiEnv() {
         return this._wasiEnv;
     }

@@ -4,7 +4,8 @@ import "jest-extended";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+//import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js";
 import { WASI, isBun } from "@wasmin/wasi-js";
 import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
@@ -29,9 +30,11 @@ async function constructTestsWithSkip() {
     for (const t of tests) {
         let skip = false;
         for (const sk of skips) {
-            if (t.test.includes(sk)) {
-                console.log(`skipping ${sk}`);
-                skip = true;
+            if (t.test) {
+                if (t.test.includes(sk)) {
+                    console.log(`skipping ${sk}`);
+                    skip = true;
+                }
             }
         }
         if (!skip) {
@@ -74,6 +77,7 @@ describe("wasi-testsuite", () => {
                 } else {
                     throw Error("wasmPath is not set");
                 }
+                // @ts-ignore
                 ret = await constructWasiForTestRuntimeDetection(testCase);
                 const w = ret.wasi;
                 if (w) {

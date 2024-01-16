@@ -27,6 +27,7 @@ import {
     FileSystemFileHandle,
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
+import { Resource } from "./wasiResources.js";
 
 declare let globalThis: any;
 globalThis.WASI_FS_DEBUG = false;
@@ -70,7 +71,7 @@ export interface FsPollable {
 
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable | Resource;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -301,11 +302,11 @@ export class OpenDirectory {
     }
 }
 
-export class OpenDirectoryIterator {
+export class OpenDirectoryIterator implements Resource {
     constructor(fd: Descriptor, openDir: OpenDirectory) {
         this._descriptor = fd;
         this._openDir = openDir;
-        this.resource = 0;
+        this.resource = -1;
     }
     private _openDir: OpenDirectory;
     private _descriptor: Descriptor;

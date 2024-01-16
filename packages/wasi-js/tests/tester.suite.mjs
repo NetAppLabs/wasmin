@@ -5,11 +5,22 @@ import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { constructOneTestForTestSuite } from "@wasmin/wasi-js/tests/utils.js";
+import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js";
 import { getOriginPrivateDirectory } from "@wasmin/fs-js";
 import { isBun } from "@wasmin/wasi-js/index.js";
 import { default as process } from "node:process";
-import { constructWasiForTestRuntimeDetection } from "./utils.js";
+import { node } from "@wasmin/node-fs-js";
+//import { constructWasiForTestRuntimeDetection } from "./utils.js";
+
+export async function constructWasiForTestRuntimeDetection(testCase) {
+    if (isBun()) {
+        const bunmod = await import("@wasmin/bun-fs-js");
+        const bun = bunmod.bun;
+        return constructWasiForTest(testCase, bun);
+    } else {
+        return constructWasiForTest(testCase, node);
+    }
+}
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
@@ -28,11 +39,12 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const testFile = "lseek.json"
 
 const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
-const testFile = "environ_get-multiple-variables.json";
+//const testFile = "environ_get-multiple-variables.json";
 //const testFile = "fd_write-to-stdout.json"
 //const testFile = "environ_sizes_get-multiple-variables.json";
+const testFile = "fd_write-to-invalid-fd.wasm";
 
-let loop_count = 10;
+let loop_count = 1;
 
 for (let i = 0; i < loop_count; i++) {
     const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
@@ -65,11 +77,11 @@ async function runCase(testCase) {
         let w = undefined;
         ret = await constructWasiForTestRuntimeDetection(testCase);
         w = ret.wasi;
-        console.log("wasi: ", w);
+        //console.log("wasi: ", w);
 
         if (w) {
             //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
-            //w.component = true;
+            w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {

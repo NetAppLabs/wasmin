@@ -23,8 +23,9 @@ import {
     IPv6AddressToArray,
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
-import { ResourceManager, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
+import { isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 import { InStream, OutStream } from "./io.js";
+import { Resource } from "../../wasiResources.js";
 type UdpSocket = socku.UdpSocket;
 type OutgoingDatagram = socku.OutgoingDatagram;
 type OutgoingDatagramStream = socku.OutgoingDatagramStream
@@ -47,22 +48,45 @@ type WasiSocketsUdpAsync = socku.WasiSocketsUdpAsync;
 type WasiSocketsUdpCreateSocketAsync = sockuc.WasiSocketsUdpCreateSocketAsync;
 
 
-const DEFAULT_NETWORK: Network = 0;
-
 export class SocketsNetworkAsyncHost implements SocketsInstanceNetworkAsync, SocketsNetworkAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this._instanceNetworkId = -1;
     }
     private _wasiEnv: WasiEnv;
+    private _instanceNetworkId: number;
 
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
     async instanceNetwork(): Promise<Network> {
-        return DEFAULT_NETWORK;
+        if (this._instanceNetworkId == -1) {
+            const netInstance = new NetworkInstance(this._wasiEnv);
+            const netResourceId = this.openFiles.add(netInstance);
+            netInstance.resource = netResourceId;
+            this._instanceNetworkId = netResourceId;
+        }
+        const netInstance = this.openFiles.get(this._instanceNetworkId);
+        return netInstance;
     }
     async dropNetwork(netw: Network): Promise<void> {
         // no-op for now
         return;
     }
+}
+
+export class NetworkInstance implements Resource {
+    constructor(wasiOptions: WasiOptions) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+        this.resource = -1;
+    }
+    private _wasiEnv: WasiEnv;
+    resource: number;
 }
 
 export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, SocketsTcpAsync {
@@ -99,14 +123,14 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
 
 }
 
-export class TcpSocketInstance implements TcpSocket {
+export class TcpSocketInstance implements TcpSocket, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this.resource = fd;
     }
     private _wasiEnv: WasiEnv;
-    private resource: number;
+    public resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -380,15 +404,17 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
 
 }
 
-export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream {
+export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
+        this.resource = -1;
     }
 
     private _wasiEnv: WasiEnv;
     private _fd: number;
+    public resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -441,15 +467,17 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
     }
 }
 
-export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream {
+export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
+        this.resource = -1;
     }
 
     private _wasiEnv: WasiEnv;
     private _fd: number;
+    public resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -499,7 +527,7 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
     }
 }
 
-export class UdpSocketInstance implements UdpSocket {
+export class UdpSocketInstance implements UdpSocket, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -507,7 +535,7 @@ export class UdpSocketInstance implements UdpSocket {
     }
 
     private _wasiEnv: WasiEnv;
-    private resource: number;
+    public resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -557,7 +585,11 @@ export class UdpSocketInstance implements UdpSocket {
     }
     async stream(remoteAddress: sockn.IpSocketAddress | undefined): Promise<[socku.IncomingDatagramStream, socku.OutgoingDatagramStream]> {
         const incomingDataStream = new UdpIncomingDatagramStreamInstance(this.wasiEnv,this.fd);
+        const newIncomingResourceId = this.openFiles.add(incomingDataStream);
+        incomingDataStream.resource = newIncomingResourceId;
         const outgoingDataStream = new UdpOutgoingDatagramStreamInstance(this.wasiEnv,this.fd);
+        const newOutgoingResourceId = this.openFiles.add(outgoingDataStream);
+        outgoingDataStream.resource = newOutgoingResourceId;
         return [incomingDataStream, outgoingDataStream];
     }/*
     async receive(sockFd: number, maxResults: bigint): Promise<socku.Datagram[]> {
@@ -698,9 +730,11 @@ export class UdpSocketInstance implements UdpSocket {
     }
 }
 
-export class ResolveAddressIterator {
-    resource?: number;
-    constructor(public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {}
+export class ResolveAddressIterator implements Resource {
+    public resource: number;
+    constructor(public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
+        this.resource = -1;
+    }
     nextAddress(): AddressInfo | null {
         while (this.addresses.length > this.position) {
             const nextAddr = this.addresses[this.position];
@@ -746,7 +780,13 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
         this._wasiEnv = wasiEnv;
     }
     private _wasiEnv: WasiEnv;
-    private _addressLookupManager = new ResourceManager();
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
+
     async resolveAddresses(
         network: Network,
         name: string,
@@ -757,7 +797,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             const resolve = await getAddressResolver();
             const addresses = await resolve(host, port);
             const iter = new ResolveAddressIterator(addresses);
-            const returnId = this._addressLookupManager.add(iter);
+            const returnId = this.openFiles.add(iter);
             iter.resource = returnId;
             return iter;
         } catch (err: any) {
