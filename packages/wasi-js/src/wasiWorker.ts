@@ -1,7 +1,7 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
+import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
 import { In, Out, isNode } from "./wasiUtils.js";
 import {
@@ -148,7 +148,7 @@ export class WASIWorker {
         const workerThread = wasiWorker.wasiWorkerThread;
         if (workerThread) {
             const handleComponentImportFunc = workerThread.handleComponentImport;
-            return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
+            return createComponentModuleImportProxyPerImportForChannel("import", importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("WasiWorkerThread not set");
         }
@@ -217,11 +217,12 @@ export class WasiWorkerThreadRunner {
     public async handleComponentImport(
         channel: Channel,
         messageId: string,
+        callType: HandleCallType,
         importName: string,
         functionName: string,
         args: any[]
     ): Promise<any> {
-        await this.wasi?.handleComponentImport(channel, messageId, importName, functionName, args);
+        await this.wasi?.handleComponentImport(channel, messageId, callType, importName, functionName, args);
     }
 
     public async handleCoreImport(

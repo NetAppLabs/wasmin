@@ -16,16 +16,16 @@ type Pollable = io.Pollable;
 type StreamErrorClosed = io.StreamErrorClosed;
 
 export class InputStreamPollable implements FsPollable {
-    fd: number;
+    resource: number;
     openFiles: OpenFiles;
     constructor(openFiles: OpenFiles, fd: number) {
-        this.fd = fd;
+        this.resource = fd;
         this.openFiles = openFiles;
     }
-    async ready(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    get fd() {
+        return this.resource;
     }
-    async block(): Promise<void> {
+    async ready(): Promise<boolean> {
         try {
             const ofd = this.openFiles.get(this.fd);
             const ofda = ofd as any;
@@ -33,22 +33,31 @@ export class InputStreamPollable implements FsPollable {
                 let peekBytes = await ofda.peek();
                 wasiPreview2Debug(`[io/streams] InputStreamPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
                 if (peekBytes > 0) {
-                    return;
+                    return true;
                 }
             }
             if (ofda.hasConnectedClient) {
                 let hasConnectedClient = await ofda.hasConnectedClient();
                 if (hasConnectedClient) {
-                    return hasConnectedClient;
+                    return true;
                 }
             }
         } catch (err: any) {
             wasiPreview2Debug(`[io/streams] InputStreamPollable.done fd: ${this.fd} err:`, err);
             if (isBadFileDescriptor(err)) {
-                return;
+                return false;
             }
         } 
-        return;
+        return false;
+    }
+    async block(): Promise<void> {
+        while (true) {
+            const isReady = await this.ready();
+            if (isReady) {
+                return;
+            }
+            await sleep(1);
+        }
     }
 }
 
@@ -65,33 +74,36 @@ export class InStream implements InputStream {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this._fd = fd;
+        this.resource = fd;
     }
     [Symbol.asyncDispose](): Promise<void> {
         throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
-    private _fd: number;
+    public resource: number;
     get wasiEnv() {
         return this._wasiEnv;
     }
     get openFiles() {
         return this.wasiEnv.openFiles;
     }
+    get fd() {
+        return this.resource;
+    }
     async read(len: bigint): Promise<Uint8Array> {
         //let streamStatus: StreamStatus = 'ended';
+        let isEnd = false;
         try {
-            wasiPreview2Debug(`[io/streams] io:read ${this._fd} starting`);
+            wasiPreview2Debug(`[io/streams] io:read ${this.fd} starting`);
             if (len == 0n) {
                 return new Uint8Array();
             }
-            const reader = this.openFiles.getAsReadable(this._fd);
+            const reader = this.openFiles.getAsReadable(this.fd);
             // TODO: handle bigint
             const buffer = await reader.read(Number(len));
-            let isEnd = false;
-            if (buffer.length < len) {
+            /*if (buffer.length < len) {
                 isEnd = true;
-            }
+            }*/
             if (isEnd) {
                 //streamStatus = 'ended';
                 let err: StreamErrorClosed = {
@@ -100,16 +112,20 @@ export class InStream implements InputStream {
                 throw err;
             } else {
                 //streamStatus = 'open';
-                wasiPreview2Debug(`[io/streams] io:read ${this._fd} open`);
+                wasiPreview2Debug(`[io/streams] io:read ${this.fd} open`);
             }
-            wasiPreview2Debug(`[io/streams] io:read ${this._fd} returning`,buffer);
+            wasiPreview2Debug(`[io/streams] io:read ${this.fd} returning`,buffer);
             return buffer;    
         } catch (err: any) {
-            wasiPreview2Debug(`[io/streams] io:read ${this._fd} catching err:`, err);
-            /*if (isErrorAgain(err)) {
-                streamStatus = 'open';
-            }*/
-            return new Uint8Array();
+            if (isEnd) {
+                throw err;
+            } else {
+                wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
+                /*if (isErrorAgain(err)) {
+                    streamStatus = 'open';
+                }*/
+                return new Uint8Array();
+            }
         }
     }
     async blockingRead(len: bigint): Promise<Uint8Array> {
@@ -119,9 +135,10 @@ export class InStream implements InputStream {
             //      will block until at least one byte can be read, so we should sleep and retry
             const res = await this.read(len);
             //if (res.byteLength !== 0 || res !== 'open') {
-            if (res.byteLength !== 0) {
+            //if (res.length !== 0) {
+            //if (res.byteLength !== 0) {
                 return res;
-            }
+            //}
             await sleep(1);
         }
     }
@@ -137,13 +154,13 @@ export class InStream implements InputStream {
     }
 
     async subscribe(): Promise<io.Pollable> {
-        const pollable = new InputStreamPollable(this.openFiles, this._fd);
+        const pollable = new InputStreamPollable(this.openFiles, this.fd);
         this._wasiEnv.openFiles.add(pollable);
         return pollable;
     }
 
     [Symbol.dispose]() {
-        this._wasiEnv.openFiles.close(this._fd);
+        this._wasiEnv.openFiles.close(this.fd);
     }
 }
 
@@ -152,18 +169,21 @@ export class OutStream implements OutputStream {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this._fd = fd;
+        this.resource = fd;
     }
     [Symbol.asyncDispose](): Promise<void> {
         throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
-    private _fd: number;
+    private resource: number;
     get wasiEnv() {
         return this._wasiEnv;
     }
     get openFiles() {
         return this.wasiEnv.openFiles;
+    }
+    get fd() {
+        return this.resource;
     }
 
     async checkWrite(): Promise<bigint> {
@@ -174,7 +194,7 @@ export class OutStream implements OutputStream {
     }
     async write(contents: Uint8Array): Promise<void> {
         try {
-            const writer = this.openFiles.getAsWritable(this._fd);
+            const writer = this.openFiles.getAsWritable(this.fd);
             const len = await writer.write(contents);
             const written = contents.length;
             return;

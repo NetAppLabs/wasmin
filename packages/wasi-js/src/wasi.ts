@@ -4,6 +4,7 @@
 
 import { instantiate } from "./vendored/asyncify/asyncify.js";
 import {
+    HandleCallType,
     HandleWasmComponentImportFunc,
     HandleWasmImportFunc,
     instantiateOnWasmWorker,
@@ -36,7 +37,8 @@ import {
     WasiSnapshotPreview2AsyncImportObject,
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
-import { wasiWorkerDebug } from "./workerUtils.js";
+import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
+import { Resource, containsResourceObjects, getResourceIdentifier, getResourceObjectForResourceProxy, storeResourceObjects } from "./wasiResources.js";
 //import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiOptions {
@@ -219,6 +221,7 @@ export class WASI {
     private _coreModuleImports?: WebAssembly.Imports;
 
     private _componentImportObject?: {};
+    private _resources?: {};
     private _componentInstance?: {};
 
     private _channel?: Channel;
@@ -232,6 +235,12 @@ export class WASI {
     }
     public set componentImportObject(value: {}) {
         this._componentImportObject = value;
+    }
+    public get resources(): {} {
+        if (!this._resources) {
+            this._resources = new Map();
+        }
+        return this._resources;
     }
 
     get wasiEnv() {
@@ -304,6 +313,7 @@ export class WASI {
         const handleComponentImportFuncLocal: HandleWasmComponentImportFunc = async (
             channel: Channel,
             messageId: string,
+            callType: HandleCallType,
             importName: string,
             functionName: string,
             args: any[]
@@ -311,7 +321,7 @@ export class WASI {
             //const localComponentImportObject = componentImportObject;
             try {
                 wasiCallDebug(`[wasi] [component] : [${importName}] [${functionName}]:`, args);
-                return await this.handleComponentImport(channel, messageId, importName, functionName, args);
+                return await this.handleComponentImport(channel, messageId, callType, importName, functionName, args);
             } catch (err: any) {
                 wasiDebug("WASI.handleImportFuncLocal err: ", err);
                 throw err;
@@ -544,22 +554,102 @@ export class WASI {
         return exports;
     }
 
+    /**
+     * 
+     * @param callType import or resource
+     * @param importName 
+     * @returns 
+     */
+    public getObjectToCall(
+        callType: HandleCallType,
+        identifier: string,
+    ): any {
+        let res = undefined;
+        if (callType == "import") {
+            const componentImports = this.componentImportObject as any;
+            const imp = componentImports[identifier];
+            res = imp;
+        } else  if (callType == "resource") {
+            const resources = this.resources as any;
+            res = resources[identifier];
+        }
+        if (res !== undefined) {
+            return res;
+        }
+        throw new Error(`getObjectToCall could not find object with callType: ${callType} identifier: ${identifier}`)
+    }
+
+    public storeResource(
+        importName: string,
+        resourceId: number,
+        res: any,
+    ): any {
+        const identifier = getResourceIdentifier(importName, resourceId);
+        const resources = this.resources as any;
+        wasiDebug(`storeResource storing resource object with identifier: ${identifier}`);
+        resources[identifier] = res;
+    }
+
+    public lookupResource(
+        importName: string,
+        resourceId: number,
+    ): Resource | undefined {
+        const identifier = getResourceIdentifier(importName, resourceId);
+        const resources = this.resources as any;
+        wasiDebug(`lookupResource lookung up resource object with identifier: ${identifier}`);
+        const res = resources[identifier];
+        return res;
+    }
+
     public async handleComponentImport(
         channel: Channel,
         messageId: string,
+        callType: HandleCallType,
         importName: string,
         functionName: string,
         args: any[]
     ): Promise<void> {
-        const componentImports = this.componentImportObject as any;
-        const imp = componentImports[importName];
-        const func = imp[functionName] as Function;
+        const imp = this.getObjectToCall(callType, importName);
+        let func: Function|undefined = undefined;
+        if (isSymbolStringIdentifier(functionName)) {
+            const symbolKey = getSymbolForString(functionName);
+            //func = imp[symbolKey] as Function;
+            // Todo handle dispose
+            func = () => {
+                wasiDebug(`calling dispose on importName: ${importName}`);
+                return;
+            };
+        } else {
+            const sFunctionName = functionName as string;
+            func = imp[sFunctionName] as Function;
+        }
+        let newArgs = args;
+        let i = 0;
+        let lookupFunc = this.lookupResource;
+        lookupFunc = lookupFunc.bind(this);
+        for (let arg of newArgs) {
+            let newArg = undefined;
+            if (containsResourceObjects(arg)) {
+                newArg = getResourceObjectForResourceProxy(arg, importName, lookupFunc);
+            }
+            if (newArg) {
+                newArgs[i] = newArg;
+            } else {
+                newArgs[i] = arg;
+            }
+            i++;
+        }
 
         let funcReturn, funcThrownError;
         try {
             // Binding "this" to section object for fuction
             const boundFunc = func.bind(imp);
-            funcReturn = await boundFunc(...args);
+            funcReturn = await boundFunc(...newArgs);
+            if (containsResourceObjects(funcReturn)) {
+                let storeFunc = this.storeResource;
+                storeFunc = storeFunc.bind(this);
+                storeResourceObjects(importName, funcReturn, storeFunc);
+            }
         } catch (err: any) {
             funcThrownError = err;
         }

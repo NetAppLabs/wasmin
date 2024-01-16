@@ -305,10 +305,12 @@ export class OpenDirectoryIterator {
     constructor(fd: Descriptor, openDir: OpenDirectory) {
         this._descriptor = fd;
         this._openDir = openDir;
+        this.resource = 0;
     }
     private _openDir: OpenDirectory;
     private _descriptor: Descriptor;
     private _cursor = 0;
+    public resource: number;
 
     public get cursor(): number {
         return this._cursor;
@@ -720,6 +722,7 @@ export class OpenFiles {
         const openDir = this.getAsDir(fd);
         const iter = new OpenDirectoryIterator(fd, openDir);
         const iterFd = this.add(iter);
+        iter.resource = iterFd;
         return iterFd;
     }
 

@@ -77,6 +77,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { Pollable, poll } = imports['wasi:io/poll'];
   const { InputStream, OutputStream } = imports['wasi:io/streams'];
   const { getRandomBytes } = imports['wasi:random/random'];
+  // TODO fix these in code generation:
+  const { TerminalInput } = imports['wasi:cli/terminal-stdin'];
+  const { TerminalOutput } = imports['wasi:cli/terminal-stdout'];
+
+
   let exports0;
   let exports1;
   

@@ -43,10 +43,13 @@ export type HandleWasmImportFunc = (
     memory: ArrayBufferLike
 ) => any;
 
+export type HandleCallType = "resource" | "import";
+
 export type HandleWasmComponentImportFunc = (
     channel: Channel,
     messageId: string,
-    importName: string,
+    callType: HandleCallType,
+    identifierName: string,
     functionName: string,
     args: any[]
 ) => any;

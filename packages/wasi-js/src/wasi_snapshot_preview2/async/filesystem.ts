@@ -36,7 +36,9 @@ export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.Descriptor = FileSystemFileDescriptor;
     }
+    public Descriptor: typeof FileSystemFileDescriptor;
     private _wasiEnv: WasiEnv;
 
     async getDirectories(): Promise<[Descriptor, string][]> {
@@ -76,7 +78,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
 
 export class FileSystemFileDescriptor implements fs.Descriptor {
     private _wasiEnv: WasiEnv;
-    private _fd: number;
+    private resource: number;
     private _path: string;
 
     get wasiEnv() {
@@ -86,7 +88,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor {
         return this.wasiEnv.openFiles;
     }
     get fd() {
-        return this._fd;
+        return this.resource;
     }
     get path() {
         return this._path;
@@ -95,7 +97,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor {
     constructor(wasiOptions: WasiOptions, fd: number, path: string) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this._fd = fd;
+        this.resource = fd;
         this._path = path;
     }
     async readViaStream(offset: bigint): Promise<fs.InputStream> {

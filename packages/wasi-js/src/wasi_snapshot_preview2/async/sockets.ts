@@ -103,10 +103,10 @@ export class TcpSocketInstance implements TcpSocket {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this._fd = fd;
+        this.resource = fd;
     }
     private _wasiEnv: WasiEnv;
-    private _fd: number;
+    private resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -115,7 +115,7 @@ export class TcpSocketInstance implements TcpSocket {
         return this.wasiEnv.openFiles;
     }
     get fd() {
-        return this._fd;
+        return this.resource;
     }
     get inputstream() {
         const instream = new InStream(this._wasiEnv,this.fd);
@@ -503,17 +503,17 @@ export class UdpSocketInstance implements UdpSocket {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this._fd = fd;
+        this.resource = fd;
     }
 
     private _wasiEnv: WasiEnv;
-    private _fd: number;
+    private resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
     }
     get fd() {
-        return this._fd;
+        return this.resource;
     }
     get openFiles() {
         return this.wasiEnv.openFiles;
@@ -699,6 +699,7 @@ export class UdpSocketInstance implements UdpSocket {
 }
 
 export class ResolveAddressIterator {
+    resource?: number;
     constructor(public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {}
     nextAddress(): AddressInfo | null {
         while (this.addresses.length > this.position) {
@@ -757,6 +758,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             const addresses = await resolve(host, port);
             const iter = new ResolveAddressIterator(addresses);
             const returnId = this._addressLookupManager.add(iter);
+            iter.resource = returnId;
             return iter;
         } catch (err: any) {
             // swallow error

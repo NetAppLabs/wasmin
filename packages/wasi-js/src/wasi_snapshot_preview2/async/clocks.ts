@@ -20,6 +20,7 @@ export class ClocksMonotonicPollable implements FsPollable {
     constructor(when: Instant) {
         this._when = when;
     }
+    public resource?: number;
     
     async ready(): Promise<boolean> {
         return await this.doneWithoutWaiting();
@@ -78,7 +79,8 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
             when += hrTimeNow;
         }
         const pollable = new ClocksMonotonicPollable(when);
-        this._wasiEnv.openFiles.add(pollable);
+        const fd = this._wasiEnv.openFiles.add(pollable);
+        pollable.resource = fd;
         return pollable;
     }
 }

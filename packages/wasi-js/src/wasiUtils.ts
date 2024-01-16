@@ -25,6 +25,9 @@ if (!globalThis.WASI_CALL_DEBUG) {
 if (!globalThis.WASI_FD_DEBUG) {
     globalThis.WASI_FD_DEBUG = false;
 }
+if (!globalThis.WASI_RESOURCE_DEBUG) {
+    globalThis.WASI_RESOURCE_DEBUG = false;
+}
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
@@ -34,6 +37,12 @@ export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
 
 export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
+        console.debug(msg, ...optionalParams);
+    }
+}
+
+export function wasiResourceDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASI_RESOURCE_DEBUG) {
         console.debug(msg, ...optionalParams);
     }
 }

@@ -144,6 +144,8 @@ export class CommandRunner {
                 //this.commandComponent.run();
                 const runner = this.commandComponent.run;
                 runner.run();
+            } catch (err: any) {
+                console.log('run: err ', err);
             } finally {
                 this.cleanup();
             }

@@ -181,6 +181,19 @@ export function isSymbol(value: any) {
     return typeof value === "symbol" || value instanceof Symbol;
 }
 
+export function isSymbolStringIdentifier(functionName: string) {
+    if (functionName.startsWith("Symbol(")) {
+        return true;
+    }
+    return false;
+}
+
+export function getSymbolForString(symbolString: string) {
+    const symId1 = symbolString.replaceAll("Symbol(", "");
+    const symId = symId1.replaceAll(")", "");
+    return Symbol.for(symId);
+}
+
 export function isArray(value: any) {
     return (
         Array.isArray(value) ||

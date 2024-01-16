@@ -71,7 +71,7 @@ export class WasmComponentWorkerThreadRunner {
         const wasiWorker = this;
         const channel = this._channel;
         if (channel) {
-            return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
+            return createComponentModuleImportProxyPerImportForChannel("import", importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("Channel not set");
         }
