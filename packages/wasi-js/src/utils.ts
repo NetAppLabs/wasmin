@@ -7,7 +7,8 @@ export class TextDecoderWrapper implements TextDecoder {
         this.encoding = encoding;
         this.fatal = false;
         this.ignoreBOM = true;
-        this.innerDecoder = new TextDecoder(this.encoding, options);
+        //this.innerDecoder = new TextDecoder(this.encoding, options);
+        this.innerDecoder = new TextDecoder(this.encoding);
     }
     encoding: string;
     fatal: boolean;

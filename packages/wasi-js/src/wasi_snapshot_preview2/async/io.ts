@@ -102,6 +102,7 @@ export class InStream implements InputStream, Resource {
             const reader = this.openFiles.getAsReadable(this.fd);
             // TODO: handle bigint
             const buffer = await reader.read(Number(len));
+            wasiPreview2Debug("io.read buffer: ", buffer);
             /*if (buffer.length < len) {
                 isEnd = true;
             }*/

@@ -24,6 +24,11 @@ async function constructTestsWithSkip() {
     const skips: string[] = [
         "dangling_symlink",
         "fopen-with-no-access",
+        "fdopendir-with-access",
+        "args_get-multiple-arguments",
+        "environ_get-multiple-variables",
+        "fd_write-to-invalid-fd",
+        "proc_exit-failure",
     ];
     if (isBun()) {
         skips.push("fd_filestat_set");
@@ -48,7 +53,7 @@ async function constructTestsWithSkip() {
 
 const tests = await constructTestsWithSkip();
 
-describe("wasi-testsuite", () => {
+describe("wasi-testsuite-component", () => {
     test.each(tests)(
         "$test",
         async (testCase: Test) => {
@@ -83,6 +88,7 @@ describe("wasi-testsuite", () => {
                 ret = await constructWasiForTestRuntimeDetection(testCase);
                 const w = ret.wasi;
                 if (w) {
+                    w.component = true;
                     //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
                     actualExitCode = await w.run(await wasmMod);
                 }

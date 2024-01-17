@@ -730,7 +730,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }
 }
 
-export class ResolveAddressIterator implements Resource {
+export class ResolveAddressIterator implements ResolveAddressStream, Resource {
     public resource: number;
     constructor(public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
         this.resource = -1;

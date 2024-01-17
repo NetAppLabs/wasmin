@@ -77,10 +77,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { Pollable, poll } = imports['wasi:io/poll'];
   const { InputStream, OutputStream } = imports['wasi:io/streams'];
   const { getRandomBytes } = imports['wasi:random/random'];
-  // TODO fix these in code generation:
+  const { TcpSocket } = imports['wasi:sockets/tcp'];
+
   const { TerminalInput } = imports['wasi:cli/terminal-stdin'];
   const { TerminalOutput } = imports['wasi:cli/terminal-stdout'];
-
 
   let exports0;
   let exports1;
@@ -139,7 +139,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return handle2;
   }
   
-  function trampoline14() {
+  function trampoline15() {
     const ret = getStderr();
     if (!(ret instanceof OutputStream)) {
       throw new Error('Not a valid "OutputStream" resource.');
@@ -149,7 +149,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return handle0;
   }
   
-  function trampoline15(arg0) {
+  function trampoline16(arg0) {
     let variant0;
     switch (arg0) {
       case 0: {
@@ -173,7 +173,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     exit(variant0);
   }
   
-  function trampoline16() {
+  function trampoline17() {
     const ret = getStdin();
     if (!(ret instanceof InputStream)) {
       throw new Error('Not a valid "InputStream" resource.');
@@ -183,7 +183,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return handle0;
   }
   
-  function trampoline17() {
+  function trampoline18() {
     const ret = getStdout();
     if (!(ret instanceof OutputStream)) {
       throw new Error('Not a valid "OutputStream" resource.');
@@ -194,7 +194,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   let exports2;
   
-  function trampoline18(arg0) {
+  function trampoline19(arg0) {
     const ret = getDirectories();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -219,21 +219,21 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let memory0;
   let realloc0;
   
-  function trampoline19(arg0) {
+  function trampoline20(arg0) {
     const ret = now$1();
     const {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
-  function trampoline20(arg0) {
+  function trampoline21(arg0) {
     const ret = resolution$1();
     const {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
-  function trampoline21(arg0, arg1, arg2) {
+  function trampoline22(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -426,7 +426,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline22(arg0, arg1, arg2) {
+  function trampoline23(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -619,7 +619,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline23(arg0, arg1) {
+  function trampoline24(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -812,7 +812,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline24(arg0, arg1, arg2, arg3, arg4) {
+  function trampoline25(arg0, arg1, arg2, arg3, arg4) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let enum2;
@@ -1029,7 +1029,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline25(arg0, arg1) {
+  function trampoline26(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -1216,7 +1216,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline26(arg0, arg1) {
+  function trampoline27(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -1410,7 +1410,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline27(arg0, arg1) {
+  function trampoline28(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -1641,7 +1641,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline28(arg0, arg1, arg2) {
+  function trampoline29(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -1828,7 +1828,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline29(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function trampoline30(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let variant2;
@@ -2071,7 +2071,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline30(arg0, arg1, arg2, arg3) {
+  function trampoline31(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -2267,7 +2267,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline31(arg0, arg1, arg2, arg3, arg4) {
+  function trampoline32(arg0, arg1, arg2, arg3, arg4) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -2458,7 +2458,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline32(arg0, arg1) {
+  function trampoline33(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -2651,7 +2651,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline33(arg0, arg1) {
+  function trampoline34(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -2838,7 +2838,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline34(arg0, arg1, arg2, arg3) {
+  function trampoline35(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -3028,7 +3028,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline35(arg0, arg1) {
+  function trampoline36(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -3292,7 +3292,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline36(arg0, arg1, arg2, arg3, arg4) {
+  function trampoline37(arg0, arg1, arg2, arg3, arg4) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     if ((arg1 & 4294967294) !== 0) {
@@ -3565,7 +3565,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline37(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
+  function trampoline38(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     if ((arg1 & 4294967294) !== 0) {
@@ -3817,7 +3817,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline38(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  function trampoline39(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     if ((arg1 & 4294967294) !== 0) {
@@ -4018,7 +4018,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline39(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+  function trampoline40(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     if ((arg1 & 4294967294) !== 0) {
@@ -4240,7 +4240,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline40(arg0, arg1, arg2, arg3) {
+  function trampoline41(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -4434,7 +4434,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline41(arg0, arg1, arg2, arg3) {
+  function trampoline42(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -4624,7 +4624,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline42(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+  function trampoline43(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -4819,7 +4819,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline43(arg0, arg1, arg2, arg3, arg4, arg5) {
+  function trampoline44(arg0, arg1, arg2, arg3, arg4, arg5) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -5012,7 +5012,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline44(arg0, arg1, arg2, arg3) {
+  function trampoline45(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const ptr2 = arg1;
@@ -5202,7 +5202,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline45(arg0, arg1) {
+  function trampoline46(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -5392,7 +5392,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline46(arg0, arg1, arg2, arg3, arg4) {
+  function trampoline47(arg0, arg1, arg2, arg3, arg4) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     if ((arg1 & 4294967294) !== 0) {
@@ -5591,7 +5591,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline47(arg0, arg1) {
+  function trampoline48(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable7.get(handle1).rep;
     let ret;
@@ -5834,7 +5834,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline48(arg0, arg1) {
+  function trampoline49(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable0.get(handle1).rep;
     const ret = filesystemErrorCode(rsc0);
@@ -6007,7 +6007,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline49(arg0, arg1, arg2) {
+  function trampoline50(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable2.get(handle1).rep;
     let ret;
@@ -6062,7 +6062,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline50(arg0, arg1, arg2) {
+  function trampoline51(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable2.get(handle1).rep;
     let ret;
@@ -6117,7 +6117,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline51(arg0, arg1) {
+  function trampoline52(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable3.get(handle1).rep;
     let ret;
@@ -6166,7 +6166,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline52(arg0, arg1, arg2, arg3) {
+  function trampoline53(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable3.get(handle1).rep;
     const ptr2 = arg1;
@@ -6217,7 +6217,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline53(arg0, arg1, arg2, arg3) {
+  function trampoline54(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable3.get(handle1).rep;
     const ptr2 = arg1;
@@ -6268,7 +6268,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline54(arg0, arg1) {
+  function trampoline55(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable3.get(handle1).rep;
     let ret;
@@ -6316,7 +6316,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline55(arg0, arg1, arg2) {
+  function trampoline56(arg0, arg1, arg2) {
     const len2 = arg1;
     const base2 = arg0;
     const result2 = [];
@@ -6336,7 +6336,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg2 + 0, ptr3, true);
   }
   
-  function trampoline56(arg0, arg1) {
+  function trampoline57(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -6347,7 +6347,290 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function trampoline57(arg0) {
+  function trampoline58(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable8.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.accept.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant7 = ret;
+    switch (variant7.tag) {
+      case 'ok': {
+        const e = variant7.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const [tuple2_0, tuple2_1, tuple2_2] = e;
+        if (!(tuple2_0 instanceof TcpSocket)) {
+          throw new Error('Not a valid "TcpSocket" resource.');
+        }
+        const handle3 = handleCnt8++;
+        handleTable8.set(handle3, { rep: tuple2_0, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle3, true);
+        if (!(tuple2_1 instanceof InputStream)) {
+          throw new Error('Not a valid "InputStream" resource.');
+        }
+        const handle4 = handleCnt2++;
+        handleTable2.set(handle4, { rep: tuple2_1, own: true });
+        dataView(memory0).setInt32(arg1 + 8, handle4, true);
+        if (!(tuple2_2 instanceof OutputStream)) {
+          throw new Error('Not a valid "OutputStream" resource.');
+        }
+        const handle5 = handleCnt3++;
+        handleTable3.set(handle5, { rep: tuple2_2, own: true });
+        dataView(memory0).setInt32(arg1 + 12, handle5, true);
+        break;
+      }
+      case 'err': {
+        const e = variant7.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val6 = e;
+        let enum6;
+        switch (val6) {
+          case 'unknown': {
+            enum6 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum6 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum6 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum6 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum6 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum6 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum6 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum6 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum6 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum6 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum6 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum6 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum6 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum6 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum6 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum6 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum6 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum6 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum6 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum6 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum6 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val6}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum6, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline59(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable8.get(handle1).rep;
+    let enum2;
+    switch (arg1) {
+      case 0: {
+        enum2 = 'receive';
+        break;
+      }
+      case 1: {
+        enum2 = 'send';
+        break;
+      }
+      case 2: {
+        enum2 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.shutdown.call(rsc0, enum2) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant4 = ret;
+    switch (variant4.tag) {
+      case 'ok': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val3 = e;
+        let enum3;
+        switch (val3) {
+          case 'unknown': {
+            enum3 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum3 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum3 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum3 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum3 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum3 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum3 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum3 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum3 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum3 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum3 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum3 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum3 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum3 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum3 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum3 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum3 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum3 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum3 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum3 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum3 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum3, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline60(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -6368,7 +6651,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function trampoline58(arg0) {
+  function trampoline61(arg0) {
     const ret = getArguments();
     const vec1 = ret;
     const len1 = vec1.length;
@@ -6384,7 +6667,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg0 + 0, result1, true);
   }
   
-  function trampoline59(arg0) {
+  function trampoline62(arg0) {
     const ret = getTerminalStdin();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -6401,7 +6684,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline60(arg0) {
+  function trampoline63(arg0) {
     const ret = getTerminalStdout();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -6418,7 +6701,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline61(arg0) {
+  function trampoline64(arg0) {
     const ret = getTerminalStderr();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -6507,9 +6790,21 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       handleEntry.rep[symbolDispose]();
     }
   }
+  const handleTable4= new Map();
+  let handleCnt4 = 0;
+  function trampoline12(handle) {
+    const handleEntry = handleTable4.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable4.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
   const handleTable5= new Map();
   let handleCnt5 = 0;
-  function trampoline12(handle) {
+  function trampoline13(handle) {
     const handleEntry = handleTable5.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -6519,14 +6814,14 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       handleEntry.rep[symbolDispose]();
     }
   }
-  const handleTable4= new Map();
-  let handleCnt4 = 0;
-  function trampoline13(handle) {
-    const handleEntry = handleTable4.get(handle);
+  const handleTable8= new Map();
+  let handleCnt8 = 0;
+  function trampoline14(handle) {
+    const handleEntry = handleTable8.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
     }
-    handleTable4.delete(handle);
+    handleTable8.delete(handle);
     if (handleEntry.own && handleEntry.rep[symbolDispose]) {
       handleEntry.rep[symbolDispose]();
     }
@@ -6537,52 +6832,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     wasi_snapshot_preview1: {
-      args_get: exports0['44'],
-      args_sizes_get: exports0['45'],
-      clock_res_get: exports0['48'],
-      clock_time_get: exports0['49'],
-      environ_get: exports0['46'],
-      environ_sizes_get: exports0['47'],
-      fd_advise: exports0['50'],
-      fd_allocate: exports0['51'],
-      fd_close: exports0['52'],
-      fd_datasync: exports0['53'],
-      fd_fdstat_get: exports0['54'],
-      fd_fdstat_set_flags: exports0['55'],
-      fd_fdstat_set_rights: exports0['56'],
-      fd_filestat_get: exports0['57'],
-      fd_filestat_set_size: exports0['58'],
-      fd_filestat_set_times: exports0['59'],
-      fd_pread: exports0['60'],
-      fd_prestat_dir_name: exports0['62'],
-      fd_prestat_get: exports0['61'],
-      fd_pwrite: exports0['63'],
-      fd_read: exports0['64'],
-      fd_readdir: exports0['65'],
-      fd_renumber: exports0['66'],
-      fd_seek: exports0['67'],
-      fd_sync: exports0['68'],
-      fd_tell: exports0['69'],
-      fd_write: exports0['70'],
-      path_create_directory: exports0['71'],
-      path_filestat_get: exports0['72'],
-      path_filestat_set_times: exports0['73'],
-      path_link: exports0['74'],
-      path_open: exports0['75'],
-      path_readlink: exports0['76'],
-      path_remove_directory: exports0['77'],
-      path_rename: exports0['78'],
-      path_symlink: exports0['79'],
-      path_unlink_file: exports0['80'],
-      poll_oneoff: exports0['81'],
-      proc_exit: exports0['82'],
-      proc_raise: exports0['83'],
-      random_get: exports0['85'],
-      sched_yield: exports0['84'],
-      sock_accept: exports0['86'],
-      sock_recv: exports0['87'],
-      sock_send: exports0['88'],
-      sock_shutdown: exports0['89'],
+      args_get: exports0['46'],
+      args_sizes_get: exports0['47'],
+      clock_res_get: exports0['50'],
+      clock_time_get: exports0['51'],
+      environ_get: exports0['48'],
+      environ_sizes_get: exports0['49'],
+      fd_advise: exports0['52'],
+      fd_allocate: exports0['53'],
+      fd_close: exports0['54'],
+      fd_datasync: exports0['55'],
+      fd_fdstat_get: exports0['56'],
+      fd_fdstat_set_flags: exports0['57'],
+      fd_fdstat_set_rights: exports0['58'],
+      fd_filestat_get: exports0['59'],
+      fd_filestat_set_size: exports0['60'],
+      fd_filestat_set_times: exports0['61'],
+      fd_pread: exports0['62'],
+      fd_prestat_dir_name: exports0['64'],
+      fd_prestat_get: exports0['63'],
+      fd_pwrite: exports0['65'],
+      fd_read: exports0['66'],
+      fd_readdir: exports0['67'],
+      fd_renumber: exports0['68'],
+      fd_seek: exports0['69'],
+      fd_sync: exports0['70'],
+      fd_tell: exports0['71'],
+      fd_write: exports0['72'],
+      path_create_directory: exports0['73'],
+      path_filestat_get: exports0['74'],
+      path_filestat_set_times: exports0['75'],
+      path_link: exports0['76'],
+      path_open: exports0['77'],
+      path_readlink: exports0['78'],
+      path_remove_directory: exports0['79'],
+      path_rename: exports0['80'],
+      path_symlink: exports0['81'],
+      path_unlink_file: exports0['82'],
+      poll_oneoff: exports0['83'],
+      proc_exit: exports0['84'],
+      proc_raise: exports0['85'],
+      random_get: exports0['87'],
+      sched_yield: exports0['86'],
+      sock_accept: exports0['88'],
+      sock_recv: exports0['89'],
+      sock_send: exports0['90'],
+      sock_shutdown: exports0['91'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -6593,35 +6888,35 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       memory: exports1.memory,
     },
     'wasi:cli/environment@0.2.0-rc-2023-12-05': {
-      'get-arguments': exports0['40'],
-      'get-environment': exports0['39'],
+      'get-arguments': exports0['42'],
+      'get-environment': exports0['41'],
     },
     'wasi:cli/exit@0.2.0-rc-2023-12-05': {
-      exit: trampoline15,
+      exit: trampoline16,
     },
     'wasi:cli/stderr@0.2.0-rc-2023-12-05': {
-      'get-stderr': trampoline14,
+      'get-stderr': trampoline15,
     },
     'wasi:cli/stdin@0.2.0-rc-2023-12-05': {
-      'get-stdin': trampoline16,
+      'get-stdin': trampoline17,
     },
     'wasi:cli/stdout@0.2.0-rc-2023-12-05': {
-      'get-stdout': trampoline17,
+      'get-stdout': trampoline18,
     },
     'wasi:cli/terminal-input@0.2.0-rc-2023-12-05': {
-      '[resource-drop]terminal-input': trampoline13,
+      '[resource-drop]terminal-input': trampoline12,
     },
     'wasi:cli/terminal-output@0.2.0-rc-2023-12-05': {
-      '[resource-drop]terminal-output': trampoline12,
+      '[resource-drop]terminal-output': trampoline13,
     },
     'wasi:cli/terminal-stderr@0.2.0-rc-2023-12-05': {
-      'get-terminal-stderr': exports0['43'],
+      'get-terminal-stderr': exports0['45'],
     },
     'wasi:cli/terminal-stdin@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdin': exports0['41'],
+      'get-terminal-stdin': exports0['43'],
     },
     'wasi:cli/terminal-stdout@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdout': exports0['42'],
+      'get-terminal-stdout': exports0['44'],
     },
     'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': {
       now: trampoline1,
@@ -6690,102 +6985,109 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     'wasi:random/random@0.2.0-rc-2023-11-10': {
       'get-random-bytes': exports0['38'],
     },
+    'wasi:sockets/tcp@0.2.0-rc-2023-11-10': {
+      '[method]tcp-socket.accept': exports0['39'],
+      '[method]tcp-socket.shutdown': exports0['40'],
+      '[resource-drop]tcp-socket': trampoline14,
+    },
   }));
   memory0 = exports1.memory;
   realloc0 = exports2.cabi_import_realloc;
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,
-      '0': trampoline18,
-      '1': trampoline19,
-      '10': trampoline28,
-      '11': trampoline29,
-      '12': trampoline30,
-      '13': trampoline31,
-      '14': trampoline32,
-      '15': trampoline33,
-      '16': trampoline34,
-      '17': trampoline35,
-      '18': trampoline36,
-      '19': trampoline37,
-      '2': trampoline20,
-      '20': trampoline38,
-      '21': trampoline39,
-      '22': trampoline40,
-      '23': trampoline41,
-      '24': trampoline42,
-      '25': trampoline43,
-      '26': trampoline44,
-      '27': trampoline45,
-      '28': trampoline46,
-      '29': trampoline47,
-      '3': trampoline21,
-      '30': trampoline48,
-      '31': trampoline49,
-      '32': trampoline50,
-      '33': trampoline51,
-      '34': trampoline52,
-      '35': trampoline53,
-      '36': trampoline54,
-      '37': trampoline55,
-      '38': trampoline56,
-      '39': trampoline57,
-      '4': trampoline22,
-      '40': trampoline58,
-      '41': trampoline59,
-      '42': trampoline60,
-      '43': trampoline61,
-      '44': exports2.args_get,
-      '45': exports2.args_sizes_get,
-      '46': exports2.environ_get,
-      '47': exports2.environ_sizes_get,
-      '48': exports2.clock_res_get,
-      '49': exports2.clock_time_get,
-      '5': trampoline23,
-      '50': exports2.fd_advise,
-      '51': exports2.fd_allocate,
-      '52': exports2.fd_close,
-      '53': exports2.fd_datasync,
-      '54': exports2.fd_fdstat_get,
-      '55': exports2.fd_fdstat_set_flags,
-      '56': exports2.fd_fdstat_set_rights,
-      '57': exports2.fd_filestat_get,
-      '58': exports2.fd_filestat_set_size,
-      '59': exports2.fd_filestat_set_times,
-      '6': trampoline24,
-      '60': exports2.fd_pread,
-      '61': exports2.fd_prestat_get,
-      '62': exports2.fd_prestat_dir_name,
-      '63': exports2.fd_pwrite,
-      '64': exports2.fd_read,
-      '65': exports2.fd_readdir,
-      '66': exports2.fd_renumber,
-      '67': exports2.fd_seek,
-      '68': exports2.fd_sync,
-      '69': exports2.fd_tell,
-      '7': trampoline25,
-      '70': exports2.fd_write,
-      '71': exports2.path_create_directory,
-      '72': exports2.path_filestat_get,
-      '73': exports2.path_filestat_set_times,
-      '74': exports2.path_link,
-      '75': exports2.path_open,
-      '76': exports2.path_readlink,
-      '77': exports2.path_remove_directory,
-      '78': exports2.path_rename,
-      '79': exports2.path_symlink,
-      '8': trampoline26,
-      '80': exports2.path_unlink_file,
-      '81': exports2.poll_oneoff,
-      '82': exports2.proc_exit,
-      '83': exports2.proc_raise,
-      '84': exports2.sched_yield,
-      '85': exports2.random_get,
-      '86': exports2.sock_accept,
-      '87': exports2.sock_recv,
-      '88': exports2.sock_send,
-      '89': exports2.sock_shutdown,
-      '9': trampoline27,
+      '0': trampoline19,
+      '1': trampoline20,
+      '10': trampoline29,
+      '11': trampoline30,
+      '12': trampoline31,
+      '13': trampoline32,
+      '14': trampoline33,
+      '15': trampoline34,
+      '16': trampoline35,
+      '17': trampoline36,
+      '18': trampoline37,
+      '19': trampoline38,
+      '2': trampoline21,
+      '20': trampoline39,
+      '21': trampoline40,
+      '22': trampoline41,
+      '23': trampoline42,
+      '24': trampoline43,
+      '25': trampoline44,
+      '26': trampoline45,
+      '27': trampoline46,
+      '28': trampoline47,
+      '29': trampoline48,
+      '3': trampoline22,
+      '30': trampoline49,
+      '31': trampoline50,
+      '32': trampoline51,
+      '33': trampoline52,
+      '34': trampoline53,
+      '35': trampoline54,
+      '36': trampoline55,
+      '37': trampoline56,
+      '38': trampoline57,
+      '39': trampoline58,
+      '4': trampoline23,
+      '40': trampoline59,
+      '41': trampoline60,
+      '42': trampoline61,
+      '43': trampoline62,
+      '44': trampoline63,
+      '45': trampoline64,
+      '46': exports2.args_get,
+      '47': exports2.args_sizes_get,
+      '48': exports2.environ_get,
+      '49': exports2.environ_sizes_get,
+      '5': trampoline24,
+      '50': exports2.clock_res_get,
+      '51': exports2.clock_time_get,
+      '52': exports2.fd_advise,
+      '53': exports2.fd_allocate,
+      '54': exports2.fd_close,
+      '55': exports2.fd_datasync,
+      '56': exports2.fd_fdstat_get,
+      '57': exports2.fd_fdstat_set_flags,
+      '58': exports2.fd_fdstat_set_rights,
+      '59': exports2.fd_filestat_get,
+      '6': trampoline25,
+      '60': exports2.fd_filestat_set_size,
+      '61': exports2.fd_filestat_set_times,
+      '62': exports2.fd_pread,
+      '63': exports2.fd_prestat_get,
+      '64': exports2.fd_prestat_dir_name,
+      '65': exports2.fd_pwrite,
+      '66': exports2.fd_read,
+      '67': exports2.fd_readdir,
+      '68': exports2.fd_renumber,
+      '69': exports2.fd_seek,
+      '7': trampoline26,
+      '70': exports2.fd_sync,
+      '71': exports2.fd_tell,
+      '72': exports2.fd_write,
+      '73': exports2.path_create_directory,
+      '74': exports2.path_filestat_get,
+      '75': exports2.path_filestat_set_times,
+      '76': exports2.path_link,
+      '77': exports2.path_open,
+      '78': exports2.path_readlink,
+      '79': exports2.path_remove_directory,
+      '8': trampoline27,
+      '80': exports2.path_rename,
+      '81': exports2.path_symlink,
+      '82': exports2.path_unlink_file,
+      '83': exports2.poll_oneoff,
+      '84': exports2.proc_exit,
+      '85': exports2.proc_raise,
+      '86': exports2.sched_yield,
+      '87': exports2.random_get,
+      '88': exports2.sock_accept,
+      '89': exports2.sock_recv,
+      '9': trampoline28,
+      '90': exports2.sock_send,
+      '91': exports2.sock_shutdown,
     },
   }));
   

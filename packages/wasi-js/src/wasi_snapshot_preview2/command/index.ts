@@ -1,3 +1,4 @@
+import { isExitStatus } from "../../wasiUtils.js";
 import { wasmWorkerThreadDebug } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../async/preview2Utils.js";
 import { instantiate, Root, ImportObject, compileCore } from "@wasmin/wasi-snapshot-preview1-command-component";
@@ -145,7 +146,9 @@ export class CommandRunner {
                 const runner = this.commandComponent.run;
                 runner.run();
             } catch (err: any) {
-                console.log('run: err ', err);
+                if(!isExitStatus(err)) {
+                    console.log('run: err ', err);
+                }
             } finally {
                 this.cleanup();
             }

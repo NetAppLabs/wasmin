@@ -16,6 +16,8 @@ import { WasiIoError } from './interfaces/wasi-io-error.js';
 import { WasiIoPoll } from './interfaces/wasi-io-poll.js';
 import { WasiIoStreams } from './interfaces/wasi-io-streams.js';
 import { WasiRandomRandom } from './interfaces/wasi-random-random.js';
+import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network.js';
+import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp.js';
 import { WasiCliRun } from './interfaces/wasi-cli-run.js';
 export interface ImportObject {
   'wasi:cli/environment@0.2.0-rc-2023-12-05': typeof WasiCliEnvironment,
@@ -36,6 +38,8 @@ export interface ImportObject {
   'wasi:io/poll@0.2.0-rc-2023-11-10': typeof WasiIoPoll,
   'wasi:io/streams@0.2.0-rc-2023-11-10': typeof WasiIoStreams,
   'wasi:random/random@0.2.0-rc-2023-11-10': typeof WasiRandomRandom,
+  'wasi:sockets/network@0.2.0-rc-2023-11-10': typeof WasiSocketsNetwork,
+  'wasi:sockets/tcp@0.2.0-rc-2023-11-10': typeof WasiSocketsTcp,
 }
 export interface Root {
   'wasi:cli/run@0.2.0-rc-2023-12-05': typeof WasiCliRun,
