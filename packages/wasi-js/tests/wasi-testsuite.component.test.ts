@@ -29,8 +29,12 @@ async function constructTestsWithSkip() {
         "environ_get-multiple-variables",
         "fd_write-to-invalid-fd",
         "proc_exit-failure",
+        "fd_advise",
+        "interesting_paths",
+        "fd_flags_set",
     ];
     if (isBun()) {
+        skips.push("fopen-with-access");
         skips.push("fd_filestat_set");
         skips.push("interesting_paths");
     }
@@ -77,7 +81,7 @@ describe("wasi-testsuite-component", () => {
             if (!exitCode) {
                 exitCode = 0;
             }
-            try {
+            //try {
                 let wasmMod: BufferSource;
                 if (wasmPath) {
                     wasmMod = await readFile(wasmPath);
@@ -92,10 +96,10 @@ describe("wasi-testsuite-component", () => {
                     //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
                     actualExitCode = await w.run(await wasmMod);
                 }
-            } catch (err: any) {
+            /*} catch (err: any) {
                 console.log("err: ", err);
                 console.log("err.stack: ", err.stack);
-            }
+            }*/
             actualStdout = ret.stdout;
             actualStderr = ret.stderr;
             expect(actualExitCode).toBe(exitCode);

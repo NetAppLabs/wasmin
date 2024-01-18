@@ -35,16 +35,17 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const testFile = "fd_filestat_get.wasm";
 //const testFile = "fd_flags_set.json";
 
-//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
+const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
 //const testFile = "fopen-with-access.json"
 //const testFile = "pwrite-with-access.json"
-//const testFile = "lseek.json"
+const testFile = "lseek.json"
+//const testFile = "clock_gettime-realtime.wasm"
 
-const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
 //const testFile = "environ_get-multiple-variables.json";
 //const testFile = "fd_write-to-stdout.json"
 //const testFile = "environ_sizes_get-multiple-variables.json";
-const testFile = "fd_write-to-invalid-fd.wasm";
+//const testFile = "fd_write-to-invalid-fd.wasm";
 
 let loop_count = 1;
 
@@ -83,7 +84,7 @@ async function runCase(testCase) {
 
         if (w) {
             //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
-            w.component = true;
+            //w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {

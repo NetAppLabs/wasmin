@@ -216,7 +216,8 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
     let rootHandle: FileSystemDirectoryHandle;
     if (rootPath) {
         if (rootFsHandle) {
-            rootHandle = rootFsHandle;
+            rootHandle = await rootFsHandle(rootPath);
+            //rootHandle = rootFsHandle;
         } else {
             rootHandle = await getRootHandle(testFsBackend, rootPath);
         }
@@ -228,13 +229,17 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
 
     if (dirs) {
         for (const dir of dirs) {
+            //console.log("rootHandle:", rootHandle);
             const dirHandle = await rootHandle.getDirectoryHandle(dir);
+            //console.log("dirHandle:", dirHandle);
             //const mountDirName = "/" + dir;
             const mountDirName = dir;
+            //console.log("dir:", dir);
             dirHandles[mountDirName] = dirHandle;
         }
     }
     const openFiles = new OpenFiles(dirHandles);
+    //console.log("openFiles:", openFiles);
 
     //if (env) {
     //    env["RUST_BACKTRACE"] = "full";

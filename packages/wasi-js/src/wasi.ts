@@ -649,6 +649,7 @@ export class WASI {
                 let storeFunc = this.storeResource;
                 storeFunc = storeFunc.bind(this);
                 storeResourceObjects(importName, funcReturn, storeFunc);
+                
             }
         } catch (err: any) {
             funcThrownError = err;
