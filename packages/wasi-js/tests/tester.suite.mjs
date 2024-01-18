@@ -25,20 +25,20 @@ export async function constructWasiForTestRuntimeDetection(testCase) {
 }
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
+const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
 //const testFile = "dangling_fd.json";
 //const testFile = "fd_readdir.json";
 //const testFile = "fdopendir-with-access.json"
-//const testFile = "directory_seek.json"
+const testFile = "directory_seek.json"
 //const testFile = "interesting_paths.json"
 //const testFile = "fd_filestat_set.json";
 //const testFile = "fd_filestat_get.wasm";
 //const testFile = "fd_flags_set.json";
 
-const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/c/testsuite");
 //const testFile = "fopen-with-access.json"
 //const testFile = "pwrite-with-access.json"
-const testFile = "lseek.json"
+//const testFile = "lseek.json"
 //const testFile = "clock_gettime-realtime.wasm"
 
 //const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
@@ -84,7 +84,7 @@ async function runCase(testCase) {
 
         if (w) {
             //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
-            //w.component = true;
+            w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {

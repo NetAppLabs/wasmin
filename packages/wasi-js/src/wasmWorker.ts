@@ -6,7 +6,7 @@ import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";
 import { Channel, readMessage, uuidv4 } from "./vendored/sync-message/index.js";
 import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
-import { DummyResource, containsResourceObjects, createDummyResourceProxy, createProxyForResources, getResourceSerializableForProxyObjects } from "./wasiResources.js";
+import { ResourceProxy, containsResourceObjects, createResourceProxy, createProxyForResources, getResourceSerializableForProxyObjects } from "./wasiResources.js";
 
 export class WasmWorker {
     worker?: Worker;
@@ -103,14 +103,33 @@ export class WasmWorker {
     }
 }
 
-export function createComponentModuleImportProxyPerImportForChannel(
+export class ImportInterfaceProxy {
+    constructor(importName: string) {
+        this.importName = importName;
+    }
+    importName: string;
+}
+
+export function createComponentImportOrResourceProxy(
     callType: HandleCallType,
     importName: string,
     channel: Channel,
     handleComponentImportFunc: HandleWasmComponentImportFunc
 ): {} {
-    const importDummy = {};
-    return new Proxy(importDummy, {
+    let importTarget: ImportInterfaceProxy| ResourceProxy;
+    if (callType == "resource") {
+        const resourcesString = importName.split(":");
+        const sResourceId = resourcesString[resourcesString.length-1];
+        const resourceId = Number(sResourceId);
+        importTarget = new ResourceProxy(resourceId, importName);
+    } else if (callType == "import") {
+        importTarget = new ImportInterfaceProxy(importName);
+    } else {
+        // should never be reachable
+        importTarget = new ImportInterfaceProxy(importName);
+    }
+
+    return new Proxy(importTarget, {
         get: (_target, name, _receiver) => {
             const functionNameOrSymbol = name;
             let functionName = "";
@@ -130,7 +149,7 @@ export function createComponentModuleImportProxyPerImportForChannel(
             // Assuming we are referring to a resource if first character is UpperCase
             if (!isSymbolReference && (functionName.charAt(0) === functionName.charAt(0).toUpperCase() ))
             {
-                const dummyResource = createDummyResourceProxy(
+                const dummyResource = createResourceProxy(
                     functionName,
                     callType,
                     importName,
@@ -141,9 +160,8 @@ export function createComponentModuleImportProxyPerImportForChannel(
                 return dummyResource;
             }
             else if (functionName == "resource") {
-                const resourcesString = importName.split(":");
-                const resourceId = resourcesString[resourcesString.length-1];
-                return resourceId;
+                const res = importTarget as ResourceProxy;
+                return res.resource;
             }
             else if (functionName == "prototype") {
                 wasmHandlerDebug("trying to get prototype property");
@@ -159,15 +177,6 @@ export function createComponentModuleImportProxyPerImportForChannel(
             );
             return funcToCall;
         },
-        /*getPrototypeOf: (target: any) => {
-            if (target.resource !== undefined) {
-                return DummyResource.prototype;
-            } else {
-                const res = {};
-                return Object.getPrototypeOf(res);
-            }
-        },*/
-
     });
 }
 

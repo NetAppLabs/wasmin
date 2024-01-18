@@ -16,7 +16,7 @@ import { OpenFiles } from "./wasiFileSystem.js";
 import { getDirectoryHandleByURL } from "@wasmin/fs-js";
 import { TTY } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
-import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
+import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 
 
 export type ProviderUrl = string;
@@ -148,7 +148,7 @@ export class WASIWorker {
         const workerThread = wasiWorker.wasiWorkerThread;
         if (workerThread) {
             const handleComponentImportFunc = workerThread.handleComponentImport;
-            return createComponentModuleImportProxyPerImportForChannel("import", importName, channel, handleComponentImportFunc);
+            return createComponentImportOrResourceProxy("import", importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("WasiWorkerThread not set");
         }

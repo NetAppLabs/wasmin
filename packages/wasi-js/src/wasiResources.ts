@@ -1,7 +1,7 @@
 import { isObject } from "typeson";
 import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
 import { Channel } from "./vendored/sync-message/index.js";
-import { GetProxyFunctionToCall, createComponentModuleImportProxyPerImportForChannel, getProxyFunctionToCall } from "./wasmWorker.js";
+import { GetProxyFunctionToCall, createComponentImportOrResourceProxy, getProxyFunctionToCall } from "./wasmWorker.js";
 import { isArray, isSymbol } from "./workerUtils.js";
 import { wasiResourceDebug } from "./wasiUtils.js";
 
@@ -21,7 +21,7 @@ export function createProxyForResources(
         const resourceId = resObjInner.resource;
         if (resourceId !== undefined) {
             const identifier = getResourceIdentifier(importName, resourceId);
-            const resProxyObj = createComponentModuleImportProxyPerImportForChannel("resource", identifier, channel, handleComponentImportFunc);
+            const resProxyObj = createComponentImportOrResourceProxy("resource", identifier, channel, handleComponentImportFunc);
             return resProxyObj;
         }
         return undefined;
@@ -30,16 +30,20 @@ export function createProxyForResources(
 }
 
 
-export class DummyResource implements Resource {
-    constructor(resource: number ) {
+export class ResourceProxy implements Resource {
+    constructor(resource: number, importName: string, typeName?: string) {
         this.resource = resource;
+        this.importName = importName;
+        this.typeName = typeName;
     }
     resource: number;
+    typeName?: string;
+    importName: string;
 }
 
 const disposeSym = Symbol.dispose;
 
-export function createDummyResourceProxy(
+export function createResourceProxy(
     functionName: string,
     callType: HandleCallType,
     importName: string,
@@ -47,7 +51,7 @@ export function createDummyResourceProxy(
     handleComponentImportFunc: HandleWasmComponentImportFunc,
     getProxyFunctionToCall: GetProxyFunctionToCall,
 ) {
-    const dummyTarget = new DummyResource(0);
+    const dummyTarget = new ResourceProxy(0, importName, functionName);
     const dummyProxy = new Proxy(dummyTarget, {
         get: (_target, name, _receiver) => {
             if (name == Symbol.hasInstance) {
