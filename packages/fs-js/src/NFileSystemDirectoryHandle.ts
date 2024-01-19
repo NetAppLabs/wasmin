@@ -207,6 +207,12 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             const chunk = serializedHandle;
             writer.write(chunk);
             writer.close();
+            const cacheInsert = true;
+            if (cacheInsert) {
+                const name = newFh;
+                const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+                this._externalHandleCache[newName] = newFh;
+            }
             return handle;
         }
     }

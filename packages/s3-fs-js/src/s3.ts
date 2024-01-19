@@ -201,7 +201,7 @@ export class S3File {
                     throw err;
                 }
             }
-            console.error("catched error on s3client.getObject: ", err);
+            s3Debug("catched error on s3client.getObject: ", err);
             // Assuming it is out of range and returning an empty array
             return new ArrayBuffer(0);
         }
@@ -504,7 +504,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                 }
                 this._entriesCached = true;
             } catch (error) {
-                console.error("populateEntries catched error: ", error);
+                s3Debug("populateEntries catched error: ", error);
             }
         }
     }
@@ -645,7 +645,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
             await entry.destroy(isRecursive);
             delete this._entries[name];
         } catch (err: any) {
-            console.log("removeEntry err: ", err);
+            s3Debug("removeEntry err: ", err);
         }
     }
 
@@ -753,7 +753,7 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
                 }
             }
         } catch (error) {
-            console.error("populateEntries catched error: ", error);
+            s3Debug("populateEntries catched error: ", error);
         }
     }
 
@@ -793,7 +793,7 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
             if (options.create) {
                 throw new Error("create not supported");
             } else {
-                console.error(`NotFoundError for name: ${name} options: ${options}`);
+                s3Debug(`NotFoundError for name: ${name} options: ${options}`);
                 throw new NotFoundError();
             }
         }

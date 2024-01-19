@@ -61,6 +61,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
     }
     private _wasiEnv: WasiEnv;
     async exec(cwd: string, name: string, argvString: string): Promise<number> {
+        let nameWasmToWasi = "wasi";
         wasiDebug("exec cwd: ", cwd);
         wasiDebug("exec name: ", name);
         //const argvString = string.get(this._getBuffer(), argv_ptr, argv_len);
@@ -130,10 +131,11 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 }
             }
 
-            //if (moduleOrSource) {
-            //    args.splice(0, 0, nameWasm);
-            //    break;
-            //}
+            if (moduleOrSource) {
+                nameWasmToWasi = nameWasm;
+                //args.splice(0, 0, nameWasm);
+                break;
+            }
         }
 
         if (!moduleOrSource) {
@@ -203,6 +205,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 args: args,
                 env: env,
                 tty: tty,
+                name: nameWasmToWasi,
             });
             w.run(moduleOrSource!)
                 .then((exitCode) => {

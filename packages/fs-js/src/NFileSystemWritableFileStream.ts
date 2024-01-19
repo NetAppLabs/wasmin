@@ -21,29 +21,31 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
 
     async close(): Promise<void> {
         fileSystemWritableDebug("NFileSystemWritableFileStream: close start");
-        this._closed = true;
-        const w = this.getWriter();
-        fileSystemWritableDebug("NFileSystemWritableFileStream: w: ", w);
-        // TODO inspect this on bun
-        try {
-            //console.trace();
-            const p = w.close();
-            const closePromise = p;
-            fileSystemWritableDebug("NFileSystemWritableFileStream: closePromise: ", closePromise);
-            await closePromise;
-        } catch (err: any) {
-            if (err instanceof Error) {
-                const eerr = err as Error;
-                fileSystemWritableDebug("NFileSystemWritableFileStream close err: ", err);
-                fileSystemWritableDebug(eerr.stack);
-            } else {
-                fileSystemWritableDebug("NFileSystemWritableFileStream close unknown err: ", err);
+        if (!super.locked) {
+            this._closed = true;
+            const w = this.getWriter();
+            fileSystemWritableDebug("NFileSystemWritableFileStream: w: ", w);
+            // TODO inspect this on bun
+            try {
+                //console.trace();
+                const p = w.close();
+                const closePromise = p;
+                fileSystemWritableDebug("NFileSystemWritableFileStream: closePromise: ", closePromise);
+                await closePromise;
+            } catch (err: any) {
+                if (err instanceof Error) {
+                    const eerr = err as Error;
+                    fileSystemWritableDebug("NFileSystemWritableFileStream close err: ", err);
+                    fileSystemWritableDebug(eerr.stack);
+                } else {
+                    fileSystemWritableDebug("NFileSystemWritableFileStream close unknown err: ", err);
+                }
+                throw err;
             }
-            throw err;
+            fileSystemWritableDebug("NFileSystemWritableFileStream: w.close()");
+            w.releaseLock();
+            fileSystemWritableDebug("NFileSystemWritableFileStream: close end");
         }
-        fileSystemWritableDebug("NFileSystemWritableFileStream: w.close()");
-        w.releaseLock();
-        fileSystemWritableDebug("NFileSystemWritableFileStream: close end");
         return;
     }
 

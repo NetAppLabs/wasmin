@@ -50,6 +50,7 @@ export interface WasiOptions {
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
     tty?: TTY;
+    name?: string;
 }
 
 export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {

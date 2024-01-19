@@ -30,6 +30,18 @@ export async function getDirectoryHandleByURL(
 
     if (provFunc) {
         const adapterHandle = await provFunc(url, secretStore);
+        if (url.startsWith("nfs:")) {
+            const urlParts = url.split("/");
+            let lastPath = urlParts[urlParts.length-1];
+            if (lastPath.includes("?")) {
+                let lastPaths = lastPath.split("?");
+                lastPath = lastPaths[lastPaths.length-1];
+            }
+            // @ts-ignore
+            adapterHandle.name = lastPath;
+            // @ts-ignore
+            adapterHandle.url = url;
+        }
         if (wrapped) {
             return new NFileSystemDirectoryHandle(adapterHandle);
         } else {
