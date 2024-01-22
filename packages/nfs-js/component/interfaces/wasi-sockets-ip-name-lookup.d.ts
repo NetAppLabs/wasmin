@@ -1,14 +1,14 @@
 export namespace WasiSocketsIpNameLookup {
-  export function resolveAddresses(network: Network, name: string, addressFamily: IpAddressFamily | undefined, includeUnavailable: boolean): ResolveAddressStream;
-  export function resolveNextAddress(this_: ResolveAddressStream): IpAddress | undefined;
-  export function dropResolveAddressStream(this_: ResolveAddressStream): void;
+  export { ResolveAddressStream };
+  export function resolveAddresses(network: Network, name: string): ResolveAddressStream;
 }
-import type { Network } from '../interfaces/wasi-sockets-network.js';
-export { Network };
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
-export { IpAddressFamily };
-export type ResolveAddressStream = number;
-import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
-export { ErrorCode };
 import type { IpAddress } from '../interfaces/wasi-sockets-network.js';
 export { IpAddress };
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
+export { ErrorCode };
+import type { Network } from '../interfaces/wasi-sockets-network.js';
+export { Network };
+
+export class ResolveAddressStream {
+  resolveNextAddress(): IpAddress | undefined;
+}

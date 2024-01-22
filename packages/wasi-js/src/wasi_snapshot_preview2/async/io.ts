@@ -139,8 +139,7 @@ export class InStream implements InputStream, Resource {
                 }
                 throw err;
             } else if(isErrorAgain(err)){
-                wasiPreview2Debug("io.read(): EAGAIN: ", err);
-                return new Uint8Array();
+                throw err;
             } else {
                 wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
                 return new Uint8Array();
@@ -148,17 +147,19 @@ export class InStream implements InputStream, Resource {
         }
     }
     async blockingRead(len: bigint): Promise<Uint8Array> {
+        // XXX: documentation for wasi:io/streams/blocking-read specifies that it will
+        //      block until at least one byte can be read, so we should sleep and retry
+        //      each time call to this.read(len) throws ErrnoN.AGAIN
         while (true) {
-            // XXX: in case of ErrnoN.AGAIN, this.read() will return [new Uint8Array(), 'open']
-            //      however, documentation for wasi:io/streams/blocking-read specifies that it
-            //      will block until at least one byte can be read, so we should sleep and retry
-            const res = await this.read(len);
-            //if (res.byteLength !== 0 || res !== 'open') {
-            //if (res.length !== 0) {
-            //if (res.byteLength !== 0) {
+            try {
+                const res = await this.read(len);
                 return res;
-            //}
-            //await sleep(1);
+            } catch (err: any) {
+                if (!isErrorAgain(err)) {
+                    throw err;
+                }
+            }
+            await sleep(1);
         }
     }
     async skip(len: bigint): Promise<bigint> {

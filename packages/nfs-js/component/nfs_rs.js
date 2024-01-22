@@ -21,6 +21,10 @@ function getErrorPayload(e) {
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+const resourceHandleSymbol = Symbol('resource');
+
+const symbolDispose = Symbol.dispose || Symbol.for('dispose');
+
 function throwInvalidBool() {
   throw new TypeError('invalid variant discriminant for bool');
 }
@@ -84,90 +88,87 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { getStderr } = imports['wasi:cli/stderr'];
   const { getStdin } = imports['wasi:cli/stdin'];
   const { getStdout } = imports['wasi:cli/stdout'];
-  const { dropTerminalInput } = imports['wasi:cli/terminal-input'];
-  const { dropTerminalOutput } = imports['wasi:cli/terminal-output'];
-  const { getTerminalStderr } = imports['wasi:cli/terminal-stderr'];
-  const { getTerminalStdin } = imports['wasi:cli/terminal-stdin'];
-  const { getTerminalStdout } = imports['wasi:cli/terminal-stdout'];
-  const { now, subscribe } = imports['wasi:clocks/monotonic-clock'];
+  const { now, subscribeDuration, subscribeInstant } = imports['wasi:clocks/monotonic-clock'];
   const { now: now$1 } = imports['wasi:clocks/wall-clock'];
   const { getDirectories } = imports['wasi:filesystem/preopens'];
-  const { appendViaStream, dropDescriptor, getType, readViaStream, stat, writeViaStream } = imports['wasi:filesystem/types'];
-  const { blockingFlush, blockingRead, blockingWriteAndFlush, checkWrite, dropInputStream, dropOutputStream, subscribeToInputStream, subscribeToOutputStream, write } = imports['wasi:io/streams'];
-  const { dropPollable, pollOneoff } = imports['wasi:poll/poll'];
+  const { Descriptor, filesystemErrorCode } = imports['wasi:filesystem/types'];
+  const { Pollable, poll } = imports['wasi:io/poll'];
+  const { InputStream, OutputStream } = imports['wasi:io/streams'];
   const { getRandomBytes } = imports['wasi:random/random'];
-  const { dropResolveAddressStream, resolveAddresses, resolveNextAddress } = imports['wasi:sockets/ip-name-lookup'];
-  const { dropTcpSocket, finishConnect, remoteAddress, shutdown, startConnect } = imports['wasi:sockets/tcp'];
+  const { Network, instanceNetwork } = imports['wasi:sockets/instance-network'];
+  const { ResolveAddressStream, resolveAddresses } = imports['wasi:sockets/ip-name-lookup'];
+  const { TcpSocket } = imports['wasi:sockets/tcp'];
   const { createTcpSocket } = imports['wasi:sockets/tcp-create-socket'];
   let exports0;
   
-  function trampoline0(arg0) {
-    dropResolveAddressStream(arg0 >>> 0);
-  }
-  
-  function trampoline1(arg0) {
-    dropTcpSocket(arg0 >>> 0);
+  function trampoline2() {
+    const ret = instanceNetwork();
+    if (!(ret instanceof Network)) {
+      throw new Error('Not a valid "Network" resource.');
+    }
+    const handle0 = handleCnt4++;
+    handleTable4.set(handle0, { rep: ret, own: true });
+    return handle0;
   }
   let exports1;
   
-  function trampoline2() {
+  function trampoline7() {
     const ret = now();
     return toUint64(ret);
   }
   
-  function trampoline3(arg0, arg1) {
-    const bool0 = arg1;
-    const ret = subscribe(BigInt.asUintN(64, arg0), bool0 == 0 ? false : (bool0 == 1 ? true : throwInvalidBool()));
-    return toUint32(ret);
-  }
-  
-  function trampoline4(arg0) {
-    const ret = subscribeToOutputStream(arg0 >>> 0);
-    return toUint32(ret);
-  }
-  
-  function trampoline5(arg0) {
-    const ret = subscribeToInputStream(arg0 >>> 0);
-    return toUint32(ret);
-  }
-  
-  function trampoline6(arg0) {
-    dropPollable(arg0 >>> 0);
-  }
-  
-  function trampoline7(arg0) {
-    dropInputStream(arg0 >>> 0);
-  }
-  
-  function trampoline8(arg0) {
-    dropOutputStream(arg0 >>> 0);
-  }
-  
   function trampoline9(arg0) {
-    dropDescriptor(arg0 >>> 0);
+    const ret = subscribeDuration(BigInt.asUintN(64, arg0));
+    if (!(ret instanceof Pollable)) {
+      throw new Error('Not a valid "Pollable" resource.');
+    }
+    const handle0 = handleCnt0++;
+    handleTable0.set(handle0, { rep: ret, own: true });
+    return handle0;
   }
   
-  function trampoline10() {
-    const ret = getStdin();
-    return toUint32(ret);
+  function trampoline10(arg0) {
+    const ret = subscribeInstant(BigInt.asUintN(64, arg0));
+    if (!(ret instanceof Pollable)) {
+      throw new Error('Not a valid "Pollable" resource.');
+    }
+    const handle0 = handleCnt0++;
+    handleTable0.set(handle0, { rep: ret, own: true });
+    return handle0;
   }
   
   function trampoline11(arg0) {
-    dropTerminalInput(arg0 >>> 0);
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
+    const ret = OutputStream.prototype.subscribe.call(rsc0);
+    if (!(ret instanceof Pollable)) {
+      throw new Error('Not a valid "Pollable" resource.');
+    }
+    const handle2 = handleCnt0++;
+    handleTable0.set(handle2, { rep: ret, own: true });
+    return handle2;
   }
   
-  function trampoline12() {
-    const ret = getStdout();
-    return toUint32(ret);
-  }
-  
-  function trampoline13(arg0) {
-    dropTerminalOutput(arg0 >>> 0);
+  function trampoline12(arg0) {
+    const handle1 = arg0;
+    const rsc0 = handleTable2.get(handle1).rep;
+    const ret = InputStream.prototype.subscribe.call(rsc0);
+    if (!(ret instanceof Pollable)) {
+      throw new Error('Not a valid "Pollable" resource.');
+    }
+    const handle2 = handleCnt0++;
+    handleTable0.set(handle2, { rep: ret, own: true });
+    return handle2;
   }
   
   function trampoline14() {
     const ret = getStderr();
-    return toUint32(ret);
+    if (!(ret instanceof OutputStream)) {
+      throw new Error('Not a valid "OutputStream" resource.');
+    }
+    const handle0 = handleCnt3++;
+    handleTable3.set(handle0, { rep: ret, own: true });
+    return handle0;
   }
   
   function trampoline15(arg0) {
@@ -193,44 +194,34 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
     exit(variant0);
   }
+  
+  function trampoline16() {
+    const ret = getStdin();
+    if (!(ret instanceof InputStream)) {
+      throw new Error('Not a valid "InputStream" resource.');
+    }
+    const handle0 = handleCnt2++;
+    handleTable2.set(handle0, { rep: ret, own: true });
+    return handle0;
+  }
+  
+  function trampoline17() {
+    const ret = getStdout();
+    if (!(ret instanceof OutputStream)) {
+      throw new Error('Not a valid "OutputStream" resource.');
+    }
+    const handle0 = handleCnt3++;
+    handleTable3.set(handle0, { rep: ret, own: true });
+    return handle0;
+  }
   let exports2;
   
-  function trampoline16(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
-    const ptr0 = arg1;
-    const len0 = arg2;
-    const result0 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr0, len0));
-    let variant2;
-    switch (arg3) {
-      case 0: {
-        variant2 = undefined;
-        break;
-      }
-      case 1: {
-        let enum1;
-        switch (arg4) {
-          case 0: {
-            enum1 = 'ipv4';
-            break;
-          }
-          case 1: {
-            enum1 = 'ipv6';
-            break;
-          }
-          default: {
-            throw new TypeError('invalid discriminant specified for IpAddressFamily');
-          }
-        }
-        variant2 = enum1;
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant discriminant for option');
-      }
-    }
-    const bool3 = arg5;
+  function trampoline18(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable2.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: resolveAddresses(arg0 >>> 0, result0, variant2, bool3 == 0 ? false : (bool3 == 1 ? true : throwInvalidBool())) };
+      ret = { tag: 'ok', val: InputStream.prototype.blockingRead.call(rsc0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -238,153 +229,40 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     switch (variant5.tag) {
       case 'ok': {
         const e = variant5.val;
-        dataView(memory0).setInt8(arg6 + 0, 0, true);
-        dataView(memory0).setInt32(arg6 + 4, toUint32(e), true);
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        const val2 = e;
+        const len2 = val2.byteLength;
+        const ptr2 = realloc0(0, 0, 1, len2 * 1);
+        const src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
+        (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
+        dataView(memory0).setInt32(arg2 + 8, len2, true);
+        dataView(memory0).setInt32(arg2 + 4, ptr2, true);
         break;
       }
       case 'err': {
         const e = variant5.val;
-        dataView(memory0).setInt8(arg6 + 0, 1, true);
-        const val4 = e;
-        let enum4;
-        switch (val4) {
-          case 'unknown': {
-            enum4 = 0;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const variant4 = e;
+        switch (variant4.tag) {
+          case 'last-operation-failed': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg2 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle3 = handleCnt1++;
+            handleTable1.set(handle3, { rep: e, own: true });
+            dataView(memory0).setInt32(arg2 + 8, handle3, true);
             break;
           }
-          case 'access-denied': {
-            enum4 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum4 = 2;
-            break;
-          }
-          case 'out-of-memory': {
-            enum4 = 3;
-            break;
-          }
-          case 'timeout': {
-            enum4 = 4;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum4 = 5;
-            break;
-          }
-          case 'not-in-progress': {
-            enum4 = 6;
-            break;
-          }
-          case 'would-block': {
-            enum4 = 7;
-            break;
-          }
-          case 'address-family-not-supported': {
-            enum4 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum4 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum4 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum4 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum4 = 12;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum4 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum4 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum4 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum4 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum4 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum4 = 18;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum4 = 19;
-            break;
-          }
-          case 'address-in-use': {
-            enum4 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum4 = 21;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum4 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum4 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum4 = 24;
-            break;
-          }
-          case 'connection-refused': {
-            enum4 = 25;
-            break;
-          }
-          case 'connection-reset': {
-            enum4 = 26;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum4 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum4 = 28;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum4 = 29;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum4 = 30;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum4 = 31;
+          case 'closed': {
+            dataView(memory0).setInt8(arg2 + 4, 1, true);
             break;
           }
           default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
           }
         }
-        dataView(memory0).setInt8(arg6 + 4, enum4, true);
         break;
       }
       default: {
@@ -393,11 +271,17 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   let memory0;
+  let realloc0;
   
-  function trampoline17(arg0, arg1) {
+  function trampoline19(arg0, arg1, arg2, arg3) {
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
+    const ptr2 = arg1;
+    const len2 = arg2;
+    const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
     let ret;
     try {
-      ret = { tag: 'ok', val: resolveNextAddress(arg0 >>> 0) };
+      ret = { tag: 'ok', val: OutputStream.prototype.blockingWriteAndFlush.call(rsc0, result2) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
@@ -405,291 +289,33 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     switch (variant5.tag) {
       case 'ok': {
         const e = variant5.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const variant3 = e;
-        if (variant3 === null || variant3=== undefined) {
-          dataView(memory0).setInt8(arg1 + 2, 0, true);
-        } else {
-          const e = variant3;
-          dataView(memory0).setInt8(arg1 + 2, 1, true);
-          const variant2 = e;
-          switch (variant2.tag) {
-            case 'ipv4': {
-              const e = variant2.val;
-              dataView(memory0).setInt8(arg1 + 4, 0, true);
-              const [tuple0_0, tuple0_1, tuple0_2, tuple0_3] = e;
-              dataView(memory0).setInt8(arg1 + 6, toUint8(tuple0_0), true);
-              dataView(memory0).setInt8(arg1 + 7, toUint8(tuple0_1), true);
-              dataView(memory0).setInt8(arg1 + 8, toUint8(tuple0_2), true);
-              dataView(memory0).setInt8(arg1 + 9, toUint8(tuple0_3), true);
-              break;
-            }
-            case 'ipv6': {
-              const e = variant2.val;
-              dataView(memory0).setInt8(arg1 + 4, 1, true);
-              const [tuple1_0, tuple1_1, tuple1_2, tuple1_3, tuple1_4, tuple1_5, tuple1_6, tuple1_7] = e;
-              dataView(memory0).setInt16(arg1 + 6, toUint16(tuple1_0), true);
-              dataView(memory0).setInt16(arg1 + 8, toUint16(tuple1_1), true);
-              dataView(memory0).setInt16(arg1 + 10, toUint16(tuple1_2), true);
-              dataView(memory0).setInt16(arg1 + 12, toUint16(tuple1_3), true);
-              dataView(memory0).setInt16(arg1 + 14, toUint16(tuple1_4), true);
-              dataView(memory0).setInt16(arg1 + 16, toUint16(tuple1_5), true);
-              dataView(memory0).setInt16(arg1 + 18, toUint16(tuple1_6), true);
-              dataView(memory0).setInt16(arg1 + 20, toUint16(tuple1_7), true);
-              break;
-            }
-            default: {
-              throw new TypeError(`invalid variant ${JSON.stringify(variant2.tag)} specified for IpAddress`);
-            }
-          }
-        }
-        break;
-      }
-      case 'err': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val4 = e;
-        let enum4;
-        switch (val4) {
-          case 'unknown': {
-            enum4 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum4 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum4 = 2;
-            break;
-          }
-          case 'out-of-memory': {
-            enum4 = 3;
-            break;
-          }
-          case 'timeout': {
-            enum4 = 4;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum4 = 5;
-            break;
-          }
-          case 'not-in-progress': {
-            enum4 = 6;
-            break;
-          }
-          case 'would-block': {
-            enum4 = 7;
-            break;
-          }
-          case 'address-family-not-supported': {
-            enum4 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum4 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum4 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum4 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum4 = 12;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum4 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum4 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum4 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum4 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum4 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum4 = 18;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum4 = 19;
-            break;
-          }
-          case 'address-in-use': {
-            enum4 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum4 = 21;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum4 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum4 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum4 = 24;
-            break;
-          }
-          case 'connection-refused': {
-            enum4 = 25;
-            break;
-          }
-          case 'connection-reset': {
-            enum4 = 26;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum4 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum4 = 28;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum4 = 29;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum4 = 30;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum4 = 31;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 2, enum4, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline18(arg0, arg1, arg2) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: blockingRead(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant3 = ret;
-    switch (variant3.tag) {
-      case 'ok': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        const [tuple0_0, tuple0_1] = e;
-        const val1 = tuple0_0;
-        const len1 = val1.byteLength;
-        const ptr1 = realloc0(0, 0, 1, len1 * 1);
-        const src1 = new Uint8Array(val1.buffer || val1, val1.byteOffset, len1 * 1);
-        (new Uint8Array(memory0.buffer, ptr1, len1 * 1)).set(src1);
-        dataView(memory0).setInt32(arg2 + 8, len1, true);
-        dataView(memory0).setInt32(arg2 + 4, ptr1, true);
-        const val2 = tuple0_1;
-        let enum2;
-        switch (val2) {
-          case 'open': {
-            enum2 = 0;
-            break;
-          }
-          case 'ended': {
-            enum2 = 1;
-            break;
-          }
-          default: {
-            if ((tuple0_1) instanceof Error) {
-              console.error(tuple0_1);
-            }
-            
-            throw new TypeError(`"${val2}" is not one of the cases of stream-status`);
-          }
-        }
-        dataView(memory0).setInt8(arg2 + 12, enum2, true);
-        break;
-      }
-      case 'err': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  let realloc0;
-  
-  function trampoline19(arg0, arg1, arg2, arg3) {
-    const ptr0 = arg1;
-    const len0 = arg2;
-    const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
-    let ret;
-    try {
-      ret = { tag: 'ok', val: blockingWriteAndFlush(arg0 >>> 0, result0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
         dataView(memory0).setInt8(arg3 + 0, 0, true);
         break;
       }
       case 'err': {
-        const e = variant2.val;
+        const e = variant5.val;
         dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
+        const variant4 = e;
+        switch (variant4.tag) {
           case 'last-operation-failed': {
-            enum1 = 0;
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg3 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle3 = handleCnt1++;
+            handleTable1.set(handle3, { rep: e, own: true });
+            dataView(memory0).setInt32(arg3 + 8, handle3, true);
             break;
           }
           case 'closed': {
-            enum1 = 1;
+            dataView(memory0).setInt8(arg3 + 4, 1, true);
             break;
           }
           default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val1}" is not one of the cases of write-error`);
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
           }
         }
-        dataView(memory0).setInt8(arg3 + 1, enum1, true);
         break;
       }
       default: {
@@ -698,7 +324,596 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline20(arg0, arg1) {
+  function trampoline20(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+    const handle1 = arg0;
+    const rsc0 = handleTable6.get(handle1).rep;
+    const handle3 = arg1;
+    const rsc2 = handleTable4.get(handle3).rep;
+    let variant4;
+    switch (arg2) {
+      case 0: {
+        variant4= {
+          tag: 'ipv4',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            address: [clampGuest(arg4, 0, 255), clampGuest(arg5, 0, 255), clampGuest(arg6, 0, 255), clampGuest(arg7, 0, 255)],
+          }
+        };
+        break;
+      }
+      case 1: {
+        variant4= {
+          tag: 'ipv6',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            flowInfo: arg4 >>> 0,
+            address: [clampGuest(arg5, 0, 65535), clampGuest(arg6, 0, 65535), clampGuest(arg7, 0, 65535), clampGuest(arg8, 0, 65535), clampGuest(arg9, 0, 65535), clampGuest(arg10, 0, 65535), clampGuest(arg11, 0, 65535), clampGuest(arg12, 0, 65535)],
+            scopeId: arg13 >>> 0,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for IpSocketAddress');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.startConnect.call(rsc0, rsc2, variant4) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant6 = ret;
+    switch (variant6.tag) {
+      case 'ok': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg14 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg14 + 0, 1, true);
+        const val5 = e;
+        let enum5;
+        switch (val5) {
+          case 'unknown': {
+            enum5 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum5 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum5 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum5 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum5 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum5 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum5 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum5 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum5 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum5 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum5 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum5 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum5 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum5 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum5 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum5 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum5 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum5 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum5 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum5 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum5 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg14 + 1, enum5, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline21(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable6.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.finishConnect.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant6 = ret;
+    switch (variant6.tag) {
+      case 'ok': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const [tuple2_0, tuple2_1] = e;
+        if (!(tuple2_0 instanceof InputStream)) {
+          throw new Error('Not a valid "InputStream" resource.');
+        }
+        const handle3 = handleCnt2++;
+        handleTable2.set(handle3, { rep: tuple2_0, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle3, true);
+        if (!(tuple2_1 instanceof OutputStream)) {
+          throw new Error('Not a valid "OutputStream" resource.');
+        }
+        const handle4 = handleCnt3++;
+        handleTable3.set(handle4, { rep: tuple2_1, own: true });
+        dataView(memory0).setInt32(arg1 + 8, handle4, true);
+        break;
+      }
+      case 'err': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val5 = e;
+        let enum5;
+        switch (val5) {
+          case 'unknown': {
+            enum5 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum5 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum5 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum5 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum5 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum5 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum5 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum5 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum5 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum5 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum5 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum5 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum5 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum5 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum5 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum5 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum5 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum5 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum5 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum5 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum5 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum5, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline22(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable6.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.remoteAddress.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant8 = ret;
+    switch (variant8.tag) {
+      case 'ok': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const variant6 = e;
+        switch (variant6.tag) {
+          case 'ipv4': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            const {port: v2_0, address: v2_1 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v2_0), true);
+            const [tuple3_0, tuple3_1, tuple3_2, tuple3_3] = v2_1;
+            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple3_0), true);
+            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple3_1), true);
+            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple3_2), true);
+            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple3_3), true);
+            break;
+          }
+          case 'ipv6': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            const {port: v4_0, flowInfo: v4_1, address: v4_2, scopeId: v4_3 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v4_0), true);
+            dataView(memory0).setInt32(arg1 + 12, toUint32(v4_1), true);
+            const [tuple5_0, tuple5_1, tuple5_2, tuple5_3, tuple5_4, tuple5_5, tuple5_6, tuple5_7] = v4_2;
+            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple5_0), true);
+            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple5_1), true);
+            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple5_2), true);
+            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple5_3), true);
+            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple5_4), true);
+            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple5_5), true);
+            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple5_6), true);
+            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple5_7), true);
+            dataView(memory0).setInt32(arg1 + 32, toUint32(v4_3), true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant6.tag)} specified for IpSocketAddress`);
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val7 = e;
+        let enum7;
+        switch (val7) {
+          case 'unknown': {
+            enum7 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum7 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum7 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum7 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum7 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum7 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum7 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum7 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum7 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum7 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum7 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum7 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum7 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum7 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum7 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum7 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum7 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum7 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum7 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum7 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum7 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val7}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum7, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline23(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable6.get(handle1).rep;
+    let enum2;
+    switch (arg1) {
+      case 0: {
+        enum2 = 'receive';
+        break;
+      }
+      case 1: {
+        enum2 = 'send';
+        break;
+      }
+      case 2: {
+        enum2 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.shutdown.call(rsc0, enum2) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant4 = ret;
+    switch (variant4.tag) {
+      case 'ok': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const val3 = e;
+        let enum3;
+        switch (val3) {
+          case 'unknown': {
+            enum3 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum3 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum3 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum3 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum3 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum3 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum3 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum3 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum3 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum3 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum3 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum3 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum3 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum3 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum3 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum3 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum3 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum3 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum3 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum3 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum3 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum3, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline24(arg0, arg1) {
     let enum0;
     switch (arg0) {
       case 0: {
@@ -719,146 +934,107 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant2 = ret;
-    switch (variant2.tag) {
+    const variant3 = ret;
+    switch (variant3.tag) {
       case 'ok': {
-        const e = variant2.val;
+        const e = variant3.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        dataView(memory0).setInt32(arg1 + 4, toUint32(e), true);
+        if (!(e instanceof TcpSocket)) {
+          throw new Error('Not a valid "TcpSocket" resource.');
+        }
+        const handle1 = handleCnt6++;
+        handleTable6.set(handle1, { rep: e, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle1, true);
         break;
       }
       case 'err': {
-        const e = variant2.val;
+        const e = variant3.val;
         dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
+        const val2 = e;
+        let enum2;
+        switch (val2) {
           case 'unknown': {
-            enum1 = 0;
+            enum2 = 0;
             break;
           }
           case 'access-denied': {
-            enum1 = 1;
+            enum2 = 1;
             break;
           }
           case 'not-supported': {
-            enum1 = 2;
+            enum2 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum2 = 3;
             break;
           }
           case 'out-of-memory': {
-            enum1 = 3;
+            enum2 = 4;
             break;
           }
           case 'timeout': {
-            enum1 = 4;
+            enum2 = 5;
             break;
           }
           case 'concurrency-conflict': {
-            enum1 = 5;
+            enum2 = 6;
             break;
           }
           case 'not-in-progress': {
-            enum1 = 6;
+            enum2 = 7;
             break;
           }
           case 'would-block': {
-            enum1 = 7;
+            enum2 = 8;
             break;
           }
-          case 'address-family-not-supported': {
-            enum1 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum1 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum1 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum1 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum1 = 12;
+          case 'invalid-state': {
+            enum2 = 9;
             break;
           }
           case 'new-socket-limit': {
-            enum1 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum1 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum1 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum1 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum1 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum1 = 18;
+            enum2 = 10;
             break;
           }
           case 'address-not-bindable': {
-            enum1 = 19;
+            enum2 = 11;
             break;
           }
           case 'address-in-use': {
-            enum1 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum1 = 21;
+            enum2 = 12;
             break;
           }
           case 'remote-unreachable': {
-            enum1 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum1 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum1 = 24;
+            enum2 = 13;
             break;
           }
           case 'connection-refused': {
-            enum1 = 25;
+            enum2 = 14;
             break;
           }
           case 'connection-reset': {
-            enum1 = 26;
+            enum2 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum2 = 16;
             break;
           }
           case 'datagram-too-large': {
-            enum1 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum1 = 28;
+            enum2 = 17;
             break;
           }
           case 'name-unresolvable': {
-            enum1 = 29;
+            enum2 = 18;
             break;
           }
           case 'temporary-resolver-failure': {
-            enum1 = 30;
+            enum2 = 19;
             break;
           }
           case 'permanent-resolver-failure': {
-            enum1 = 31;
+            enum2 = 20;
             break;
           }
           default: {
@@ -866,10 +1042,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 4, enum1, true);
+        dataView(memory0).setInt8(arg1 + 4, enum2, true);
         break;
       }
       default: {
@@ -878,348 +1054,147 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline21(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
-    let variant0;
-    switch (arg2) {
-      case 0: {
-        variant0= {
-          tag: 'ipv4',
-          val: {
-            port: clampGuest(arg3, 0, 65535),
-            address: [clampGuest(arg4, 0, 255), clampGuest(arg5, 0, 255), clampGuest(arg6, 0, 255), clampGuest(arg7, 0, 255)],
-          }
-        };
-        break;
-      }
-      case 1: {
-        variant0= {
-          tag: 'ipv6',
-          val: {
-            port: clampGuest(arg3, 0, 65535),
-            flowInfo: arg4 >>> 0,
-            address: [clampGuest(arg5, 0, 65535), clampGuest(arg6, 0, 65535), clampGuest(arg7, 0, 65535), clampGuest(arg8, 0, 65535), clampGuest(arg9, 0, 65535), clampGuest(arg10, 0, 65535), clampGuest(arg11, 0, 65535), clampGuest(arg12, 0, 65535)],
-            scopeId: arg13 >>> 0,
-          }
-        };
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant discriminant for IpSocketAddress');
-      }
-    }
+  function trampoline25(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable5.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: startConnect(arg0 >>> 0, arg1 >>> 0, variant0) };
+      ret = { tag: 'ok', val: ResolveAddressStream.prototype.resolveNextAddress.call(rsc0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant2 = ret;
-    switch (variant2.tag) {
+    const variant7 = ret;
+    switch (variant7.tag) {
       case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg14 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg14 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
-          case 'unknown': {
-            enum1 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum1 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum1 = 2;
-            break;
-          }
-          case 'out-of-memory': {
-            enum1 = 3;
-            break;
-          }
-          case 'timeout': {
-            enum1 = 4;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum1 = 5;
-            break;
-          }
-          case 'not-in-progress': {
-            enum1 = 6;
-            break;
-          }
-          case 'would-block': {
-            enum1 = 7;
-            break;
-          }
-          case 'address-family-not-supported': {
-            enum1 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum1 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum1 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum1 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum1 = 12;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum1 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum1 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum1 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum1 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum1 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum1 = 18;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum1 = 19;
-            break;
-          }
-          case 'address-in-use': {
-            enum1 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum1 = 21;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum1 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum1 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum1 = 24;
-            break;
-          }
-          case 'connection-refused': {
-            enum1 = 25;
-            break;
-          }
-          case 'connection-reset': {
-            enum1 = 26;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum1 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum1 = 28;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum1 = 29;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum1 = 30;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum1 = 31;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg14 + 1, enum1, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline22(arg0, arg1) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: finishConnect(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
+        const e = variant7.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const [tuple0_0, tuple0_1] = e;
-        dataView(memory0).setInt32(arg1 + 4, toUint32(tuple0_0), true);
-        dataView(memory0).setInt32(arg1 + 8, toUint32(tuple0_1), true);
+        const variant5 = e;
+        if (variant5 === null || variant5=== undefined) {
+          dataView(memory0).setInt8(arg1 + 2, 0, true);
+        } else {
+          const e = variant5;
+          dataView(memory0).setInt8(arg1 + 2, 1, true);
+          const variant4 = e;
+          switch (variant4.tag) {
+            case 'ipv4': {
+              const e = variant4.val;
+              dataView(memory0).setInt8(arg1 + 4, 0, true);
+              const [tuple2_0, tuple2_1, tuple2_2, tuple2_3] = e;
+              dataView(memory0).setInt8(arg1 + 6, toUint8(tuple2_0), true);
+              dataView(memory0).setInt8(arg1 + 7, toUint8(tuple2_1), true);
+              dataView(memory0).setInt8(arg1 + 8, toUint8(tuple2_2), true);
+              dataView(memory0).setInt8(arg1 + 9, toUint8(tuple2_3), true);
+              break;
+            }
+            case 'ipv6': {
+              const e = variant4.val;
+              dataView(memory0).setInt8(arg1 + 4, 1, true);
+              const [tuple3_0, tuple3_1, tuple3_2, tuple3_3, tuple3_4, tuple3_5, tuple3_6, tuple3_7] = e;
+              dataView(memory0).setInt16(arg1 + 6, toUint16(tuple3_0), true);
+              dataView(memory0).setInt16(arg1 + 8, toUint16(tuple3_1), true);
+              dataView(memory0).setInt16(arg1 + 10, toUint16(tuple3_2), true);
+              dataView(memory0).setInt16(arg1 + 12, toUint16(tuple3_3), true);
+              dataView(memory0).setInt16(arg1 + 14, toUint16(tuple3_4), true);
+              dataView(memory0).setInt16(arg1 + 16, toUint16(tuple3_5), true);
+              dataView(memory0).setInt16(arg1 + 18, toUint16(tuple3_6), true);
+              dataView(memory0).setInt16(arg1 + 20, toUint16(tuple3_7), true);
+              break;
+            }
+            default: {
+              throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for IpAddress`);
+            }
+          }
+        }
         break;
       }
       case 'err': {
-        const e = variant2.val;
+        const e = variant7.val;
         dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
+        const val6 = e;
+        let enum6;
+        switch (val6) {
           case 'unknown': {
-            enum1 = 0;
+            enum6 = 0;
             break;
           }
           case 'access-denied': {
-            enum1 = 1;
+            enum6 = 1;
             break;
           }
           case 'not-supported': {
-            enum1 = 2;
+            enum6 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum6 = 3;
             break;
           }
           case 'out-of-memory': {
-            enum1 = 3;
+            enum6 = 4;
             break;
           }
           case 'timeout': {
-            enum1 = 4;
+            enum6 = 5;
             break;
           }
           case 'concurrency-conflict': {
-            enum1 = 5;
+            enum6 = 6;
             break;
           }
           case 'not-in-progress': {
-            enum1 = 6;
+            enum6 = 7;
             break;
           }
           case 'would-block': {
-            enum1 = 7;
+            enum6 = 8;
             break;
           }
-          case 'address-family-not-supported': {
-            enum1 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum1 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum1 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum1 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum1 = 12;
+          case 'invalid-state': {
+            enum6 = 9;
             break;
           }
           case 'new-socket-limit': {
-            enum1 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum1 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum1 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum1 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum1 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum1 = 18;
+            enum6 = 10;
             break;
           }
           case 'address-not-bindable': {
-            enum1 = 19;
+            enum6 = 11;
             break;
           }
           case 'address-in-use': {
-            enum1 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum1 = 21;
+            enum6 = 12;
             break;
           }
           case 'remote-unreachable': {
-            enum1 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum1 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum1 = 24;
+            enum6 = 13;
             break;
           }
           case 'connection-refused': {
-            enum1 = 25;
+            enum6 = 14;
             break;
           }
           case 'connection-reset': {
-            enum1 = 26;
+            enum6 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum6 = 16;
             break;
           }
           case 'datagram-too-large': {
-            enum1 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum1 = 28;
+            enum6 = 17;
             break;
           }
           case 'name-unresolvable': {
-            enum1 = 29;
+            enum6 = 18;
             break;
           }
           case 'temporary-resolver-failure': {
-            enum1 = 30;
+            enum6 = 19;
             break;
           }
           case 'permanent-resolver-failure': {
-            enum1 = 31;
+            enum6 = 20;
             break;
           }
           default: {
@@ -1227,10 +1202,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val6}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 4, enum1, true);
+        dataView(memory0).setInt8(arg1 + 2, enum6, true);
         break;
       }
       default: {
@@ -1239,188 +1214,119 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline23(arg0, arg1) {
+  function trampoline26(arg0, arg1, arg2, arg3) {
+    const handle1 = arg0;
+    const rsc0 = handleTable4.get(handle1).rep;
+    const ptr2 = arg1;
+    const len2 = arg2;
+    const result2 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr2, len2));
     let ret;
     try {
-      ret = { tag: 'ok', val: remoteAddress(arg0 >>> 0) };
+      ret = { tag: 'ok', val: resolveAddresses(rsc0, result2) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant6 = ret;
-    switch (variant6.tag) {
+    const variant5 = ret;
+    switch (variant5.tag) {
       case 'ok': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const variant4 = e;
-        switch (variant4.tag) {
-          case 'ipv4': {
-            const e = variant4.val;
-            dataView(memory0).setInt8(arg1 + 4, 0, true);
-            const {port: v0_0, address: v0_1 } = e;
-            dataView(memory0).setInt16(arg1 + 8, toUint16(v0_0), true);
-            const [tuple1_0, tuple1_1, tuple1_2, tuple1_3] = v0_1;
-            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple1_0), true);
-            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple1_1), true);
-            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple1_2), true);
-            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple1_3), true);
-            break;
-          }
-          case 'ipv6': {
-            const e = variant4.val;
-            dataView(memory0).setInt8(arg1 + 4, 1, true);
-            const {port: v2_0, flowInfo: v2_1, address: v2_2, scopeId: v2_3 } = e;
-            dataView(memory0).setInt16(arg1 + 8, toUint16(v2_0), true);
-            dataView(memory0).setInt32(arg1 + 12, toUint32(v2_1), true);
-            const [tuple3_0, tuple3_1, tuple3_2, tuple3_3, tuple3_4, tuple3_5, tuple3_6, tuple3_7] = v2_2;
-            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple3_0), true);
-            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple3_1), true);
-            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple3_2), true);
-            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple3_3), true);
-            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple3_4), true);
-            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple3_5), true);
-            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple3_6), true);
-            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple3_7), true);
-            dataView(memory0).setInt32(arg1 + 32, toUint32(v2_3), true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for IpSocketAddress`);
-          }
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        if (!(e instanceof ResolveAddressStream)) {
+          throw new Error('Not a valid "ResolveAddressStream" resource.');
         }
+        const handle3 = handleCnt5++;
+        handleTable5.set(handle3, { rep: e, own: true });
+        dataView(memory0).setInt32(arg3 + 4, handle3, true);
         break;
       }
       case 'err': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val5 = e;
-        let enum5;
-        switch (val5) {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 1, true);
+        const val4 = e;
+        let enum4;
+        switch (val4) {
           case 'unknown': {
-            enum5 = 0;
+            enum4 = 0;
             break;
           }
           case 'access-denied': {
-            enum5 = 1;
+            enum4 = 1;
             break;
           }
           case 'not-supported': {
-            enum5 = 2;
+            enum4 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum4 = 3;
             break;
           }
           case 'out-of-memory': {
-            enum5 = 3;
+            enum4 = 4;
             break;
           }
           case 'timeout': {
-            enum5 = 4;
+            enum4 = 5;
             break;
           }
           case 'concurrency-conflict': {
-            enum5 = 5;
+            enum4 = 6;
             break;
           }
           case 'not-in-progress': {
-            enum5 = 6;
+            enum4 = 7;
             break;
           }
           case 'would-block': {
-            enum5 = 7;
+            enum4 = 8;
             break;
           }
-          case 'address-family-not-supported': {
-            enum5 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum5 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum5 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum5 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum5 = 12;
+          case 'invalid-state': {
+            enum4 = 9;
             break;
           }
           case 'new-socket-limit': {
-            enum5 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum5 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum5 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum5 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum5 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum5 = 18;
+            enum4 = 10;
             break;
           }
           case 'address-not-bindable': {
-            enum5 = 19;
+            enum4 = 11;
             break;
           }
           case 'address-in-use': {
-            enum5 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum5 = 21;
+            enum4 = 12;
             break;
           }
           case 'remote-unreachable': {
-            enum5 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum5 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum5 = 24;
+            enum4 = 13;
             break;
           }
           case 'connection-refused': {
-            enum5 = 25;
+            enum4 = 14;
             break;
           }
           case 'connection-reset': {
-            enum5 = 26;
+            enum4 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum4 = 16;
             break;
           }
           case 'datagram-too-large': {
-            enum5 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum5 = 28;
+            enum4 = 17;
             break;
           }
           case 'name-unresolvable': {
-            enum5 = 29;
+            enum4 = 18;
             break;
           }
           case 'temporary-resolver-failure': {
-            enum5 = 30;
+            enum4 = 19;
             break;
           }
           case 'permanent-resolver-failure': {
-            enum5 = 31;
+            enum4 = 20;
             break;
           }
           default: {
@@ -1428,10 +1334,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 4, enum5, true);
+        dataView(memory0).setInt8(arg3 + 4, enum4, true);
         break;
       }
       default: {
@@ -1440,382 +1346,211 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline24(arg0, arg1, arg2) {
-    let enum0;
-    switch (arg1) {
-      case 0: {
-        enum0 = 'receive';
-        break;
-      }
-      case 1: {
-        enum0 = 'send';
-        break;
-      }
-      case 2: {
-        enum0 = 'both';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for ShutdownType');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: shutdown(arg0 >>> 0, enum0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
-          case 'unknown': {
-            enum1 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum1 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum1 = 2;
-            break;
-          }
-          case 'out-of-memory': {
-            enum1 = 3;
-            break;
-          }
-          case 'timeout': {
-            enum1 = 4;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum1 = 5;
-            break;
-          }
-          case 'not-in-progress': {
-            enum1 = 6;
-            break;
-          }
-          case 'would-block': {
-            enum1 = 7;
-            break;
-          }
-          case 'address-family-not-supported': {
-            enum1 = 8;
-            break;
-          }
-          case 'address-family-mismatch': {
-            enum1 = 9;
-            break;
-          }
-          case 'invalid-remote-address': {
-            enum1 = 10;
-            break;
-          }
-          case 'ipv4-only-operation': {
-            enum1 = 11;
-            break;
-          }
-          case 'ipv6-only-operation': {
-            enum1 = 12;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum1 = 13;
-            break;
-          }
-          case 'already-attached': {
-            enum1 = 14;
-            break;
-          }
-          case 'already-bound': {
-            enum1 = 15;
-            break;
-          }
-          case 'already-connected': {
-            enum1 = 16;
-            break;
-          }
-          case 'not-bound': {
-            enum1 = 17;
-            break;
-          }
-          case 'not-connected': {
-            enum1 = 18;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum1 = 19;
-            break;
-          }
-          case 'address-in-use': {
-            enum1 = 20;
-            break;
-          }
-          case 'ephemeral-ports-exhausted': {
-            enum1 = 21;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum1 = 22;
-            break;
-          }
-          case 'already-listening': {
-            enum1 = 23;
-            break;
-          }
-          case 'not-listening': {
-            enum1 = 24;
-            break;
-          }
-          case 'connection-refused': {
-            enum1 = 25;
-            break;
-          }
-          case 'connection-reset': {
-            enum1 = 26;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum1 = 27;
-            break;
-          }
-          case 'invalid-name': {
-            enum1 = 28;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum1 = 29;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum1 = 30;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum1 = 31;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg2 + 1, enum1, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline25(arg0) {
+  function trampoline27(arg0) {
     const ret = getDirectories();
-    const vec2 = ret;
-    const len2 = vec2.length;
-    const result2 = realloc1(0, 0, 4, len2 * 12);
-    for (let i = 0; i < vec2.length; i++) {
-      const e = vec2[i];
-      const base = result2 + i * 12;const [tuple0_0, tuple0_1] = e;
-      dataView(memory0).setInt32(base + 0, toUint32(tuple0_0), true);
-      const ptr1 = utf8Encode(tuple0_1, realloc1, memory0);
-      const len1 = utf8EncodedLen;
-      dataView(memory0).setInt32(base + 8, len1, true);
-      dataView(memory0).setInt32(base + 4, ptr1, true);
+    const vec3 = ret;
+    const len3 = vec3.length;
+    const result3 = realloc1(0, 0, 4, len3 * 12);
+    for (let i = 0; i < vec3.length; i++) {
+      const e = vec3[i];
+      const base = result3 + i * 12;const [tuple0_0, tuple0_1] = e;
+      if (!(tuple0_0 instanceof Descriptor)) {
+        throw new Error('Not a valid "Descriptor" resource.');
+      }
+      const handle1 = handleCnt7++;
+      handleTable7.set(handle1, { rep: tuple0_0, own: true });
+      dataView(memory0).setInt32(base + 0, handle1, true);
+      const ptr2 = utf8Encode(tuple0_1, realloc1, memory0);
+      const len2 = utf8EncodedLen;
+      dataView(memory0).setInt32(base + 8, len2, true);
+      dataView(memory0).setInt32(base + 4, ptr2, true);
     }
-    dataView(memory0).setInt32(arg0 + 4, len2, true);
-    dataView(memory0).setInt32(arg0 + 0, result2, true);
+    dataView(memory0).setInt32(arg0 + 4, len3, true);
+    dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   let realloc1;
   
-  function trampoline26(arg0) {
+  function trampoline28(arg0) {
     const ret = now$1();
     const {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
-  function trampoline27(arg0, arg1, arg2) {
+  function trampoline29(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable7.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: readViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
+      ret = { tag: 'ok', val: Descriptor.prototype.readViaStream.call(rsc0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant4 = ret;
+    switch (variant4.tag) {
       case 'ok': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg2 + 0, 0, true);
-        dataView(memory0).setInt32(arg2 + 4, toUint32(e), true);
+        if (!(e instanceof InputStream)) {
+          throw new Error('Not a valid "InputStream" resource.');
+        }
+        const handle2 = handleCnt2++;
+        handleTable2.set(handle2, { rep: e, own: true });
+        dataView(memory0).setInt32(arg2 + 4, handle2, true);
         break;
       }
       case 'err': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
+        const val3 = e;
+        let enum3;
+        switch (val3) {
           case 'access': {
-            enum0 = 0;
+            enum3 = 0;
             break;
           }
           case 'would-block': {
-            enum0 = 1;
+            enum3 = 1;
             break;
           }
           case 'already': {
-            enum0 = 2;
+            enum3 = 2;
             break;
           }
           case 'bad-descriptor': {
-            enum0 = 3;
+            enum3 = 3;
             break;
           }
           case 'busy': {
-            enum0 = 4;
+            enum3 = 4;
             break;
           }
           case 'deadlock': {
-            enum0 = 5;
+            enum3 = 5;
             break;
           }
           case 'quota': {
-            enum0 = 6;
+            enum3 = 6;
             break;
           }
           case 'exist': {
-            enum0 = 7;
+            enum3 = 7;
             break;
           }
           case 'file-too-large': {
-            enum0 = 8;
+            enum3 = 8;
             break;
           }
           case 'illegal-byte-sequence': {
-            enum0 = 9;
+            enum3 = 9;
             break;
           }
           case 'in-progress': {
-            enum0 = 10;
+            enum3 = 10;
             break;
           }
           case 'interrupted': {
-            enum0 = 11;
+            enum3 = 11;
             break;
           }
           case 'invalid': {
-            enum0 = 12;
+            enum3 = 12;
             break;
           }
           case 'io': {
-            enum0 = 13;
+            enum3 = 13;
             break;
           }
           case 'is-directory': {
-            enum0 = 14;
+            enum3 = 14;
             break;
           }
           case 'loop': {
-            enum0 = 15;
+            enum3 = 15;
             break;
           }
           case 'too-many-links': {
-            enum0 = 16;
+            enum3 = 16;
             break;
           }
           case 'message-size': {
-            enum0 = 17;
+            enum3 = 17;
             break;
           }
           case 'name-too-long': {
-            enum0 = 18;
+            enum3 = 18;
             break;
           }
           case 'no-device': {
-            enum0 = 19;
+            enum3 = 19;
             break;
           }
           case 'no-entry': {
-            enum0 = 20;
+            enum3 = 20;
             break;
           }
           case 'no-lock': {
-            enum0 = 21;
+            enum3 = 21;
             break;
           }
           case 'insufficient-memory': {
-            enum0 = 22;
+            enum3 = 22;
             break;
           }
           case 'insufficient-space': {
-            enum0 = 23;
+            enum3 = 23;
             break;
           }
           case 'not-directory': {
-            enum0 = 24;
+            enum3 = 24;
             break;
           }
           case 'not-empty': {
-            enum0 = 25;
+            enum3 = 25;
             break;
           }
           case 'not-recoverable': {
-            enum0 = 26;
+            enum3 = 26;
             break;
           }
           case 'unsupported': {
-            enum0 = 27;
+            enum3 = 27;
             break;
           }
           case 'no-tty': {
-            enum0 = 28;
+            enum3 = 28;
             break;
           }
           case 'no-such-device': {
-            enum0 = 29;
+            enum3 = 29;
             break;
           }
           case 'overflow': {
-            enum0 = 30;
+            enum3 = 30;
             break;
           }
           case 'not-permitted': {
-            enum0 = 31;
+            enum3 = 31;
             break;
           }
           case 'pipe': {
-            enum0 = 32;
+            enum3 = 32;
             break;
           }
           case 'read-only': {
-            enum0 = 33;
+            enum3 = 33;
             break;
           }
           case 'invalid-seek': {
-            enum0 = 34;
+            enum3 = 34;
             break;
           }
           case 'text-file-busy': {
-            enum0 = 35;
+            enum3 = 35;
             break;
           }
           case 'cross-device': {
-            enum0 = 36;
+            enum3 = 36;
             break;
           }
           default: {
@@ -1823,10 +1558,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val0}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg2 + 4, enum0, true);
+        dataView(memory0).setInt8(arg2 + 4, enum3, true);
         break;
       }
       default: {
@@ -1835,173 +1570,180 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline28(arg0, arg1, arg2) {
+  function trampoline30(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable7.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: writeViaStream(arg0 >>> 0, BigInt.asUintN(64, arg1)) };
+      ret = { tag: 'ok', val: Descriptor.prototype.writeViaStream.call(rsc0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant4 = ret;
+    switch (variant4.tag) {
       case 'ok': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg2 + 0, 0, true);
-        dataView(memory0).setInt32(arg2 + 4, toUint32(e), true);
+        if (!(e instanceof OutputStream)) {
+          throw new Error('Not a valid "OutputStream" resource.');
+        }
+        const handle2 = handleCnt3++;
+        handleTable3.set(handle2, { rep: e, own: true });
+        dataView(memory0).setInt32(arg2 + 4, handle2, true);
         break;
       }
       case 'err': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
+        const val3 = e;
+        let enum3;
+        switch (val3) {
           case 'access': {
-            enum0 = 0;
+            enum3 = 0;
             break;
           }
           case 'would-block': {
-            enum0 = 1;
+            enum3 = 1;
             break;
           }
           case 'already': {
-            enum0 = 2;
+            enum3 = 2;
             break;
           }
           case 'bad-descriptor': {
-            enum0 = 3;
+            enum3 = 3;
             break;
           }
           case 'busy': {
-            enum0 = 4;
+            enum3 = 4;
             break;
           }
           case 'deadlock': {
-            enum0 = 5;
+            enum3 = 5;
             break;
           }
           case 'quota': {
-            enum0 = 6;
+            enum3 = 6;
             break;
           }
           case 'exist': {
-            enum0 = 7;
+            enum3 = 7;
             break;
           }
           case 'file-too-large': {
-            enum0 = 8;
+            enum3 = 8;
             break;
           }
           case 'illegal-byte-sequence': {
-            enum0 = 9;
+            enum3 = 9;
             break;
           }
           case 'in-progress': {
-            enum0 = 10;
+            enum3 = 10;
             break;
           }
           case 'interrupted': {
-            enum0 = 11;
+            enum3 = 11;
             break;
           }
           case 'invalid': {
-            enum0 = 12;
+            enum3 = 12;
             break;
           }
           case 'io': {
-            enum0 = 13;
+            enum3 = 13;
             break;
           }
           case 'is-directory': {
-            enum0 = 14;
+            enum3 = 14;
             break;
           }
           case 'loop': {
-            enum0 = 15;
+            enum3 = 15;
             break;
           }
           case 'too-many-links': {
-            enum0 = 16;
+            enum3 = 16;
             break;
           }
           case 'message-size': {
-            enum0 = 17;
+            enum3 = 17;
             break;
           }
           case 'name-too-long': {
-            enum0 = 18;
+            enum3 = 18;
             break;
           }
           case 'no-device': {
-            enum0 = 19;
+            enum3 = 19;
             break;
           }
           case 'no-entry': {
-            enum0 = 20;
+            enum3 = 20;
             break;
           }
           case 'no-lock': {
-            enum0 = 21;
+            enum3 = 21;
             break;
           }
           case 'insufficient-memory': {
-            enum0 = 22;
+            enum3 = 22;
             break;
           }
           case 'insufficient-space': {
-            enum0 = 23;
+            enum3 = 23;
             break;
           }
           case 'not-directory': {
-            enum0 = 24;
+            enum3 = 24;
             break;
           }
           case 'not-empty': {
-            enum0 = 25;
+            enum3 = 25;
             break;
           }
           case 'not-recoverable': {
-            enum0 = 26;
+            enum3 = 26;
             break;
           }
           case 'unsupported': {
-            enum0 = 27;
+            enum3 = 27;
             break;
           }
           case 'no-tty': {
-            enum0 = 28;
+            enum3 = 28;
             break;
           }
           case 'no-such-device': {
-            enum0 = 29;
+            enum3 = 29;
             break;
           }
           case 'overflow': {
-            enum0 = 30;
+            enum3 = 30;
             break;
           }
           case 'not-permitted': {
-            enum0 = 31;
+            enum3 = 31;
             break;
           }
           case 'pipe': {
-            enum0 = 32;
+            enum3 = 32;
             break;
           }
           case 'read-only': {
-            enum0 = 33;
+            enum3 = 33;
             break;
           }
           case 'invalid-seek': {
-            enum0 = 34;
+            enum3 = 34;
             break;
           }
           case 'text-file-busy': {
-            enum0 = 35;
+            enum3 = 35;
             break;
           }
           case 'cross-device': {
-            enum0 = 36;
+            enum3 = 36;
             break;
           }
           default: {
@@ -2009,425 +1751,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val0}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg2 + 4, enum0, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline29(arg0, arg1) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: appendViaStream(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant1 = ret;
-    switch (variant1.tag) {
-      case 'ok': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        dataView(memory0).setInt32(arg1 + 4, toUint32(e), true);
-        break;
-      }
-      case 'err': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
-          case 'access': {
-            enum0 = 0;
-            break;
-          }
-          case 'would-block': {
-            enum0 = 1;
-            break;
-          }
-          case 'already': {
-            enum0 = 2;
-            break;
-          }
-          case 'bad-descriptor': {
-            enum0 = 3;
-            break;
-          }
-          case 'busy': {
-            enum0 = 4;
-            break;
-          }
-          case 'deadlock': {
-            enum0 = 5;
-            break;
-          }
-          case 'quota': {
-            enum0 = 6;
-            break;
-          }
-          case 'exist': {
-            enum0 = 7;
-            break;
-          }
-          case 'file-too-large': {
-            enum0 = 8;
-            break;
-          }
-          case 'illegal-byte-sequence': {
-            enum0 = 9;
-            break;
-          }
-          case 'in-progress': {
-            enum0 = 10;
-            break;
-          }
-          case 'interrupted': {
-            enum0 = 11;
-            break;
-          }
-          case 'invalid': {
-            enum0 = 12;
-            break;
-          }
-          case 'io': {
-            enum0 = 13;
-            break;
-          }
-          case 'is-directory': {
-            enum0 = 14;
-            break;
-          }
-          case 'loop': {
-            enum0 = 15;
-            break;
-          }
-          case 'too-many-links': {
-            enum0 = 16;
-            break;
-          }
-          case 'message-size': {
-            enum0 = 17;
-            break;
-          }
-          case 'name-too-long': {
-            enum0 = 18;
-            break;
-          }
-          case 'no-device': {
-            enum0 = 19;
-            break;
-          }
-          case 'no-entry': {
-            enum0 = 20;
-            break;
-          }
-          case 'no-lock': {
-            enum0 = 21;
-            break;
-          }
-          case 'insufficient-memory': {
-            enum0 = 22;
-            break;
-          }
-          case 'insufficient-space': {
-            enum0 = 23;
-            break;
-          }
-          case 'not-directory': {
-            enum0 = 24;
-            break;
-          }
-          case 'not-empty': {
-            enum0 = 25;
-            break;
-          }
-          case 'not-recoverable': {
-            enum0 = 26;
-            break;
-          }
-          case 'unsupported': {
-            enum0 = 27;
-            break;
-          }
-          case 'no-tty': {
-            enum0 = 28;
-            break;
-          }
-          case 'no-such-device': {
-            enum0 = 29;
-            break;
-          }
-          case 'overflow': {
-            enum0 = 30;
-            break;
-          }
-          case 'not-permitted': {
-            enum0 = 31;
-            break;
-          }
-          case 'pipe': {
-            enum0 = 32;
-            break;
-          }
-          case 'read-only': {
-            enum0 = 33;
-            break;
-          }
-          case 'invalid-seek': {
-            enum0 = 34;
-            break;
-          }
-          case 'text-file-busy': {
-            enum0 = 35;
-            break;
-          }
-          case 'cross-device': {
-            enum0 = 36;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val0}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 4, enum0, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline30(arg0, arg1) {
-    let ret;
-    try {
-      ret = { tag: 'ok', val: getType(arg0 >>> 0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant2 = ret;
-    switch (variant2.tag) {
-      case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
-          case 'unknown': {
-            enum0 = 0;
-            break;
-          }
-          case 'block-device': {
-            enum0 = 1;
-            break;
-          }
-          case 'character-device': {
-            enum0 = 2;
-            break;
-          }
-          case 'directory': {
-            enum0 = 3;
-            break;
-          }
-          case 'fifo': {
-            enum0 = 4;
-            break;
-          }
-          case 'symbolic-link': {
-            enum0 = 5;
-            break;
-          }
-          case 'regular-file': {
-            enum0 = 6;
-            break;
-          }
-          case 'socket': {
-            enum0 = 7;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val0}" is not one of the cases of descriptor-type`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 1, enum0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
-          case 'access': {
-            enum1 = 0;
-            break;
-          }
-          case 'would-block': {
-            enum1 = 1;
-            break;
-          }
-          case 'already': {
-            enum1 = 2;
-            break;
-          }
-          case 'bad-descriptor': {
-            enum1 = 3;
-            break;
-          }
-          case 'busy': {
-            enum1 = 4;
-            break;
-          }
-          case 'deadlock': {
-            enum1 = 5;
-            break;
-          }
-          case 'quota': {
-            enum1 = 6;
-            break;
-          }
-          case 'exist': {
-            enum1 = 7;
-            break;
-          }
-          case 'file-too-large': {
-            enum1 = 8;
-            break;
-          }
-          case 'illegal-byte-sequence': {
-            enum1 = 9;
-            break;
-          }
-          case 'in-progress': {
-            enum1 = 10;
-            break;
-          }
-          case 'interrupted': {
-            enum1 = 11;
-            break;
-          }
-          case 'invalid': {
-            enum1 = 12;
-            break;
-          }
-          case 'io': {
-            enum1 = 13;
-            break;
-          }
-          case 'is-directory': {
-            enum1 = 14;
-            break;
-          }
-          case 'loop': {
-            enum1 = 15;
-            break;
-          }
-          case 'too-many-links': {
-            enum1 = 16;
-            break;
-          }
-          case 'message-size': {
-            enum1 = 17;
-            break;
-          }
-          case 'name-too-long': {
-            enum1 = 18;
-            break;
-          }
-          case 'no-device': {
-            enum1 = 19;
-            break;
-          }
-          case 'no-entry': {
-            enum1 = 20;
-            break;
-          }
-          case 'no-lock': {
-            enum1 = 21;
-            break;
-          }
-          case 'insufficient-memory': {
-            enum1 = 22;
-            break;
-          }
-          case 'insufficient-space': {
-            enum1 = 23;
-            break;
-          }
-          case 'not-directory': {
-            enum1 = 24;
-            break;
-          }
-          case 'not-empty': {
-            enum1 = 25;
-            break;
-          }
-          case 'not-recoverable': {
-            enum1 = 26;
-            break;
-          }
-          case 'unsupported': {
-            enum1 = 27;
-            break;
-          }
-          case 'no-tty': {
-            enum1 = 28;
-            break;
-          }
-          case 'no-such-device': {
-            enum1 = 29;
-            break;
-          }
-          case 'overflow': {
-            enum1 = 30;
-            break;
-          }
-          case 'not-permitted': {
-            enum1 = 31;
-            break;
-          }
-          case 'pipe': {
-            enum1 = 32;
-            break;
-          }
-          case 'read-only': {
-            enum1 = 33;
-            break;
-          }
-          case 'invalid-seek': {
-            enum1 = 34;
-            break;
-          }
-          case 'text-file-busy': {
-            enum1 = 35;
-            break;
-          }
-          case 'cross-device': {
-            enum1 = 36;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val1}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 1, enum1, true);
+        dataView(memory0).setInt8(arg2 + 4, enum3, true);
         break;
       }
       default: {
@@ -2437,227 +1764,179 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   
   function trampoline31(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable7.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: stat(arg0 >>> 0) };
+      ret = { tag: 'ok', val: Descriptor.prototype.appendViaStream.call(rsc0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant6 = ret;
-    switch (variant6.tag) {
+    const variant4 = ret;
+    switch (variant4.tag) {
       case 'ok': {
-        const e = variant6.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        const {type: v0_0, linkCount: v0_1, size: v0_2, dataAccessTimestamp: v0_3, dataModificationTimestamp: v0_4, statusChangeTimestamp: v0_5 } = e;
-        const val1 = v0_0;
-        let enum1;
-        switch (val1) {
-          case 'unknown': {
-            enum1 = 0;
-            break;
-          }
-          case 'block-device': {
-            enum1 = 1;
-            break;
-          }
-          case 'character-device': {
-            enum1 = 2;
-            break;
-          }
-          case 'directory': {
-            enum1 = 3;
-            break;
-          }
-          case 'fifo': {
-            enum1 = 4;
-            break;
-          }
-          case 'symbolic-link': {
-            enum1 = 5;
-            break;
-          }
-          case 'regular-file': {
-            enum1 = 6;
-            break;
-          }
-          case 'socket': {
-            enum1 = 7;
-            break;
-          }
-          default: {
-            if ((v0_0) instanceof Error) {
-              console.error(v0_0);
-            }
-            
-            throw new TypeError(`"${val1}" is not one of the cases of descriptor-type`);
-          }
+        if (!(e instanceof OutputStream)) {
+          throw new Error('Not a valid "OutputStream" resource.');
         }
-        dataView(memory0).setInt8(arg1 + 8, enum1, true);
-        dataView(memory0).setBigInt64(arg1 + 16, toUint64(v0_1), true);
-        dataView(memory0).setBigInt64(arg1 + 24, toUint64(v0_2), true);
-        const {seconds: v2_0, nanoseconds: v2_1 } = v0_3;
-        dataView(memory0).setBigInt64(arg1 + 32, toUint64(v2_0), true);
-        dataView(memory0).setInt32(arg1 + 40, toUint32(v2_1), true);
-        const {seconds: v3_0, nanoseconds: v3_1 } = v0_4;
-        dataView(memory0).setBigInt64(arg1 + 48, toUint64(v3_0), true);
-        dataView(memory0).setInt32(arg1 + 56, toUint32(v3_1), true);
-        const {seconds: v4_0, nanoseconds: v4_1 } = v0_5;
-        dataView(memory0).setBigInt64(arg1 + 64, toUint64(v4_0), true);
-        dataView(memory0).setInt32(arg1 + 72, toUint32(v4_1), true);
+        const handle2 = handleCnt3++;
+        handleTable3.set(handle2, { rep: e, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle2, true);
         break;
       }
       case 'err': {
-        const e = variant6.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val5 = e;
-        let enum5;
-        switch (val5) {
+        const val3 = e;
+        let enum3;
+        switch (val3) {
           case 'access': {
-            enum5 = 0;
+            enum3 = 0;
             break;
           }
           case 'would-block': {
-            enum5 = 1;
+            enum3 = 1;
             break;
           }
           case 'already': {
-            enum5 = 2;
+            enum3 = 2;
             break;
           }
           case 'bad-descriptor': {
-            enum5 = 3;
+            enum3 = 3;
             break;
           }
           case 'busy': {
-            enum5 = 4;
+            enum3 = 4;
             break;
           }
           case 'deadlock': {
-            enum5 = 5;
+            enum3 = 5;
             break;
           }
           case 'quota': {
-            enum5 = 6;
+            enum3 = 6;
             break;
           }
           case 'exist': {
-            enum5 = 7;
+            enum3 = 7;
             break;
           }
           case 'file-too-large': {
-            enum5 = 8;
+            enum3 = 8;
             break;
           }
           case 'illegal-byte-sequence': {
-            enum5 = 9;
+            enum3 = 9;
             break;
           }
           case 'in-progress': {
-            enum5 = 10;
+            enum3 = 10;
             break;
           }
           case 'interrupted': {
-            enum5 = 11;
+            enum3 = 11;
             break;
           }
           case 'invalid': {
-            enum5 = 12;
+            enum3 = 12;
             break;
           }
           case 'io': {
-            enum5 = 13;
+            enum3 = 13;
             break;
           }
           case 'is-directory': {
-            enum5 = 14;
+            enum3 = 14;
             break;
           }
           case 'loop': {
-            enum5 = 15;
+            enum3 = 15;
             break;
           }
           case 'too-many-links': {
-            enum5 = 16;
+            enum3 = 16;
             break;
           }
           case 'message-size': {
-            enum5 = 17;
+            enum3 = 17;
             break;
           }
           case 'name-too-long': {
-            enum5 = 18;
+            enum3 = 18;
             break;
           }
           case 'no-device': {
-            enum5 = 19;
+            enum3 = 19;
             break;
           }
           case 'no-entry': {
-            enum5 = 20;
+            enum3 = 20;
             break;
           }
           case 'no-lock': {
-            enum5 = 21;
+            enum3 = 21;
             break;
           }
           case 'insufficient-memory': {
-            enum5 = 22;
+            enum3 = 22;
             break;
           }
           case 'insufficient-space': {
-            enum5 = 23;
+            enum3 = 23;
             break;
           }
           case 'not-directory': {
-            enum5 = 24;
+            enum3 = 24;
             break;
           }
           case 'not-empty': {
-            enum5 = 25;
+            enum3 = 25;
             break;
           }
           case 'not-recoverable': {
-            enum5 = 26;
+            enum3 = 26;
             break;
           }
           case 'unsupported': {
-            enum5 = 27;
+            enum3 = 27;
             break;
           }
           case 'no-tty': {
-            enum5 = 28;
+            enum3 = 28;
             break;
           }
           case 'no-such-device': {
-            enum5 = 29;
+            enum3 = 29;
             break;
           }
           case 'overflow': {
-            enum5 = 30;
+            enum3 = 30;
             break;
           }
           case 'not-permitted': {
-            enum5 = 31;
+            enum3 = 31;
             break;
           }
           case 'pipe': {
-            enum5 = 32;
+            enum3 = 32;
             break;
           }
           case 'read-only': {
-            enum5 = 33;
+            enum3 = 33;
             break;
           }
           case 'invalid-seek': {
-            enum5 = 34;
+            enum3 = 34;
             break;
           }
           case 'text-file-busy': {
-            enum5 = 35;
+            enum3 = 35;
             break;
           }
           case 'cross-device': {
-            enum5 = 36;
+            enum3 = 36;
             break;
           }
           default: {
@@ -2665,10 +1944,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val5}" is not one of the cases of error-code`);
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 8, enum5, true);
+        dataView(memory0).setInt8(arg1 + 4, enum3, true);
         break;
       }
       default: {
@@ -2678,32 +1957,52 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   
   function trampoline32(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable7.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: checkWrite(arg0 >>> 0) };
+      ret = { tag: 'ok', val: Descriptor.prototype.getType.call(rsc0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant4 = ret;
+    switch (variant4.tag) {
       case 'ok': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
-        dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
-        break;
-      }
-      case 'err': {
-        const e = variant1.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
-          case 'last-operation-failed': {
-            enum0 = 0;
+        const val2 = e;
+        let enum2;
+        switch (val2) {
+          case 'unknown': {
+            enum2 = 0;
             break;
           }
-          case 'closed': {
-            enum0 = 1;
+          case 'block-device': {
+            enum2 = 1;
+            break;
+          }
+          case 'character-device': {
+            enum2 = 2;
+            break;
+          }
+          case 'directory': {
+            enum2 = 3;
+            break;
+          }
+          case 'fifo': {
+            enum2 = 4;
+            break;
+          }
+          case 'symbolic-link': {
+            enum2 = 5;
+            break;
+          }
+          case 'regular-file': {
+            enum2 = 6;
+            break;
+          }
+          case 'socket': {
+            enum2 = 7;
             break;
           }
           default: {
@@ -2711,10 +2010,175 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val0}" is not one of the cases of write-error`);
+            throw new TypeError(`"${val2}" is not one of the cases of descriptor-type`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 8, enum0, true);
+        dataView(memory0).setInt8(arg1 + 1, enum2, true);
+        break;
+      }
+      case 'err': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val3 = e;
+        let enum3;
+        switch (val3) {
+          case 'access': {
+            enum3 = 0;
+            break;
+          }
+          case 'would-block': {
+            enum3 = 1;
+            break;
+          }
+          case 'already': {
+            enum3 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum3 = 3;
+            break;
+          }
+          case 'busy': {
+            enum3 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum3 = 5;
+            break;
+          }
+          case 'quota': {
+            enum3 = 6;
+            break;
+          }
+          case 'exist': {
+            enum3 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum3 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum3 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum3 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum3 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum3 = 12;
+            break;
+          }
+          case 'io': {
+            enum3 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum3 = 14;
+            break;
+          }
+          case 'loop': {
+            enum3 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum3 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum3 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum3 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum3 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum3 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum3 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum3 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum3 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum3 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum3 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum3 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum3 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum3 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum3 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum3 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum3 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum3 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum3 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum3 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum3 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum3 = 36;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val3}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 1, enum3, true);
         break;
       }
       default: {
@@ -2723,35 +2187,251 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline33(arg0, arg1, arg2, arg3) {
-    const ptr0 = arg1;
-    const len0 = arg2;
-    const result0 = new Uint8Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 1));
+  function trampoline33(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable7.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: write(arg0 >>> 0, result0) };
+      ret = { tag: 'ok', val: Descriptor.prototype.stat.call(rsc0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant2 = ret;
-    switch (variant2.tag) {
+    const variant11 = ret;
+    switch (variant11.tag) {
       case 'ok': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        const e = variant11.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const {type: v2_0, linkCount: v2_1, size: v2_2, dataAccessTimestamp: v2_3, dataModificationTimestamp: v2_4, statusChangeTimestamp: v2_5 } = e;
+        const val3 = v2_0;
+        let enum3;
+        switch (val3) {
+          case 'unknown': {
+            enum3 = 0;
+            break;
+          }
+          case 'block-device': {
+            enum3 = 1;
+            break;
+          }
+          case 'character-device': {
+            enum3 = 2;
+            break;
+          }
+          case 'directory': {
+            enum3 = 3;
+            break;
+          }
+          case 'fifo': {
+            enum3 = 4;
+            break;
+          }
+          case 'symbolic-link': {
+            enum3 = 5;
+            break;
+          }
+          case 'regular-file': {
+            enum3 = 6;
+            break;
+          }
+          case 'socket': {
+            enum3 = 7;
+            break;
+          }
+          default: {
+            if ((v2_0) instanceof Error) {
+              console.error(v2_0);
+            }
+            
+            throw new TypeError(`"${val3}" is not one of the cases of descriptor-type`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 8, enum3, true);
+        dataView(memory0).setBigInt64(arg1 + 16, toUint64(v2_1), true);
+        dataView(memory0).setBigInt64(arg1 + 24, toUint64(v2_2), true);
+        const variant5 = v2_3;
+        if (variant5 === null || variant5=== undefined) {
+          dataView(memory0).setInt8(arg1 + 32, 0, true);
+        } else {
+          const e = variant5;
+          dataView(memory0).setInt8(arg1 + 32, 1, true);
+          const {seconds: v4_0, nanoseconds: v4_1 } = e;
+          dataView(memory0).setBigInt64(arg1 + 40, toUint64(v4_0), true);
+          dataView(memory0).setInt32(arg1 + 48, toUint32(v4_1), true);
+        }
+        const variant7 = v2_4;
+        if (variant7 === null || variant7=== undefined) {
+          dataView(memory0).setInt8(arg1 + 56, 0, true);
+        } else {
+          const e = variant7;
+          dataView(memory0).setInt8(arg1 + 56, 1, true);
+          const {seconds: v6_0, nanoseconds: v6_1 } = e;
+          dataView(memory0).setBigInt64(arg1 + 64, toUint64(v6_0), true);
+          dataView(memory0).setInt32(arg1 + 72, toUint32(v6_1), true);
+        }
+        const variant9 = v2_5;
+        if (variant9 === null || variant9=== undefined) {
+          dataView(memory0).setInt8(arg1 + 80, 0, true);
+        } else {
+          const e = variant9;
+          dataView(memory0).setInt8(arg1 + 80, 1, true);
+          const {seconds: v8_0, nanoseconds: v8_1 } = e;
+          dataView(memory0).setBigInt64(arg1 + 88, toUint64(v8_0), true);
+          dataView(memory0).setInt32(arg1 + 96, toUint32(v8_1), true);
+        }
         break;
       }
       case 'err': {
-        const e = variant2.val;
-        dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const val1 = e;
-        let enum1;
-        switch (val1) {
-          case 'last-operation-failed': {
-            enum1 = 0;
+        const e = variant11.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val10 = e;
+        let enum10;
+        switch (val10) {
+          case 'access': {
+            enum10 = 0;
             break;
           }
-          case 'closed': {
-            enum1 = 1;
+          case 'would-block': {
+            enum10 = 1;
+            break;
+          }
+          case 'already': {
+            enum10 = 2;
+            break;
+          }
+          case 'bad-descriptor': {
+            enum10 = 3;
+            break;
+          }
+          case 'busy': {
+            enum10 = 4;
+            break;
+          }
+          case 'deadlock': {
+            enum10 = 5;
+            break;
+          }
+          case 'quota': {
+            enum10 = 6;
+            break;
+          }
+          case 'exist': {
+            enum10 = 7;
+            break;
+          }
+          case 'file-too-large': {
+            enum10 = 8;
+            break;
+          }
+          case 'illegal-byte-sequence': {
+            enum10 = 9;
+            break;
+          }
+          case 'in-progress': {
+            enum10 = 10;
+            break;
+          }
+          case 'interrupted': {
+            enum10 = 11;
+            break;
+          }
+          case 'invalid': {
+            enum10 = 12;
+            break;
+          }
+          case 'io': {
+            enum10 = 13;
+            break;
+          }
+          case 'is-directory': {
+            enum10 = 14;
+            break;
+          }
+          case 'loop': {
+            enum10 = 15;
+            break;
+          }
+          case 'too-many-links': {
+            enum10 = 16;
+            break;
+          }
+          case 'message-size': {
+            enum10 = 17;
+            break;
+          }
+          case 'name-too-long': {
+            enum10 = 18;
+            break;
+          }
+          case 'no-device': {
+            enum10 = 19;
+            break;
+          }
+          case 'no-entry': {
+            enum10 = 20;
+            break;
+          }
+          case 'no-lock': {
+            enum10 = 21;
+            break;
+          }
+          case 'insufficient-memory': {
+            enum10 = 22;
+            break;
+          }
+          case 'insufficient-space': {
+            enum10 = 23;
+            break;
+          }
+          case 'not-directory': {
+            enum10 = 24;
+            break;
+          }
+          case 'not-empty': {
+            enum10 = 25;
+            break;
+          }
+          case 'not-recoverable': {
+            enum10 = 26;
+            break;
+          }
+          case 'unsupported': {
+            enum10 = 27;
+            break;
+          }
+          case 'no-tty': {
+            enum10 = 28;
+            break;
+          }
+          case 'no-such-device': {
+            enum10 = 29;
+            break;
+          }
+          case 'overflow': {
+            enum10 = 30;
+            break;
+          }
+          case 'not-permitted': {
+            enum10 = 31;
+            break;
+          }
+          case 'pipe': {
+            enum10 = 32;
+            break;
+          }
+          case 'read-only': {
+            enum10 = 33;
+            break;
+          }
+          case 'invalid-seek': {
+            enum10 = 34;
+            break;
+          }
+          case 'text-file-busy': {
+            enum10 = 35;
+            break;
+          }
+          case 'cross-device': {
+            enum10 = 36;
             break;
           }
           default: {
@@ -2759,10 +2439,10 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
               console.error(e);
             }
             
-            throw new TypeError(`"${val1}" is not one of the cases of write-error`);
+            throw new TypeError(`"${val10}" is not one of the cases of error-code`);
           }
         }
-        dataView(memory0).setInt8(arg3 + 1, enum1, true);
+        dataView(memory0).setInt8(arg1 + 8, enum10, true);
         break;
       }
       default: {
@@ -2772,42 +2452,219 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   
   function trampoline34(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable1.get(handle1).rep;
+    const ret = filesystemErrorCode(rsc0);
+    const variant3 = ret;
+    if (variant3 === null || variant3=== undefined) {
+      dataView(memory0).setInt8(arg1 + 0, 0, true);
+    } else {
+      const e = variant3;
+      dataView(memory0).setInt8(arg1 + 0, 1, true);
+      const val2 = e;
+      let enum2;
+      switch (val2) {
+        case 'access': {
+          enum2 = 0;
+          break;
+        }
+        case 'would-block': {
+          enum2 = 1;
+          break;
+        }
+        case 'already': {
+          enum2 = 2;
+          break;
+        }
+        case 'bad-descriptor': {
+          enum2 = 3;
+          break;
+        }
+        case 'busy': {
+          enum2 = 4;
+          break;
+        }
+        case 'deadlock': {
+          enum2 = 5;
+          break;
+        }
+        case 'quota': {
+          enum2 = 6;
+          break;
+        }
+        case 'exist': {
+          enum2 = 7;
+          break;
+        }
+        case 'file-too-large': {
+          enum2 = 8;
+          break;
+        }
+        case 'illegal-byte-sequence': {
+          enum2 = 9;
+          break;
+        }
+        case 'in-progress': {
+          enum2 = 10;
+          break;
+        }
+        case 'interrupted': {
+          enum2 = 11;
+          break;
+        }
+        case 'invalid': {
+          enum2 = 12;
+          break;
+        }
+        case 'io': {
+          enum2 = 13;
+          break;
+        }
+        case 'is-directory': {
+          enum2 = 14;
+          break;
+        }
+        case 'loop': {
+          enum2 = 15;
+          break;
+        }
+        case 'too-many-links': {
+          enum2 = 16;
+          break;
+        }
+        case 'message-size': {
+          enum2 = 17;
+          break;
+        }
+        case 'name-too-long': {
+          enum2 = 18;
+          break;
+        }
+        case 'no-device': {
+          enum2 = 19;
+          break;
+        }
+        case 'no-entry': {
+          enum2 = 20;
+          break;
+        }
+        case 'no-lock': {
+          enum2 = 21;
+          break;
+        }
+        case 'insufficient-memory': {
+          enum2 = 22;
+          break;
+        }
+        case 'insufficient-space': {
+          enum2 = 23;
+          break;
+        }
+        case 'not-directory': {
+          enum2 = 24;
+          break;
+        }
+        case 'not-empty': {
+          enum2 = 25;
+          break;
+        }
+        case 'not-recoverable': {
+          enum2 = 26;
+          break;
+        }
+        case 'unsupported': {
+          enum2 = 27;
+          break;
+        }
+        case 'no-tty': {
+          enum2 = 28;
+          break;
+        }
+        case 'no-such-device': {
+          enum2 = 29;
+          break;
+        }
+        case 'overflow': {
+          enum2 = 30;
+          break;
+        }
+        case 'not-permitted': {
+          enum2 = 31;
+          break;
+        }
+        case 'pipe': {
+          enum2 = 32;
+          break;
+        }
+        case 'read-only': {
+          enum2 = 33;
+          break;
+        }
+        case 'invalid-seek': {
+          enum2 = 34;
+          break;
+        }
+        case 'text-file-busy': {
+          enum2 = 35;
+          break;
+        }
+        case 'cross-device': {
+          enum2 = 36;
+          break;
+        }
+        default: {
+          if ((e) instanceof Error) {
+            console.error(e);
+          }
+          
+          throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+        }
+      }
+      dataView(memory0).setInt8(arg1 + 1, enum2, true);
+    }
+  }
+  
+  function trampoline35(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: blockingFlush(arg0 >>> 0) };
+      ret = { tag: 'ok', val: OutputStream.prototype.checkWrite.call(rsc0) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant1 = ret;
-    switch (variant1.tag) {
+    const variant4 = ret;
+    switch (variant4.tag) {
       case 'ok': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg1 + 0, 0, true);
+        dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
         break;
       }
       case 'err': {
-        const e = variant1.val;
+        const e = variant4.val;
         dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val0 = e;
-        let enum0;
-        switch (val0) {
+        const variant3 = e;
+        switch (variant3.tag) {
           case 'last-operation-failed': {
-            enum0 = 0;
+            const e = variant3.val;
+            dataView(memory0).setInt8(arg1 + 8, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle2 = handleCnt1++;
+            handleTable1.set(handle2, { rep: e, own: true });
+            dataView(memory0).setInt32(arg1 + 12, handle2, true);
             break;
           }
           case 'closed': {
-            enum0 = 1;
+            dataView(memory0).setInt8(arg1 + 8, 1, true);
             break;
           }
           default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val0}" is not one of the cases of write-error`);
+            throw new TypeError(`invalid variant ${JSON.stringify(variant3.tag)} specified for StreamError`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 1, enum0, true);
         break;
       }
       default: {
@@ -2816,23 +2673,126 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline35(arg0, arg1, arg2) {
-    const ptr0 = arg0;
-    const len0 = arg1;
-    const result0 = new Uint32Array(memory0.buffer.slice(ptr0, ptr0 + len0 * 4));
-    const ret = pollOneoff(result0);
-    const vec1 = ret;
-    const len1 = vec1.length;
-    const result1 = realloc1(0, 0, 1, len1 * 1);
-    for (let i = 0; i < vec1.length; i++) {
-      const e = vec1[i];
-      const base = result1 + i * 1;dataView(memory0).setInt8(base + 0, e ? 1 : 0, true);
+  function trampoline36(arg0, arg1, arg2, arg3) {
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
+    const ptr2 = arg1;
+    const len2 = arg2;
+    const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
+    let ret;
+    try {
+      ret = { tag: 'ok', val: OutputStream.prototype.write.call(rsc0, result2) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    dataView(memory0).setInt32(arg2 + 4, len1, true);
-    dataView(memory0).setInt32(arg2 + 0, result1, true);
+    const variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 1, true);
+        const variant4 = e;
+        switch (variant4.tag) {
+          case 'last-operation-failed': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg3 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle3 = handleCnt1++;
+            handleTable1.set(handle3, { rep: e, own: true });
+            dataView(memory0).setInt32(arg3 + 8, handle3, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg3 + 4, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
+          }
+        }
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
   }
   
-  function trampoline36(arg0, arg1) {
+  function trampoline37(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: OutputStream.prototype.blockingFlush.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant4 = ret;
+    switch (variant4.tag) {
+      case 'ok': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant4.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const variant3 = e;
+        switch (variant3.tag) {
+          case 'last-operation-failed': {
+            const e = variant3.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle2 = handleCnt1++;
+            handleTable1.set(handle2, { rep: e, own: true });
+            dataView(memory0).setInt32(arg1 + 8, handle2, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant3.tag)} specified for StreamError`);
+          }
+        }
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline38(arg0, arg1, arg2) {
+    const len2 = arg1;
+    const base2 = arg0;
+    const result2 = [];
+    for (let i = 0; i < len2; i++) {
+      const base = base2 + i * 4;
+      const handle1 = dataView(memory0).getInt32(base + 0, true);
+      const rsc0 = handleTable0.get(handle1).rep;
+      result2.push(rsc0);
+    }
+    const ret = poll(result2);
+    const val3 = ret;
+    const len3 = val3.length;
+    const ptr3 = realloc1(0, 0, 4, len3 * 4);
+    const src3 = new Uint8Array(val3.buffer, val3.byteOffset, len3 * 4);
+    (new Uint8Array(memory0.buffer, ptr3, len3 * 4)).set(src3);
+    dataView(memory0).setInt32(arg2 + 4, len3, true);
+    dataView(memory0).setInt32(arg2 + 0, ptr3, true);
+  }
+  
+  function trampoline39(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -2843,7 +2803,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function trampoline37(arg0) {
+  function trampoline40(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -2862,42 +2822,6 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
     dataView(memory0).setInt32(arg0 + 4, len3, true);
     dataView(memory0).setInt32(arg0 + 0, result3, true);
-  }
-  
-  function trampoline38(arg0) {
-    const ret = getTerminalStdin();
-    const variant0 = ret;
-    if (variant0 === null || variant0=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant0;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
-    }
-  }
-  
-  function trampoline39(arg0) {
-    const ret = getTerminalStdout();
-    const variant0 = ret;
-    if (variant0 === null || variant0=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant0;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
-    }
-  }
-  
-  function trampoline40(arg0) {
-    const ret = getTerminalStderr();
-    const variant0 = ret;
-    if (variant0 === null || variant0=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant0;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      dataView(memory0).setInt32(arg0 + 4, toUint32(e), true);
-    }
   }
   let exports3;
   let postReturn0;
@@ -2943,38 +2867,145 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let postReturn40;
   let postReturn41;
   let postReturn42;
+  const handleTable2= new Map();
+  let handleCnt2 = 0;
+  function trampoline0(handle) {
+    const handleEntry = handleTable2.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable2.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable3= new Map();
+  let handleCnt3 = 0;
+  function trampoline1(handle) {
+    const handleEntry = handleTable3.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable3.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable4= new Map();
+  let handleCnt4 = 0;
+  function trampoline3(handle) {
+    const handleEntry = handleTable4.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable4.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable6= new Map();
+  let handleCnt6 = 0;
+  function trampoline4(handle) {
+    const handleEntry = handleTable6.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable6.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable1= new Map();
+  let handleCnt1 = 0;
+  function trampoline5(handle) {
+    const handleEntry = handleTable1.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable1.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable5= new Map();
+  let handleCnt5 = 0;
+  function trampoline6(handle) {
+    const handleEntry = handleTable5.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable5.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable7= new Map();
+  let handleCnt7 = 0;
+  function trampoline8(handle) {
+    const handleEntry = handleTable7.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable7.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable0= new Map();
+  let handleCnt0 = 0;
+  function trampoline13(handle) {
+    const handleEntry = handleTable0.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable0.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
   const instanceFlags0 = new WebAssembly.Global({ value: "i32", mutable: true }, 3);
   const instanceFlags1 = new WebAssembly.Global({ value: "i32", mutable: true }, 3);
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
-    'wasi:io/streams': {
-      'blocking-read': exports0['2'],
-      'blocking-write-and-flush': exports0['3'],
+    'wasi:io/error@0.2.0-rc-2023-11-10': {
+      '[resource-drop]error': trampoline5,
     },
-    'wasi:sockets/ip-name-lookup': {
-      'drop-resolve-address-stream': trampoline0,
-      'resolve-addresses': exports0['0'],
-      'resolve-next-address': exports0['1'],
+    'wasi:io/streams@0.2.0-rc-2023-11-10': {
+      '[method]input-stream.blocking-read': exports0['0'],
+      '[method]output-stream.blocking-write-and-flush': exports0['1'],
+      '[resource-drop]input-stream': trampoline0,
+      '[resource-drop]output-stream': trampoline1,
     },
-    'wasi:sockets/tcp': {
-      'drop-tcp-socket': trampoline1,
-      'finish-connect': exports0['6'],
-      'remote-address': exports0['7'],
-      shutdown: exports0['8'],
-      'start-connect': exports0['5'],
+    'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': {
+      'instance-network': trampoline2,
     },
-    'wasi:sockets/tcp-create-socket': {
-      'create-tcp-socket': exports0['4'],
+    'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': {
+      '[method]resolve-address-stream.resolve-next-address': exports0['7'],
+      '[resource-drop]resolve-address-stream': trampoline6,
+      'resolve-addresses': exports0['8'],
+    },
+    'wasi:sockets/network@0.2.0-rc-2023-11-10': {
+      '[resource-drop]network': trampoline3,
+    },
+    'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': {
+      'create-tcp-socket': exports0['6'],
+    },
+    'wasi:sockets/tcp@0.2.0-rc-2023-11-10': {
+      '[method]tcp-socket.finish-connect': exports0['3'],
+      '[method]tcp-socket.remote-address': exports0['4'],
+      '[method]tcp-socket.shutdown': exports0['5'],
+      '[method]tcp-socket.start-connect': exports0['2'],
+      '[resource-drop]tcp-socket': trampoline4,
     },
     wasi_snapshot_preview1: {
-      clock_time_get: exports0['27'],
-      environ_get: exports0['30'],
-      environ_sizes_get: exports0['31'],
-      fd_write: exports0['28'],
-      poll_oneoff: exports0['29'],
-      proc_exit: exports0['32'],
-      random_get: exports0['26'],
+      clock_time_get: exports0['25'],
+      environ_get: exports0['28'],
+      environ_sizes_get: exports0['29'],
+      fd_write: exports0['26'],
+      poll_oneoff: exports0['27'],
+      proc_exit: exports0['30'],
+      random_get: exports0['24'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -2984,70 +3015,60 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     env: {
       memory: exports1.memory,
     },
-    'wasi:cli/environment': {
-      'get-environment': exports0['22'],
+    'wasi:cli/environment@0.2.0-rc-2023-12-05': {
+      'get-environment': exports0['23'],
     },
-    'wasi:cli/exit': {
+    'wasi:cli/exit@0.2.0-rc-2023-12-05': {
       exit: trampoline15,
     },
-    'wasi:cli/stderr': {
+    'wasi:cli/stderr@0.2.0-rc-2023-12-05': {
       'get-stderr': trampoline14,
     },
-    'wasi:cli/stdin': {
-      'get-stdin': trampoline10,
+    'wasi:cli/stdin@0.2.0-rc-2023-12-05': {
+      'get-stdin': trampoline16,
     },
-    'wasi:cli/stdout': {
-      'get-stdout': trampoline12,
+    'wasi:cli/stdout@0.2.0-rc-2023-12-05': {
+      'get-stdout': trampoline17,
     },
-    'wasi:cli/terminal-input': {
-      'drop-terminal-input': trampoline11,
+    'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': {
+      now: trampoline7,
+      'subscribe-duration': trampoline9,
+      'subscribe-instant': trampoline10,
     },
-    'wasi:cli/terminal-output': {
-      'drop-terminal-output': trampoline13,
-    },
-    'wasi:cli/terminal-stderr': {
-      'get-terminal-stderr': exports0['25'],
-    },
-    'wasi:cli/terminal-stdin': {
-      'get-terminal-stdin': exports0['23'],
-    },
-    'wasi:cli/terminal-stdout': {
-      'get-terminal-stdout': exports0['24'],
-    },
-    'wasi:clocks/monotonic-clock': {
-      now: trampoline2,
-      subscribe: trampoline3,
-    },
-    'wasi:clocks/wall-clock': {
+    'wasi:clocks/wall-clock@0.2.0-rc-2023-11-10': {
       now: exports0['10'],
     },
-    'wasi:filesystem/preopens': {
+    'wasi:filesystem/preopens@0.2.0-rc-2023-11-10': {
       'get-directories': exports0['9'],
     },
-    'wasi:filesystem/types': {
-      'append-via-stream': exports0['13'],
-      'drop-descriptor': trampoline9,
-      'get-type': exports0['14'],
-      'read-via-stream': exports0['11'],
-      stat: exports0['15'],
-      'write-via-stream': exports0['12'],
+    'wasi:filesystem/types@0.2.0-rc-2023-11-10': {
+      '[method]descriptor.append-via-stream': exports0['13'],
+      '[method]descriptor.get-type': exports0['14'],
+      '[method]descriptor.read-via-stream': exports0['11'],
+      '[method]descriptor.stat': exports0['15'],
+      '[method]descriptor.write-via-stream': exports0['12'],
+      '[resource-drop]descriptor': trampoline8,
+      'filesystem-error-code': exports0['16'],
     },
-    'wasi:io/streams': {
-      'blocking-flush': exports0['19'],
-      'blocking-write-and-flush': exports0['18'],
-      'check-write': exports0['16'],
-      'drop-input-stream': trampoline7,
-      'drop-output-stream': trampoline8,
-      'subscribe-to-input-stream': trampoline5,
-      'subscribe-to-output-stream': trampoline4,
-      write: exports0['17'],
+    'wasi:io/error@0.2.0-rc-2023-11-10': {
+      '[resource-drop]error': trampoline5,
     },
-    'wasi:poll/poll': {
-      'drop-pollable': trampoline6,
-      'poll-oneoff': exports0['20'],
+    'wasi:io/poll@0.2.0-rc-2023-11-10': {
+      '[resource-drop]pollable': trampoline13,
+      poll: exports0['21'],
     },
-    'wasi:random/random': {
-      'get-random-bytes': exports0['21'],
+    'wasi:io/streams@0.2.0-rc-2023-11-10': {
+      '[method]input-stream.subscribe': trampoline12,
+      '[method]output-stream.blocking-flush': exports0['20'],
+      '[method]output-stream.blocking-write-and-flush': exports0['19'],
+      '[method]output-stream.check-write': exports0['17'],
+      '[method]output-stream.subscribe': trampoline11,
+      '[method]output-stream.write': exports0['18'],
+      '[resource-drop]input-stream': trampoline0,
+      '[resource-drop]output-stream': trampoline1,
+    },
+    'wasi:random/random@0.2.0-rc-2023-11-10': {
+      'get-random-bytes': exports0['22'],
     },
   }));
   memory0 = exports1.memory;
@@ -3056,39 +3077,37 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,
-      '0': trampoline16,
-      '1': trampoline17,
-      '10': trampoline26,
-      '11': trampoline27,
-      '12': trampoline28,
-      '13': trampoline29,
-      '14': trampoline30,
-      '15': trampoline31,
-      '16': trampoline32,
-      '17': trampoline33,
-      '18': trampoline19,
-      '19': trampoline34,
-      '2': trampoline18,
-      '20': trampoline35,
-      '21': trampoline36,
-      '22': trampoline37,
-      '23': trampoline38,
-      '24': trampoline39,
-      '25': trampoline40,
-      '26': exports2.random_get,
-      '27': exports2.clock_time_get,
-      '28': exports2.fd_write,
-      '29': exports2.poll_oneoff,
-      '3': trampoline19,
-      '30': exports2.environ_get,
-      '31': exports2.environ_sizes_get,
-      '32': exports2.proc_exit,
-      '4': trampoline20,
-      '5': trampoline21,
-      '6': trampoline22,
-      '7': trampoline23,
-      '8': trampoline24,
-      '9': trampoline25,
+      '0': trampoline18,
+      '1': trampoline19,
+      '10': trampoline28,
+      '11': trampoline29,
+      '12': trampoline30,
+      '13': trampoline31,
+      '14': trampoline32,
+      '15': trampoline33,
+      '16': trampoline34,
+      '17': trampoline35,
+      '18': trampoline36,
+      '19': trampoline19,
+      '2': trampoline20,
+      '20': trampoline37,
+      '21': trampoline38,
+      '22': trampoline39,
+      '23': trampoline40,
+      '24': exports2.random_get,
+      '25': exports2.clock_time_get,
+      '26': exports2.fd_write,
+      '27': exports2.poll_oneoff,
+      '28': exports2.environ_get,
+      '29': exports2.environ_sizes_get,
+      '3': trampoline21,
+      '30': exports2.proc_exit,
+      '4': trampoline22,
+      '5': trampoline23,
+      '6': trampoline24,
+      '7': trampoline25,
+      '8': trampoline26,
+      '9': trampoline27,
     },
   }));
   postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#parse-url-and-mount'];
@@ -4948,7 +4967,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     return variant4.val;
   }
   
-  function write$1(arg0, arg1, arg2, arg3) {
+  function write(arg0, arg1, arg2, arg3) {
     const val0 = arg1;
     const len0 = val0.byteLength;
     const ptr0 = realloc0(0, 0, 1, len0 * 1);
@@ -5946,7 +5965,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     symlink: symlink,
     symlinkPath: symlinkPath,
     umount: umount,
-    write: write$1,
+    write: write,
     writePath: writePath,
     
   };
