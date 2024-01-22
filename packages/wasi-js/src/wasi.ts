@@ -38,7 +38,7 @@ import {
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
 import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
-import { Resource, containsResourceObjects, getResourceIdentifier, getResourceObjectForResourceProxy, storeResourceObjects } from "./wasiResources.js";
+import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
 //import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiOptions {
@@ -650,7 +650,7 @@ export class WASI {
                 let storeFunc = this.storeResource;
                 storeFunc = storeFunc.bind(this);
                 storeResourceObjects(importName, funcReturn, storeFunc);
-                
+                funcReturn = getResourceSerializableForProxyObjects(funcReturn);
             }
         } catch (err: any) {
             funcThrownError = err;

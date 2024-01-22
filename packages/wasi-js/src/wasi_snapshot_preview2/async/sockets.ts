@@ -23,9 +23,11 @@ import {
     IPv6AddressToArray,
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
-import { isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
-import { InStream, OutStream } from "./io.js";
+import { isBadFileDescriptor, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
+import { DummyPollable, InStream, OutStream } from "./io.js";
 import { Resource } from "../../wasiResources.js";
+import { OpenFiles } from "../../wasiFileSystem.js";
+import { sleep } from "../../wasiUtils.js";
 type UdpSocket = socku.UdpSocket;
 type OutgoingDatagram = socku.OutgoingDatagram;
 type OutgoingDatagramStream = socku.OutgoingDatagramStream
@@ -143,10 +145,14 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     get inputstream() {
         const instream = new InStream(this._wasiEnv,this.fd);
+        const resourceId = this.openFiles.add(instream);
+        instream.resource = resourceId;
         return instream;
     }
     get outputstream() {
         const outstream = new OutStream(this._wasiEnv,this.fd);
+        const resourceId = this.openFiles.add(outstream);
+        outstream.resource = resourceId;
         return outstream;
     }
 
@@ -311,7 +317,9 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         throw new Error("Method not implemented.");
     }
     async subscribe(): Promise<Pollable> {
-        throw new Error("Method not implemented.");
+        const pollable = new TcpSocketPollable(this.openFiles, this.fd);
+        this.openFiles.add(pollable);
+        return pollable;
     }
     async shutdown(shutdownType: sockt.ShutdownType): Promise<void> {
         try {
@@ -370,6 +378,55 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         }
     }
 }
+
+export class TcpSocketPollable implements Pollable {
+    _fd: number;
+    resource: number;
+    openFiles: OpenFiles;
+    constructor(openFiles: OpenFiles, fd: number) {
+        this._fd = fd;
+        this.openFiles = openFiles;
+        this.resource = -1;
+    }
+    get fd() {
+        return this._fd;
+    }
+    async ready(): Promise<boolean> {
+        try {
+            const ofd = this.openFiles.get(this.fd);
+            const ofda = ofd as any;
+            /*if (ofda.peek) {
+                let peekBytes = await ofda.peek();
+                wasiPreview2Debug(`[io/streams] TcpSocketPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
+                if (peekBytes > 0) {
+                    return true;
+                }
+            }*/
+            if (ofda.hasConnectedClient) {
+                let hasConnectedClient = await ofda.hasConnectedClient();
+                if (hasConnectedClient) {
+                    return true;
+                }
+            }
+        } catch (err: any) {
+            console.log(`[io/streams] TcpSocketPollable.done fd: ${this.fd} err:`, err);
+            if (isBadFileDescriptor(err)) {
+                return false;
+            }
+        } 
+        return false;
+    }
+    async block(): Promise<void> {
+        while (true) {
+            const isReady = await this.ready();
+            if (isReady) {
+                return;
+            }
+            await sleep(1);
+        }
+    }
+}
+
 
 export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,WasiSocketsUdpAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -463,7 +520,9 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
         }
     }
     async subscribe(): Promise<socklookup.Pollable> {
-        throw new Error("Method not implemented.");
+        const pollable = new DummyPollable(this.openFiles, this.fd);
+        this.openFiles.add(pollable);
+        return pollable;
     }
 }
 
@@ -523,7 +582,9 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
         }
     }
     async subscribe(): Promise<socklookup.Pollable> {
-        throw new Error("Method not implemented.");
+        const pollable = new DummyPollable(this.openFiles, this.fd);
+        this.openFiles.add(pollable);
+        return pollable;
     }
 }
 
@@ -715,7 +776,9 @@ export class UdpSocketInstance implements UdpSocket, Resource {
         throw new Error("Method not implemented.");
     }
     async subscribe(): Promise<Pollable> {
-        throw new Error("Method not implemented.");
+        const pollable = new DummyPollable(this.openFiles, this.fd);
+        this.openFiles.add(pollable);
+        return pollable;
     }
     async dropUdpSocket(sockFd: number): Promise<void> {
         try {
@@ -732,7 +795,9 @@ export class UdpSocketInstance implements UdpSocket, Resource {
 
 export class ResolveAddressIterator implements ResolveAddressStream, Resource {
     public resource: number;
-    constructor(public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
+    public openFiles: OpenFiles;
+    constructor(openFiles: OpenFiles, public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
+        this.openFiles = openFiles,
         this.resource = -1;
     }
     nextAddress(): AddressInfo | null {
@@ -770,7 +835,9 @@ export class ResolveAddressIterator implements ResolveAddressStream, Resource {
         return undefined;
     }
     async subscribe(): Promise<Pollable> {
-        throw new Error("Method not implemented.");
+        const pollable = new DummyPollable(this.openFiles, this.resource);
+        this.openFiles.add(pollable);
+        return pollable;
     }
 }
 
@@ -796,7 +863,7 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             const port = 0;
             const resolve = await getAddressResolver();
             const addresses = await resolve(host, port);
-            const iter = new ResolveAddressIterator(addresses);
+            const iter = new ResolveAddressIterator(this.openFiles, addresses);
             const returnId = this.openFiles.add(iter);
             iter.resource = returnId;
             return iter;

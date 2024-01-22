@@ -75,6 +75,7 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
         //TODO: synchronize stderr numbering in openFiles
         const stderr_fd_no = 2;
         const stderr = new OutStream(this._wasiEnv, stderr_fd_no);
+        stderr.resource = stderr_fd_no;
         return stderr;
     }
 }
@@ -90,6 +91,7 @@ export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
         //TODO: synchronize stdin numbering in openFiles
         const stdin_fd_no = 0;
         const stdin = new InStream(this._wasiEnv, stdin_fd_no);
+        stdin.resource = stdin_fd_no;
         return stdin;
     }
 }
@@ -105,6 +107,7 @@ export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
         //TODO: synchronize stdin numbering in openFiles
         const stdout_fd_no = 1;
         const stdout = new OutStream(this._wasiEnv, stdout_fd_no);
+        stdout.resource = stdout_fd_no;
         return stdout;
     }
 }

@@ -550,7 +550,13 @@ export class OpenFiles {
     add(res: OpenResource): Fd {
         filesystemDebug("[add]", res);
         this._files.set(this._nextFd, res);
-        return this._nextFd++ as Fd;
+        const newFd = this._nextFd++ as Fd;
+        const resAny = res as any;
+        if (resAny.resource !== undefined ) {
+            const resRes = resAny as Resource;
+            resRes.resource = newFd;
+        }
+        return newFd;
     }
 
     isFile(fd: Fd): boolean {

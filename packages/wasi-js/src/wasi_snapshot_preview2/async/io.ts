@@ -1,7 +1,7 @@
 import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2";
 type IoStreamsAsync = io.WasiIoStreamsAsync;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isBadFileDescriptor, isErrorAgain, translateError, wasiPreview2Debug } from "./preview2Utils.js";
+import { isBadFileDescriptor, isErrorAgain, isIoError, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 import { FsPollable, OpenFiles } from "../../wasiFileSystem.js";
 import { sleep } from "../../wasiUtils.js";
 import { USE_ACCEPTED_SOCKET_PROMISE } from "../../wasi_experimental_sockets/net.js";
@@ -17,14 +17,16 @@ type Pollable = io.Pollable;
 type StreamErrorClosed = io.StreamErrorClosed;
 
 export class InputStreamPollable implements FsPollable {
+    _fd: number;
     resource: number;
     openFiles: OpenFiles;
     constructor(openFiles: OpenFiles, fd: number) {
-        this.resource = fd;
+        this._fd = fd;
         this.openFiles = openFiles;
+        this.resource = -1;
     }
     get fd() {
-        return this.resource;
+        return this._fd;
     }
     async ready(): Promise<boolean> {
         try {
@@ -37,12 +39,12 @@ export class InputStreamPollable implements FsPollable {
                     return true;
                 }
             }
-            if (ofda.hasConnectedClient) {
+            /*if (ofda.hasConnectedClient) {
                 let hasConnectedClient = await ofda.hasConnectedClient();
                 if (hasConnectedClient) {
                     return true;
                 }
-            }
+            }*/
         } catch (err: any) {
             wasiPreview2Debug(`[io/streams] InputStreamPollable.done fd: ${this.fd} err:`, err);
             if (isBadFileDescriptor(err)) {
@@ -62,6 +64,25 @@ export class InputStreamPollable implements FsPollable {
     }
 }
 
+export class DummyPollable implements FsPollable {
+    openFiles: OpenFiles;
+    fd: number;
+    resource: number;
+    constructor(openFiles: OpenFiles, fd: number) {
+        this.fd = fd;
+        this.openFiles = openFiles;
+        this.resource = -1;
+    }
+    async block(): Promise<void> {
+        console.log("DummyPollable:block");
+        return;
+    }
+    async ready(): Promise<boolean> {
+        console.log("DummyPollable:ready");
+        return true;
+    }
+}
+
 export class IoStreamsAsyncHost implements IoStreamsAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
@@ -75,12 +96,14 @@ export class InStream implements InputStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.resource = fd;
+        this._fd = fd;
+        this.resource = -1;
     }
     [Symbol.asyncDispose](): Promise<void> {
         throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
+    public _fd: number;
     public resource: number;
     get wasiEnv() {
         return this._wasiEnv;
@@ -89,11 +112,10 @@ export class InStream implements InputStream, Resource {
         return this.wasiEnv.openFiles;
     }
     get fd() {
-        return this.resource;
+        return this._fd;
     }
     async read(len: bigint): Promise<Uint8Array> {
         //let streamStatus: StreamStatus = 'ended';
-        let isEnd = false;
         try {
             wasiPreview2Debug(`[io/streams] io:read ${this.fd} starting`);
             if (len == 0n) {
@@ -106,26 +128,21 @@ export class InStream implements InputStream, Resource {
             /*if (buffer.length < len) {
                 isEnd = true;
             }*/
-            if (isEnd) {
-                //streamStatus = 'ended';
+            wasiPreview2Debug(`[io/streams] io:read ${this.fd} open`);
+            wasiPreview2Debug(`[io/streams] io:read ${this.fd} returning`,buffer);
+            return buffer;    
+        } catch (err: any) {
+            wasiPreview2Debug("io.read(): err: ", err);
+            if(isIoError(err)){
                 let err: StreamErrorClosed = {
                     tag: "closed"
                 }
                 throw err;
-            } else {
-                //streamStatus = 'open';
-                wasiPreview2Debug(`[io/streams] io:read ${this.fd} open`);
-            }
-            wasiPreview2Debug(`[io/streams] io:read ${this.fd} returning`,buffer);
-            return buffer;    
-        } catch (err: any) {
-            if (isEnd) {
-                throw err;
+            } else if(isErrorAgain(err)){
+                wasiPreview2Debug("io.read(): EAGAIN: ", err);
+                return new Uint8Array();
             } else {
                 wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
-                /*if (isErrorAgain(err)) {
-                    streamStatus = 'open';
-                }*/
                 return new Uint8Array();
             }
         }
@@ -141,7 +158,7 @@ export class InStream implements InputStream, Resource {
             //if (res.byteLength !== 0) {
                 return res;
             //}
-            await sleep(1);
+            //await sleep(1);
         }
     }
     async skip(len: bigint): Promise<bigint> {
@@ -157,7 +174,8 @@ export class InStream implements InputStream, Resource {
 
     async subscribe(): Promise<io.Pollable> {
         const pollable = new InputStreamPollable(this.openFiles, this.fd);
-        this._wasiEnv.openFiles.add(pollable);
+        const resourceId = this._wasiEnv.openFiles.add(pollable);
+        pollable.resource = resourceId;
         return pollable;
     }
 
@@ -171,12 +189,14 @@ export class OutStream implements OutputStream, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.resource = fd;
+        this._fd = fd;
+        this.resource = -1;
     }
     [Symbol.asyncDispose](): Promise<void> {
         throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
+    public _fd: number;
     public resource: number;
     get wasiEnv() {
         return this._wasiEnv;
@@ -185,14 +205,14 @@ export class OutStream implements OutputStream, Resource {
         return this.wasiEnv.openFiles;
     }
     get fd() {
-        return this.resource;
+        return this._fd;
     }
 
     async checkWrite(): Promise<bigint> {
         // Default to 1MB
         // TODO make more intelligent
-        //return 4096n;
-        return 1048576n;
+        return 4096n;
+        //return 1048576n;
     }
     async write(contents: Uint8Array): Promise<void> {
         try {
@@ -213,7 +233,7 @@ export class OutStream implements OutputStream, Resource {
         }
     }
     async flush(): Promise<void> {
-        // TODO revise this
+        // TODO revise this]
         // NOOP for now
         return;
     }
@@ -222,8 +242,10 @@ export class OutStream implements OutputStream, Resource {
         // NOOP for now
         return;
     }
-    subscribe(): Promise<io.Pollable> {
-        throw new Error("Method not implemented.");
+    async subscribe(): Promise<io.Pollable> {
+        const pollable = new DummyPollable(this.openFiles, this.fd);
+        this._wasiEnv.openFiles.add(pollable);
+        return pollable;
     }
     writeZeroes(len: bigint): Promise<void> {
         throw new Error("Method not implemented.");
@@ -408,10 +430,10 @@ export class IoPollAsyncHost implements IOPollAsync {
             const pollable = in_[i];
             //out[i] = (await pollable.block());
             if (await pollable.ready()) {
-                out[i] = 1;
+                out[i] = i;
             } else {
                 await pollable.block();
-                out[i] = 1;
+                out[i] = i;
             }
         }
         return out;

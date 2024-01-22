@@ -28,6 +28,21 @@ export function isBadFileDescriptor(err: any): boolean{
     return false;
 }
 
+export function isIoError(err: any): boolean{
+    const errCodeNo = translateErrorToErrorno(err);
+    if (errCodeNo == ErrnoN.BADF) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNABORTED) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNRESET) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNREFUSED) {
+        return true;
+    }
+    return false;
+}
+
+
 export function translateError(err: any) {
     const errCodeNo = translateErrorToErrorno(err);
     let errCode: ErrorCode = "invalid";

@@ -65,7 +65,10 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
         this._wasiEnv = wasiEnv;
     }
     async filesystemErrorCode(err: fs.Error): Promise<fs.ErrorCode | undefined> {
-        throw new Error("Method not implemented.");
+        let debugstr = err.toDebugString();
+        console.log("filesystemErrorCode: ", err);
+        return 'unsupported';
+        //throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
 
@@ -106,6 +109,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const newFd = await this.openFiles.openReader(this.fd, offset);
             wasiPreview2Debug("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
             const instr = new InStream(this._wasiEnv, newFd);
+            instr.resource = newFd;
             return instr;
         } catch (err: any) {
             throw translateError(err);
@@ -116,6 +120,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const newFd = await this.openFiles.openWriter(this.fd, offset);
             wasiPreview2Debug("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
             const outstr = new OutStream(this._wasiEnv, newFd);
+            outstr.resource = newFd;
             return outstr;
         } catch (err: any) {
             throw translateError(err);
@@ -125,6 +130,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         try {
             const newFd = await this.openFiles.openWriter(this.fd, 0n, true);
             const outstr = new OutStream(this._wasiEnv, newFd);
+            outstr.resource = newFd;
             return outstr;
         } catch (err: any) {
             throw translateError(err);

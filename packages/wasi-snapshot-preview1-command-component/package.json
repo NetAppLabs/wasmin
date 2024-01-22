@@ -15,7 +15,7 @@
     ],
     "scripts": {
         "build": "echo true",
-        "build-jco": "./build-without-sockets.sh"
+        "build-jco": "./build.sh"
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^0.13.2",

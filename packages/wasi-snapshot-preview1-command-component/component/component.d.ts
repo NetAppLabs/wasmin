@@ -16,8 +16,13 @@ import { WasiIoError } from './interfaces/wasi-io-error.js';
 import { WasiIoPoll } from './interfaces/wasi-io-poll.js';
 import { WasiIoStreams } from './interfaces/wasi-io-streams.js';
 import { WasiRandomRandom } from './interfaces/wasi-random-random.js';
+import { WasiSocketsInstanceNetwork } from './interfaces/wasi-sockets-instance-network.js';
+import { WasiSocketsIpNameLookup } from './interfaces/wasi-sockets-ip-name-lookup.js';
 import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network.js';
+import { WasiSocketsTcpCreateSocket } from './interfaces/wasi-sockets-tcp-create-socket.js';
 import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp.js';
+import { WasiSocketsUdpCreateSocket } from './interfaces/wasi-sockets-udp-create-socket.js';
+import { WasiSocketsUdp } from './interfaces/wasi-sockets-udp.js';
 import { WasiCliRun } from './interfaces/wasi-cli-run.js';
 export interface ImportObject {
   'wasi:cli/environment@0.2.0-rc-2023-12-05': typeof WasiCliEnvironment,
@@ -38,8 +43,13 @@ export interface ImportObject {
   'wasi:io/poll@0.2.0-rc-2023-11-10': typeof WasiIoPoll,
   'wasi:io/streams@0.2.0-rc-2023-11-10': typeof WasiIoStreams,
   'wasi:random/random@0.2.0-rc-2023-11-10': typeof WasiRandomRandom,
+  'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': typeof WasiSocketsInstanceNetwork,
+  'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': typeof WasiSocketsIpNameLookup,
   'wasi:sockets/network@0.2.0-rc-2023-11-10': typeof WasiSocketsNetwork,
+  'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': typeof WasiSocketsTcpCreateSocket,
   'wasi:sockets/tcp@0.2.0-rc-2023-11-10': typeof WasiSocketsTcp,
+  'wasi:sockets/udp-create-socket@0.2.0-rc-2023-11-10': typeof WasiSocketsUdpCreateSocket,
+  'wasi:sockets/udp@0.2.0-rc-2023-11-10': typeof WasiSocketsUdp,
 }
 export interface Root {
   'wasi:cli/run@0.2.0-rc-2023-12-05': typeof WasiCliRun,
