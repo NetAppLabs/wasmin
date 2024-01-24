@@ -33,6 +33,7 @@ export class TcpSocket {
   finishListen(): void;
   accept(): [TcpSocket, InputStream, OutputStream];
   localAddress(): IpSocketAddress;
+  remoteAddress(): IpSocketAddress;
   subscribe(): Pollable;
   shutdown(shutdownType: ShutdownType): void;
 }

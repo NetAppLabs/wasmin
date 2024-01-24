@@ -51,9 +51,9 @@ let actualStderr = "";
 //stdin = "hello world";
 //let test = "stdout";
 //let test = "stdout_with_flush";
-//let test = "freopen";
+let test = "freopen";
 //let test = "poll";
-let test = "read_file";
+//let test = "read_file";
 //let test = "read_file_twice";
 //let test = "preopen_populates";
 

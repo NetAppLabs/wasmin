@@ -146,13 +146,11 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     get inputstream() {
         const instream = new InStream(this._wasiEnv,this.fd);
         const resourceId = this.openFiles.add(instream);
-        instream.resource = resourceId;
         return instream;
     }
     get outputstream() {
         const outstream = new OutStream(this._wasiEnv,this.fd);
         const resourceId = this.openFiles.add(outstream);
-        outstream.resource = resourceId;
         return outstream;
     }
 
@@ -168,7 +166,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             await sock.bind(addrInfo);
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("startBind: err:", err);
+            wasiPreview2Debug("TcpSocketInstance.startBind: err:", err);
             throw 'address-not-bindable'
         }
     }
@@ -182,7 +180,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
             const remoteAddr = remoteAddrInfo.address;
             const remotePort = remoteAddrInfo.port;
-            wasiPreview2Debug(`tcp startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
+            wasiPreview2Debug(`TcpSocketInstance.startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
             await sock.connect(remoteAddr, remotePort);
         } catch (err: any) {
             //throw translateError(err);
@@ -207,7 +205,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             await sock.listen(backlog);
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("startListen: err:", err);
+            wasiPreview2Debug("TcpSocketInstance.startListen: err:", err);
             throw 'already-listening';
         }
     }
@@ -216,6 +214,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async accept(): Promise<[TcpSocket, InputStream, OutputStream]> {
         try {
+            wasiPreview2Debug(`TcpSocketInstance.accept: starting on fd: ${this.fd}`);
             const sockFd = this.fd;
             const connectionCloser = async () => {
                 if (clientSock) {
@@ -240,32 +239,34 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             const clientSock = await sock.getAcceptedSocket();
             clientSock.connectionCloser = connectionCloser;
             const clientSockFd = this.openFiles.add(clientSock);
-            wasiPreview2Debug(`accept: returning clientSockFd: ${clientSockFd}`);
+            wasiPreview2Debug(`TcpSocketInstance.accept: returning clientSockFd: ${clientSockFd}`);
             const clientSockInstance = new TcpSocketInstance(this._wasiEnv,clientSockFd);
             const inStream = clientSockInstance.inputstream;
             const outStream = clientSockInstance.outputstream;
             return [clientSockInstance, inStream, outStream];
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("accept: err:", err);
+            wasiPreview2Debug("TcpSocketInstance.accept: err:", err);
             throw 'would-block';
         }
     }
     async localAddress(): Promise<sockn.IpSocketAddress> {
+        let localAddrInfo: AddressInfo|undefined = undefined;
         try {
             const sockFd = this.fd;
-            wasiPreview2Debug(`localAddress: calling this.getSocket: sockfd: ${sockFd}`);
+            wasiPreview2Debug(`TcpSocketInstance.localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
             //wasiPreview2Debug("localAddress: sock: ", sock);
-            const localAddrInfo = await sock.address();
-            wasiPreview2Debug("localAddress: localAddrInfo: ", localAddrInfo);
+            localAddrInfo = await sock.address();
+            wasiPreview2Debug("TcpSocketInstance.localAddress: localAddrInfo: ", localAddrInfo);
             const localAddr = AddressInfoToIpSocketAddress(localAddrInfo);
-            wasiPreview2Debug("localAddr: localAddr: ", localAddr);
+            wasiPreview2Debug("TcpSocketInstance.localAddr: localAddr: ", localAddr);
             return localAddr;
         } catch (err: any) {
-            wasiPreview2Debug("localAddress err:", err);
+            wasiPreview2Debug ("TcpSocketInstance.localAddress: localAddrInfo:", localAddrInfo);
+            wasiPreview2Debug("TcpSocketInstance.localAddress err:", err);
             //throw translateError(err);
-            throw 'not-bound';
+            throw 'connection-aborted';
         }
     }
     async remoteAddress(): Promise<sockn.IpSocketAddress> {
@@ -276,9 +277,18 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
             return remoteAddr;
         } catch (err: any) {
-            wasiPreview2Debug("remoteAddress err: ", err);
+            wasiPreview2Debug("TcpSocketInstance.remoteAddress err: ", err);
+            // TODO: look into error handling here
             //throw translateError(err);
-            throw 'not-connected'
+            //throw 'connection-aborted';
+            let dummyAddr: IpSocketAddressIpv4 = {
+                tag: "ipv4",
+                val: {
+                    port: 0,
+                    address: [0,0,0,0]
+                }
+            }
+            return dummyAddr;
         }
     }
     async addressFamily(): Promise<sockn.IpAddressFamily> {
@@ -291,8 +301,8 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             return family;
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("addressFamily err: ", err);
-            throw 'not-bound';
+            wasiPreview2Debug("TcpSocketInstance.addressFamily err: ", err);
+            throw 'invalid-state';
         }
     }
     async ipv6Only(): Promise<boolean> {
@@ -328,7 +338,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             sock.shutdown();
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("shutdown err: ", err);
+            wasiPreview2Debug("TcpSocketInstance.shutdown err: ", err);
             throw 'not-connected';
         }
     }
@@ -365,7 +375,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     setHopLimit(value: number): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    async dropTcpSocket(): Promise<void> {
+    async [Symbol.asyncDispose]() : Promise<void> {
         try {
             const sockFd = this.fd;
             if (this.openFiles.exists(sockFd)) {
@@ -373,8 +383,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             }
         } catch (err: any) {
             // Swallow error:
-            wasiPreview2Debug("dropTcpSocket err: ", err);
-            //throw translateError(err);
+            wasiPreview2Debug("TCPSocketInstance.dispose Symbol.asyncDispose err: ", err);
         }
     }
 }
@@ -391,38 +400,54 @@ export class TcpSocketPollable implements Pollable {
     get fd() {
         return this._fd;
     }
+    async readyWithError(): Promise<boolean> {
+        const ofd = this.openFiles.get(this.fd);
+        const ofda = ofd as any;
+        if (ofda.peek) {
+            let peekBytes = await ofda.peek();
+            wasiPreview2Debug(`[io/streams] TcpSocketPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
+            if (peekBytes > 0) {
+                return true;
+            }
+        }
+        if (ofda.hasConnectedClient) {
+            const hasConnected = await ofda.hasConnectedClient();
+            if (hasConnected) {
+                return true;
+            }
+        }
+        return false;
+    }
     async ready(): Promise<boolean> {
         try {
-            const ofd = this.openFiles.get(this.fd);
-            const ofda = ofd as any;
-            /*if (ofda.peek) {
-                let peekBytes = await ofda.peek();
-                wasiPreview2Debug(`[io/streams] TcpSocketPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
-                if (peekBytes > 0) {
-                    return true;
-                }
-            }*/
-            if (ofda.hasConnectedClient) {
-                let hasConnectedClient = await ofda.hasConnectedClient();
-                if (hasConnectedClient) {
-                    return true;
-                }
-            }
+            await this.readyWithError();
         } catch (err: any) {
-            console.log(`[io/streams] TcpSocketPollable.done fd: ${this.fd} err:`, err);
+            wasiPreview2Debug(`[io/streams] TcpSocketPollable.done fd: ${this.fd} err:`, err);
             if (isBadFileDescriptor(err)) {
+                wasiPreview2Debug("badf for TcpSocketPollable")
                 return false;
             }
         } 
         return false;
     }
+
     async block(): Promise<void> {
-        while (true) {
-            const isReady = await this.ready();
-            if (isReady) {
-                return;
+        //attemtlet isWaiting = true;
+        let attempt = 0;
+        let attempts = 1;
+        while (attempt < attempts) {
+            try {
+                const isReady = await this.readyWithError();
+                if (isReady) {
+                    return;
+                }
+                await sleep(1);
+            } catch (err: any) {
+                wasiPreview2Debug("TcpSocketPollable.block err:", err);
+                //isWaiting = false;
+                attempt = attempts;
             }
-            await sleep(1);
+            attempt++;
         }
     }
 }
@@ -489,7 +514,7 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
     async receive(maxResults: bigint): Promise<IncomingDatagram[]> {
         try {
             const sockFd = this.fd;
-            wasiPreview2Debug(`udp receive: calling this.getSocket: sockfd: ${sockFd}`);
+            wasiPreview2Debug(`UdpIncomingDatagramStreamInstance.receive: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
             //wasiPreview2Debug("receive: sock: ", sock);
             //let buf_size = this.receiveBufferSize(sockFd);
@@ -497,11 +522,11 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
             let remoteChunk = await sock.readFrom(buf_size);
             let data = remoteChunk.buf; 
             let rinfo = remoteChunk.rinfo;
-            wasiPreview2Debug(`udp receive sockfd: ${sockFd} rinfo.address: ${rinfo.address} rinfo.port: ${rinfo.port}`);
-            wasiPreview2Debug(`udp receive sockfd: ${sockFd} data.length: ${data.length}`);
+            wasiPreview2Debug(`UdpIncomingDatagramStreamInstance.receive sockfd: ${sockFd} rinfo.address: ${rinfo.address} rinfo.port: ${rinfo.port}`);
+            wasiPreview2Debug(`UdpIncomingDatagramStreamInstance.receive sockfd: ${sockFd} data.length: ${data.length}`);
 
             const raddr = AddressInfoToIpSocketAddress(rinfo);
-            wasiPreview2Debug(`udp receive sockfd: ${sockFd} raddr: `, raddr);
+            wasiPreview2Debug(`UdpIncomingDatagramStreamInstance.receive sockfd: ${sockFd} raddr: `, raddr);
 
             let datagram: IncomingDatagram = {
                 data: data,
@@ -511,7 +536,7 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
             let datagrams = [datagram];
             return datagrams;
         } catch (err: any) {
-            wasiPreview2Debug("udp receive err:", err);
+            wasiPreview2Debug("UdpIncomingDatagramStreamInstance.receive err:", err);
             if (isErrorAgain(err)) {
                 throw 'would-block'
             }
@@ -557,9 +582,9 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
     async send(datagrams: OutgoingDatagram[]): Promise<bigint> {
         try {
             const sockFd = this.fd;
-            wasiPreview2Debug(`udp send: calling this.getSocket: sockfd: ${sockFd}`);
+            wasiPreview2Debug(`UdpOutgoingDatagramStreamInstance.send: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
-            wasiPreview2Debug("udp send: sock: ", sock);
+            wasiPreview2Debug("UdpOutgoingDatagramStreamInstance.send: sock: ", sock);
             let sent_count = 0n;
             for (let datagram of datagrams) {
                 let buf = datagram.data;
@@ -573,7 +598,7 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
             }
             return sent_count;
         } catch (err: any) {
-            wasiPreview2Debug("udp send err:", err);
+            wasiPreview2Debug("UdpOutgoingDatagramStreamInstance.send err:", err);
             if (isErrorAgain(err)) {
                 throw 'would-block'
             }
@@ -611,7 +636,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
         const res = this.openFiles.get(fd);
         return res as WasiSocket;
     }
-    async startBind(network: number, localAddress: sockn.IpSocketAddress): Promise<void> {
+    async startBind(network: Network, localAddress: sockn.IpSocketAddress): Promise<void> {
         try {
             const sockFd = this.fd;
             const sock = this.getSocket(sockFd);
@@ -619,25 +644,25 @@ export class UdpSocketInstance implements UdpSocket, Resource {
             await sock.bind(addrInfo);
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("udp startBind err:", err);
+            wasiPreview2Debug("UDPSocketInstance.startBind err:", err);
             throw 'already-bound';
         }
     }
     async finishBind(): Promise<void> {
         // no-op for now
     }
-    async startConnect(network: number, remoteAddress: sockn.IpSocketAddress): Promise<void> {
+    async startConnect(network: Network, remoteAddress: sockn.IpSocketAddress): Promise<void> {
         try {
             const sockFd = this.fd;
             const sock = this.getSocket(sockFd);
             const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
             const remoteAddr = remoteAddrInfo.address;
             const remotePort = remoteAddrInfo.port;
-            wasiPreview2Debug(`udp startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
+            wasiPreview2Debug(`UDPSocketInstance.startConnect fd: ${sockFd} remoteAddr: ${remoteAddr} remotePort: ${remotePort}`);
             await sock.connect(remoteAddr, remotePort);
         } catch (err: any) {
             //throw translateError(err);
-            wasiPreview2Debug("udp startConnect err:", err);
+            wasiPreview2Debug("UDPSocketInstance.startConnect err:", err);
             throw 'remote-unreachable';
         }
     }
@@ -647,10 +672,8 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     async stream(remoteAddress: sockn.IpSocketAddress | undefined): Promise<[socku.IncomingDatagramStream, socku.OutgoingDatagramStream]> {
         const incomingDataStream = new UdpIncomingDatagramStreamInstance(this.wasiEnv,this.fd);
         const newIncomingResourceId = this.openFiles.add(incomingDataStream);
-        incomingDataStream.resource = newIncomingResourceId;
         const outgoingDataStream = new UdpOutgoingDatagramStreamInstance(this.wasiEnv,this.fd);
         const newOutgoingResourceId = this.openFiles.add(outgoingDataStream);
-        outgoingDataStream.resource = newOutgoingResourceId;
         return [incomingDataStream, outgoingDataStream];
     }/*
     async receive(sockFd: number, maxResults: bigint): Promise<socku.Datagram[]> {
@@ -711,18 +734,18 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     async localAddress(): Promise<sockn.IpSocketAddress> {
         try {
             const sockFd = this.fd;
-            wasiPreview2Debug(`localAddress: calling this.getSocket: sockfd: ${sockFd}`);
+            wasiPreview2Debug(`UDPSocketInstance.localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
             //wasiPreview2Debug("localAddress: sock: ", sock);
             const localAddrInfo = await sock.address();
-            wasiPreview2Debug("localAddress: localAddrInfo: ", localAddrInfo);
+            wasiPreview2Debug("UDPSocketInstance.localAddress: localAddrInfo: ", localAddrInfo);
             const localAddr = AddressInfoToIpSocketAddress(localAddrInfo);
-            wasiPreview2Debug("localAddr: localAddr: ", localAddr);
+            wasiPreview2Debug("UDPSocketInstance.localAddr: localAddr: ", localAddr);
             return localAddr;
         } catch (err: any) {
-            wasiPreview2Debug("localAddress err:", err);
+            wasiPreview2Debug("UDPSocketInstance.localAddress err:", err);
             //throw translateError(err);
-            throw 'not-bound';
+            throw 'connection-aborted';
         }
     }
     async remoteAddress(): Promise<sockn.IpSocketAddress> {
@@ -733,9 +756,18 @@ export class UdpSocketInstance implements UdpSocket, Resource {
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
             return remoteAddr;
         } catch (err: any) {
-            wasiPreview2Debug("remoteAddress err: ", err);
+            wasiPreview2Debug("UDPSocketInstance.remoteAddress err: ", err);
+            // TODO: look into error handling here
             //throw translateError(err);
-            throw 'not-connected'
+            //throw 'connection-aborted'
+            let dummyAddr: IpSocketAddressIpv4 = {
+                tag: "ipv4",
+                val: {
+                    port: 0,
+                    address: [0,0,0,0]
+                }
+            }
+            return dummyAddr;
         }
     }
     async addressFamily(): Promise<sockn.IpAddressFamily> {
@@ -747,8 +779,8 @@ export class UdpSocketInstance implements UdpSocket, Resource {
             const family = AddressFamilyToIpAddressFamily(aFamily);
             return family;
         } catch (err: any) {
-            wasiPreview2Debug("udp addressFamily err: ", err);
-            throw 'not-bound';
+            wasiPreview2Debug("UDPSocketInstance.addressFamily err: ", err);
+            throw 'invalid-state';
         }
     }
     async ipv6Only(): Promise<boolean> {
@@ -780,15 +812,15 @@ export class UdpSocketInstance implements UdpSocket, Resource {
         this.openFiles.add(pollable);
         return pollable;
     }
-    async dropUdpSocket(sockFd: number): Promise<void> {
+    async [Symbol.asyncDispose](): Promise<void> {
         try {
+            const sockFd = this.fd;
             if (this.openFiles.exists(sockFd)) {
                 this.openFiles.close(sockFd);
             }
         } catch (err: any) {
             // swallow error
-            //throw translateError(err);
-            wasiPreview2Debug("udp dropUdpSocket err: ", err);
+            wasiPreview2Debug("UDPSocketInstance Symbol.asyncDispose err: ", err);
         }
     }
 }
@@ -865,7 +897,6 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             const addresses = await resolve(host, port);
             const iter = new ResolveAddressIterator(this.openFiles, addresses);
             const returnId = this.openFiles.add(iter);
-            iter.resource = returnId;
             return iter;
         } catch (err: any) {
             // swallow error

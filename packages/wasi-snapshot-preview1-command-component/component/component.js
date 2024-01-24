@@ -7471,7 +7471,166 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline69(arg0, arg1, arg2) {
+  function trampoline69(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable10.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: TcpSocket.prototype.remoteAddress.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant8 = ret;
+    switch (variant8.tag) {
+      case 'ok': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const variant6 = e;
+        switch (variant6.tag) {
+          case 'ipv4': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            const {port: v2_0, address: v2_1 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v2_0), true);
+            const [tuple3_0, tuple3_1, tuple3_2, tuple3_3] = v2_1;
+            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple3_0), true);
+            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple3_1), true);
+            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple3_2), true);
+            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple3_3), true);
+            break;
+          }
+          case 'ipv6': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            const {port: v4_0, flowInfo: v4_1, address: v4_2, scopeId: v4_3 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v4_0), true);
+            dataView(memory0).setInt32(arg1 + 12, toUint32(v4_1), true);
+            const [tuple5_0, tuple5_1, tuple5_2, tuple5_3, tuple5_4, tuple5_5, tuple5_6, tuple5_7] = v4_2;
+            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple5_0), true);
+            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple5_1), true);
+            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple5_2), true);
+            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple5_3), true);
+            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple5_4), true);
+            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple5_5), true);
+            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple5_6), true);
+            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple5_7), true);
+            dataView(memory0).setInt32(arg1 + 32, toUint32(v4_3), true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant6.tag)} specified for IpSocketAddress`);
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val7 = e;
+        let enum7;
+        switch (val7) {
+          case 'unknown': {
+            enum7 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum7 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum7 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum7 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum7 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum7 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum7 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum7 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum7 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum7 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum7 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum7 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum7 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum7 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum7 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum7 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum7 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum7 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum7 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum7 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum7 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val7}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum7, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline70(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable10.get(handle1).rep;
     let enum2;
@@ -7612,7 +7771,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline70(arg0, arg1, arg2) {
+  function trampoline71(arg0, arg1, arg2) {
     const len2 = arg1;
     const base2 = arg0;
     const result2 = [];
@@ -7632,7 +7791,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     dataView(memory0).setInt32(arg2 + 0, ptr3, true);
   }
   
-  function trampoline71(arg0, arg1) {
+  function trampoline72(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     const val0 = ret;
     const len0 = val0.byteLength;
@@ -7643,7 +7802,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function trampoline72(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+  function trampoline73(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
     const handle1 = arg0;
     const rsc0 = handleTable9.get(handle1).rep;
     const handle3 = arg1;
@@ -7796,7 +7955,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline73(arg0, arg1) {
+  function trampoline74(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable9.get(handle1).rep;
     let ret;
@@ -7919,7 +8078,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline74(arg0, arg1) {
+  function trampoline75(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable9.get(handle1).rep;
     let ret;
@@ -8078,7 +8237,166 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline75(arg0, arg1) {
+  function trampoline76(arg0, arg1) {
+    const handle1 = arg0;
+    const rsc0 = handleTable9.get(handle1).rep;
+    let ret;
+    try {
+      ret = { tag: 'ok', val: UdpSocket.prototype.remoteAddress.call(rsc0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant8 = ret;
+    switch (variant8.tag) {
+      case 'ok': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        const variant6 = e;
+        switch (variant6.tag) {
+          case 'ipv4': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            const {port: v2_0, address: v2_1 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v2_0), true);
+            const [tuple3_0, tuple3_1, tuple3_2, tuple3_3] = v2_1;
+            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple3_0), true);
+            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple3_1), true);
+            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple3_2), true);
+            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple3_3), true);
+            break;
+          }
+          case 'ipv6': {
+            const e = variant6.val;
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            const {port: v4_0, flowInfo: v4_1, address: v4_2, scopeId: v4_3 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v4_0), true);
+            dataView(memory0).setInt32(arg1 + 12, toUint32(v4_1), true);
+            const [tuple5_0, tuple5_1, tuple5_2, tuple5_3, tuple5_4, tuple5_5, tuple5_6, tuple5_7] = v4_2;
+            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple5_0), true);
+            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple5_1), true);
+            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple5_2), true);
+            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple5_3), true);
+            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple5_4), true);
+            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple5_5), true);
+            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple5_6), true);
+            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple5_7), true);
+            dataView(memory0).setInt32(arg1 + 32, toUint32(v4_3), true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant6.tag)} specified for IpSocketAddress`);
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val7 = e;
+        let enum7;
+        switch (val7) {
+          case 'unknown': {
+            enum7 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum7 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum7 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum7 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum7 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum7 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum7 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum7 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum7 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum7 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum7 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum7 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum7 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum7 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum7 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum7 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum7 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum7 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum7 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum7 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum7 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val7}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum7, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline77(arg0, arg1) {
     let enum0;
     switch (arg0) {
       case 0: {
@@ -8219,7 +8537,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline76(arg0, arg1) {
+  function trampoline78(arg0, arg1) {
     let enum0;
     switch (arg0) {
       case 0: {
@@ -8360,7 +8678,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline77(arg0, arg1) {
+  function trampoline79(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable11.get(handle1).rep;
     let ret;
@@ -8520,7 +8838,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline78(arg0, arg1, arg2, arg3) {
+  function trampoline80(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable8.get(handle1).rep;
     const ptr2 = arg1;
@@ -8652,7 +8970,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline79(arg0) {
+  function trampoline81(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
     const len3 = vec3.length;
@@ -8673,7 +8991,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function trampoline80(arg0) {
+  function trampoline82(arg0) {
     const ret = getArguments();
     const vec1 = ret;
     const len1 = vec1.length;
@@ -8689,7 +9007,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     dataView(memory0).setInt32(arg0 + 0, result1, true);
   }
   
-  function trampoline81(arg0) {
+  function trampoline83(arg0) {
     const ret = getTerminalStdout();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -8706,7 +9024,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline82(arg0) {
+  function trampoline84(arg0) {
     const ret = getTerminalStdin();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -8723,7 +9041,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline83(arg0) {
+  function trampoline85(arg0) {
     const ret = getTerminalStderr();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -8890,63 +9208,63 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     wasi_snapshot_preview1: {
-      args_get: exports0['60'],
-      args_sizes_get: exports0['61'],
-      clock_res_get: exports0['64'],
-      clock_time_get: exports0['65'],
-      environ_get: exports0['62'],
-      environ_sizes_get: exports0['63'],
-      fd_advise: exports0['66'],
-      fd_allocate: exports0['67'],
-      fd_close: exports0['68'],
-      fd_datasync: exports0['69'],
-      fd_fdstat_get: exports0['70'],
-      fd_fdstat_set_flags: exports0['71'],
-      fd_fdstat_set_rights: exports0['72'],
-      fd_filestat_get: exports0['73'],
-      fd_filestat_set_size: exports0['74'],
-      fd_filestat_set_times: exports0['75'],
-      fd_pread: exports0['76'],
-      fd_prestat_dir_name: exports0['78'],
-      fd_prestat_get: exports0['77'],
-      fd_pwrite: exports0['79'],
-      fd_read: exports0['80'],
-      fd_readdir: exports0['81'],
-      fd_renumber: exports0['82'],
-      fd_seek: exports0['83'],
-      fd_sync: exports0['84'],
-      fd_tell: exports0['85'],
-      fd_write: exports0['86'],
-      path_create_directory: exports0['87'],
-      path_filestat_get: exports0['88'],
-      path_filestat_set_times: exports0['89'],
-      path_link: exports0['90'],
-      path_open: exports0['91'],
-      path_readlink: exports0['92'],
-      path_remove_directory: exports0['93'],
-      path_rename: exports0['94'],
-      path_symlink: exports0['95'],
-      path_unlink_file: exports0['96'],
-      poll_oneoff: exports0['97'],
-      proc_exit: exports0['98'],
-      proc_raise: exports0['99'],
-      random_get: exports0['101'],
-      sched_yield: exports0['100'],
-      sock_accept: exports0['102'],
-      sock_bind: exports0['112'],
-      sock_connect: exports0['114'],
-      sock_getaddrinfo: exports0['106'],
-      sock_getlocaladdr: exports0['107'],
-      sock_getpeeraddr: exports0['108'],
-      sock_getsockopt: exports0['111'],
-      sock_listen: exports0['113'],
-      sock_open: exports0['109'],
-      sock_recv: exports0['103'],
-      sock_recv_from: exports0['115'],
-      sock_send: exports0['104'],
-      sock_send_to: exports0['116'],
-      sock_setsockopt: exports0['110'],
-      sock_shutdown: exports0['105'],
+      args_get: exports0['62'],
+      args_sizes_get: exports0['63'],
+      clock_res_get: exports0['66'],
+      clock_time_get: exports0['67'],
+      environ_get: exports0['64'],
+      environ_sizes_get: exports0['65'],
+      fd_advise: exports0['68'],
+      fd_allocate: exports0['69'],
+      fd_close: exports0['70'],
+      fd_datasync: exports0['71'],
+      fd_fdstat_get: exports0['72'],
+      fd_fdstat_set_flags: exports0['73'],
+      fd_fdstat_set_rights: exports0['74'],
+      fd_filestat_get: exports0['75'],
+      fd_filestat_set_size: exports0['76'],
+      fd_filestat_set_times: exports0['77'],
+      fd_pread: exports0['78'],
+      fd_prestat_dir_name: exports0['80'],
+      fd_prestat_get: exports0['79'],
+      fd_pwrite: exports0['81'],
+      fd_read: exports0['82'],
+      fd_readdir: exports0['83'],
+      fd_renumber: exports0['84'],
+      fd_seek: exports0['85'],
+      fd_sync: exports0['86'],
+      fd_tell: exports0['87'],
+      fd_write: exports0['88'],
+      path_create_directory: exports0['89'],
+      path_filestat_get: exports0['90'],
+      path_filestat_set_times: exports0['91'],
+      path_link: exports0['92'],
+      path_open: exports0['93'],
+      path_readlink: exports0['94'],
+      path_remove_directory: exports0['95'],
+      path_rename: exports0['96'],
+      path_symlink: exports0['97'],
+      path_unlink_file: exports0['98'],
+      poll_oneoff: exports0['99'],
+      proc_exit: exports0['100'],
+      proc_raise: exports0['101'],
+      random_get: exports0['103'],
+      sched_yield: exports0['102'],
+      sock_accept: exports0['104'],
+      sock_bind: exports0['114'],
+      sock_connect: exports0['116'],
+      sock_getaddrinfo: exports0['108'],
+      sock_getlocaladdr: exports0['109'],
+      sock_getpeeraddr: exports0['110'],
+      sock_getsockopt: exports0['113'],
+      sock_listen: exports0['115'],
+      sock_open: exports0['111'],
+      sock_recv: exports0['105'],
+      sock_recv_from: exports0['117'],
+      sock_send: exports0['106'],
+      sock_send_to: exports0['118'],
+      sock_setsockopt: exports0['112'],
+      sock_shutdown: exports0['107'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -8957,8 +9275,8 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       memory: exports1.memory,
     },
     'wasi:cli/environment@0.2.0-rc-2023-12-05': {
-      'get-arguments': exports0['56'],
-      'get-environment': exports0['55'],
+      'get-arguments': exports0['58'],
+      'get-environment': exports0['57'],
     },
     'wasi:cli/exit@0.2.0-rc-2023-12-05': {
       exit: trampoline23,
@@ -8979,13 +9297,13 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]terminal-output': trampoline17,
     },
     'wasi:cli/terminal-stderr@0.2.0-rc-2023-12-05': {
-      'get-terminal-stderr': exports0['59'],
+      'get-terminal-stderr': exports0['61'],
     },
     'wasi:cli/terminal-stdin@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdin': exports0['58'],
+      'get-terminal-stdin': exports0['60'],
     },
     'wasi:cli/terminal-stdout@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdout': exports0['57'],
+      'get-terminal-stdout': exports0['59'],
     },
     'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': {
       now: trampoline1,
@@ -9037,7 +9355,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     },
     'wasi:io/poll@0.2.0-rc-2023-11-10': {
       '[resource-drop]pollable': trampoline12,
-      poll: exports0['46'],
+      poll: exports0['47'],
     },
     'wasi:io/streams@0.2.0-rc-2023-11-10': {
       '[method]input-stream.blocking-read': exports0['32'],
@@ -9052,21 +9370,21 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]output-stream': trampoline5,
     },
     'wasi:random/random@0.2.0-rc-2023-11-10': {
-      'get-random-bytes': exports0['47'],
+      'get-random-bytes': exports0['48'],
     },
     'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': {
       'instance-network': trampoline13,
     },
     'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': {
-      '[method]resolve-address-stream.resolve-next-address': exports0['53'],
+      '[method]resolve-address-stream.resolve-next-address': exports0['55'],
       '[resource-drop]resolve-address-stream': trampoline15,
-      'resolve-addresses': exports0['54'],
+      'resolve-addresses': exports0['56'],
     },
     'wasi:sockets/network@0.2.0-rc-2023-11-10': {
       '[resource-drop]network': trampoline14,
     },
     'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': {
-      'create-tcp-socket': exports0['52'],
+      'create-tcp-socket': exports0['54'],
     },
     'wasi:sockets/tcp@0.2.0-rc-2023-11-10': {
       '[method]tcp-socket.accept': exports0['43'],
@@ -9074,7 +9392,8 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[method]tcp-socket.finish-connect': exports0['40'],
       '[method]tcp-socket.finish-listen': exports0['42'],
       '[method]tcp-socket.local-address': exports0['44'],
-      '[method]tcp-socket.shutdown': exports0['45'],
+      '[method]tcp-socket.remote-address': exports0['45'],
+      '[method]tcp-socket.shutdown': exports0['46'],
       '[method]tcp-socket.start-bind': exports0['37'],
       '[method]tcp-socket.start-connect': exports0['39'],
       '[method]tcp-socket.start-listen': exports0['41'],
@@ -9082,12 +9401,13 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]tcp-socket': trampoline16,
     },
     'wasi:sockets/udp-create-socket@0.2.0-rc-2023-11-10': {
-      'create-udp-socket': exports0['51'],
+      'create-udp-socket': exports0['53'],
     },
     'wasi:sockets/udp@0.2.0-rc-2023-11-10': {
-      '[method]udp-socket.finish-bind': exports0['49'],
-      '[method]udp-socket.local-address': exports0['50'],
-      '[method]udp-socket.start-bind': exports0['48'],
+      '[method]udp-socket.finish-bind': exports0['50'],
+      '[method]udp-socket.local-address': exports0['51'],
+      '[method]udp-socket.remote-address': exports0['52'],
+      '[method]udp-socket.start-bind': exports0['49'],
       '[resource-drop]udp-socket': trampoline18,
     },
   }));
@@ -9099,24 +9419,26 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '0': trampoline24,
       '1': trampoline25,
       '10': trampoline34,
-      '100': exports2.sched_yield,
-      '101': exports2.random_get,
-      '102': exports2.sock_accept,
-      '103': exports2.sock_recv,
-      '104': exports2.sock_send,
-      '105': exports2.sock_shutdown,
-      '106': exports2.sock_getaddrinfo,
-      '107': exports2.sock_getlocaladdr,
-      '108': exports2.sock_getpeeraddr,
-      '109': exports2.sock_open,
+      '100': exports2.proc_exit,
+      '101': exports2.proc_raise,
+      '102': exports2.sched_yield,
+      '103': exports2.random_get,
+      '104': exports2.sock_accept,
+      '105': exports2.sock_recv,
+      '106': exports2.sock_send,
+      '107': exports2.sock_shutdown,
+      '108': exports2.sock_getaddrinfo,
+      '109': exports2.sock_getlocaladdr,
       '11': trampoline35,
-      '110': exports2.sock_setsockopt,
-      '111': exports2.sock_setsockopt,
-      '112': exports2.sock_bind,
-      '113': exports2.sock_listen,
-      '114': exports2.sock_connect,
-      '115': exports2.sock_recv_from,
-      '116': exports2.sock_send_to,
+      '110': exports2.sock_getpeeraddr,
+      '111': exports2.sock_open,
+      '112': exports2.sock_setsockopt,
+      '113': exports2.sock_setsockopt,
+      '114': exports2.sock_bind,
+      '115': exports2.sock_listen,
+      '116': exports2.sock_connect,
+      '117': exports2.sock_recv_from,
+      '118': exports2.sock_send_to,
       '12': trampoline36,
       '13': trampoline37,
       '14': trampoline38,
@@ -9170,49 +9492,49 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '58': trampoline82,
       '59': trampoline83,
       '6': trampoline30,
-      '60': exports2.args_get,
-      '61': exports2.args_sizes_get,
-      '62': exports2.environ_get,
-      '63': exports2.environ_sizes_get,
-      '64': exports2.clock_res_get,
-      '65': exports2.clock_time_get,
-      '66': exports2.fd_advise,
-      '67': exports2.fd_allocate,
-      '68': exports2.fd_close,
-      '69': exports2.fd_datasync,
+      '60': trampoline84,
+      '61': trampoline85,
+      '62': exports2.args_get,
+      '63': exports2.args_sizes_get,
+      '64': exports2.environ_get,
+      '65': exports2.environ_sizes_get,
+      '66': exports2.clock_res_get,
+      '67': exports2.clock_time_get,
+      '68': exports2.fd_advise,
+      '69': exports2.fd_allocate,
       '7': trampoline31,
-      '70': exports2.fd_fdstat_get,
-      '71': exports2.fd_fdstat_set_flags,
-      '72': exports2.fd_fdstat_set_rights,
-      '73': exports2.fd_filestat_get,
-      '74': exports2.fd_filestat_set_size,
-      '75': exports2.fd_filestat_set_times,
-      '76': exports2.fd_pread,
-      '77': exports2.fd_prestat_get,
-      '78': exports2.fd_prestat_dir_name,
-      '79': exports2.fd_pwrite,
+      '70': exports2.fd_close,
+      '71': exports2.fd_datasync,
+      '72': exports2.fd_fdstat_get,
+      '73': exports2.fd_fdstat_set_flags,
+      '74': exports2.fd_fdstat_set_rights,
+      '75': exports2.fd_filestat_get,
+      '76': exports2.fd_filestat_set_size,
+      '77': exports2.fd_filestat_set_times,
+      '78': exports2.fd_pread,
+      '79': exports2.fd_prestat_get,
       '8': trampoline32,
-      '80': exports2.fd_read,
-      '81': exports2.fd_readdir,
-      '82': exports2.fd_renumber,
-      '83': exports2.fd_seek,
-      '84': exports2.fd_sync,
-      '85': exports2.fd_tell,
-      '86': exports2.fd_write,
-      '87': exports2.path_create_directory,
-      '88': exports2.path_filestat_get,
-      '89': exports2.path_filestat_set_times,
+      '80': exports2.fd_prestat_dir_name,
+      '81': exports2.fd_pwrite,
+      '82': exports2.fd_read,
+      '83': exports2.fd_readdir,
+      '84': exports2.fd_renumber,
+      '85': exports2.fd_seek,
+      '86': exports2.fd_sync,
+      '87': exports2.fd_tell,
+      '88': exports2.fd_write,
+      '89': exports2.path_create_directory,
       '9': trampoline33,
-      '90': exports2.path_link,
-      '91': exports2.path_open,
-      '92': exports2.path_readlink,
-      '93': exports2.path_remove_directory,
-      '94': exports2.path_rename,
-      '95': exports2.path_symlink,
-      '96': exports2.path_unlink_file,
-      '97': exports2.poll_oneoff,
-      '98': exports2.proc_exit,
-      '99': exports2.proc_raise,
+      '90': exports2.path_filestat_get,
+      '91': exports2.path_filestat_set_times,
+      '92': exports2.path_link,
+      '93': exports2.path_open,
+      '94': exports2.path_readlink,
+      '95': exports2.path_remove_directory,
+      '96': exports2.path_rename,
+      '97': exports2.path_symlink,
+      '98': exports2.path_unlink_file,
+      '99': exports2.poll_oneoff,
     },
   }));
   

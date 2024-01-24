@@ -82,7 +82,6 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         }
         const pollable = new ClocksMonotonicPollable(when);
         const fd = this._wasiEnv.openFiles.add(pollable);
-        pollable.resource = fd;
         return pollable;
     }
 }

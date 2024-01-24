@@ -66,7 +66,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
     }
     async filesystemErrorCode(err: fs.Error): Promise<fs.ErrorCode | undefined> {
         let debugstr = err.toDebugString();
-        console.log("filesystemErrorCode: ", err);
+        wasiPreview2Debug("filesystemErrorCode: ", err);
         return 'unsupported';
         //throw new Error("Method not implemented.");
     }
@@ -207,7 +207,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         try {
             // TODO: implement propertly Symbol.asyncDispose
             //await using input = await this.readViaStream(offset);
-            const input = await this.readViaStream(offset);
+            let input = await this.readViaStream(offset);
             //const input = this.openFiles.getAsReadable(newFd);
             // TODO: gracefully handle bigint
             const chunk = await input.read(length);
@@ -422,6 +422,14 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             upper: upper,
         }
         return res;
+    }
+
+    async [Symbol.asyncDispose](): Promise<void> {
+        try {
+            await this.openFiles.close(this.fd);
+        } catch (err: any) {
+            wasiPreview2Debug("Descriptor[Symbol.asyncDispose]() err: ", err);
+        }
     }
 }
 

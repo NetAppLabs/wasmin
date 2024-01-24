@@ -613,13 +613,35 @@ export class WASI {
         const imp = this.getObjectToCall(callType, importName);
         let func: Function|undefined = undefined;
         if (isSymbolStringIdentifier(functionName)) {
-            const symbolKey = getSymbolForString(functionName);
-            //func = imp[symbolKey] as Function;
-            // Todo handle dispose
-            func = () => {
-                wasiDebug(`calling dispose on importName: ${importName}`);
-                return;
-            };
+            let symbolKey = getSymbolForString(functionName);
+            const asyncDisposeSymbolKey = Symbol.for("asyncDispose");
+            const nodeJsAsyncDisposeSymbolKey = Symbol.for("nodejs.asyncDispose");
+            let isDisposeSymbol = false;
+            if (functionName == "Symbol(dispose)" || functionName == "Symbol(nodejs.dispose)") {
+                isDisposeSymbol = true;
+            }
+            if (isDisposeSymbol) {
+                // take asyncDispose if it exists
+                func = imp[asyncDisposeSymbolKey] as Function;
+                if (func == undefined) {
+                    func = imp[nodeJsAsyncDisposeSymbolKey] as Function;
+                }
+            }
+            if (func == undefined) {
+                // else take regular dispose if it exists
+                func = imp[symbolKey] as Function;
+            }
+            // return dummy symbol function if not found on resource:
+            if (func == undefined) {
+                func = () => {
+                    let typeName = imp.constructor?.name;
+                    if (typeName == undefined) {
+                        typeName = imp.typeName;
+                    }
+                    wasiWorkerDebug(`warning: symbol ${functionName} function not implemented for resource with importName: ${importName}, typeName: ${typeName}`);
+                    return;
+                };
+            }
         } else {
             const sFunctionName = functionName as string;
             func = imp[sFunctionName] as Function;

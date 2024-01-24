@@ -12,4 +12,5 @@ export class UdpSocket {
   startBind(network: Network, localAddress: IpSocketAddress): void;
   finishBind(): void;
   localAddress(): IpSocketAddress;
+  remoteAddress(): IpSocketAddress;
 }
