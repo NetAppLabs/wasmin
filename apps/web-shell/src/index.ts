@@ -7,7 +7,7 @@ import { WebglAddon } from "xterm-addon-webgl";
 import { WASI, OpenFiles, TTY, TextDecoderWrapper } from "@wasmin/wasi-js";
 import { s3 } from "@wasmin/s3-fs-js";
 import { github } from "@wasmin/github-fs-js";
-import { nfs } from "@wasmin/nfs-js";
+//import { nfs } from "@wasmin/nfs-js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 
 // @ts-ignore
@@ -43,10 +43,10 @@ if (REGISTER_GITHUB) {
     // @ts-ignore
     RegisterProvider("github", github);
 }
-if (REGISTER_NFS) {
+//if (REGISTER_NFS) {
     // @ts-ignore
-    RegisterProvider("nfs", nfs);
-}
+//    RegisterProvider("nfs", nfs);
+//}
 
 
 (async () => {

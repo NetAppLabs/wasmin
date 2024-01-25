@@ -101,7 +101,7 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
 
 }
 
-export class InStream implements InputStream, Resource {
+export class InStream implements InputStream, Resource, AsyncDisposable {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -204,10 +204,10 @@ export class InStream implements InputStream, Resource {
         try {
             await this._wasiEnv.openFiles.close(this.fd);
         } catch( err: any) {
-            //wasiPreview2Debug("Instream.Symbol.dispose err: ", err);
-            wasiPreview2Debug("Instream.Symbol.dispose err or closing fd: ", this.fd);
+            wasiPreview2Debug("InStream.Symbol.dispose err or closing fd: ", this.fd);
         }
     }
+
 }
 
 
@@ -218,14 +218,7 @@ export class OutStream implements OutputStream, Resource {
         this._fd = fd;
         this.resource = -1;
     }
-    async [Symbol.asyncDispose]() {
-        try {
-            await this._wasiEnv.openFiles.close(this.fd);
-        } catch( err: any) {
-            //wasiPreview2Debug("OutStream.Symbol.dispose err: ", err);
-            wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);
-        }
-    }
+
     private _wasiEnv: WasiEnv;
     public _fd: number;
     public resource: number;
@@ -290,7 +283,14 @@ export class OutStream implements OutputStream, Resource {
     blockingSplice(src: io.InputStream, len: bigint): Promise<bigint> {
         throw new Error("Method not implemented.");
     }
-
+    
+    async [Symbol.asyncDispose]() {
+        try {
+            await this._wasiEnv.openFiles.close(this.fd);
+        } catch( err: any) {
+            wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);
+        }
+    }
 }
 
 /*

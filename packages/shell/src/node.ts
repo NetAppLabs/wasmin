@@ -36,7 +36,7 @@ const modeListener = function (rawMode: boolean): void {
     }
 };
 
-const SHELL_DEBUG = false;
+const SHELL_DEBUG = true;
 
 function shellDebug(...args: any) {
     if (SHELL_DEBUG) {
@@ -236,6 +236,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             },
             count: {
                 type: 'string'
+            },
+            nomount: {
+                type: 'boolean'
             }
         };
 
@@ -246,6 +249,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         let useOverlayFs = false;
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
+        let mount = true;
+
         //let args: string[] = [];
         let runCount = 1;
         let argv = process.argv;
@@ -287,7 +292,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             const nRunCount = new Number(sRunCount);
             runCount = nRunCount.valueOf();
         }
-
+        if (values.nomount) {
+            mount = false;
+        }
         let runtimeName = "undefined";
         if (isBun() ){
             runtimeName = chalk.yellow.bold("Bun");
@@ -317,7 +324,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
     ${fl('-o')}                          Enable Overlay FileSystem
     ${fl('-m, --mount')}   ${flv('[path|url]')}    Mount Path or URL and use as root
     ${fl('-w')}                          Run in worker
+    ${fl('--nomount')}                   No default mount
     ${fl('--count')}                     Number of identical runs`);
+    
             process.exit(0);
         }
 
@@ -343,10 +352,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         const preOpens: Record<string, FileSystemDirectoryHandle> = {};
         const rootDir = "/";
         const init_pwd = "/";
-        const driver = USE_MEMORY ? memory : rootfsDriver || node;
-        const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
         if (!env) {
-            env = {
+            /*env = {
                 RUST_BACKTRACE: "full",
                 //RUST_LOG: "wasi=trace",
                 PWD: init_pwd,
@@ -359,9 +366,14 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 PROMPT_INDICATOR: " > ",
                 //USER: "none",
                 //HOME: "/",
-            };
+            };*/
+            env = {};
         }
-        preOpens[rootDir] = rootfs;
+        if (mount) {
+            const driver = USE_MEMORY ? memory : rootfsDriver || node;
+            const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
+            preOpens[rootDir] = rootfs;
+        }
         const abortController = new AbortController();
         const openFiles = new OpenFiles(preOpens);
 
@@ -377,6 +389,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             let newEnv = {...env};
             let newArgs = [...wasmArgs];
             shellDebug("newArgs: ", newArgs);
+            shellDebug("newEnv: ", newEnv);
+
             //shellDebug(`run is: ${runs}`);
             if (runDebug) {
                 // @ts-ignore
@@ -419,6 +433,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         args: newArgs,
                         env: newEnv,
                         tty: tty,
+                        name: wasmBinaryFromArgs,
                     });
                     wasi.component = componentMode;
                     const statusCode = await wasi.run(wasmBuf);

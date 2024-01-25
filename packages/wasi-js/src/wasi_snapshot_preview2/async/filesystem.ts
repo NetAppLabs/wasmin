@@ -205,7 +205,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async read(length: bigint, offset: bigint): Promise<[Uint8Array, boolean]> {
         try {
-            // TODO: implement propertly Symbol.asyncDispose
+            // TODO: convert to using 'using' syntax
             //await using input = await this.readViaStream(offset);
             let input = await this.readViaStream(offset);
             //const input = this.openFiles.getAsReadable(newFd);
@@ -216,6 +216,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             if (chunk.length < length) {
                 isEnd = true;
             }
+            await input[Symbol.asyncDispose]();
             return [chunk, isEnd];
         } catch (err: any) {
             throw translateError(err);
@@ -223,14 +224,14 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async write(buffer: Uint8Array, offset: bigint): Promise<bigint> {
         try {
-            // TODO: implement propertly Symbol.asyncDispose
+            // TODO: convert to using 'using' syntax
             //await using out = await this.writeViaStream(offset);
             const out = await this.writeViaStream(offset);
             //const out = this.openFiles.getAsWritable(newFd);
             await out.write(buffer);
-            const readNo = buffer.length;
-            //await this.openFiles.closeWriter(newFd);
-            return BigInt(readNo);
+            const wroteSize = buffer.length;
+            await out[Symbol.asyncDispose]();
+            return BigInt(wroteSize);
         } catch (err: any) {
             throw translateError(err);
         }

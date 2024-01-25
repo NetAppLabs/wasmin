@@ -80,7 +80,12 @@ export async function instantiateWithAsyncDetection(
         isAsyncified = false;
         wasmHandlerDebug("asyncify_get_state == null , isAsync: ", isAsyncified);
     } else {
-        isAsyncified = true;
+        // TODO: look into issue with wasi_vfs_pack_fs + asyncify - disable for now
+        if (syncInstance.exports["wasi_vfs_pack_fs"] != null) {
+            isAsyncified = false;
+        } else {
+            isAsyncified = true;
+        }
         wasmHandlerDebug("asyncify_get_state != null, isAsync: ", isAsyncified);
     }
     if (isAsyncified) {
