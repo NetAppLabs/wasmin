@@ -3,13 +3,10 @@
   "version": "0.0.1",
   "description": "WASI Shell",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "files": [
-    "dist/index.d.ts",
-    "dist/index.js",
-    "dist/node.d.ts",
-    "dist/node.js",
-    "dist/nu.async.wasm"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "tsc -p .",
@@ -20,7 +17,7 @@
     "start": "echo start"
   },
   "repository": "ssh://git@github.com/tryggvil/shell.git",
-  "author": "Tryggvi Larusson",
+  "author": "tryggvil",
   "license": "MIT",
   "homepage": "https://github.com/tryggvil/shell#readme",
   "bugs": {

@@ -18,8 +18,7 @@ import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-//type Descriptor = fs.Descriptor;
-type Descriptor = number;
+type FileSystemDescriptorNumber = number;
 import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
 import {
     FileSystemHandle,
@@ -28,8 +27,9 @@ import {
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
 import { Resource } from "./wasiResources.js";
-
-declare let globalThis: any;
+declare global {
+    var WASI_FS_DEBUG: boolean
+}
 globalThis.WASI_FS_DEBUG = false;
 
 function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
@@ -303,13 +303,13 @@ export class OpenDirectory {
 }
 
 export class OpenDirectoryIterator implements Resource {
-    constructor(fd: Descriptor, openDir: OpenDirectory) {
+    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory) {
         this._descriptor = fd;
         this._openDir = openDir;
         this.resource = -1;
     }
     private _openDir: OpenDirectory;
-    private _descriptor: Descriptor;
+    private _descriptor: FileSystemDescriptorNumber;
     private _cursor = 0;
     public resource: number;
 

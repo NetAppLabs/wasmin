@@ -5,29 +5,29 @@ import { wasiDebug } from "./wasiUtils.js";
 
 export function addWasiExperimentalConsoleToImports(imports: any, obj: WasiExperimentalConsole) {
     if (!("wasi-experimental-console" in imports)) imports["wasi-experimental-console"] = {};
-    imports["wasi-experimental-console"]["term-get-columns"] = function () {
-        const ret = obj.termGetColumns();
+    imports["wasi-experimental-console"]["term-get-columns"] = async function () {
+        const ret = await obj.termGetColumns();
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-get-rows"] = function () {
-        const ret = obj.termGetRows();
+    imports["wasi-experimental-console"]["term-get-rows"] = async function () {
+        const ret = await obj.termGetRows();
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-set-raw-mode"] = function (arg0: number) {
-        const ret = obj.termSetRawMode(arg0 >>> 0);
+    imports["wasi-experimental-console"]["term-set-raw-mode"] = async function (arg0: number) {
+        const ret = await obj.termSetRawMode(arg0 >>> 0);
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-get-raw-mode"] = function () {
-        const ret = obj.termGetRawMode();
+    imports["wasi-experimental-console"]["term-get-raw-mode"] = async function () {
+        const ret = await obj.termGetRawMode();
         return clamp_host(ret, 0, 4294967295);
     };
 }
 
 export interface WasiExperimentalConsole {
-    termGetColumns(): number;
-    termGetRows(): number;
-    termSetRawMode(mode: number): number;
-    termGetRawMode(): number;
+    termGetColumns(): Promise<number>;
+    termGetRows(): Promise<number>;
+    termSetRawMode(mode: number): Promise<number>;
+    termGetRawMode(): Promise<number>;
 }
 
 class WasiExperimentalConsoleHost implements WasiExperimentalConsole {
@@ -35,29 +35,36 @@ class WasiExperimentalConsoleHost implements WasiExperimentalConsole {
         this._tty = tty;
     }
     private _tty: TTY;
-    termGetColumns(): number {
-        return this._tty.columns;
+    async termGetColumns(): Promise<number> {
+        let size = await this._tty.getSize();
+        return size.columns;
     }
-    termGetRows(): number {
-        return this._tty.rows;
+    async termGetRows(): Promise<number> {
+        let size = await this._tty.getSize();
+        return size.rows;
     }
-    termSetRawMode(mode: number): number {
+    async termSetRawMode(mode: number): Promise<number> {
         wasiDebug(`termSetRawMode mode: ${mode}`);
         if (mode == 1) {
             if (this._tty) {
-                this._tty.rawMode = true;
+                const rawMode = true;
+                await this._tty.setRawMode(rawMode);
             }
         } else if (mode == 0) {
             if (this._tty) {
-                this._tty.rawMode = false;
+                const rawMode = false;
+                await this._tty.setRawMode(rawMode);
             }
         }
         return 0;
     }
-    termGetRawMode(): number {
+    async termGetRawMode(): Promise<number> {
         if (this._tty) {
-            if (this._tty.rawMode) {
-                return 1;
+            if (this._tty) {
+                const rawMode = await this._tty.getRawMode();
+                if (rawMode) {
+                    return 1;
+                }
             }
         }
         return 0;

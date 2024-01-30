@@ -13,7 +13,7 @@ import {
 import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
 
-import { TTY } from "./tty.js";
+import { TTY, TTYSize } from "./tty.js";
 import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console.js";
 import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems.js";
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
@@ -51,6 +51,7 @@ export interface WasiOptions {
     abortSignal?: AbortSignal;
     tty?: TTY;
     name?: string;
+    componentMode?: boolean,
 }
 
 export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
@@ -82,7 +83,8 @@ export class WasiEnv implements WasiOptions {
         env?: Record<string, string>,
         abortSignal?: AbortSignal,
         tty?: TTY,
-        name?: string
+        name?: string,
+        componentMode?: boolean
     ) {
         if (!openFiles) {
             this._openFiles = new OpenFiles({});
@@ -122,7 +124,6 @@ export class WasiEnv implements WasiOptions {
             this._name = "wasi";
         }
         // argv[0] is prefilled with name
-        // TODO make this customizable
         const execNameWasm = this._name;
         // prefix argument list for first argument for executable itself
         this._args.splice(0, 0, execNameWasm);
@@ -136,6 +137,11 @@ export class WasiEnv implements WasiOptions {
         this._abortSignal = abortSignal;
         if (tty) {
             this._tty = tty;
+        }
+        if (componentMode !== undefined) {
+            this._componentMode = componentMode;
+        } else {
+            this._componentMode = false;
         }
     }
 
@@ -151,6 +157,7 @@ export class WasiEnv implements WasiOptions {
     private _abortSignal?: AbortSignal;
     private _suspendStdIn = false;
     private _tty?: TTY;
+    private _componentMode: boolean;
 
     get cargs() {
         return this._cargs;
@@ -197,6 +204,13 @@ export class WasiEnv implements WasiOptions {
     get tty() {
         return this._tty;
     }
+    get componentMode() {
+        return this._componentMode;
+    }
+    set componentMode(componentMode: boolean) {
+        this._componentMode = componentMode;
+    }
+
 }
 
 export class WASI {
@@ -209,11 +223,13 @@ export class WASI {
             wasiOptions.args,
             wasiOptions.env,
             wasiOptions.abortSignal,
-            wasiOptions.tty
+            wasiOptions.tty,
+            wasiOptions.name,
+            wasiOptions.componentMode
         );
         this._wasiEnv = wasiEnv;
     }
-    public component = false;
+    //public component = false;
     public singleWasmWorker = true;
     private _wasiEnv: WasiEnv;
 
@@ -252,6 +268,19 @@ export class WASI {
         return this._coreModuleImports as WebAssembly.Imports;
     }
 
+    get component() {
+        return this._wasiEnv.componentMode;
+    }
+
+    set component(componentMode: boolean) {
+        this._wasiEnv.componentMode = componentMode;
+    }
+
+
+    get componentMode() {
+        return this._wasiEnv.componentMode;
+    }
+
     public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
         if (wasiExperimentalSocketsNamespace) {
@@ -285,7 +314,7 @@ export class WASI {
         wasmModOrBufSource: WebAssembly.Module | BufferSource,
         imports: WebAssembly.Imports
     ): Promise<any> {
-        if (this.component) {
+        if (this.componentMode) {
             return await this.instantiateComponent(wasmModOrBufSource, imports);
         } else {
             return await this.instantiateCore(wasmModOrBufSource, imports);
@@ -463,7 +492,7 @@ export class WASI {
     }
 
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
-        if (this.component) {
+        if (this.componentMode) {
             const ret = await this.runComponent(wasmModOrBufSource);
             return ret;
         } else {
@@ -507,14 +536,8 @@ export class WASI {
         wasiDebug("[run] originalExports: ", originalExports);
 
         const { _start } = exports;
-        this.initializeInstanceMemory(exports);
+        await this.initializeTTYSettings(exports);
         try {
-            if (this.wasiEnv.tty) {
-                // Reloading to set correct rows and columns
-                if (this.wasiEnv.tty.reload) {
-                    await this.wasiEnv.tty.reload();
-                }
-            }
             wasiDebug("[run] calling _start: ");
             await (_start as any)();
             wasiDebug("[run] returning from _start: ");
@@ -795,18 +818,38 @@ export class WASI {
         return wasmImports;
     }
 
-    private initializeInstanceMemory(exports: WebAssembly.Exports): void {
+    private async initializeTTYSettings(exports: WebAssembly.Exports): Promise<void> {
         if (this.wasiEnv.tty) {
-            wasiDebug("WASI tty.setModuleInstanceExports");
-            if (this.wasiEnv.tty.setModuleInstanceExports) {
-                this.wasiEnv.tty.setModuleInstanceExports(exports);
+            const myTTy = this.wasiEnv.tty;
+            const onResizeListener = async (size: TTYSize) => {
+                // Call size exported function on wasm instance
+                const { term_set_rows } = exports;
+                const { term_set_columns } = exports;
+                if (term_set_rows) {
+                    const rows = size.rows;
+                    wasiDebug("term_set_rows", rows);
+                    await (term_set_rows as any)(rows);
+                }
+                if (term_set_columns) {
+                    const columns = size.columns;
+                    wasiDebug("term_set_columns", columns);
+                    await (term_set_columns as any)(columns);
+                }
+                const { term_reload } = exports;
+                if (term_reload) {
+                    await (term_reload as any)();
+                }
             }
+            const onResizeListenerProxyFunc = comlink.proxy(onResizeListener);
+            myTTy.setOnResize(onResizeListenerProxyFunc);
+
+            // Trigger once for correct initial size:
+            const curSize = await myTTy.getSize();
+            await myTTy.setSize(curSize);
+
         } else {
             wasiDebug("WASI tty is null");
         }
-        //const mem = memory as WebAssembly.Memory;
-        //const memoryBuffer = mem.buffer;
-        //this.wasiEnv.buffer = memoryBuffer;
     }
 
     private get_export(name: string): WebAssembly.ExportValue {

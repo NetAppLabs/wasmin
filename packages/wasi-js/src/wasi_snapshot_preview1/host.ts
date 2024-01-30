@@ -892,15 +892,15 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                             const peekBytes = await ofda.peek();
                             nBytes = BigInt(peekBytes);
                             wasiCallDebug("[poll_oneoff] fd:", fd_forread, " peek:", nBytes);
-                        }
-
-                        // TODO this is a hack, specifically for stdin , fd=0
-                        // TODO: implement number of bytes to read
-                        // EventrwflagsN.NONE does not exist, setting to 0
-                        const eventFlagsNone = 0;
-                        if (fd_forread == 0) {
+                        } else if (fd_forread == 0) {
+                            // TODO this is a hack, specifically for stdin , fd=0
+                            // if peek is not implemented on stdin handle
                             nBytes = 1n;
                         }
+
+                        // EventrwflagsN.NONE does not exist, setting to 0
+                        const eventFlagsNone = 0;
+                       
                         addEvent({
                             userdata,
                             error: ErrnoN.SUCCESS,

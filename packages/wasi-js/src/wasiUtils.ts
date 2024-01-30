@@ -1,7 +1,7 @@
 import { FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
-import { Handle } from "./wasiFileSystem.js";
+import { Handle, Readable, Writable } from "./wasiFileSystem.js";
 import {
     Errno,
     ErrnoN,
@@ -14,6 +14,7 @@ import {
     Size,
     string,
 } from "./wasi_snapshot_preview1/bindings.js";
+
 
 declare let globalThis: any;
 if (!globalThis.WASI_DEBUG) {
@@ -182,22 +183,10 @@ export async function forEachIoVec(
     let totalHandled = 0;
     for (let i = 0; i < iovsLen; i++) {
         const iovec = Iovec.get(buffer, iovsPtr);
-        //iovec_t.size=8*1024;
-        //iovec.bufLen = 8*1024;
         wasiDebug(`iovec.bufLen ${iovec.buf_len}`);
         const buf = new Uint8Array(buffer, iovec.buf, iovec.buf_len);
-        /*
-        // clone buffer in case of SharedArrayBuffer
-        const size = iovec.buf_len;
-        const newBuf = new Uint8Array(size);
-        const view = new DataView(newBuf);
-        for (let i=0 ; i < size; i++) {
-            view.setUint8(i, buf[i]);
-        }
-        */
         const handled = await cb(buf);
 
-        //this._checkAbort();
         if (checkAbort) {
             checkAbort();
         }

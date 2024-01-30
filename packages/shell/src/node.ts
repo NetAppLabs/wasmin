@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY, isNode, isDeno } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYImplementation, TTYSize, Writable, Readable, sleep } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
 
 // File & Blob is now in node v19 (19.2)
@@ -11,6 +11,7 @@ import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirecto
 import { node } from "@wasmin/node-fs-js";
 import process from "node:process";
 
+// TODO: look into issue with esj/cjs interoperability
 //import { s3 } from "@wasmin/s3-fs-js";
 import { nfs } from "@wasmin/nfs-js";
 import { github } from "@wasmin/github-fs-js";
@@ -26,7 +27,7 @@ const textDecoder = new TextDecoder();
 
 const cols = process.stdout.columns;
 const rows = process.stdout.rows;
-const rawMode = true;
+const rawMode = false;
 
 const modeListener = function (rawMode: boolean): void {
     if (rawMode) {
@@ -36,7 +37,7 @@ const modeListener = function (rawMode: boolean): void {
     }
 };
 
-const SHELL_DEBUG = true;
+const SHELL_DEBUG = false;
 
 function shellDebug(...args: any) {
     if (SHELL_DEBUG) {
@@ -44,19 +45,123 @@ function shellDebug(...args: any) {
     }
 }
 
-const tty = new TTY(cols, rows, rawMode, modeListener);
+const tty = new TTYImplementation(cols, rows, rawMode, modeListener);
 
+async function termResize() {
+    var columns = process.stdout.columns;
+    var rows = process.stdout.rows;
+    const size: TTYSize = {
+        columns: columns,
+        rows: rows,
+    }
+    await tty.setSize(size);
+}
+process.stdout.on("resize", termResize);
+
+class BufferedIn implements Readable {
+    _chunksQueue: Array<Uint8Array> = [];
+    read: (len: number) => Promise<Uint8Array>;
+    peek: () => Promise<number>;
+    constructor() {
+        this.read = this.readImpl.bind(this);
+        this.peek = this.peekImpl.bind(this);
+    }
+    get lastbuf() {
+        return this._chunksQueue.shift();
+    }
+
+    // Returns the number of bytes available if any
+    async peekImpl(): Promise<number> {
+        let trynum = 0;
+        let tries = 500;
+        while (trynum < tries) {
+            const buf = this._chunksQueue.at(0);
+            if (buf) {
+                if (buf.length > 0) {
+                    return buf.length;
+                }
+            }
+            await sleep(10);
+            trynum ++;
+        }
+        return 0;
+    }
+
+    // Reads at maximum len number of bytes from buffer 
+    async readImpl(len: number): Promise<Uint8Array> {
+        return await this.readRecurseImpl(len, false);
+    }
+
+    // Reads recurively
+    async readRecurseImpl(len: number, isRecursing?: boolean): Promise<Uint8Array> {
+        if (len > 0) {
+            const buf = this.lastbuf;
+            if (buf) {
+                const databufferLen = buf.length;
+                if (databufferLen > 0) {
+                    if (len < databufferLen) {
+                        const retChunks = buf.subarray(0, len);
+                        const leftChunks = buf.subarray(len);
+                        // insert back the remains of the chunk
+                        this._chunksQueue.unshift(leftChunks);
+                        return retChunks;
+                    } if (len == databufferLen) {
+                        const retChunks = buf;
+                        return retChunks;
+                    } else {
+                        // len > databufferLen
+                        const firstChunk = buf;
+                        const restLen = len - databufferLen;
+                        // try read remaining of len and append it
+                        const nextChunk = await this.readRecurseImpl(restLen, true);
+                        const retChunks = appendToUint8Array(firstChunk, nextChunk);
+                        return retChunks;
+                    }
+                }
+            }
+        }
+        if (!isRecursing) {
+            // sleep here to avoid blocking
+            // because sometimes read is called in a loop
+            await sleep(10);
+        }
+        return new Uint8Array(0);
+    }
+
+    // Callback to add data to buffer
+    ondata(data: Uint8Array): void {
+        this._chunksQueue.push(data);
+    }
+
+    // Callback to add string data to buffer
+    ondatastring(sdata: string): void {
+        const data = textEncoder.encode(sdata);
+        this.ondata(data);
+    }
+}
+
+export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
+    const newArray = new Uint8Array(arr.length + data.length);
+    newArray.set(arr); // copy old data
+    newArray.set(data, arr.length); // copy new data after end of old data
+    return newArray;
+}
+
+
+const stdin = new BufferedIn();
+const onDataFunc = stdin.ondatastring.bind(stdin);
+process.stdin.on("data", onDataFunc);
+
+/*
 const stdin = {
     async read(_num: number) {
-        const isRawMode = tty.rawMode;
         let mychar = "";
         try {
             await new Promise<void>((resolve) => {
                 process.stdin.once("data", function (chunk) {
                     const s: string = chunk as unknown as string;
                     if (DEBUG_MODE) {
-                        //console.debug("read from stdin: ", s);
-                        console.debug(`read from stdin: "${s}" `);
+                        console.debug("read from stdin: ", s);
                     }
                     mychar = s;
                     return resolve();
@@ -67,17 +172,15 @@ const stdin = {
                 console.debug("stdin::read finally");
             }
         }
-        if (isRawMode) {
-            return textEncoder.encode(mychar);
-        } else {
-            return textEncoder.encode(mychar);
-        }
-    },
+        return textEncoder.encode(mychar);
+    }
 };
+*/
 
-const stdout = {
+let stdout = {
     write(data: Uint8Array) {
-        process.stdout.write(data);
+        //console.log(" on stdout write callback: data: ", data);
+        let wr = process.stdout.write(data);
     },
 };
 
@@ -90,6 +193,11 @@ if (DEBUG_MODE) {
     stderr = {
         write(data: Uint8Array) {
             console.error(textDecoder.decode(data, { stream: true }));
+        },
+    };
+    stdout = {
+        write(data: Uint8Array) {
+            console.log(textDecoder.decode(data, { stream: true }));
         },
     };
 }
@@ -346,6 +454,14 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         // @ts-ignore
         RegisterProvider("nfs", nfs);
 
+        if (!isBun()) {
+            RegisterProvider("node", node);
+        //} else if (isBun()) {
+        //    const bunimport = await import("@wasmin/bun-fs-js");
+        //    const bunfs = bunimport.bun;
+        //    RegisterProvider("bun", bunfs);
+        }
+
         process.stdin.resume();
         process.stdin.setEncoding("utf8");
 
@@ -353,7 +469,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         const rootDir = "/";
         const init_pwd = "/";
         if (!env) {
-            /*env = {
+            env = {
                 RUST_BACKTRACE: "full",
                 //RUST_LOG: "wasi=trace",
                 PWD: init_pwd,
@@ -364,18 +480,12 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 //FORCE_HYPERLINK: "true",
                 FORCE_COLOR: "true",
                 PROMPT_INDICATOR: " > ",
-                //USER: "none",
-                //HOME: "/",
-            };*/
-            env = {};
+                USER: "none",
+                HOME: "/",
+            };
         }
-        if (mount) {
-            const driver = USE_MEMORY ? memory : rootfsDriver || node;
-            const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
-            preOpens[rootDir] = rootfs;
-        }
+
         const abortController = new AbortController();
-        const openFiles = new OpenFiles(preOpens);
 
 
         let runs = 0;
@@ -397,9 +507,11 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 globalThis.WASI_CALL_DEBUG=true;
             }
             if (workerMode) {
-                const { WASIWorker } = await import("@wasmin/wasi-js");
                 try {
-                    const openFilesMap = {};
+                    const openFilesMap: OpenFilesMap = {};
+                    if (mountUrl != "") {
+                        openFilesMap["/"] = mountUrl;
+                    }
                     const wasi = new WASIWorker({
                         abortSignal: abortController.signal,
                         openFiles: openFilesMap,
@@ -409,12 +521,15 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         args: newArgs,
                         env: newEnv,
                         tty: tty,
+                        name: wasmBinaryFromArgs,
+                        componentMode: componentMode,
                     });
                     const statusCode = await wasi.run(wasmBinary);
                     if (statusCode !== 0) {
                         shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
+                    console.log(err);
                     shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
@@ -423,6 +538,12 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                     process.exit(0);
                 }
             } else {
+                if (mount) {
+                    const driver = USE_MEMORY ? memory : rootfsDriver || node;
+                    const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
+                    preOpens[rootDir] = rootfs;
+                }
+                const openFiles = new OpenFiles(preOpens);
                 try {
                     const wasi = new WASI({
                         abortSignal: abortController.signal,
@@ -434,13 +555,14 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         env: newEnv,
                         tty: tty,
                         name: wasmBinaryFromArgs,
+                        componentMode: componentMode,
                     });
-                    wasi.component = componentMode;
                     const statusCode = await wasi.run(wasmBuf);
                     if (statusCode !== 0) {
                         shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
+                    console.log(err);
                     shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
@@ -465,3 +587,4 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }    
     }
 }
+
