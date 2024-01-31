@@ -41,7 +41,8 @@ export default defineConfig({
         'node:child_process',
         'node:worker_threads',
         'node:module',
-        'node:console'
+        'node:console',
+        'node:events'
       ],
     },
     output: {

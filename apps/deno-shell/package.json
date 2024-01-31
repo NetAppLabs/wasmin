@@ -1,0 +1,22 @@
+{
+  "name": "@wasmin/deno-shell",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "deno run dist/index.js",
+    "build": "node esbuild.mjs",
+    "build-tsc": "tsc -p ."
+  },
+  "devDependencies": {
+    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
+    "@wasmin/tsconfig": "*",
+    "esbuild": "^0.14.39"
+  },
+  "dependencies": {
+    "@wasmin/node-fs-js": "*",
+    "@wasmin/fs-js": "*",
+    "@wasmin/nfs-js": "*",
+    "@wasmin/s3-fs-js": "*",
+    "@wasmin/shell": "*",
+    "@wasmin/wasi-js": "*"
+  }
+}

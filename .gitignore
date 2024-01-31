@@ -43,3 +43,4 @@ nu.async.wasm
 sea-prep.blob
 /wasmin-node
 /wasmin-bun
+/wasmin-deno

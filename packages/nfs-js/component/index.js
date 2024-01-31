@@ -1,6 +1,7 @@
 import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@wasmin/wasi-js";
 import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@wasmin/fs-js";
+import process from "node:process";
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;
 const ACCESS3_MODIFY = 0x0004;
@@ -55,7 +56,7 @@ async function fetchCompile(url) {
         url = new URL(fileName, "file:///tmp/wasmin-tmp/");
     }
     if (isNode) {
-        _fs = _fs || (await import("fs/promises"));
+        _fs = _fs || (await import("node:fs/promises"));
         return WebAssembly.compile(await _fs.readFile(url));
     }
     return fetch(url).then(WebAssembly.compileStreaming);

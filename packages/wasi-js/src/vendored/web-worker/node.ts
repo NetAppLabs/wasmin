@@ -15,7 +15,7 @@
  */
 
 import URL from "node:url";
-import VM from "vm";
+import VM from "node:vm";
 import threads from "node:worker_threads";
 import fs from "node:fs";
 import os from "node:os";

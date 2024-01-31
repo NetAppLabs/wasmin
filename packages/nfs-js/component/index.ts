@@ -10,6 +10,7 @@ import {
     TypeMismatchError,
     Stat,
 } from "@wasmin/fs-js";
+import process from "node:process";
 
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;
@@ -70,7 +71,7 @@ async function fetchCompile(url: URL) {
         url = new URL(fileName, "file:///tmp/wasmin-tmp/");
     }
     if (isNode) {
-        _fs = _fs || (await import("fs/promises"));
+        _fs = _fs || (await import("node:fs/promises"));
         return WebAssembly.compile(await _fs.readFile(url));
     }
     return fetch(url).then(WebAssembly.compileStreaming);

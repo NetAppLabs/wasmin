@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY, isNode } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
 
 // File & Blob is now in node v19 (19.2)
@@ -9,11 +9,13 @@ import { promises } from "node:fs";
 import { FileSystemDirectoryHandle, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js";
 import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
+import process from "node:process";
 
 //import { s3 } from "@wasmin/s3-fs-js";
 import { nfs } from "@wasmin/nfs-js";
 import { github } from "@wasmin/github-fs-js";
-import arg from "arg";
+import { parseArgs } from "node:util";
+
 import chalk from 'chalk';
 
 const DEBUG_MODE = false;
@@ -33,6 +35,14 @@ const modeListener = function (rawMode: boolean): void {
         process.stdin.setRawMode(rawMode);
     }
 };
+
+const SHELL_DEBUG = false;
+
+function shellDebug(...args: any) {
+    if (SHELL_DEBUG) {
+        console.debug(...args);
+    }
+}
 
 const tty = new TTY(cols, rows, rawMode, modeListener);
 
@@ -54,7 +64,7 @@ const stdin = {
             });
         } finally {
             if (DEBUG_MODE) {
-                console.log("stdin::read finally");
+                console.debug("stdin::read finally");
             }
         }
         if (isRawMode) {
@@ -165,26 +175,70 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
 export async function startNodeShell(rootfsDriver?: any, env?: Record<string, string>) {
 
     try {
-        const cmdArgs = arg({
-            // Types
-            '--help': Boolean,
-            '--debug': Boolean,
-            '--component': Boolean,
-            '--mount': String,
-            '--env': [String],
-            '--worker': Boolean,
-            '--overlay': Boolean,
-            '--count': Number,
 
-            // Aliases
-            '-c': '--component',
-            '-d': '--debug',
-            '-e': '--env',
-            '-m': '--mount',
-            '-w': '--worker',
-            '-o': '--overlay',
-            '-h': '--help',
-        });
+        // Interfaces declared here because they are not exported from node:util
+        interface ParseArgsOptionConfig {
+            /**
+             * Type of argument.
+             */
+            type: 'string' | 'boolean';
+            /**
+             * Whether this option can be provided multiple times.
+             * If `true`, all values will be collected in an array.
+             * If `false`, values for the option are last-wins.
+             * @default false.
+             */
+            multiple?: boolean | undefined;
+            /**
+             * A single character alias for the option.
+             */
+            short?: string | undefined;
+            /**
+             * The default option value when it is not set by args.
+             * It must be of the same type as the the `type` property.
+             * When `multiple` is `true`, it must be an array.
+             * @since v18.11.0
+             */
+            default?: string | boolean | string[] | boolean[] | undefined;
+        }
+        interface ParseArgsOptionsConfig {
+            [longOption: string]: ParseArgsOptionConfig;
+        }
+    
+        const options: ParseArgsOptionsConfig = {
+            help: {
+              type: 'boolean',
+              short: 'h'
+            },
+            debug: {
+                type: 'boolean',
+                short: 'd',
+            },
+            component: {
+                type: 'boolean',
+                short: 'c',
+            },
+            mount: {
+                type: 'string',
+                short: 'm',
+            },
+            env: {
+                type: 'string',
+                short: 'e',
+            },
+            worker: {
+                type: 'boolean',
+                short: 'w',
+            },
+            overlay: {
+                type: 'boolean',
+                short: 'o',
+            },
+            count: {
+                type: 'string'
+            }
+        };
+
         let isHelp = false;
         let componentMode = false;
         let runDebug = false;
@@ -192,34 +246,53 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         let useOverlayFs = false;
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
-        let args: string[] = [];
+        //let args: string[] = [];
         let runCount = 1;
+        let argv = process.argv;
+        shellDebug("shell argv:",  argv);
+        let args = process.argv.slice(2);
+        shellDebug("shell args:",  args);
 
-        if (cmdArgs['--help']) {
+        let wasmArgs: string[] = [];
+
+        const {
+            values,
+            positionals,
+        } = parseArgs({ args: args, options: options, allowPositionals: true });
+
+        shellDebug("shell args values: ", values);
+        shellDebug("shell args positionals: ", positionals);
+        
+        if (values.help) {
             isHelp = true;
         }
-        if (cmdArgs['--component']) {
+        if (values.component) {
             componentMode = true;
         }
-        if (cmdArgs['--debug']) {
+        if (values.debug) {
             runDebug = true;
         }
-        if (cmdArgs['--mount']) {
-            mountUrl = cmdArgs['--mount'];
+        if (values.mount) {
+            mountUrl = values.mount as string;
+            shellDebug("mountUrl: ", mountUrl);
         }
-        if (cmdArgs['--worker']) {
+        if (values.worker) {
             workerMode = true;
         }
-        if (cmdArgs['--overlay']) {
+        if (values.overlay) {
             useOverlayFs = true;
         }
-        if (cmdArgs['--count']) {
-            runCount = cmdArgs['--count'];
+        if (values.count) {
+            const sRunCount = values.count as string;
+            const nRunCount = new Number(sRunCount);
+            runCount = nRunCount.valueOf();
         }
 
         let runtimeName = "undefined";
         if (isBun() ){
             runtimeName = chalk.yellow.bold("Bun");
+        } else if (isDeno() ){
+            runtimeName = chalk.yellow.bold("Deno");    
         } else if (isNode()) {
             runtimeName = chalk.green.bold("Node");
         }
@@ -248,15 +321,12 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             process.exit(0);
         }
 
-        const restArgs = cmdArgs['_'];
-        if (restArgs) {
-            if (restArgs.length == 1) {
-                wasmBinaryFromArgs = restArgs[0];
-            } else if (restArgs.length > 1) {
-                wasmBinaryFromArgs = restArgs[0];
-                args = restArgs.slice(1);
-            }
+        if (positionals.length>0) {
+            wasmBinaryFromArgs = positionals[0];
+            wasmArgs = positionals.slice(1);
         }
+        shellDebug("wasmBinaryFromArgs: ", wasmBinaryFromArgs);
+
 
         // @ts-ignore
         //if (!isBun()) {
@@ -305,8 +375,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             const wasmBinary = modResponse.path;    
 
             let newEnv = {...env};
-            let newArgs = [...args];
-            //console.log(`run is: ${runs}`);
+            let newArgs = [...wasmArgs];
+            shellDebug("newArgs: ", newArgs);
+            //shellDebug(`run is: ${runs}`);
             if (runDebug) {
                 // @ts-ignore
                 globalThis.WASI_CALL_DEBUG=true;
@@ -327,13 +398,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                     });
                     const statusCode = await wasi.run(wasmBinary);
                     if (statusCode !== 0) {
-                        console.log(`Exit code: ${statusCode}`);
+                        shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
-                    console.log(err.message);
+                    shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
-                        console.log("finally");
+                        shellDebug("finally");
                     }
                     process.exit(0);
                 }
@@ -352,13 +423,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                     wasi.component = componentMode;
                     const statusCode = await wasi.run(wasmBuf);
                     if (statusCode !== 0) {
-                        console.log(`Exit code: ${statusCode}`);
+                        shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
-                    console.log(err.message);
+                    shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
-                        console.log("finally");
+                        shellDebug("finally");
                     }
                     //process.exit(0);
                 }

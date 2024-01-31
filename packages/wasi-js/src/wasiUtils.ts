@@ -335,6 +335,14 @@ export function translateErrorToErrorno(err: any): Errno {
     return ErrnoN.INVAL;
 }
 
+export function isNodeorBunorDeno() {
+    if (isDeno()) {
+        return true;
+    } else {
+        return isNodeorBun();
+    }
+}
+
 export function isNodeorBun() {
     return globalThis.process != null;
 }
@@ -362,6 +370,16 @@ export function isBun() {
     try {
         // @ts-ignore
         return globalThis.Bun != null;
+    } catch (e) {
+        return false;
+    }
+}
+
+export function isDeno() {
+    // only deno has global Deno
+    try {
+        // @ts-ignore
+        return globalThis.Deno != null;
     } catch (e) {
         return false;
     }

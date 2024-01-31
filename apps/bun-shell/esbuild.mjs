@@ -19,7 +19,7 @@ await esbuild.build({
   plugins: [metaUrlPlugin({emit: true})],
   //plugins: [excludeImportMetaUrl()],
   format: "esm",
-  platform: "browser",
+  platform: "node",
   external: [
     "node:buffer",
     "node:dns",
@@ -28,12 +28,13 @@ await esbuild.build({
     "node:worker_threads",
     "node:process",
     "node:url",
-    "vm",
+    "node:vm",
     "crypto",
     "fs/promises",
     "node:path",
     "node:os",
     "node:fs",
+    "node:util",
     "node:fs/promises",
     "bun",
   ]
