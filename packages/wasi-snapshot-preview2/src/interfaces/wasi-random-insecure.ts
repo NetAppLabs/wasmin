@@ -9,12 +9,12 @@ export interface WasiRandomInsecureAsync {
    * implementations are encouraged to return evenly distributed values with
    * a long period.
    */
-   getInsecureRandomBytes(len: bigint): Promise<Uint8Array>;
+    getInsecureRandomBytes(len: bigint): Promise<Uint8Array>;
   /**
    * Return an insecure pseudo-random `u64` value.
    * 
    * This function returns the same type of pseudo-random data as
    * `get-insecure-random-bytes`, represented as a `u64`.
    */
-   getInsecureRandomU64(): Promise<bigint>;
+    getInsecureRandomU64(): Promise<bigint>;
 }

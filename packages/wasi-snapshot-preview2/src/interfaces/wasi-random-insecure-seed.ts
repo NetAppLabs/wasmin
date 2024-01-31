@@ -18,5 +18,5 @@ export interface WasiRandomInsecureSeedAsync {
    * called multiple times and potentially used for purposes other than DoS
    * protection.
    */
-   insecureSeed(): Promise<[bigint, bigint]>;
+    insecureSeed(): Promise<[bigint, bigint]>;
 }

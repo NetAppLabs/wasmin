@@ -183,16 +183,6 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   }
   
   function trampoline20() {
-    const ret = getStderr();
-    if (!(ret instanceof OutputStream)) {
-      throw new Error('Not a valid "OutputStream" resource.');
-    }
-    const handle0 = handleCnt3++;
-    handleTable3.set(handle0, { rep: ret, own: true });
-    return handle0;
-  }
-  
-  function trampoline21() {
     const ret = getStdin();
     if (!(ret instanceof InputStream)) {
       throw new Error('Not a valid "InputStream" resource.');
@@ -202,8 +192,18 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     return handle0;
   }
   
-  function trampoline22() {
+  function trampoline21() {
     const ret = getStdout();
+    if (!(ret instanceof OutputStream)) {
+      throw new Error('Not a valid "OutputStream" resource.');
+    }
+    const handle0 = handleCnt3++;
+    handleTable3.set(handle0, { rep: ret, own: true });
+    return handle0;
+  }
+  
+  function trampoline22() {
+    const ret = getStderr();
     if (!(ret instanceof OutputStream)) {
       throw new Error('Not a valid "OutputStream" resource.');
     }
@@ -8397,288 +8397,6 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   }
   
   function trampoline77(arg0, arg1) {
-    let enum0;
-    switch (arg0) {
-      case 0: {
-        enum0 = 'ipv4';
-        break;
-      }
-      case 1: {
-        enum0 = 'ipv6';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for IpAddressFamily');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: createUdpSocket(enum0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant3 = ret;
-    switch (variant3.tag) {
-      case 'ok': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        if (!(e instanceof UdpSocket)) {
-          throw new Error('Not a valid "UdpSocket" resource.');
-        }
-        const handle1 = handleCnt9++;
-        handleTable9.set(handle1, { rep: e, own: true });
-        dataView(memory0).setInt32(arg1 + 4, handle1, true);
-        break;
-      }
-      case 'err': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val2 = e;
-        let enum2;
-        switch (val2) {
-          case 'unknown': {
-            enum2 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum2 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum2 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum2 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum2 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum2 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum2 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum2 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum2 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum2 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum2 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum2 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum2 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum2 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum2 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum2 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum2 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum2 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum2 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum2 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum2 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 4, enum2, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline78(arg0, arg1) {
-    let enum0;
-    switch (arg0) {
-      case 0: {
-        enum0 = 'ipv4';
-        break;
-      }
-      case 1: {
-        enum0 = 'ipv6';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for IpAddressFamily');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: createTcpSocket(enum0) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant3 = ret;
-    switch (variant3.tag) {
-      case 'ok': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        if (!(e instanceof TcpSocket)) {
-          throw new Error('Not a valid "TcpSocket" resource.');
-        }
-        const handle1 = handleCnt10++;
-        handleTable10.set(handle1, { rep: e, own: true });
-        dataView(memory0).setInt32(arg1 + 4, handle1, true);
-        break;
-      }
-      case 'err': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val2 = e;
-        let enum2;
-        switch (val2) {
-          case 'unknown': {
-            enum2 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum2 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum2 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum2 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum2 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum2 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum2 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum2 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum2 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum2 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum2 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum2 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum2 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum2 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum2 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum2 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum2 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum2 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum2 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum2 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum2 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 4, enum2, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline79(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable11.get(handle1).rep;
     let ret;
@@ -8838,7 +8556,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
-  function trampoline80(arg0, arg1, arg2, arg3) {
+  function trampoline78(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable8.get(handle1).rep;
     const ptr2 = arg1;
@@ -8970,6 +8688,288 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   
+  function trampoline79(arg0, arg1) {
+    let enum0;
+    switch (arg0) {
+      case 0: {
+        enum0 = 'ipv4';
+        break;
+      }
+      case 1: {
+        enum0 = 'ipv6';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for IpAddressFamily');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: createUdpSocket(enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant3 = ret;
+    switch (variant3.tag) {
+      case 'ok': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        if (!(e instanceof UdpSocket)) {
+          throw new Error('Not a valid "UdpSocket" resource.');
+        }
+        const handle1 = handleCnt9++;
+        handleTable9.set(handle1, { rep: e, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle1, true);
+        break;
+      }
+      case 'err': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val2 = e;
+        let enum2;
+        switch (val2) {
+          case 'unknown': {
+            enum2 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum2 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum2 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum2 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum2 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum2 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum2 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum2 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum2 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum2 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum2 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum2 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum2 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum2 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum2 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum2 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum2 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum2 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum2 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum2 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum2 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum2, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline80(arg0, arg1) {
+    let enum0;
+    switch (arg0) {
+      case 0: {
+        enum0 = 'ipv4';
+        break;
+      }
+      case 1: {
+        enum0 = 'ipv6';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for IpAddressFamily');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: createTcpSocket(enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant3 = ret;
+    switch (variant3.tag) {
+      case 'ok': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        if (!(e instanceof TcpSocket)) {
+          throw new Error('Not a valid "TcpSocket" resource.');
+        }
+        const handle1 = handleCnt10++;
+        handleTable10.set(handle1, { rep: e, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle1, true);
+        break;
+      }
+      case 'err': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val2 = e;
+        let enum2;
+        switch (val2) {
+          case 'unknown': {
+            enum2 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum2 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum2 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum2 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum2 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum2 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum2 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum2 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum2 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum2 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum2 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum2 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum2 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum2 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum2 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum2 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum2 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum2 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum2 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum2 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum2 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum2, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
   function trampoline81(arg0) {
     const ret = getEnvironment();
     const vec3 = ret;
@@ -9008,23 +9008,6 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   }
   
   function trampoline83(arg0) {
-    const ret = getTerminalStdout();
-    const variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalOutput)) {
-        throw new Error('Not a valid "TerminalOutput" resource.');
-      }
-      const handle0 = handleCnt5++;
-      handleTable5.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
-    }
-  }
-  
-  function trampoline84(arg0) {
     const ret = getTerminalStdin();
     const variant1 = ret;
     if (variant1 === null || variant1=== undefined) {
@@ -9037,6 +9020,23 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       }
       const handle0 = handleCnt4++;
       handleTable4.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  function trampoline84(arg0) {
+    const ret = getTerminalStdout();
+    const variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalOutput)) {
+        throw new Error('Not a valid "TerminalOutput" resource.');
+      }
+      const handle0 = handleCnt5++;
+      handleTable5.set(handle0, { rep: e, own: true });
       dataView(memory0).setInt32(arg0 + 4, handle0, true);
     }
   }
@@ -9166,21 +9166,9 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       handleEntry.rep[symbolDispose]();
     }
   }
-  const handleTable5= new Map();
-  let handleCnt5 = 0;
-  function trampoline17(handle) {
-    const handleEntry = handleTable5.get(handle);
-    if (!handleEntry) {
-      throw new Error(`Resource error: Invalid handle ${handle}`);
-    }
-    handleTable5.delete(handle);
-    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
-      handleEntry.rep[symbolDispose]();
-    }
-  }
   const handleTable9= new Map();
   let handleCnt9 = 0;
-  function trampoline18(handle) {
+  function trampoline17(handle) {
     const handleEntry = handleTable9.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -9192,12 +9180,24 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   }
   const handleTable4= new Map();
   let handleCnt4 = 0;
-  function trampoline19(handle) {
+  function trampoline18(handle) {
     const handleEntry = handleTable4.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
     }
     handleTable4.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable5= new Map();
+  let handleCnt5 = 0;
+  function trampoline19(handle) {
+    const handleEntry = handleTable5.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable5.delete(handle);
     if (handleEntry.own && handleEntry.rep[symbolDispose]) {
       handleEntry.rep[symbolDispose]();
     }
@@ -9274,51 +9274,51 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     env: {
       memory: exports1.memory,
     },
-    'wasi:cli/environment@0.2.0-rc-2023-12-05': {
+    'wasi:cli/environment@0.2.0': {
       'get-arguments': exports0['58'],
       'get-environment': exports0['57'],
     },
-    'wasi:cli/exit@0.2.0-rc-2023-12-05': {
+    'wasi:cli/exit@0.2.0': {
       exit: trampoline23,
     },
-    'wasi:cli/stderr@0.2.0-rc-2023-12-05': {
-      'get-stderr': trampoline20,
+    'wasi:cli/stderr@0.2.0': {
+      'get-stderr': trampoline22,
     },
-    'wasi:cli/stdin@0.2.0-rc-2023-12-05': {
-      'get-stdin': trampoline21,
+    'wasi:cli/stdin@0.2.0': {
+      'get-stdin': trampoline20,
     },
-    'wasi:cli/stdout@0.2.0-rc-2023-12-05': {
-      'get-stdout': trampoline22,
+    'wasi:cli/stdout@0.2.0': {
+      'get-stdout': trampoline21,
     },
-    'wasi:cli/terminal-input@0.2.0-rc-2023-12-05': {
-      '[resource-drop]terminal-input': trampoline19,
+    'wasi:cli/terminal-input@0.2.0': {
+      '[resource-drop]terminal-input': trampoline18,
     },
-    'wasi:cli/terminal-output@0.2.0-rc-2023-12-05': {
-      '[resource-drop]terminal-output': trampoline17,
+    'wasi:cli/terminal-output@0.2.0': {
+      '[resource-drop]terminal-output': trampoline19,
     },
-    'wasi:cli/terminal-stderr@0.2.0-rc-2023-12-05': {
+    'wasi:cli/terminal-stderr@0.2.0': {
       'get-terminal-stderr': exports0['61'],
     },
-    'wasi:cli/terminal-stdin@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdin': exports0['60'],
+    'wasi:cli/terminal-stdin@0.2.0': {
+      'get-terminal-stdin': exports0['59'],
     },
-    'wasi:cli/terminal-stdout@0.2.0-rc-2023-12-05': {
-      'get-terminal-stdout': exports0['59'],
+    'wasi:cli/terminal-stdout@0.2.0': {
+      'get-terminal-stdout': exports0['60'],
     },
-    'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': {
+    'wasi:clocks/monotonic-clock@0.2.0': {
       now: trampoline1,
       resolution: trampoline0,
       'subscribe-duration': trampoline7,
       'subscribe-instant': trampoline8,
     },
-    'wasi:clocks/wall-clock@0.2.0-rc-2023-11-10': {
+    'wasi:clocks/wall-clock@0.2.0': {
       now: exports0['1'],
       resolution: exports0['2'],
     },
-    'wasi:filesystem/preopens@0.2.0-rc-2023-11-10': {
+    'wasi:filesystem/preopens@0.2.0': {
       'get-directories': exports0['0'],
     },
-    'wasi:filesystem/types@0.2.0-rc-2023-11-10': {
+    'wasi:filesystem/types@0.2.0': {
       '[method]descriptor.advise': exports0['6'],
       '[method]descriptor.append-via-stream': exports0['5'],
       '[method]descriptor.create-directory-at': exports0['16'],
@@ -9350,14 +9350,14 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]directory-entry-stream': trampoline2,
       'filesystem-error-code': exports0['30'],
     },
-    'wasi:io/error@0.2.0-rc-2023-11-10': {
+    'wasi:io/error@0.2.0': {
       '[resource-drop]error': trampoline3,
     },
-    'wasi:io/poll@0.2.0-rc-2023-11-10': {
+    'wasi:io/poll@0.2.0': {
       '[resource-drop]pollable': trampoline12,
       poll: exports0['47'],
     },
-    'wasi:io/streams@0.2.0-rc-2023-11-10': {
+    'wasi:io/streams@0.2.0': {
       '[method]input-stream.blocking-read': exports0['32'],
       '[method]input-stream.read': exports0['31'],
       '[method]input-stream.subscribe': trampoline10,
@@ -9369,24 +9369,24 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]input-stream': trampoline4,
       '[resource-drop]output-stream': trampoline5,
     },
-    'wasi:random/random@0.2.0-rc-2023-11-10': {
+    'wasi:random/random@0.2.0': {
       'get-random-bytes': exports0['48'],
     },
-    'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': {
+    'wasi:sockets/instance-network@0.2.0': {
       'instance-network': trampoline13,
     },
-    'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': {
-      '[method]resolve-address-stream.resolve-next-address': exports0['55'],
+    'wasi:sockets/ip-name-lookup@0.2.0': {
+      '[method]resolve-address-stream.resolve-next-address': exports0['53'],
       '[resource-drop]resolve-address-stream': trampoline15,
-      'resolve-addresses': exports0['56'],
+      'resolve-addresses': exports0['54'],
     },
-    'wasi:sockets/network@0.2.0-rc-2023-11-10': {
+    'wasi:sockets/network@0.2.0': {
       '[resource-drop]network': trampoline14,
     },
-    'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': {
-      'create-tcp-socket': exports0['54'],
+    'wasi:sockets/tcp-create-socket@0.2.0': {
+      'create-tcp-socket': exports0['56'],
     },
-    'wasi:sockets/tcp@0.2.0-rc-2023-11-10': {
+    'wasi:sockets/tcp@0.2.0': {
       '[method]tcp-socket.accept': exports0['43'],
       '[method]tcp-socket.finish-bind': exports0['38'],
       '[method]tcp-socket.finish-connect': exports0['40'],
@@ -9400,15 +9400,15 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[method]tcp-socket.subscribe': trampoline9,
       '[resource-drop]tcp-socket': trampoline16,
     },
-    'wasi:sockets/udp-create-socket@0.2.0-rc-2023-11-10': {
-      'create-udp-socket': exports0['53'],
+    'wasi:sockets/udp-create-socket@0.2.0': {
+      'create-udp-socket': exports0['55'],
     },
-    'wasi:sockets/udp@0.2.0-rc-2023-11-10': {
+    'wasi:sockets/udp@0.2.0': {
       '[method]udp-socket.finish-bind': exports0['50'],
       '[method]udp-socket.local-address': exports0['51'],
       '[method]udp-socket.remote-address': exports0['52'],
       '[method]udp-socket.start-bind': exports0['49'],
-      '[resource-drop]udp-socket': trampoline18,
+      '[resource-drop]udp-socket': trampoline17,
     },
   }));
   memory0 = exports1.memory;
@@ -9539,7 +9539,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   }));
   
   function run() {
-    const ret = exports2['wasi:cli/run@0.2.0-rc-2023-12-05#run']();
+    const ret = exports2['wasi:cli/run@0.2.0#run']();
     let variant0;
     switch (ret) {
       case 0: {
@@ -9565,10 +9565,10 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
     return variant0.val;
   }
-  const run0_2_0Rc20231205 = {
+  const run0_2_0 = {
     run: run,
     
   };
   
-  return { run: run0_2_0Rc20231205, 'wasi:cli/run@0.2.0-rc-2023-12-05': run0_2_0Rc20231205 };
+  return { run: run0_2_0, 'wasi:cli/run@0.2.0': run0_2_0 };
 }

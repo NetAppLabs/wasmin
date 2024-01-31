@@ -27,36 +27,36 @@ import { WasiSocketsUdpCreateSocketAsync as WasiSocketsUdpCreateSocket } from '.
 import { WasiSocketsUdpAsync as WasiSocketsUdp } from './interfaces/wasi-sockets-udp.js';
 import { WasiCliRunAsync as WasiCliRun } from './interfaces/wasi-cli-run.js';
 export interface ImportObject {
-  'wasi:cli/environment@0.2.0-rc-2023-12-05': WasiCliEnvironment,
-  'wasi:cli/exit@0.2.0-rc-2023-12-05': WasiCliExit,
-  'wasi:cli/stderr@0.2.0-rc-2023-12-05': WasiCliStderr,
-  'wasi:cli/stdin@0.2.0-rc-2023-12-05': WasiCliStdin,
-  'wasi:cli/stdout@0.2.0-rc-2023-12-05': WasiCliStdout,
-  'wasi:cli/terminal-input@0.2.0-rc-2023-12-05': WasiCliTerminalInput,
-  'wasi:cli/terminal-output@0.2.0-rc-2023-12-05': WasiCliTerminalOutput,
-  'wasi:cli/terminal-stderr@0.2.0-rc-2023-12-05': WasiCliTerminalStderr,
-  'wasi:cli/terminal-stdin@0.2.0-rc-2023-12-05': WasiCliTerminalStdin,
-  'wasi:cli/terminal-stdout@0.2.0-rc-2023-12-05': WasiCliTerminalStdout,
-  'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': WasiClocksMonotonicClock,
-  'wasi:clocks/wall-clock@0.2.0-rc-2023-11-10': WasiClocksWallClock,
-  'wasi:filesystem/preopens@0.2.0-rc-2023-11-10': WasiFilesystemPreopens,
-  'wasi:filesystem/types@0.2.0-rc-2023-11-10': WasiFilesystemTypes,
-  'wasi:io/error@0.2.0-rc-2023-11-10': WasiIoError,
-  'wasi:io/poll@0.2.0-rc-2023-11-10': WasiIoPoll,
-  'wasi:io/streams@0.2.0-rc-2023-11-10': WasiIoStreams,
-  'wasi:random/insecure-seed@0.2.0-rc-2023-11-10': WasiRandomInsecureSeed,
-  'wasi:random/insecure@0.2.0-rc-2023-11-10': WasiRandomInsecure,
-  'wasi:random/random@0.2.0-rc-2023-11-10': WasiRandomRandom,
-  'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': WasiSocketsInstanceNetwork,
-  'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': WasiSocketsIpNameLookup,
-  'wasi:sockets/network@0.2.0-rc-2023-11-10': WasiSocketsNetwork,
-  'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': WasiSocketsTcpCreateSocket,
-  'wasi:sockets/tcp@0.2.0-rc-2023-11-10': WasiSocketsTcp,
-  'wasi:sockets/udp-create-socket@0.2.0-rc-2023-11-10': WasiSocketsUdpCreateSocket,
-  'wasi:sockets/udp@0.2.0-rc-2023-11-10': WasiSocketsUdp,
+  'wasi:cli/environment@0.2.0': WasiCliEnvironment,
+  'wasi:cli/exit@0.2.0': WasiCliExit,
+  'wasi:cli/stderr@0.2.0': WasiCliStderr,
+  'wasi:cli/stdin@0.2.0': WasiCliStdin,
+  'wasi:cli/stdout@0.2.0': WasiCliStdout,
+  'wasi:cli/terminal-input@0.2.0': WasiCliTerminalInput,
+  'wasi:cli/terminal-output@0.2.0': WasiCliTerminalOutput,
+  'wasi:cli/terminal-stderr@0.2.0': WasiCliTerminalStderr,
+  'wasi:cli/terminal-stdin@0.2.0': WasiCliTerminalStdin,
+  'wasi:cli/terminal-stdout@0.2.0': WasiCliTerminalStdout,
+  'wasi:clocks/monotonic-clock@0.2.0': WasiClocksMonotonicClock,
+  'wasi:clocks/wall-clock@0.2.0': WasiClocksWallClock,
+  'wasi:filesystem/preopens@0.2.0': WasiFilesystemPreopens,
+  'wasi:filesystem/types@0.2.0': WasiFilesystemTypes,
+  'wasi:io/error@0.2.0': WasiIoError,
+  'wasi:io/poll@0.2.0': WasiIoPoll,
+  'wasi:io/streams@0.2.0': WasiIoStreams,
+  'wasi:random/insecure-seed@0.2.0': WasiRandomInsecureSeed,
+  'wasi:random/insecure@0.2.0': WasiRandomInsecure,
+  'wasi:random/random@0.2.0': WasiRandomRandom,
+  'wasi:sockets/instance-network@0.2.0': WasiSocketsInstanceNetwork,
+  'wasi:sockets/ip-name-lookup@0.2.0': WasiSocketsIpNameLookup,
+  'wasi:sockets/network@0.2.0': WasiSocketsNetwork,
+  'wasi:sockets/tcp-create-socket@0.2.0': WasiSocketsTcpCreateSocket,
+  'wasi:sockets/tcp@0.2.0': WasiSocketsTcp,
+  'wasi:sockets/udp-create-socket@0.2.0': WasiSocketsUdpCreateSocket,
+  'wasi:sockets/udp@0.2.0': WasiSocketsUdp,
 }
 export interface Command {
-  'wasi:cli/run@0.2.0-rc-2023-12-05': WasiCliRun,
+  'wasi:cli/run@0.2.0': WasiCliRun,
   run: WasiCliRun,
 }
 
@@ -79,6 +79,7 @@ export interface Command {
 * `WebAssembly.Module` object. This would use `compileStreaming`
 * on the web, for example.
 */
+
 /*
 export function instantiate(
 getCoreModule: (path: string) => Promise<WebAssembly.Module>,

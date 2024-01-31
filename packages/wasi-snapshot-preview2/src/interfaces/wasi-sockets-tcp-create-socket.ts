@@ -3,9 +3,10 @@ export interface WasiSocketsTcpCreateSocketAsync {
    * Create a new TCP socket.
    * 
    * Similar to `socket(AF_INET or AF_INET6, SOCK_STREAM, IPPROTO_TCP)` in POSIX.
+   * On IPv6 sockets, IPV6_V6ONLY is enabled by default and can't be configured otherwise.
    * 
    * This function does not require a network capability handle. This is considered to be safe because
-   * at time of creation, the socket is not bound to any `network` yet. Up to the moment `bind`/`listen`/`connect`
+   * at time of creation, the socket is not bound to any `network` yet. Up to the moment `bind`/`connect`
    * is called, the socket is effectively an in-memory configuration object, unable to communicate with the outside world.
    * 
    * All sockets are non-blocking. Use the wasi-poll interface to block on asynchronous operations.
@@ -20,7 +21,7 @@ export interface WasiSocketsTcpCreateSocketAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketw>
    * - <https://man.freebsd.org/cgi/man.cgi?query=socket&sektion=2>
    */
-   createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
+    createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
 }
 import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };

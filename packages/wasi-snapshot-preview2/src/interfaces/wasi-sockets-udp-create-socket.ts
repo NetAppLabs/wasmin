@@ -3,6 +3,7 @@ export interface WasiSocketsUdpCreateSocketAsync {
    * Create a new UDP socket.
    * 
    * Similar to `socket(AF_INET or AF_INET6, SOCK_DGRAM, IPPROTO_UDP)` in POSIX.
+   * On IPv6 sockets, IPV6_V6ONLY is enabled by default and can't be configured otherwise.
    * 
    * This function does not require a network capability handle. This is considered to be safe because
    * at time of creation, the socket is not bound to any `network` yet. Up to the moment `bind` is called,
@@ -20,7 +21,7 @@ export interface WasiSocketsUdpCreateSocketAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketw>
    * - <https://man.freebsd.org/cgi/man.cgi?query=socket&sektion=2>
    */
-   createUdpSocket(addressFamily: IpAddressFamily): Promise<UdpSocket>;
+    createUdpSocket(addressFamily: IpAddressFamily): Promise<UdpSocket>;
 }
 import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };

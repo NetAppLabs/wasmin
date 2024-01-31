@@ -13,12 +13,12 @@ export interface WasiRandomRandomAsync {
    * must omit this function, rather than implementing it with deterministic
    * data.
    */
-   getRandomBytes(len: bigint): Promise<Uint8Array>;
+    getRandomBytes(len: bigint): Promise<Uint8Array>;
   /**
    * Return a cryptographically-secure random or pseudo-random `u64` value.
    * 
    * This function returns the same type of data as `get-random-bytes`,
    * represented as a `u64`.
    */
-   getRandomU64(): Promise<bigint>;
+    getRandomU64(): Promise<bigint>;
 }

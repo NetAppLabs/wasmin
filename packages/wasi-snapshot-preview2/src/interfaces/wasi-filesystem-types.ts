@@ -256,7 +256,7 @@ export interface WasiFilesystemTypesAsync {
    * Note that this function is fallible because not all stream-related
    * errors are filesystem-related errors.
    */
-   filesystemErrorCode(err: Error): Promise<ErrorCode | undefined>;
+    filesystemErrorCode(err: Error): Promise<ErrorCode | undefined>;
 }
 import type { InputStream } from '../interfaces/wasi-io-streams.js';
 export { InputStream };
@@ -637,6 +637,10 @@ export interface MetadataHashValue {
   upper: bigint,
 }
 
+export interface DirectoryEntryStream {
+  readDirectoryEntry(): Promise<DirectoryEntry | undefined>;
+}
+
 export interface Descriptor {
   readViaStream(offset: Filesize): Promise<InputStream>;
   writeViaStream(offset: Filesize): Promise<OutputStream>;
@@ -665,8 +669,4 @@ export interface Descriptor {
   isSameObject(other: Descriptor): Promise<boolean>;
   metadataHash(): Promise<MetadataHashValue>;
   metadataHashAt(pathFlags: PathFlags, path: string): Promise<MetadataHashValue>;
-}
-
-export interface DirectoryEntryStream {
-  readDirectoryEntry(): Promise<DirectoryEntry | undefined>;
 }
