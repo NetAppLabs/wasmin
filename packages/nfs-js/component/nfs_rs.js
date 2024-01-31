@@ -101,7 +101,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   const { createTcpSocket } = imports['wasi:sockets/tcp-create-socket'];
   let exports0;
   
-  function trampoline2() {
+  function trampoline5() {
     const ret = instanceNetwork();
     if (!(ret instanceof Network)) {
       throw new Error('Not a valid "Network" resource.');
@@ -216,115 +216,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   let exports2;
   
-  function trampoline18(arg0, arg1, arg2) {
-    const handle1 = arg0;
-    const rsc0 = handleTable2.get(handle1).rep;
-    let ret;
-    try {
-      ret = { tag: 'ok', val: InputStream.prototype.blockingRead.call(rsc0, BigInt.asUintN(64, arg1)) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant5 = ret;
-    switch (variant5.tag) {
-      case 'ok': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        const val2 = e;
-        const len2 = val2.byteLength;
-        const ptr2 = realloc0(0, 0, 1, len2 * 1);
-        const src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
-        (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-        dataView(memory0).setInt32(arg2 + 8, len2, true);
-        dataView(memory0).setInt32(arg2 + 4, ptr2, true);
-        break;
-      }
-      case 'err': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        const variant4 = e;
-        switch (variant4.tag) {
-          case 'last-operation-failed': {
-            const e = variant4.val;
-            dataView(memory0).setInt8(arg2 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
-              throw new Error('Not a valid "Error" resource.');
-            }
-            const handle3 = handleCnt1++;
-            handleTable1.set(handle3, { rep: e, own: true });
-            dataView(memory0).setInt32(arg2 + 8, handle3, true);
-            break;
-          }
-          case 'closed': {
-            dataView(memory0).setInt8(arg2 + 4, 1, true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
-          }
-        }
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  let memory0;
-  let realloc0;
-  
-  function trampoline19(arg0, arg1, arg2, arg3) {
-    const handle1 = arg0;
-    const rsc0 = handleTable3.get(handle1).rep;
-    const ptr2 = arg1;
-    const len2 = arg2;
-    const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
-    let ret;
-    try {
-      ret = { tag: 'ok', val: OutputStream.prototype.blockingWriteAndFlush.call(rsc0, result2) };
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    const variant5 = ret;
-    switch (variant5.tag) {
-      case 'ok': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg3 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg3 + 0, 1, true);
-        const variant4 = e;
-        switch (variant4.tag) {
-          case 'last-operation-failed': {
-            const e = variant4.val;
-            dataView(memory0).setInt8(arg3 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
-              throw new Error('Not a valid "Error" resource.');
-            }
-            const handle3 = handleCnt1++;
-            handleTable1.set(handle3, { rep: e, own: true });
-            dataView(memory0).setInt32(arg3 + 8, handle3, true);
-            break;
-          }
-          case 'closed': {
-            dataView(memory0).setInt8(arg3 + 4, 1, true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
-          }
-        }
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline20(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+  function trampoline18(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     const handle3 = arg1;
@@ -476,8 +368,9 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       }
     }
   }
+  let memory0;
   
-  function trampoline21(arg0, arg1) {
+  function trampoline19(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -613,7 +506,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline22(arg0, arg1) {
+  function trampoline20(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -772,7 +665,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline23(arg0, arg1, arg2) {
+  function trampoline21(arg0, arg1, arg2) {
     const handle1 = arg0;
     const rsc0 = handleTable6.get(handle1).rep;
     let enum2;
@@ -913,139 +806,105 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline24(arg0, arg1) {
-    let enum0;
-    switch (arg0) {
-      case 0: {
-        enum0 = 'ipv4';
-        break;
-      }
-      case 1: {
-        enum0 = 'ipv6';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for IpAddressFamily');
-      }
-    }
+  function trampoline22(arg0, arg1, arg2) {
+    const handle1 = arg0;
+    const rsc0 = handleTable2.get(handle1).rep;
     let ret;
     try {
-      ret = { tag: 'ok', val: createTcpSocket(enum0) };
+      ret = { tag: 'ok', val: InputStream.prototype.blockingRead.call(rsc0, BigInt.asUintN(64, arg1)) };
     } catch (e) {
       ret = { tag: 'err', val: getErrorPayload(e) };
     }
-    const variant3 = ret;
-    switch (variant3.tag) {
+    const variant5 = ret;
+    switch (variant5.tag) {
       case 'ok': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        if (!(e instanceof TcpSocket)) {
-          throw new Error('Not a valid "TcpSocket" resource.');
-        }
-        const handle1 = handleCnt6++;
-        handleTable6.set(handle1, { rep: e, own: true });
-        dataView(memory0).setInt32(arg1 + 4, handle1, true);
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        const val2 = e;
+        const len2 = val2.byteLength;
+        const ptr2 = realloc0(0, 0, 1, len2 * 1);
+        const src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
+        (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
+        dataView(memory0).setInt32(arg2 + 8, len2, true);
+        dataView(memory0).setInt32(arg2 + 4, ptr2, true);
         break;
       }
       case 'err': {
-        const e = variant3.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        const val2 = e;
-        let enum2;
-        switch (val2) {
-          case 'unknown': {
-            enum2 = 0;
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        const variant4 = e;
+        switch (variant4.tag) {
+          case 'last-operation-failed': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg2 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle3 = handleCnt1++;
+            handleTable1.set(handle3, { rep: e, own: true });
+            dataView(memory0).setInt32(arg2 + 8, handle3, true);
             break;
           }
-          case 'access-denied': {
-            enum2 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum2 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum2 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum2 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum2 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum2 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum2 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum2 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum2 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum2 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum2 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum2 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum2 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum2 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum2 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum2 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum2 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum2 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum2 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum2 = 20;
+          case 'closed': {
+            dataView(memory0).setInt8(arg2 + 4, 1, true);
             break;
           }
           default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
           }
         }
-        dataView(memory0).setInt8(arg1 + 4, enum2, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  let realloc0;
+  
+  function trampoline23(arg0, arg1, arg2, arg3) {
+    const handle1 = arg0;
+    const rsc0 = handleTable3.get(handle1).rep;
+    const ptr2 = arg1;
+    const len2 = arg2;
+    const result2 = new Uint8Array(memory0.buffer.slice(ptr2, ptr2 + len2 * 1));
+    let ret;
+    try {
+      ret = { tag: 'ok', val: OutputStream.prototype.blockingWriteAndFlush.call(rsc0, result2) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg3 + 0, 1, true);
+        const variant4 = e;
+        switch (variant4.tag) {
+          case 'last-operation-failed': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg3 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new Error('Not a valid "Error" resource.');
+            }
+            const handle3 = handleCnt1++;
+            handleTable1.set(handle3, { rep: e, own: true });
+            dataView(memory0).setInt32(arg3 + 8, handle3, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg3 + 4, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant ${JSON.stringify(variant4.tag)} specified for StreamError`);
+          }
+        }
         break;
       }
       default: {
@@ -1054,7 +913,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline25(arg0, arg1) {
+  function trampoline24(arg0, arg1) {
     const handle1 = arg0;
     const rsc0 = handleTable5.get(handle1).rep;
     let ret;
@@ -1214,7 +1073,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     }
   }
   
-  function trampoline26(arg0, arg1, arg2, arg3) {
+  function trampoline25(arg0, arg1, arg2, arg3) {
     const handle1 = arg0;
     const rsc0 = handleTable4.get(handle1).rep;
     const ptr2 = arg1;
@@ -1338,6 +1197,147 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
           }
         }
         dataView(memory0).setInt8(arg3 + 4, enum4, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline26(arg0, arg1) {
+    let enum0;
+    switch (arg0) {
+      case 0: {
+        enum0 = 'ipv4';
+        break;
+      }
+      case 1: {
+        enum0 = 'ipv6';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for IpAddressFamily');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: createTcpSocket(enum0) };
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    const variant3 = ret;
+    switch (variant3.tag) {
+      case 'ok': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        if (!(e instanceof TcpSocket)) {
+          throw new Error('Not a valid "TcpSocket" resource.');
+        }
+        const handle1 = handleCnt6++;
+        handleTable6.set(handle1, { rep: e, own: true });
+        dataView(memory0).setInt32(arg1 + 4, handle1, true);
+        break;
+      }
+      case 'err': {
+        const e = variant3.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        const val2 = e;
+        let enum2;
+        switch (val2) {
+          case 'unknown': {
+            enum2 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum2 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum2 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum2 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum2 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum2 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum2 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum2 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum2 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum2 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum2 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum2 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum2 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum2 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum2 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum2 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum2 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum2 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum2 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum2 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum2 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val2}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum2, true);
         break;
       }
       default: {
@@ -2829,47 +2829,21 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   let postReturn2;
   let postReturn3;
   let postReturn4;
-  let postReturn5;
-  let postReturn6;
-  let postReturn7;
-  let postReturn8;
-  let postReturn9;
-  let postReturn10;
-  let postReturn11;
-  let postReturn12;
-  let postReturn13;
-  let postReturn14;
-  let postReturn15;
-  let postReturn16;
-  let postReturn17;
-  let postReturn18;
-  let postReturn19;
-  let postReturn20;
-  let postReturn21;
-  let postReturn22;
-  let postReturn23;
-  let postReturn24;
-  let postReturn25;
-  let postReturn26;
-  let postReturn27;
-  let postReturn28;
-  let postReturn29;
-  let postReturn30;
-  let postReturn31;
-  let postReturn32;
-  let postReturn33;
-  let postReturn34;
-  let postReturn35;
-  let postReturn36;
-  let postReturn37;
-  let postReturn38;
-  let postReturn39;
-  let postReturn40;
-  let postReturn41;
-  let postReturn42;
+  const handleTable6= new Map();
+  let handleCnt6 = 0;
+  function trampoline0(handle) {
+    const handleEntry = handleTable6.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable6.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
   const handleTable2= new Map();
   let handleCnt2 = 0;
-  function trampoline0(handle) {
+  function trampoline1(handle) {
     const handleEntry = handleTable2.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -2881,7 +2855,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   const handleTable3= new Map();
   let handleCnt3 = 0;
-  function trampoline1(handle) {
+  function trampoline2(handle) {
     const handleEntry = handleTable3.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -2891,33 +2865,9 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       handleEntry.rep[symbolDispose]();
     }
   }
-  const handleTable4= new Map();
-  let handleCnt4 = 0;
-  function trampoline3(handle) {
-    const handleEntry = handleTable4.get(handle);
-    if (!handleEntry) {
-      throw new Error(`Resource error: Invalid handle ${handle}`);
-    }
-    handleTable4.delete(handle);
-    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
-      handleEntry.rep[symbolDispose]();
-    }
-  }
-  const handleTable6= new Map();
-  let handleCnt6 = 0;
-  function trampoline4(handle) {
-    const handleEntry = handleTable6.get(handle);
-    if (!handleEntry) {
-      throw new Error(`Resource error: Invalid handle ${handle}`);
-    }
-    handleTable6.delete(handle);
-    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
-      handleEntry.rep[symbolDispose]();
-    }
-  }
   const handleTable1= new Map();
   let handleCnt1 = 0;
-  function trampoline5(handle) {
+  function trampoline3(handle) {
     const handleEntry = handleTable1.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -2929,12 +2879,24 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   }
   const handleTable5= new Map();
   let handleCnt5 = 0;
-  function trampoline6(handle) {
+  function trampoline4(handle) {
     const handleEntry = handleTable5.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
     }
     handleTable5.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolDispose]) {
+      handleEntry.rep[symbolDispose]();
+    }
+  }
+  const handleTable4= new Map();
+  let handleCnt4 = 0;
+  function trampoline6(handle) {
+    const handleEntry = handleTable4.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable4.delete(handle);
     if (handleEntry.own && handleEntry.rep[symbolDispose]) {
       handleEntry.rep[symbolDispose]();
     }
@@ -2968,35 +2930,35 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
   Promise.all([module0, module1, module2, module3]).catch(() => {});
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
-    'wasi:io/error@0.2.0-rc-2023-11-10': {
-      '[resource-drop]error': trampoline5,
+    'wasi:io/error@0.2.0': {
+      '[resource-drop]error': trampoline3,
     },
-    'wasi:io/streams@0.2.0-rc-2023-11-10': {
-      '[method]input-stream.blocking-read': exports0['0'],
-      '[method]output-stream.blocking-write-and-flush': exports0['1'],
-      '[resource-drop]input-stream': trampoline0,
-      '[resource-drop]output-stream': trampoline1,
+    'wasi:io/streams@0.2.0': {
+      '[method]input-stream.blocking-read': exports0['4'],
+      '[method]output-stream.blocking-write-and-flush': exports0['5'],
+      '[resource-drop]input-stream': trampoline1,
+      '[resource-drop]output-stream': trampoline2,
     },
-    'wasi:sockets/instance-network@0.2.0-rc-2023-11-10': {
-      'instance-network': trampoline2,
+    'wasi:sockets/instance-network@0.2.0': {
+      'instance-network': trampoline5,
     },
-    'wasi:sockets/ip-name-lookup@0.2.0-rc-2023-11-10': {
-      '[method]resolve-address-stream.resolve-next-address': exports0['7'],
-      '[resource-drop]resolve-address-stream': trampoline6,
-      'resolve-addresses': exports0['8'],
+    'wasi:sockets/ip-name-lookup@0.2.0': {
+      '[method]resolve-address-stream.resolve-next-address': exports0['6'],
+      '[resource-drop]resolve-address-stream': trampoline4,
+      'resolve-addresses': exports0['7'],
     },
-    'wasi:sockets/network@0.2.0-rc-2023-11-10': {
-      '[resource-drop]network': trampoline3,
+    'wasi:sockets/network@0.2.0': {
+      '[resource-drop]network': trampoline6,
     },
-    'wasi:sockets/tcp-create-socket@0.2.0-rc-2023-11-10': {
-      'create-tcp-socket': exports0['6'],
+    'wasi:sockets/tcp-create-socket@0.2.0': {
+      'create-tcp-socket': exports0['8'],
     },
-    'wasi:sockets/tcp@0.2.0-rc-2023-11-10': {
-      '[method]tcp-socket.finish-connect': exports0['3'],
-      '[method]tcp-socket.remote-address': exports0['4'],
-      '[method]tcp-socket.shutdown': exports0['5'],
-      '[method]tcp-socket.start-connect': exports0['2'],
-      '[resource-drop]tcp-socket': trampoline4,
+    'wasi:sockets/tcp@0.2.0': {
+      '[method]tcp-socket.finish-connect': exports0['1'],
+      '[method]tcp-socket.remote-address': exports0['2'],
+      '[method]tcp-socket.shutdown': exports0['3'],
+      '[method]tcp-socket.start-connect': exports0['0'],
+      '[resource-drop]tcp-socket': trampoline0,
     },
     wasi_snapshot_preview1: {
       clock_time_get: exports0['25'],
@@ -3015,33 +2977,33 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
     env: {
       memory: exports1.memory,
     },
-    'wasi:cli/environment@0.2.0-rc-2023-12-05': {
+    'wasi:cli/environment@0.2.0': {
       'get-environment': exports0['23'],
     },
-    'wasi:cli/exit@0.2.0-rc-2023-12-05': {
+    'wasi:cli/exit@0.2.0': {
       exit: trampoline15,
     },
-    'wasi:cli/stderr@0.2.0-rc-2023-12-05': {
+    'wasi:cli/stderr@0.2.0': {
       'get-stderr': trampoline14,
     },
-    'wasi:cli/stdin@0.2.0-rc-2023-12-05': {
+    'wasi:cli/stdin@0.2.0': {
       'get-stdin': trampoline16,
     },
-    'wasi:cli/stdout@0.2.0-rc-2023-12-05': {
+    'wasi:cli/stdout@0.2.0': {
       'get-stdout': trampoline17,
     },
-    'wasi:clocks/monotonic-clock@0.2.0-rc-2023-11-10': {
+    'wasi:clocks/monotonic-clock@0.2.0': {
       now: trampoline7,
       'subscribe-duration': trampoline9,
       'subscribe-instant': trampoline10,
     },
-    'wasi:clocks/wall-clock@0.2.0-rc-2023-11-10': {
+    'wasi:clocks/wall-clock@0.2.0': {
       now: exports0['10'],
     },
-    'wasi:filesystem/preopens@0.2.0-rc-2023-11-10': {
+    'wasi:filesystem/preopens@0.2.0': {
       'get-directories': exports0['9'],
     },
-    'wasi:filesystem/types@0.2.0-rc-2023-11-10': {
+    'wasi:filesystem/types@0.2.0': {
       '[method]descriptor.append-via-stream': exports0['13'],
       '[method]descriptor.get-type': exports0['14'],
       '[method]descriptor.read-via-stream': exports0['11'],
@@ -3050,24 +3012,24 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '[resource-drop]descriptor': trampoline8,
       'filesystem-error-code': exports0['16'],
     },
-    'wasi:io/error@0.2.0-rc-2023-11-10': {
-      '[resource-drop]error': trampoline5,
+    'wasi:io/error@0.2.0': {
+      '[resource-drop]error': trampoline3,
     },
-    'wasi:io/poll@0.2.0-rc-2023-11-10': {
+    'wasi:io/poll@0.2.0': {
       '[resource-drop]pollable': trampoline13,
       poll: exports0['21'],
     },
-    'wasi:io/streams@0.2.0-rc-2023-11-10': {
+    'wasi:io/streams@0.2.0': {
       '[method]input-stream.subscribe': trampoline12,
       '[method]output-stream.blocking-flush': exports0['20'],
       '[method]output-stream.blocking-write-and-flush': exports0['19'],
       '[method]output-stream.check-write': exports0['17'],
       '[method]output-stream.subscribe': trampoline11,
       '[method]output-stream.write': exports0['18'],
-      '[resource-drop]input-stream': trampoline0,
-      '[resource-drop]output-stream': trampoline1,
+      '[resource-drop]input-stream': trampoline1,
+      '[resource-drop]output-stream': trampoline2,
     },
-    'wasi:random/random@0.2.0-rc-2023-11-10': {
+    'wasi:random/random@0.2.0': {
       'get-random-bytes': exports0['22'],
     },
   }));
@@ -3088,7 +3050,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '16': trampoline34,
       '17': trampoline35,
       '18': trampoline36,
-      '19': trampoline19,
+      '19': trampoline23,
       '2': trampoline20,
       '20': trampoline37,
       '21': trampoline38,
@@ -3110,49 +3072,11 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
       '9': trampoline27,
     },
   }));
-  postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#parse-url-and-mount'];
-  postReturn1 = exports1['cabi_post_component:nfs-rs/nfs#null-op'];
-  postReturn2 = exports1['cabi_post_component:nfs-rs/nfs#access'];
-  postReturn3 = exports1['cabi_post_component:nfs-rs/nfs#access-path'];
-  postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#close'];
-  postReturn5 = exports1['cabi_post_component:nfs-rs/nfs#commit'];
-  postReturn6 = exports1['cabi_post_component:nfs-rs/nfs#commit-path'];
-  postReturn7 = exports1['cabi_post_component:nfs-rs/nfs#create'];
-  postReturn8 = exports1['cabi_post_component:nfs-rs/nfs#create-path'];
-  postReturn9 = exports1['cabi_post_component:nfs-rs/nfs#delegpurge'];
-  postReturn10 = exports1['cabi_post_component:nfs-rs/nfs#delegreturn'];
-  postReturn11 = exports1['cabi_post_component:nfs-rs/nfs#getattr'];
-  postReturn12 = exports1['cabi_post_component:nfs-rs/nfs#getattr-path'];
-  postReturn13 = exports1['cabi_post_component:nfs-rs/nfs#setattr'];
-  postReturn14 = exports1['cabi_post_component:nfs-rs/nfs#setattr-path'];
-  postReturn15 = exports1['cabi_post_component:nfs-rs/nfs#getfh'];
-  postReturn16 = exports1['cabi_post_component:nfs-rs/nfs#link'];
-  postReturn17 = exports1['cabi_post_component:nfs-rs/nfs#link-path'];
-  postReturn18 = exports1['cabi_post_component:nfs-rs/nfs#symlink'];
-  postReturn19 = exports1['cabi_post_component:nfs-rs/nfs#symlink-path'];
-  postReturn20 = exports1['cabi_post_component:nfs-rs/nfs#readlink'];
-  postReturn21 = exports1['cabi_post_component:nfs-rs/nfs#readlink-path'];
-  postReturn22 = exports1['cabi_post_component:nfs-rs/nfs#lookup'];
-  postReturn23 = exports1['cabi_post_component:nfs-rs/nfs#lookup-path'];
-  postReturn24 = exports1['cabi_post_component:nfs-rs/nfs#pathconf'];
-  postReturn25 = exports1['cabi_post_component:nfs-rs/nfs#pathconf-path'];
-  postReturn26 = exports1['cabi_post_component:nfs-rs/nfs#read'];
-  postReturn27 = exports1['cabi_post_component:nfs-rs/nfs#read-path'];
-  postReturn28 = exports1['cabi_post_component:nfs-rs/nfs#write'];
-  postReturn29 = exports1['cabi_post_component:nfs-rs/nfs#write-path'];
-  postReturn30 = exports1['cabi_post_component:nfs-rs/nfs#readdir'];
-  postReturn31 = exports1['cabi_post_component:nfs-rs/nfs#readdir-path'];
-  postReturn32 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus'];
-  postReturn33 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus-path'];
-  postReturn34 = exports1['cabi_post_component:nfs-rs/nfs#mkdir'];
-  postReturn35 = exports1['cabi_post_component:nfs-rs/nfs#mkdir-path'];
-  postReturn36 = exports1['cabi_post_component:nfs-rs/nfs#remove'];
-  postReturn37 = exports1['cabi_post_component:nfs-rs/nfs#remove-path'];
-  postReturn38 = exports1['cabi_post_component:nfs-rs/nfs#rmdir'];
-  postReturn39 = exports1['cabi_post_component:nfs-rs/nfs#rmdir-path'];
-  postReturn40 = exports1['cabi_post_component:nfs-rs/nfs#rename'];
-  postReturn41 = exports1['cabi_post_component:nfs-rs/nfs#rename-path'];
-  postReturn42 = exports1['cabi_post_component:nfs-rs/nfs#umount'];
+  postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#access'];
+  postReturn1 = exports1['cabi_post_component:nfs-rs/nfs#create'];
+  postReturn2 = exports1['cabi_post_component:nfs-rs/nfs#getattr'];
+  postReturn3 = exports1['cabi_post_component:nfs-rs/nfs#readdir'];
+  postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#readdirplus'];
   
   function parseUrlAndMount(arg0) {
     const ptr0 = utf8Encode(arg0, realloc0, memory0);
@@ -3247,7 +3171,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn1(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -3301,7 +3225,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn2(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3352,7 +3276,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn3(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3401,7 +3325,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn4(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -3455,7 +3379,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn5(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3506,7 +3430,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn6(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3565,7 +3489,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn7(ret);
+    postReturn1(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -3619,7 +3543,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn8(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -3668,7 +3592,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn9(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -3717,7 +3641,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn10(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -3794,7 +3718,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn11(ret);
+    postReturn2(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3868,7 +3792,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn12(ret);
+    postReturn2(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -3988,7 +3912,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn13(ret);
+    postReturn0(ret);
     if (variant14.tag === 'err') {
       throw new ComponentError(variant14.val);
     }
@@ -4096,7 +4020,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn14(ret);
+    postReturn0(ret);
     if (variant12.tag === 'err') {
       throw new ComponentError(variant12.val);
     }
@@ -4145,7 +4069,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn15(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
@@ -4229,7 +4153,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn16(ret);
+    postReturn2(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -4305,7 +4229,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn17(ret);
+    postReturn2(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4366,7 +4290,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn18(ret);
+    postReturn1(ret);
     if (variant6.tag === 'err') {
       throw new ComponentError(variant6.val);
     }
@@ -4422,7 +4346,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn19(ret);
+    postReturn1(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -4479,7 +4403,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn20(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4533,7 +4457,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn21(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4592,7 +4516,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn22(ret);
+    postReturn1(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -4646,7 +4570,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn23(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4749,7 +4673,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn24(ret);
+    postReturn2(ret);
     if (variant8.tag === 'err') {
       throw new ComponentError(variant8.val);
     }
@@ -4849,7 +4773,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn25(ret);
+    postReturn2(ret);
     if (variant8.tag === 'err') {
       throw new ComponentError(variant8.val);
     }
@@ -4906,7 +4830,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn26(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -4960,7 +4884,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn27(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5019,7 +4943,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn28(ret);
+    postReturn0(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5075,7 +4999,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn29(ret);
+    postReturn0(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5143,7 +5067,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn30(ret);
+    postReturn3(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -5208,7 +5132,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn31(ret);
+    postReturn3(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -5318,7 +5242,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn32(ret);
+    postReturn4(ret);
     if (variant7.tag === 'err') {
       throw new ComponentError(variant7.val);
     }
@@ -5425,7 +5349,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn33(ret);
+    postReturn4(ret);
     if (variant7.tag === 'err') {
       throw new ComponentError(variant7.val);
     }
@@ -5484,7 +5408,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn34(ret);
+    postReturn1(ret);
     if (variant5.tag === 'err') {
       throw new ComponentError(variant5.val);
     }
@@ -5538,7 +5462,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn35(ret);
+    postReturn1(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5594,7 +5518,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn36(ret);
+    postReturn0(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5645,7 +5569,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn37(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -5701,7 +5625,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn38(ret);
+    postReturn0(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5752,7 +5676,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn39(ret);
+    postReturn0(ret);
     if (variant3.tag === 'err') {
       throw new ComponentError(variant3.val);
     }
@@ -5815,7 +5739,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn40(ret);
+    postReturn0(ret);
     if (variant6.tag === 'err') {
       throw new ComponentError(variant6.val);
     }
@@ -5868,7 +5792,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn41(ret);
+    postReturn0(ret);
     if (variant4.tag === 'err') {
       throw new ComponentError(variant4.val);
     }
@@ -5917,7 +5841,7 @@ export async function instantiate(compileCore, imports, instantiateCore = WebAss
         throw new TypeError('invalid variant discriminant for expected');
       }
     }
-    postReturn42(ret);
+    postReturn0(ret);
     if (variant2.tag === 'err') {
       throw new ComponentError(variant2.val);
     }
