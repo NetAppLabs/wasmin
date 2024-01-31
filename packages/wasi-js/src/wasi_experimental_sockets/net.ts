@@ -272,12 +272,16 @@ export class NetTcpSocket extends Socket implements WasiSocket {
             wasiSocketsDebug("tcp socket:remoteAddress: returning addr:", addr);
             return addr;
         } else {
-            wasiSocketsDebug("tcp socket:remoteAddress: remoteAddr:", remoteAddr);
-            wasiSocketsDebug("tcp socket:remoteAddress: remotePort:", remotePort);
-            wasiSocketsDebug("tcp socket:remoteAddress: remoteFamily:", remoteFamily);
+            if (this._connected) {
+                wasiSocketsDebug("tcp socket:remoteAddress: remoteAddr:", remoteAddr);
+                wasiSocketsDebug("tcp socket:remoteAddress: remotePort:", remotePort);
+                wasiSocketsDebug("tcp socket:remoteAddress: remoteFamily:", remoteFamily);
 
-            wasiSocketsDebug("tcp socket:remoteAddress: unexpected malformed address");
-            console.trace();
+                wasiSocketsDebug("tcp socket:remoteAddress: unexpected malformed address");
+                console.trace();
+            } else {
+                wasiSocketsDebug("tcp socket:remoteAddress: called for socket that is no longer connected");
+            }
         }
         throw new SystemError(ErrnoN.CONNRESET, true);
     }
