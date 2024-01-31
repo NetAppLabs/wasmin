@@ -157,5 +157,5 @@ export interface IpSocketAddressIpv6 {
   val: Ipv6SocketAddress,
 }
 
-export interface Network {
+export interface Network extends AsyncDisposable {
 }

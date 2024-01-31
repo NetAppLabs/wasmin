@@ -1,5 +1,5 @@
 export interface WasiCliTerminalOutputAsync {
 }
 
-export interface TerminalOutput {
+export interface TerminalOutput extends AsyncDisposable {
 }

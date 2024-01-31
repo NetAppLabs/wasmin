@@ -21,7 +21,7 @@ export interface WasiSocketsIpNameLookupAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/ws2tcpip/nf-ws2tcpip-getaddrinfo>
    * - <https://man.freebsd.org/cgi/man.cgi?query=getaddrinfo&sektion=3>
    */
-    resolveAddresses(network: Network, name: string): Promise<ResolveAddressStream>;
+   resolveAddresses(network: Network, name: string): Promise<ResolveAddressStream>;
   /**
    * Returns the next address from the resolver.
    * 
@@ -53,7 +53,7 @@ export { ErrorCode };
 import type { IpAddress } from '../interfaces/wasi-sockets-network.js';
 export { IpAddress };
 
-export interface ResolveAddressStream {
+export interface ResolveAddressStream extends AsyncDisposable {
   resolveNextAddress(): Promise<IpAddress | undefined>;
   subscribe(): Promise<Pollable>;
 }

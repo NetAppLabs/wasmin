@@ -22,8 +22,14 @@ export class TerminalStdinAsyncHost implements TerminalStdinAsync {
     }
     private _wasiEnv: WasiEnv;
 
+    get openFiles() {
+        return this._wasiEnv.openFiles;
+    }
+
     async getTerminalStdin(): Promise<TerminalInput | undefined> {
-        return 0;
+        const stdin_fd = 0;
+        const stdin = this.openFiles.get(stdin_fd);
+        return stdin as TerminalInput;
     }
 }
 
@@ -33,9 +39,14 @@ export class TerminalStdoutAsyncHost implements TerminalStdoutAsync {
         this._wasiEnv = wasiEnv;
     }
     private _wasiEnv: WasiEnv;
+    get openFiles() {
+        return this._wasiEnv.openFiles;
+    }
 
     async getTerminalStdout(): Promise<TerminalOutput | undefined> {
-        return 1;
+        const stdout_fd = 1;
+        const stdin = this.openFiles.get(stdout_fd);
+        return stdin as TerminalOutput;
     }
 }
 
@@ -45,9 +56,14 @@ export class TerminalStderrAsyncHost implements TerminalStderrAsync {
         this._wasiEnv = wasiEnv;
     }
     private _wasiEnv: WasiEnv;
-
+    get openFiles() {
+        return this._wasiEnv.openFiles;
+    }
+    
     async getTerminalStderr(): Promise<TerminalOutput | undefined> {
-        return 2;
+        const stderr_fd = 1;
+        const stdin = this.openFiles.get(stderr_fd);
+        return stdin as TerminalOutput;
     }
 }
 

@@ -266,13 +266,18 @@ export interface WasiSocketsUdpAsync {
       remoteAddress?: IpSocketAddress,
     }
     
-    export interface OutgoingDatagramStream {
+    export interface IncomingDatagramStream extends AsyncDisposable {
+      receive(maxResults: bigint): Promise<IncomingDatagram[]>;
+      subscribe(): Promise<Pollable>;
+    }
+    
+    export interface OutgoingDatagramStream extends AsyncDisposable {
       checkSend(): Promise<bigint>;
       send(datagrams: OutgoingDatagram[]): Promise<bigint>;
       subscribe(): Promise<Pollable>;
     }
     
-    export interface UdpSocket {
+    export interface UdpSocket extends AsyncDisposable {
       startBind(network: Network, localAddress: IpSocketAddress): Promise<void>;
       finishBind(): Promise<void>;
       stream(remoteAddress: IpSocketAddress | undefined): Promise<[IncomingDatagramStream, OutgoingDatagramStream]>;
@@ -285,11 +290,6 @@ export interface WasiSocketsUdpAsync {
       setReceiveBufferSize(value: bigint): Promise<void>;
       sendBufferSize(): Promise<bigint>;
       setSendBufferSize(value: bigint): Promise<void>;
-      subscribe(): Promise<Pollable>;
-    }
-    
-    export interface IncomingDatagramStream {
-      receive(maxResults: bigint): Promise<IncomingDatagram[]>;
       subscribe(): Promise<Pollable>;
     }
     

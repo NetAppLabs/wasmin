@@ -332,7 +332,7 @@ export { IpAddressFamily };
  */
 export type ShutdownType = 'receive' | 'send' | 'both';
 
-export interface TcpSocket {
+export interface TcpSocket extends AsyncDisposable {
   startBind(network: Network, localAddress: IpSocketAddress): Promise<void>;
   finishBind(): Promise<void>;
   startConnect(network: Network, remoteAddress: IpSocketAddress): Promise<void>;

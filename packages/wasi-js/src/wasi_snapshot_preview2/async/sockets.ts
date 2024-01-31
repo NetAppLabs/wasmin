@@ -73,7 +73,7 @@ export class SocketsNetworkAsyncHost implements SocketsInstanceNetworkAsync, Soc
             this._instanceNetworkId = netResourceId;
         }
         const netInstance = this.openFiles.get(this._instanceNetworkId);
-        return netInstance;
+        return netInstance as Network;
     }
     async dropNetwork(netw: Network): Promise<void> {
         // no-op for now
@@ -158,7 +158,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         const res = this.openFiles.get(fd);
         return res as WasiSocket;
     }
-    async startBind(network: number, localAddress: IpSocketAddress): Promise<void> {
+    async startBind(network: Network, localAddress: IpSocketAddress): Promise<void> {
         try {
             const sockFd = this.fd;
             const sock = this.getSocket(sockFd);
@@ -397,6 +397,9 @@ export class TcpSocketPollable implements Pollable {
         this.openFiles = openFiles;
         this.resource = -1;
     }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
+    }
     get fd() {
         return this._fd;
     }
@@ -493,7 +496,9 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
         this._fd = fd;
         this.resource = -1;
     }
-
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
+    }
     private _wasiEnv: WasiEnv;
     private _fd: number;
     public resource: number;
@@ -557,6 +562,9 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
         this._wasiEnv = wasiEnv;
         this._fd = fd;
         this.resource = -1;
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
     }
 
     private _wasiEnv: WasiEnv;
@@ -818,6 +826,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
             if (this.openFiles.exists(sockFd)) {
                 this.openFiles.close(sockFd);
             }
+            this.resource
         } catch (err: any) {
             // swallow error
             wasiPreview2Debug("UDPSocketInstance Symbol.asyncDispose err: ", err);
@@ -831,6 +840,9 @@ export class ResolveAddressIterator implements ResolveAddressStream, Resource {
     constructor(openFiles: OpenFiles, public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
         this.openFiles = openFiles,
         this.resource = -1;
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
     }
     nextAddress(): AddressInfo | null {
         while (this.addresses.length > this.position) {

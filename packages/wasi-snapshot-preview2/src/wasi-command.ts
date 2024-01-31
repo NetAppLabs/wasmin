@@ -79,7 +79,6 @@ export interface Command {
 * `WebAssembly.Module` object. This would use `compileStreaming`
 * on the web, for example.
 */
-
 /*
 export function instantiate(
 getCoreModule: (path: string) => Promise<WebAssembly.Module>,

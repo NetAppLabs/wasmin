@@ -10,6 +10,6 @@ export interface WasiIoErrorAsync {
    */
 }
 
-export interface Error {
+export interface Error extends AsyncDisposable {
   toDebugString(): Promise<string>;
 }

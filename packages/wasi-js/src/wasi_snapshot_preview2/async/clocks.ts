@@ -2,27 +2,28 @@ import { ClocksMonotonicClockNamespace as clockm } from "@wasmin/wasi-snapshot-p
 type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClockAsync;
 import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2";
 type ClocksWallClockAsync = clockw.WasiClocksWallClockAsync;
-//import { ClocksTimezoneNamespace as clockt } from "@wasmin/wasi-snapshot-preview2";
 import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, isNodeorBunorDeno, sleep } from "../../wasiUtils.js";
 import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
-import { Resource } from "../../wasiResources.js";
-//type ClocksTimezoneAsync = clockt.WasiClocksTimezoneAsync;
+import { DisposeAsyncResourceFunc, Resource } from "../../wasiResources.js";
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
-//type Timezone = clockt.Timezone;
-//type TimezoneDisplay = clockt.TimezoneDisplay;
 type Pollable = clockm.Pollable;
 
 let hrTimeStart: bigint;
 
 export class ClocksMonotonicPollable implements FsPollable, Resource {
-    constructor(when: Instant) {
+    constructor(when: Instant, onDispose: DisposeAsyncResourceFunc) {
         this._when = when;
         this.resource = -1;
+        this.onDispose = onDispose;
+    }
+    [Symbol.asyncDispose](): Promise<void> {
+        return this.onDispose(this);
     }
     public resource: number;
+    public onDispose: DisposeAsyncResourceFunc;
     
     async ready(): Promise<boolean> {
         return await this.doneWithoutWaiting();
@@ -63,6 +64,12 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         return this.subscribe(when, false);
     }
     private _wasiEnv: WasiEnv;
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
 
     async now(): Promise<Instant> {
         if (!hrTimeStart) {
@@ -80,8 +87,9 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
             const hrTimeNow = await getHrTime();
             when += hrTimeNow;
         }
-        const pollable = new ClocksMonotonicPollable(when);
-        const fd = this._wasiEnv.openFiles.add(pollable);
+        const disposeFunc = this.openFiles.getDisposeResourceFunc();
+        const pollable = new ClocksMonotonicPollable(when, disposeFunc);
+        this.openFiles.add(pollable);
         return pollable;
     }
 }

@@ -5,23 +5,23 @@ export interface WasiClocksMonotonicClockAsync {
    * The clock is monotonic, therefore calling this function repeatedly will
    * produce a sequence of non-decreasing values.
    */
-    now(): Promise<Instant>;
+   now(): Promise<Instant>;
   /**
    * Query the resolution of the clock. Returns the duration of time
    * corresponding to a clock tick.
    */
-    resolution(): Promise<Duration>;
+   resolution(): Promise<Duration>;
   /**
    * Create a `pollable` which will resolve once the specified instant
    * occured.
    */
-    subscribeInstant(when: Instant): Promise<Pollable>;
+   subscribeInstant(when: Instant): Promise<Pollable>;
   /**
    * Create a `pollable` which will resolve once the given duration has
    * elapsed, starting at the time at which this function was called.
    * occured.
    */
-    subscribeDuration(when: Duration): Promise<Pollable>;
+   subscribeDuration(when: Duration): Promise<Pollable>;
 }
 import type { Pollable } from '../interfaces/wasi-io-poll.js';
 export { Pollable };

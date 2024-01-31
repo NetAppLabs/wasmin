@@ -13,7 +13,6 @@ import { WasiClocksWallClockAsync as WasiClocksWallClock } from './interfaces/wa
 import { WasiFilesystemPreopensAsync as WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens';
 import { WasiFilesystemTypesAsync as WasiFilesystemTypes } from './interfaces/wasi-filesystem-types';
 import { WasiIoStreamsAsync as WasiIoStreams } from './interfaces/wasi-io-streams';
-import { WasiIoPollAsync as WasiPollPoll } from './interfaces/wasi-io-poll';
 import { WasiRandomInsecureAsync as WasiRandomInsecure } from './interfaces/wasi-random-insecure';
 import { WasiRandomInsecureSeedAsync as WasiRandomInsecureSeed } from './interfaces/wasi-random-insecure-seed';
 import { WasiRandomRandomAsync as WasiRandomRandom } from './interfaces/wasi-random-random';

@@ -212,7 +212,7 @@ export interface WasiIoStreamsAsync {
       tag: 'closed',
     }
     
-    export interface OutputStream extends AsyncDisposable{
+    export interface OutputStream extends AsyncDisposable {
       checkWrite(): Promise<bigint>;
       write(contents: Uint8Array): Promise<void>;
       blockingWriteAndFlush(contents: Uint8Array): Promise<void>;

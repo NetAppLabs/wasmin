@@ -9,14 +9,14 @@ export interface WasiCliEnvironmentAsync {
    * in the component model, this import function should return the same
    * values each time it is called.
    */
-    getEnvironment(): Promise<[string, string][]>;
+   getEnvironment(): Promise<[string, string][]>;
   /**
    * Get the POSIX-style arguments to the program.
    */
-    getArguments(): Promise<string[]>;
+   getArguments(): Promise<string[]>;
   /**
    * Return a path that programs should use as their initial current working
    * directory, interpreting `.` as shorthand for this.
    */
-    initialCwd(): Promise<string | undefined>;
+   initialCwd(): Promise<string | undefined>;
 }

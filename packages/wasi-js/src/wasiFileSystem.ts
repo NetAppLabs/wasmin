@@ -26,7 +26,7 @@ import {
     FileSystemFileHandle,
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
-import { Resource } from "./wasiResources.js";
+import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
 declare global {
     var WASI_FS_DEBUG: boolean
 }
@@ -64,7 +64,7 @@ export class Socket implements Writable, Readable {
     }
 }
 
-export interface FsPollable {
+export interface FsPollable extends AsyncDisposable {
     block(): Promise<void>;
     ready(): Promise<boolean>;
 }
@@ -302,16 +302,21 @@ export class OpenDirectory {
     }
 }
 
-export class OpenDirectoryIterator implements Resource {
-    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory) {
+export class OpenDirectoryIterator implements Resource, AsyncDisposable {
+    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory, disposeFunc: DisposeAsyncResourceFunc) {
         this._descriptor = fd;
         this._openDir = openDir;
         this.resource = -1;
+        this.onDispose = disposeFunc;
+    }
+    [Symbol.asyncDispose](): Promise<void> {
+        return this.onDispose(this);
     }
     private _openDir: OpenDirectory;
     private _descriptor: FileSystemDescriptorNumber;
     private _cursor = 0;
     public resource: number;
+    public onDispose: DisposeAsyncResourceFunc;
 
     public get cursor(): number {
         return this._cursor;
@@ -727,15 +732,24 @@ export class OpenFiles {
 
     async openOpenDirectoryIterator(fd: Fd): Promise<Fd> {
         const openDir = this.getAsDir(fd);
-        const iter = new OpenDirectoryIterator(fd, openDir);
+        const disposeFunc = this.getDisposeResourceFunc();
+        const iter = new OpenDirectoryIterator(fd, openDir, disposeFunc);
         const iterFd = this.add(iter);
-        iter.resource = iterFd;
         return iterFd;
     }
 
     async getAsOpenDirectoryIterator(fd: Fd): Promise<OpenDirectoryIterator> {
         const res = this.get(fd);
         return res as OpenDirectoryIterator;
+    }
+
+    getDisposeResourceFunc(): DisposeAsyncResourceFunc {
+        return this.disposeResource.bind(this);
+    }
+
+    async disposeResource(resource: Resource): Promise<void> {
+        const resId = resource.resource;
+        await this.close(resId);
     }
 
     addPreopenedDir(path: string, handle: Handle) {

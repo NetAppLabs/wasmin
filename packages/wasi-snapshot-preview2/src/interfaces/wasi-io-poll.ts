@@ -31,10 +31,10 @@ export interface WasiIoPollAsync {
    * the pollables has an error, it is indicated by marking the source as
    * being reaedy for I/O.
    */
-    poll(in_: Pollable[]): Promise<Uint32Array>;
+   poll(in_: Pollable[]): Promise<Uint32Array>;
 }
 
-export interface Pollable {
+export interface Pollable extends AsyncDisposable {
   ready(): Promise<boolean>;
   block(): Promise<void>;
 }

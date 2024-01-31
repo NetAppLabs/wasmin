@@ -21,7 +21,7 @@ export interface WasiSocketsTcpCreateSocketAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketw>
    * - <https://man.freebsd.org/cgi/man.cgi?query=socket&sektion=2>
    */
-    createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
+   createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
 }
 import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
