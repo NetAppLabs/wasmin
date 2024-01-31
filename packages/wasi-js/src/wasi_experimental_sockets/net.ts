@@ -164,7 +164,7 @@ export class NetTcpSocket extends Socket implements WasiSocket {
                 try {
                     const acceptedSock = await this.getAccptedSocketByPromise();
                     this._acceptedSockets.push(acceptedSock);
-                    return true;
+                    hasConnectedClient = true;
                 } catch (err: any) {
                     wasiSocketsDebug("hasConnectedClient err: ", err);
                 }
@@ -233,17 +233,23 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         await this.waitForConnect();
         let addr: AddressInfo;
         if (this._nodeServer) {
+            wasiSocketsDebug("tcp socket:address: isNodeServer");
             addr = this._nodeServer.address() as AddressInfo;
             wasiSocketsDebug("tcp socket:address: server returning addr:", addr);
+        } else if (this._parentSocket && this._parentSocket._nodeServer) {
+            wasiSocketsDebug("tcp socket:address: isNodeClient with parentSock");
+            addr = this._parentSocket._nodeServer.address() as AddressInfo;
+            wasiSocketsDebug("tcp socket:address: client returning addr:", addr);
         } else {
+            wasiSocketsDebug("tcp socket:address: isNodeClient");
             addr = this._nodeSocket.address() as AddressInfo;
             wasiSocketsDebug("tcp socket:address: client returning addr:", addr);
         }
-        wasiSocketsDebug("address: returning addr:", addr);
+        wasiSocketsDebug("tcp socket:address: returning addr:", addr);
         if (addr.address && addr.family && addr.port) {
             return addr;
         } else {
-            wasiSocketsDebug("address: unexpected malformed address");
+            wasiSocketsDebug("tcp socket:address: unexpected malformed address");
             console.trace();
             // throw if we have malformed address
             throw new SystemError(ErrnoN.CONNRESET, true);
@@ -253,7 +259,7 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         wasiSocketsDebug("tcp socket:remoteAddress");
         await this.waitForConnect();
         const remoteAddr = this._nodeSocket.remoteAddress;
-        wasiSocketsDebug("tcp socket remoteAddress: ", remoteAddr);
+        wasiSocketsDebug("tcp socket:remoteAddress: ", remoteAddr);
         const remotePort = this._nodeSocket.remotePort;
         const remoteFamily = this._nodeSocket.remoteFamily;
         if (remoteAddr && remotePort && remoteFamily) {
@@ -263,8 +269,19 @@ export class NetTcpSocket extends Socket implements WasiSocket {
                 port: remotePort,
                 family: aRemoteFamily,
             };
-            wasiSocketsDebug("tcp socket remoteAddress: returning addr:", addr);
+            wasiSocketsDebug("tcp socket:remoteAddress: returning addr:", addr);
             return addr;
+        } else {
+            if (this._connected) {
+                wasiSocketsDebug("tcp socket:remoteAddress: remoteAddr:", remoteAddr);
+                wasiSocketsDebug("tcp socket:remoteAddress: remotePort:", remotePort);
+                wasiSocketsDebug("tcp socket:remoteAddress: remoteFamily:", remoteFamily);
+
+                wasiSocketsDebug("tcp socket:remoteAddress: unexpected malformed address");
+                console.trace();
+            } else {
+                wasiSocketsDebug("tcp socket:remoteAddress: called for socket that is no longer connected");
+            }
         }
         throw new SystemError(ErrnoN.CONNRESET, true);
     }
@@ -380,15 +397,20 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         const superThis = this;
         socket.on("data", (buf: Buffer) => {
             wasiSocketsDebug("tcp socket on data");
-            /*if (this._parentSocket) {
+            if (this._parentSocket) {
+                wasiSocketsDebug("tcp socket on data rejectAllAcceptPromises");
                 this._parentSocket.rejectAllAcceptPromises();
-            }*/
+            }
             if (buf) {
                 superThis._dataBuffer = appendToUint8Array(superThis._dataBuffer, buf);
             }
         });
         socket.on("close", () => {
             superThis._closed = true;
+            if (this._parentSocket) {
+                wasiSocketsDebug("tcp socket on close rejectAllAcceptPromises");
+                this._parentSocket.rejectAllAcceptPromises();
+            }
             wasiSocketsDebug("tcp socket on close");
         });
         socket.on("connect", async () => {
@@ -424,6 +446,10 @@ export class NetTcpSocket extends Socket implements WasiSocket {
         socket.on("end", () => {
             wasiSocketsDebug("tcp socket on end");
             wasiSocketsDebug("tcp socket : disconnected from peer");
+            if (this._parentSocket) {
+                wasiSocketsDebug("tcp socket on end rejectAllAcceptPromises");
+                this._parentSocket.rejectAllAcceptPromises();
+            }
             superThis._connected = false;
             superThis._closed = true;
             if (this.connectionCloser) {

@@ -61,6 +61,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
     }
     private _wasiEnv: WasiEnv;
     async exec(cwd: string, name: string, argvString: string): Promise<number> {
+        let nameWasmToWasi = "wasi";
         wasiDebug("exec cwd: ", cwd);
         wasiDebug("exec name: ", name);
         //const argvString = string.get(this._getBuffer(), argv_ptr, argv_len);
@@ -130,10 +131,11 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 }
             }
 
-            //if (moduleOrSource) {
-            //    args.splice(0, 0, nameWasm);
-            //    break;
-            //}
+            if (moduleOrSource) {
+                nameWasmToWasi = nameWasm;
+                //args.splice(0, 0, nameWasm);
+                break;
+            }
         }
 
         if (!moduleOrSource) {
@@ -170,7 +172,10 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         const oldStdOut = this._wasiEnv.stdout;
         const oldStderr = this._wasiEnv.stderr;
         const abortSignal = this._wasiEnv.abortSignal;
-        const oldTtyRawMode = this._wasiEnv.tty?.rawMode || false;
+        let oldTtyRawMode = false;
+        if (this._wasiEnv.tty) {
+            oldTtyRawMode = await this._wasiEnv.tty.getRawMode();
+        }
         const env: Record<string, string> = {};
 
         // debug
@@ -188,7 +193,9 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         this._wasiEnv.stdout = devNull;
         if (this._wasiEnv.tty) {
             // resetting rawMode false for the new process
-            this._wasiEnv.tty.rawMode = false;
+            if (this._wasiEnv.tty) {
+                await this._wasiEnv.tty.setRawMode(false);
+            }
         }
 
         const exitCode = 0;
@@ -203,6 +210,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                 args: args,
                 env: env,
                 tty: tty,
+                name: nameWasmToWasi,
             });
             w.run(moduleOrSource!)
                 .then((exitCode) => {
@@ -215,14 +223,14 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
                     wasiDebug(`exec:run:catch exitCode: ${exitCode} err: ${err}`);
                     resolve(translateErrorToErrorno(err));
                 })
-                .finally(() => {
+                .finally(async () => {
                     wasiDebug(`exec:run:finally exitCode: ${exitCode}`);
                     this._wasiEnv.stdin = oldStdin;
                     this._wasiEnv.stdout = oldStdOut;
                     this._wasiEnv.stderr = oldStderr;
                     this._wasiEnv.suspendStdIn = false;
                     if (this._wasiEnv.tty) {
-                        this._wasiEnv.tty.rawMode = oldTtyRawMode;
+                        await this._wasiEnv.tty.setRawMode(oldTtyRawMode);
                     }
                 });
         });

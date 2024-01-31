@@ -42,7 +42,8 @@ export default defineConfig({
         'node:worker_threads',
         'node:module',
         'node:console',
-        'node:events'
+        'node:events',
+        'node:process'
       ],
     },
     output: {

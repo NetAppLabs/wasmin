@@ -28,6 +28,21 @@ export function isBadFileDescriptor(err: any): boolean{
     return false;
 }
 
+export function isIoError(err: any): boolean{
+    const errCodeNo = translateErrorToErrorno(err);
+    if (errCodeNo == ErrnoN.BADF) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNABORTED) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNRESET) {
+        return true;
+    } else if (errCodeNo == ErrnoN.CONNREFUSED) {
+        return true;
+    }
+    return false;
+}
+
+
 export function translateError(err: any) {
     const errCodeNo = translateErrorToErrorno(err);
     let errCode: ErrorCode = "invalid";
@@ -48,7 +63,8 @@ export function translateError(err: any) {
             errCode = "access-denied";
             break;
         case ErrnoN.AFNOSUPPORT:
-            errCode = "address-family-not-supported";
+            //errCode = "address-family-not-supported";
+            errCode = "not-supported";
             break;
         case ErrnoN.AGAIN:
             errCode = "would-block";
@@ -84,7 +100,8 @@ export function translateError(err: any) {
             errCode = "deadlock";
             break;
         case ErrnoN.DESTADDRREQ:
-            errCode = "invalid-remote-address";
+            //errCode = "invalid-remote-address";
+            errCode = "invalid-argument";
             break;
         //case ErrnoN.DOM:
         //    errCode = 'out-of-domain-function';
@@ -123,7 +140,8 @@ export function translateError(err: any) {
             errCode = "io";
             break;
         case ErrnoN.ISCONN:
-            errCode = "already-connected";
+            //errCode = "already-connected";
+            errCode = "already";
             break;
         case ErrnoN.ISDIR:
             errCode = "is-directory";
@@ -193,7 +211,8 @@ export function translateError(err: any) {
             errCode = "unsupported";
             break;
         case ErrnoN.NOTCONN:
-            errCode = "not-connected";
+            //errCode = "not-connected";
+            errCode = "connection-aborted";
             break;
         case ErrnoN.NOTDIR:
             errCode = "not-directory";

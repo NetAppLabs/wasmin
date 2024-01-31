@@ -8,9 +8,10 @@
     "serve": "vite preview"
   },
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@wasmin/tsconfig": "*",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
-    "vite": "^5.0.2"
+    "vite": "^5.0.12"
   },
   "dependencies": {
     "@wasmin/fs-js": "*",

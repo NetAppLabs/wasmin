@@ -18,7 +18,7 @@ export class WasmCoreWorkerThreadRunner {
     }
     private _wasmInstances: Record<string, WebAssembly.Instance>;
     private _exportsMemory?: WebAssembly.Memory;
-    private _sharedMemory?: SharedArrayBuffer;
+    private _sharedMemory?: ArrayBufferLike;
     private _handleImportFunc?: HandleWasmImportFunc;
 
     get exportsMemory() {
@@ -46,7 +46,7 @@ export class WasmCoreWorkerThreadRunner {
     ): Promise<void> {
         wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner instantiate");
 
-        const storeReceivedMemoryFuncLocal = (buf: ArrayBuffer) => {
+        const storeReceivedMemoryFuncLocal = (buf: ArrayBufferLike) => {
             wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner calling storeReceivedMemoryFuncLocal");
             if (this && this.exportsMemory) {
                 const mem = this.exportsMemory as WebAssembly.Memory;
@@ -329,7 +329,7 @@ function threadWrapImportNamespace(
                     `threadWrapImportNamespace calling wrappedImportFunction ${functionName} messageId: ${messageId} args: `,
                     args
                 );
-                let memory: ArrayBuffer;
+                let memory: ArrayBufferLike;
                 try {
                     memory = getMemoryForSendFunc(functionName);
                 } catch (err: any) {

@@ -128,7 +128,7 @@ export class GithubFile {
             const ret = buffer.slice(start, end);
             return ret;
         } catch (error) {
-            console.error("arrayBuffer cached error: ", error);
+            githubDebug("arrayBuffer cached error: ", error);
         }
         return new ArrayBuffer(0);
     }
@@ -496,7 +496,7 @@ export class GithubFolderHandle
             throw new TypeMismatchError();
         }
         if (!entry && !do_create) {
-            console.error(`NotFoundError for name: ${name} options: ${options}`);
+            githubDebug(`NotFoundError for name: ${name} options: ${options}`);
             throw new NotFoundError();
         }
         if (!entry && do_create) {
@@ -593,7 +593,7 @@ export class GithubRepoListHandle implements ImplFolderHandle<GithubFileHandle, 
                 this._entries[itemName] = new GithubRepoHandle(repoGithubUrl, this.secretStore);
             }
         } catch (error) {
-            console.error("populateEntries cached error: ", error);
+            githubDebug("populateEntries cached error: ", error);
         }
     }
 

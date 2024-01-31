@@ -205,8 +205,14 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
                 keepExistingData: keepExistingData,
             });
             const chunk = serializedHandle;
-            writer.write(chunk);
-            writer.close();
+            await writer.write(chunk);
+            await writer.close();
+            const cacheInsert = true;
+            if (cacheInsert) {
+                const name = newFh;
+                const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+                this._externalHandleCache[newName] = newFh;
+            }
             return handle;
         }
     }

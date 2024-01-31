@@ -18,7 +18,7 @@ import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
-type Descriptor = fs.Descriptor;
+type FileSystemDescriptorNumber = number;
 import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
 import {
     FileSystemHandle,
@@ -26,8 +26,10 @@ import {
     FileSystemFileHandle,
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
-
-declare let globalThis: any;
+import { Resource } from "./wasiResources.js";
+declare global {
+    var WASI_FS_DEBUG: boolean
+}
 globalThis.WASI_FS_DEBUG = false;
 
 function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
@@ -63,12 +65,13 @@ export class Socket implements Writable, Readable {
 }
 
 export interface FsPollable {
-    done(): Promise<boolean>;
+    block(): Promise<void>;
+    ready(): Promise<boolean>;
 }
 
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
-export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable;
+export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable | Resource;
 
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
@@ -299,14 +302,16 @@ export class OpenDirectory {
     }
 }
 
-export class OpenDirectoryIterator {
-    constructor(fd: Descriptor, openDir: OpenDirectory) {
+export class OpenDirectoryIterator implements Resource {
+    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory) {
         this._descriptor = fd;
         this._openDir = openDir;
+        this.resource = -1;
     }
     private _openDir: OpenDirectory;
-    private _descriptor: Descriptor;
+    private _descriptor: FileSystemDescriptorNumber;
     private _cursor = 0;
+    public resource: number;
 
     public get cursor(): number {
         return this._cursor;
@@ -319,6 +324,10 @@ export class OpenDirectoryIterator {
     }
     public set openDir(value: OpenDirectory) {
         this._openDir = value;
+    }
+
+    async readDirectoryEntry(): Promise<DirectoryEntry | undefined> {
+        return await this.next();
     }
 
     async next(): Promise<DirectoryEntry | undefined> {
@@ -541,7 +550,13 @@ export class OpenFiles {
     add(res: OpenResource): Fd {
         filesystemDebug("[add]", res);
         this._files.set(this._nextFd, res);
-        return this._nextFd++ as Fd;
+        const newFd = this._nextFd++ as Fd;
+        const resAny = res as any;
+        if (resAny.resource !== undefined ) {
+            const resRes = resAny as Resource;
+            resRes.resource = newFd;
+        }
+        return newFd;
     }
 
     isFile(fd: Fd): boolean {
@@ -714,6 +729,7 @@ export class OpenFiles {
         const openDir = this.getAsDir(fd);
         const iter = new OpenDirectoryIterator(fd, openDir);
         const iterFd = this.add(iter);
+        iter.resource = iterFd;
         return iterFd;
     }
 

@@ -31,22 +31,25 @@ export type WrappedExportedFunction = {
 export type ImportReference = ImportExportReference | string | SharedArrayBuffer;
 
 // Function for storing memory for wasm instance received from worker
-export type StoreReceivedMemoryFunc = (buf: ArrayBuffer) => void;
+export type StoreReceivedMemoryFunc = (buf: ArrayBufferLike) => void;
 // Function for preparing memory to be sent over to worker
-export type GetMemoryForSendFunc = (functionName: string) => ArrayBuffer;
+export type GetMemoryForSendFunc = (functionName: string) => ArrayBufferLike;
 
 export type HandleWasmImportFunc = (
     messageId: string,
     importName: string,
     functionName: string,
     args: any[],
-    memory: ArrayBuffer
+    memory: ArrayBufferLike
 ) => any;
+
+export type HandleCallType = "resource" | "import";
 
 export type HandleWasmComponentImportFunc = (
     channel: Channel,
     messageId: string,
-    importName: string,
+    callType: HandleCallType,
+    identifierName: string,
     functionName: string,
     args: any[]
 ) => any;
@@ -77,7 +80,12 @@ export async function instantiateWithAsyncDetection(
         isAsyncified = false;
         wasmHandlerDebug("asyncify_get_state == null , isAsync: ", isAsyncified);
     } else {
-        isAsyncified = true;
+        // TODO: look into issue with wasi_vfs_pack_fs + asyncify - disable for now
+        if (syncInstance.exports["wasi_vfs_pack_fs"] != null) {
+            isAsyncified = false;
+        } else {
+            isAsyncified = true;
+        }
         wasmHandlerDebug("asyncify_get_state != null, isAsync: ", isAsyncified);
     }
     if (isAsyncified) {

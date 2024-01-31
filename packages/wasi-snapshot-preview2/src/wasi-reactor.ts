@@ -9,12 +9,11 @@ import { WasiCliTerminalStderrAsync as WasiCliTerminalStderr } from './interface
 import { WasiCliTerminalStdinAsync as WasiCliTerminalStdin } from './interfaces/wasi-cli-terminal-stdin';
 import { WasiCliTerminalStdoutAsync as WasiCliTerminalStdout } from './interfaces/wasi-cli-terminal-stdout';
 import { WasiClocksMonotonicClockAsync as WasiClocksMonotonicClock } from './interfaces/wasi-clocks-monotonic-clock';
-import { WasiClocksTimezoneAsync as WasiClocksTimezone } from './interfaces/wasi-clocks-timezone';
 import { WasiClocksWallClockAsync as WasiClocksWallClock } from './interfaces/wasi-clocks-wall-clock';
 import { WasiFilesystemPreopensAsync as WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens';
 import { WasiFilesystemTypesAsync as WasiFilesystemTypes } from './interfaces/wasi-filesystem-types';
 import { WasiIoStreamsAsync as WasiIoStreams } from './interfaces/wasi-io-streams';
-import { WasiPollPollAsync as WasiPollPoll } from './interfaces/wasi-poll-poll';
+import { WasiIoPollAsync as WasiIoPoll } from './interfaces/wasi-io-poll';
 import { WasiRandomInsecureAsync as WasiRandomInsecure } from './interfaces/wasi-random-insecure';
 import { WasiRandomInsecureSeedAsync as WasiRandomInsecureSeed } from './interfaces/wasi-random-insecure-seed';
 import { WasiRandomRandomAsync as WasiRandomRandom } from './interfaces/wasi-random-random';

@@ -4,6 +4,7 @@
 
 import { instantiate } from "./vendored/asyncify/asyncify.js";
 import {
+    HandleCallType,
     HandleWasmComponentImportFunc,
     HandleWasmImportFunc,
     instantiateOnWasmWorker,
@@ -12,7 +13,7 @@ import {
 import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
 
-import { TTY } from "./tty.js";
+import { TTY, TTYSize } from "./tty.js";
 import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console.js";
 import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems.js";
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
@@ -36,8 +37,9 @@ import {
     WasiSnapshotPreview2AsyncImportObject,
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
-import { wasiWorkerDebug } from "./workerUtils.js";
-import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
+import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
+import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
+//import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
@@ -48,6 +50,8 @@ export interface WasiOptions {
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
     tty?: TTY;
+    name?: string;
+    componentMode?: boolean,
 }
 
 export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
@@ -79,7 +83,8 @@ export class WasiEnv implements WasiOptions {
         env?: Record<string, string>,
         abortSignal?: AbortSignal,
         tty?: TTY,
-        name?: string
+        name?: string,
+        componentMode?: boolean
     ) {
         if (!openFiles) {
             this._openFiles = new OpenFiles({});
@@ -119,7 +124,6 @@ export class WasiEnv implements WasiOptions {
             this._name = "wasi";
         }
         // argv[0] is prefilled with name
-        // TODO make this customizable
         const execNameWasm = this._name;
         // prefix argument list for first argument for executable itself
         this._args.splice(0, 0, execNameWasm);
@@ -133,6 +137,11 @@ export class WasiEnv implements WasiOptions {
         this._abortSignal = abortSignal;
         if (tty) {
             this._tty = tty;
+        }
+        if (componentMode !== undefined) {
+            this._componentMode = componentMode;
+        } else {
+            this._componentMode = false;
         }
     }
 
@@ -148,6 +157,7 @@ export class WasiEnv implements WasiOptions {
     private _abortSignal?: AbortSignal;
     private _suspendStdIn = false;
     private _tty?: TTY;
+    private _componentMode: boolean;
 
     get cargs() {
         return this._cargs;
@@ -194,6 +204,13 @@ export class WasiEnv implements WasiOptions {
     get tty() {
         return this._tty;
     }
+    get componentMode() {
+        return this._componentMode;
+    }
+    set componentMode(componentMode: boolean) {
+        this._componentMode = componentMode;
+    }
+
 }
 
 export class WASI {
@@ -206,11 +223,13 @@ export class WASI {
             wasiOptions.args,
             wasiOptions.env,
             wasiOptions.abortSignal,
-            wasiOptions.tty
+            wasiOptions.tty,
+            wasiOptions.name,
+            wasiOptions.componentMode
         );
         this._wasiEnv = wasiEnv;
     }
-    public component = false;
+    //public component = false;
     public singleWasmWorker = true;
     private _wasiEnv: WasiEnv;
 
@@ -219,6 +238,7 @@ export class WASI {
     private _coreModuleImports?: WebAssembly.Imports;
 
     private _componentImportObject?: {};
+    private _resources?: {};
     private _componentInstance?: {};
 
     private _channel?: Channel;
@@ -233,6 +253,12 @@ export class WASI {
     public set componentImportObject(value: {}) {
         this._componentImportObject = value;
     }
+    public get resources(): {} {
+        if (!this._resources) {
+            this._resources = new Map();
+        }
+        return this._resources;
+    }
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -240,6 +266,19 @@ export class WASI {
 
     get coreModuleImports() {
         return this._coreModuleImports as WebAssembly.Imports;
+    }
+
+    get component() {
+        return this._wasiEnv.componentMode;
+    }
+
+    set component(componentMode: boolean) {
+        this._wasiEnv.componentMode = componentMode;
+    }
+
+
+    get componentMode() {
+        return this._wasiEnv.componentMode;
     }
 
     public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
@@ -257,11 +296,11 @@ export class WASI {
                 };
                 return sock;
             };
-            const componentImportObjectAny = this.componentImportObject as any;
+            /*const componentImportObjectAny = this.componentImportObject as any;
             componentImportObjectAny[wasiExperimentalSocketsNamespace] = new WasiExperimentalSocketsPreview2Wrapper(
                 filesystem,
                 sockets
-            );
+            );*/
         }
 
         const importNames: string[] = [];
@@ -275,7 +314,7 @@ export class WASI {
         wasmModOrBufSource: WebAssembly.Module | BufferSource,
         imports: WebAssembly.Imports
     ): Promise<any> {
-        if (this.component) {
+        if (this.componentMode) {
             return await this.instantiateComponent(wasmModOrBufSource, imports);
         } else {
             return await this.instantiateCore(wasmModOrBufSource, imports);
@@ -304,6 +343,7 @@ export class WASI {
         const handleComponentImportFuncLocal: HandleWasmComponentImportFunc = async (
             channel: Channel,
             messageId: string,
+            callType: HandleCallType,
             importName: string,
             functionName: string,
             args: any[]
@@ -311,7 +351,7 @@ export class WASI {
             //const localComponentImportObject = componentImportObject;
             try {
                 wasiCallDebug(`[wasi] [component] : [${importName}] [${functionName}]:`, args);
-                return await this.handleComponentImport(channel, messageId, importName, functionName, args);
+                return await this.handleComponentImport(channel, messageId, callType, importName, functionName, args);
             } catch (err: any) {
                 wasiDebug("WASI.handleImportFuncLocal err: ", err);
                 throw err;
@@ -396,7 +436,7 @@ export class WASI {
                 importName: string,
                 functionName: string,
                 args: any[],
-                buf: ArrayBuffer
+                buf: ArrayBufferLike
             ) => {
                 const moduleImports = imports;
                 try {
@@ -442,7 +482,7 @@ export class WASI {
             let wasmMod: WebAssembly.Module;
             if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
                 const modSource = wasmModOrBufSource as ArrayBufferView;
-                wasmMod = WebAssembly.compile(modSource);
+                wasmMod = await WebAssembly.compile(modSource);
             } else {
                 wasmMod = wasmModOrBufSource as WebAssembly.Module;
             }
@@ -452,7 +492,7 @@ export class WASI {
     }
 
     public async run(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
-        if (this.component) {
+        if (this.componentMode) {
             const ret = await this.runComponent(wasmModOrBufSource);
             return ret;
         } else {
@@ -496,14 +536,8 @@ export class WASI {
         wasiDebug("[run] originalExports: ", originalExports);
 
         const { _start } = exports;
-        this.initializeInstanceMemory(exports);
+        await this.initializeTTYSettings(exports);
         try {
-            if (this.wasiEnv.tty) {
-                // Reloading to set correct rows and columns
-                if (this.wasiEnv.tty.reload) {
-                    await this.wasiEnv.tty.reload();
-                }
-            }
             wasiDebug("[run] calling _start: ");
             await (_start as any)();
             wasiDebug("[run] returning from _start: ");
@@ -544,22 +578,125 @@ export class WASI {
         return exports;
     }
 
+    /**
+     * 
+     * @param callType import or resource
+     * @param importName 
+     * @returns 
+     */
+    public getObjectToCall(
+        callType: HandleCallType,
+        identifier: string,
+    ): any {
+        let res = undefined;
+        if (callType == "import") {
+            const componentImports = this.componentImportObject as any;
+            const imp = componentImports[identifier];
+            res = imp;
+        } else  if (callType == "resource") {
+            const resources = this.resources as any;
+            res = resources[identifier];
+        }
+        if (res !== undefined) {
+            return res;
+        }
+        throw new Error(`getObjectToCall could not find object with callType: ${callType} identifier: ${identifier}`)
+    }
+
+    public storeResource(
+        importName: string,
+        resourceId: number,
+        res: any,
+    ): any {
+        const identifier = getResourceIdentifier(importName, resourceId);
+        const resources = this.resources as any;
+        wasiDebug(`storeResource storing resource object with identifier: ${identifier}`);
+        resources[identifier] = res;
+    }
+
+    public lookupResource(
+        importName: string,
+        resourceId: number,
+    ): Resource | undefined {
+        const identifier = getResourceIdentifier(importName, resourceId);
+        const resources = this.resources as any;
+        wasiDebug(`lookupResource lookung up resource object with identifier: ${identifier}`);
+        const res = resources[identifier];
+        return res;
+    }
+
     public async handleComponentImport(
         channel: Channel,
         messageId: string,
+        callType: HandleCallType,
         importName: string,
         functionName: string,
         args: any[]
     ): Promise<void> {
-        const componentImports = this.componentImportObject as any;
-        const imp = componentImports[importName];
-        const func = imp[functionName] as Function;
+        const imp = this.getObjectToCall(callType, importName);
+        let func: Function|undefined = undefined;
+        if (isSymbolStringIdentifier(functionName)) {
+            let symbolKey = getSymbolForString(functionName);
+            const asyncDisposeSymbolKey = Symbol.for("asyncDispose");
+            const nodeJsAsyncDisposeSymbolKey = Symbol.for("nodejs.asyncDispose");
+            let isDisposeSymbol = false;
+            if (functionName == "Symbol(dispose)" || functionName == "Symbol(nodejs.dispose)") {
+                isDisposeSymbol = true;
+            }
+            if (isDisposeSymbol) {
+                // take asyncDispose if it exists
+                func = imp[asyncDisposeSymbolKey] as Function;
+                if (func == undefined) {
+                    func = imp[nodeJsAsyncDisposeSymbolKey] as Function;
+                }
+            }
+            if (func == undefined) {
+                // else take regular dispose if it exists
+                func = imp[symbolKey] as Function;
+            }
+            // return dummy symbol function if not found on resource:
+            if (func == undefined) {
+                func = () => {
+                    let typeName = imp.constructor?.name;
+                    if (typeName == undefined) {
+                        typeName = imp.typeName;
+                    }
+                    wasiWorkerDebug(`warning: symbol ${functionName} function not implemented for resource with importName: ${importName}, typeName: ${typeName}`);
+                    return;
+                };
+            }
+        } else {
+            const sFunctionName = functionName as string;
+            func = imp[sFunctionName] as Function;
+        }
+        let newArgs = args;
+        let i = 0;
+        let lookupFunc = this.lookupResource;
+        lookupFunc = lookupFunc.bind(this);
+        for (let arg of newArgs) {
+            let newArg = undefined;
+            if (containsResourceObjects(arg)) {
+                newArg = getResourceObjectForResourceProxy(arg, importName, lookupFunc);
+            }
+            if (newArg) {
+                newArgs[i] = newArg;
+            } else {
+                newArgs[i] = arg;
+            }
+            i++;
+        }
 
         let funcReturn, funcThrownError;
         try {
             // Binding "this" to section object for fuction
             const boundFunc = func.bind(imp);
-            funcReturn = await boundFunc(...args);
+            funcReturn = await boundFunc(...newArgs);
+            if (containsResourceObjects(funcReturn)) {
+                let storeFunc = this.storeResource;
+                storeFunc = storeFunc.bind(this);
+                storeResourceObjects(importName, funcReturn, storeFunc);
+                funcReturn = getResourceSerializableForProxyObjects(funcReturn);
+            }
         } catch (err: any) {
             funcThrownError = err;
         }
@@ -590,7 +727,7 @@ export class WASI {
         importName: string,
         functionName: string,
         args: any[],
-        buf: ArrayBuffer,
+        buf: ArrayBufferLike,
         moduleImports: WebAssembly.Imports
     ): Promise<void> {
         wasiDebug(`WASI handleImport: messageId: ${messageId} importName: ${importName} functionName: ${functionName}`);
@@ -603,7 +740,7 @@ export class WASI {
         const channel = this._channel;
         if (channel) {
             if (moduleImports) {
-                let wasmBuf: ArrayBuffer;
+                let wasmBuf: ArrayBufferLike;
                 wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
                 wasmBuf = buf;
                 const mem: WebAssembly.Memory = {
@@ -681,18 +818,38 @@ export class WASI {
         return wasmImports;
     }
 
-    private initializeInstanceMemory(exports: WebAssembly.Exports): void {
+    private async initializeTTYSettings(exports: WebAssembly.Exports): Promise<void> {
         if (this.wasiEnv.tty) {
-            wasiDebug("WASI tty.setModuleInstanceExports");
-            if (this.wasiEnv.tty.setModuleInstanceExports) {
-                this.wasiEnv.tty.setModuleInstanceExports(exports);
+            const myTTy = this.wasiEnv.tty;
+            const onResizeListener = async (size: TTYSize) => {
+                // Call size exported function on wasm instance
+                const { term_set_rows } = exports;
+                const { term_set_columns } = exports;
+                if (term_set_rows) {
+                    const rows = size.rows;
+                    wasiDebug("term_set_rows", rows);
+                    await (term_set_rows as any)(rows);
+                }
+                if (term_set_columns) {
+                    const columns = size.columns;
+                    wasiDebug("term_set_columns", columns);
+                    await (term_set_columns as any)(columns);
+                }
+                const { term_reload } = exports;
+                if (term_reload) {
+                    await (term_reload as any)();
+                }
             }
+            const onResizeListenerProxyFunc = comlink.proxy(onResizeListener);
+            myTTy.setOnResize(onResizeListenerProxyFunc);
+
+            // Trigger once for correct initial size:
+            const curSize = await myTTy.getSize();
+            await myTTy.setSize(curSize);
+
         } else {
             wasiDebug("WASI tty is null");
         }
-        //const mem = memory as WebAssembly.Memory;
-        //const memoryBuffer = mem.buffer;
-        //this.wasiEnv.buffer = memoryBuffer;
     }
 
     private get_export(name: string): WebAssembly.ExportValue {

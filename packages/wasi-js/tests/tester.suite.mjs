@@ -5,17 +5,31 @@ import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+//import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js";
+//import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/testutil";
+import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js/testutil";
 import { getOriginPrivateDirectory } from "@wasmin/fs-js";
 import { isBun } from "@wasmin/wasi-js/index.js";
 import { default as process } from "node:process";
+import { node } from "@wasmin/node-fs-js";
+//import { constructWasiForTestRuntimeDetection } from "./utils.js";
+
+export async function constructWasiForTestRuntimeDetection(testCase) {
+    if (isBun()) {
+        const bunmod = await import("@wasmin/bun-fs-js");
+        const bun = bunmod.bun;
+        return constructWasiForTest(testCase, bun);
+    } else {
+        return constructWasiForTest(testCase, node);
+    }
+}
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
+const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/rust/testsuite");
 //const testFile = "dangling_fd.json";
 //const testFile = "fd_readdir.json";
 //const testFile = "fdopendir-with-access.json"
-//const testFile = "directory_seek.json"
+const testFile = "directory_seek.json"
 //const testFile = "interesting_paths.json"
 //const testFile = "fd_filestat_set.json";
 //const testFile = "fd_filestat_get.wasm";
@@ -25,13 +39,15 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 //const testFile = "fopen-with-access.json"
 //const testFile = "pwrite-with-access.json"
 //const testFile = "lseek.json"
+//const testFile = "clock_gettime-realtime.wasm"
 
-const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
-const testFile = "environ_get-multiple-variables.json";
+//const WASI_TESTSUITE_PATH = join(scriptDir, "./wasi-testsuite/tests/assemblyscript/testsuite");
+//const testFile = "environ_get-multiple-variables.json";
 //const testFile = "fd_write-to-stdout.json"
 //const testFile = "environ_sizes_get-multiple-variables.json";
+//const testFile = "fd_write-to-invalid-fd.wasm";
 
-let loop_count = 10;
+let loop_count = 1;
 
 for (let i = 0; i < loop_count; i++) {
     const testCase = await constructOneTestForTestSuite(WASI_TESTSUITE_PATH, testFile);
@@ -62,13 +78,13 @@ async function runCase(testCase) {
         }
         console.log("exitCode: ", exitCode);
         let w = undefined;
-        ret = await constructWasiForTest(testCase);
+        ret = await constructWasiForTestRuntimeDetection(testCase);
         w = ret.wasi;
-        console.log("wasi: ", w);
+        //console.log("wasi: ", w);
 
         if (w) {
             //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
-            //w.component = true;
+            w.component = true;
             actualExitCode = await w.run(await wasmMod);
         }
     } catch (err) {

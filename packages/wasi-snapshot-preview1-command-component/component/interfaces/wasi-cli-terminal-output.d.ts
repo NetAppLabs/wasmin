@@ -1,4 +1,6 @@
 export namespace WasiCliTerminalOutput {
-  export function dropTerminalOutput(this_: TerminalOutput): void;
+  export { TerminalOutput };
 }
-export type TerminalOutput = number;
+
+export class TerminalOutput {
+}

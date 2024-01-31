@@ -55,7 +55,15 @@ const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_D
 
 // XXX: elsewhere reads are getting sliced into 4k chunks but 32k chunks seem to work fine (and faster)
 //      have tried larger chunks (e.g. 64k) which seem to still work but are only marginally faster so...
-const MAX_READ_SIZE = process.env.WASMIN_MAX_NFS_READ_SIZE && Number(process.env.WASMIN_MAX_NFS_READ_SIZE) || 32768;
+let MAX_READ_SIZE = 32768;
+if (process !== undefined) {
+    if (process.env !== undefined) {
+        let max_read = process.env.WASMIN_MAX_NFS_READ_SIZE
+        if (max_read){
+            MAX_READ_SIZE = Number(max_read);
+        }
+    }
+}
 
 function fullNameFromReaddirplusEntry(parentName: string, entry: ReaddirplusEntry): string {
     const suffix = entry.attr?.attrType === AttrTypeDirectory ? "/" : "";

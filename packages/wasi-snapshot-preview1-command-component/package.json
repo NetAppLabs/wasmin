@@ -14,7 +14,8 @@
         "component/component.core5.wasm"
     ],
     "scripts": {
-        "build": "./build.sh"
+        "build": "echo true",
+        "build-jco": "./build.sh"
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^0.13.2",

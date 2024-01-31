@@ -4,5 +4,5 @@ export interface WasiSocketsInstanceNetworkAsync {
    */
    instanceNetwork(): Promise<Network>;
 }
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };

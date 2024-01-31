@@ -1,7 +1,7 @@
 import { HandleWasmComponentImportFunc, HandleWasmImportFunc } from "./desyncify.js";
 import { Channel, makeChannel } from "./vendored/sync-message/index.js";
 import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
-import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
+import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 import { initializeComlinkHandlers, wasmWorkerThreadDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 //import { default as process } from "node:process";
@@ -71,7 +71,7 @@ export class WasmComponentWorkerThreadRunner {
         const wasiWorker = this;
         const channel = this._channel;
         if (channel) {
-            return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
+            return createComponentImportOrResourceProxy("import", importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("Channel not set");
         }

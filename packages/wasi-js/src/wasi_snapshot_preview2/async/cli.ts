@@ -13,6 +13,7 @@ type CliBaseStdinAsync = clibsdinns.WasiCliStdinAsync;
 type InputStream = clibsdinns.InputStream;
 import { CliBaseStdoutNamespace as clibsdoutns } from "@wasmin/wasi-snapshot-preview2";
 import { wasiPreview2Debug } from "./preview2Utils.js";
+import { InStream, OutStream } from "./io.js";
 type CliBaseStdoutAsync = clibsdoutns.WasiCliStdoutAsync;
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
@@ -73,7 +74,9 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
     async getStderr(): Promise<OutputStream> {
         //TODO: synchronize stderr numbering in openFiles
         const stderr_fd_no = 2;
-        return stderr_fd_no;
+        const stderr = new OutStream(this._wasiEnv, stderr_fd_no);
+        stderr.resource = stderr_fd_no;
+        return stderr;
     }
 }
 
@@ -87,7 +90,9 @@ export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
     async getStdin(): Promise<InputStream> {
         //TODO: synchronize stdin numbering in openFiles
         const stdin_fd_no = 0;
-        return stdin_fd_no;
+        const stdin = new InStream(this._wasiEnv, stdin_fd_no);
+        stdin.resource = stdin_fd_no;
+        return stdin;
     }
 }
 
@@ -101,6 +106,8 @@ export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
     async getStdout(): Promise<OutputStream> {
         //TODO: synchronize stdin numbering in openFiles
         const stdout_fd_no = 1;
-        return stdout_fd_no;
+        const stdout = new OutStream(this._wasiEnv, stdout_fd_no);
+        stdout.resource = stdout_fd_no;
+        return stdout;
     }
 }

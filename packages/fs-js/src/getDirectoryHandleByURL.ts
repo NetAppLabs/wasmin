@@ -29,7 +29,25 @@ export async function getDirectoryHandleByURL(
     const provFunc = providersRegistry[protocol];
 
     if (provFunc) {
-        const adapterHandle = await provFunc(url, secretStore);
+        let pathToProviderFunc = url;
+        if (url.startsWith("node:")) {
+            const urlParts = url.split("node://");
+            let lastPath = urlParts[urlParts.length-1];
+            pathToProviderFunc = lastPath;
+        }
+        const adapterHandle = await provFunc(pathToProviderFunc, secretStore);
+        if (url.startsWith("nfs:")) {
+            const urlParts = url.split("/");
+            let lastPath = urlParts[urlParts.length-1];
+            if (lastPath.includes("?")) {
+                let lastPaths = lastPath.split("?");
+                lastPath = lastPaths[lastPaths.length-1];
+            }
+            // @ts-ignore
+            adapterHandle.name = lastPath;
+            // @ts-ignore
+            adapterHandle.url = url;
+        }
         if (wrapped) {
             return new NFileSystemDirectoryHandle(adapterHandle);
         } else {

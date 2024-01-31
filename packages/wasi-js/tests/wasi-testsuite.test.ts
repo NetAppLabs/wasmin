@@ -4,8 +4,9 @@ import "jest-extended";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/tests/utils.js";
+import { Test, constructTestsForTestSuites } from "@wasmin/wasi-js/testutil";
 import { WASI, isBun } from "@wasmin/wasi-js";
+import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
@@ -20,17 +21,23 @@ async function constructTestsWithSkip() {
         WASI_TESTSUITE_PATH_AS,
     ]);
     const testSkipRemoved: Test[] = [];
-    const skips: string[] = ["dangling_symlink", "fopen-with-no-access", "fdopendir-with-access"];
+    const skips: string[] = [
+        "dangling_symlink",
+        "fopen-with-no-access",
+    ];
     if (isBun()) {
+        skips.push("fopen-with-access");
         skips.push("fd_filestat_set");
         skips.push("interesting_paths");
     }
     for (const t of tests) {
         let skip = false;
         for (const sk of skips) {
-            if (t.test.includes(sk)) {
-                console.log(`skipping ${sk}`);
-                skip = true;
+            if (t.test) {
+                if (t.test.includes(sk)) {
+                    console.log(`skipping ${sk}`);
+                    skip = true;
+                }
             }
         }
         if (!skip) {
@@ -66,24 +73,24 @@ describe("wasi-testsuite", () => {
             if (!exitCode) {
                 exitCode = 0;
             }
-            try {
+            //try {
                 let wasmMod: BufferSource;
                 if (wasmPath) {
                     wasmMod = await readFile(wasmPath);
                 } else {
                     throw Error("wasmPath is not set");
                 }
-                ret = await constructWasiForTest(testCase);
+                // @ts-ignore
+                ret = await constructWasiForTestRuntimeDetection(testCase);
                 const w = ret.wasi;
                 if (w) {
-                    //w.component = true;
                     //w.wasiEnv.env["RUST_BACKTRACE"] = "full";
                     actualExitCode = await w.run(await wasmMod);
                 }
-            } catch (err: any) {
+            /*} catch (err: any) {
                 console.log("err: ", err);
                 console.log("err.stack: ", err.stack);
-            }
+            }*/
             actualStdout = ret.stdout;
             actualStderr = ret.stderr;
             expect(actualExitCode).toBe(exitCode);

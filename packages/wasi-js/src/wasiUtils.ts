@@ -1,7 +1,7 @@
 import { FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
-import { Handle } from "./wasiFileSystem.js";
+import { Handle, Readable, Writable } from "./wasiFileSystem.js";
 import {
     Errno,
     ErrnoN,
@@ -15,6 +15,7 @@ import {
     string,
 } from "./wasi_snapshot_preview1/bindings.js";
 
+
 declare let globalThis: any;
 if (!globalThis.WASI_DEBUG) {
     globalThis.WASI_DEBUG = false;
@@ -25,6 +26,9 @@ if (!globalThis.WASI_CALL_DEBUG) {
 if (!globalThis.WASI_FD_DEBUG) {
     globalThis.WASI_FD_DEBUG = false;
 }
+if (!globalThis.WASI_RESOURCE_DEBUG) {
+    globalThis.WASI_RESOURCE_DEBUG = false;
+}
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
@@ -34,6 +38,12 @@ export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
 
 export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
+        console.debug(msg, ...optionalParams);
+    }
+}
+
+export function wasiResourceDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASI_RESOURCE_DEBUG) {
         console.debug(msg, ...optionalParams);
     }
 }
@@ -173,22 +183,10 @@ export async function forEachIoVec(
     let totalHandled = 0;
     for (let i = 0; i < iovsLen; i++) {
         const iovec = Iovec.get(buffer, iovsPtr);
-        //iovec_t.size=8*1024;
-        //iovec.bufLen = 8*1024;
         wasiDebug(`iovec.bufLen ${iovec.buf_len}`);
         const buf = new Uint8Array(buffer, iovec.buf, iovec.buf_len);
-        /*
-        // clone buffer in case of SharedArrayBuffer
-        const size = iovec.buf_len;
-        const newBuf = new Uint8Array(size);
-        const view = new DataView(newBuf);
-        for (let i=0 ; i < size; i++) {
-            view.setUint8(i, buf[i]);
-        }
-        */
         const handled = await cb(buf);
 
-        //this._checkAbort();
         if (checkAbort) {
             checkAbort();
         }
@@ -356,7 +354,7 @@ export function isNode() {
     }
 }
 
-export function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer) {
+export function copyBuffer(src: ArrayBufferLike, dst: ArrayBufferLike) {
     const srcBytes = new Uint8Array(src);
     const size = src.byteLength;
     const view = new DataView(dst);

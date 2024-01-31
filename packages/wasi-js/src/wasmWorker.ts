@@ -1,11 +1,12 @@
-import { getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
+import { getWorkerUrl, initializeComlinkHandlers, isSymbol, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isBun, isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";
 import { Channel, readMessage, uuidv4 } from "./vendored/sync-message/index.js";
-import { HandleWasmComponentImportFunc } from "./desyncify.js";
+import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
+import { ResourceProxy, containsResourceObjects, createResourceProxy, createProxyForResources, getResourceSerializableForProxyObjects } from "./wasiResources.js";
 
 export class WasmWorker {
     worker?: Worker;
@@ -102,55 +103,153 @@ export class WasmWorker {
     }
 }
 
-export function createComponentModuleImportProxyPerImportForChannel(
+export class ImportInterfaceProxy {
+    constructor(importName: string) {
+        this.importName = importName;
+    }
+    importName: string;
+}
+
+export function createComponentImportOrResourceProxy(
+    callType: HandleCallType,
     importName: string,
     channel: Channel,
     handleComponentImportFunc: HandleWasmComponentImportFunc
 ): {} {
-    const importDummy = {};
-    return new Proxy(importDummy, {
+    let importTarget: ImportInterfaceProxy| ResourceProxy;
+    if (callType == "resource") {
+        const resourcesString = importName.split(":");
+        const sResourceId = resourcesString[resourcesString.length-1];
+        const resourceId = Number(sResourceId);
+        importTarget = new ResourceProxy(resourceId, importName);
+    } else if (callType == "import") {
+        importTarget = new ImportInterfaceProxy(importName);
+    } else {
+        // should never be reachable
+        importTarget = new ImportInterfaceProxy(importName);
+    }
+
+    return new Proxy(importTarget, {
         get: (_target, name, _receiver) => {
-            const functionName = name as string;
-            return (...args: any) => {
-                let newArgs = args;
-                let i = 0;
-                let lastBuffer: ArrayBuffer|undefined;
-                let lastTypedArray: Array<any>| undefined;
-                // Making sure TypedArrays are transferred as Transferrable
-                for (let arg of newArgs) {
-                    let arr = arg as Array<any>;
-                    if (ArrayBuffer.isView(arg)) {
-                        wasmHandlerDebug("istransfer:", arg);
-                        let typedArray = arg as ArrayBufferView;
-                        lastBuffer = typedArray.buffer;
-                        wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
-                        lastTypedArray = arr;
-                        wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
-                        // Simply marking the ArrayBuffer under the array as Transferrable
-                        // This puts the ArrayBuffer in the transfer cache
-                        comlink.transfer(newArgs,[lastBuffer]);
-                    }
-                    i++;
-                }
-                const messageId = uuidv4();
-                wasmHandlerDebug(
-                    `Proxy handleComponentImportFunc: importName: ${importName} functionName:`,
-                    functionName
+            const functionNameOrSymbol = name;
+            let functionName = "";
+            let isSymbolReference = false;
+            if (isSymbol(functionNameOrSymbol)) {
+                functionName = functionNameOrSymbol.toString();
+                isSymbolReference = true;
+            } else {
+                functionName = functionNameOrSymbol as string;
+            }
+            /*if (functionName == "InputStream"
+                || functionName == "OutputStream" 
+                || functionName == "Pollable"
+                || functionName == "Descriptor"
+                ) 
+            */
+            // Assuming we are referring to a resource if first character is UpperCase
+            if (!isSymbolReference && (functionName.charAt(0) === functionName.charAt(0).toUpperCase() ))
+            {
+                const dummyResource = createResourceProxy(
+                    functionName,
+                    callType,
+                    importName,
+                    channel,
+                    handleComponentImportFunc,
+                    getProxyFunctionToCall,
                 );
-                handleComponentImportFunc(channel, messageId, importName, functionName, newArgs);
-                const ret = readMessage(channel, messageId);
-                if (lastBuffer) {
-                    wasmHandlerDebug("lastBuffer post transfer: ", lastBuffer);
-                }
-                wasmHandlerDebug("lastTypedArray post transfer: ", lastTypedArray);
-                if (ret.error) {
-                    wasmHandlerDebug("ret.error: ", ret.error);
-                    wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, ret.err);
-                    throw ret.error;
-                }
-                wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] return: `, ret.return);
-                return ret.return;
-            };
+                return dummyResource;
+            }
+            else if (functionName == "resource") {
+                const res = importTarget as ResourceProxy;
+                return res.resource;
+            }
+            else if (functionName == "prototype") {
+                wasmHandlerDebug("trying to get prototype property");
+                return _receiver;
+            } 
+            
+            const funcToCall = getProxyFunctionToCall(
+                functionName,
+                callType,
+                importName,
+                channel,
+                handleComponentImportFunc
+            );
+            return funcToCall;
         },
     });
+}
+
+export type GetProxyFunctionToCall = (
+    functionName: string,
+    callType: HandleCallType,
+    importName: string,
+    channel: Channel,
+    handleComponentImportFunc: HandleWasmComponentImportFunc
+) => Function;
+
+
+export function getProxyFunctionToCall(
+    functionName: string,
+    callType: HandleCallType,
+    importName: string,
+    channel: Channel,
+    handleComponentImportFunc: HandleWasmComponentImportFunc
+) {
+    const funcToCall = (...args: any) => {
+        let newArgs = args;
+        let i = 0;
+        let lastBuffer: ArrayBuffer|undefined;
+        let lastTypedArray: Array<any>| undefined;
+        // Making sure TypedArrays are transferred as Transferrable
+        for (let arg of newArgs) {
+            let arr = arg as Array<any>;
+            if (ArrayBuffer.isView(arg)) {
+                wasmHandlerDebug("istransfer:", arg);
+                let typedArray = arg as ArrayBufferView;
+                const lastBufferArrayBufferLike = typedArray.buffer;
+                if (lastBufferArrayBufferLike instanceof ArrayBuffer) {
+                    lastBuffer = lastBufferArrayBufferLike as ArrayBuffer;
+                    wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
+                    lastTypedArray = arr;
+                    wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
+                    // Simply marking the ArrayBuffer under the array as Transferrable
+                    // This puts the ArrayBuffer in the transfer cache
+                    comlink.transfer(newArgs,[lastBuffer]);
+                }
+            } else {
+                const resObj = getResourceSerializableForProxyObjects(arg);
+                if (resObj !== undefined) {
+                    newArgs[i] = resObj;
+                    wasmHandlerDebug("resObj: ", resObj);
+                } else {
+                    newArgs[i] = arg;
+                }
+            }
+            i++;
+        }
+        const messageId = uuidv4();
+        wasmHandlerDebug(
+            `Proxy handleComponentImportFunc: importName: ${importName} functionName:`,
+            functionName
+        );
+        handleComponentImportFunc(channel, messageId, callType, importName, functionName, newArgs);
+        let ret = readMessage(channel, messageId);
+        if (lastBuffer) {
+            wasmHandlerDebug("lastBuffer post transfer: ", lastBuffer);
+        }
+        wasmHandlerDebug("lastTypedArray post transfer: ", lastTypedArray);
+        if (ret.error) {
+            wasmHandlerDebug("ret.error: ", ret.error);
+            wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, ret.err);
+            throw ret.error;
+        }
+        let retObj = ret.return;
+        wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] return: `, retObj);
+        if (containsResourceObjects(retObj)) {
+            retObj = createProxyForResources(retObj, importName, channel, handleComponentImportFunc);
+        }
+        return retObj;
+    };
+    return funcToCall;
 }

@@ -180,6 +180,7 @@ function WasiExperimentalSocketsAddressFromIpAddress(ip: IpAddress, port: number
     return WasiExperimentalSocketsAddressFromIpSocketAddress(ips);
 }
 
+/*
 export class WasiExperimentalSocketsPreview2Wrapper {
     constructor(
         filesystem: () => WasiSnapshotPreview2FilesystemImportObject,
@@ -291,3 +292,4 @@ export class WasiExperimentalSocketsPreview2Wrapper {
         }
     }
 }
+*/

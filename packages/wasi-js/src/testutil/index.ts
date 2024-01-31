@@ -47,6 +47,7 @@ export async function copyFsInto(rootPath: string, rootHandle: FileSystemDirecto
     }
 }
 
+
 export async function getRootHandle(backend: string, rootPath: string): Promise<FileSystemDirectoryHandle> {
     //const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
     let dirHandle: FileSystemDirectoryHandle;
@@ -56,16 +57,17 @@ export async function getRootHandle(backend: string, rootPath: string): Promise<
             await copyFsInto(rootPath, dirHandle);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default:
-            if (isBun()) {
-                const bunmod = await import("@wasmin/bun-fs-js");
-                const bun = bunmod.bun;
-                dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
-            } else {
+            //if (isBun()) {
+                //const bunmod = await import("@wasmin/bun-fs-js");
+                //const bun = bunmod.bun;
+                //dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
+            //} else {
                 dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
-            }
+            //}
     }
     return dirHandle;
 }
+
 
 export type Test = Partial<{
     test: string;
@@ -214,7 +216,8 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
     let rootHandle: FileSystemDirectoryHandle;
     if (rootPath) {
         if (rootFsHandle) {
-            rootHandle = rootFsHandle;
+            rootHandle = await rootFsHandle(rootPath);
+            //rootHandle = rootFsHandle;
         } else {
             rootHandle = await getRootHandle(testFsBackend, rootPath);
         }
@@ -226,13 +229,17 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
 
     if (dirs) {
         for (const dir of dirs) {
+            //console.log("rootHandle:", rootHandle);
             const dirHandle = await rootHandle.getDirectoryHandle(dir);
+            //console.log("dirHandle:", dirHandle);
             //const mountDirName = "/" + dir;
             const mountDirName = dir;
+            //console.log("dir:", dir);
             dirHandles[mountDirName] = dirHandle;
         }
     }
     const openFiles = new OpenFiles(dirHandles);
+    //console.log("openFiles:", openFiles);
 
     //if (env) {
     //    env["RUST_BACKTRACE"] = "full";

@@ -6,7 +6,6 @@
       "webworker",
       "esnext"
     ],
-    "types": ["bun-types"],
     "outDir": "./dist"
   },
   "include": [

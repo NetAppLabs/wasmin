@@ -1,7 +1,7 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
-import { HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
+import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
 import { In, Out, isNode } from "./wasiUtils.js";
 import {
@@ -13,11 +13,12 @@ import {
     writeMessage,
 } from "./vendored/sync-message/index.js";
 import { OpenFiles } from "./wasiFileSystem.js";
-import { getDirectoryHandleByURL } from "@wasmin/fs-js";
-import { TTY } from "./tty.js";
+import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js";
+import { TTY, TTYImplementation } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
-import { createComponentModuleImportProxyPerImportForChannel } from "./wasmWorker.js";
-
+import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
+import { node } from "@wasmin/node-fs-js";
+//import { nfs } from "@wasmin/nfs-js";
 
 export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
@@ -30,6 +31,8 @@ export interface WasiWorkerOptions {
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
     tty?: TTY;
+    name?: string,
+    componentMode?: boolean,
 }
 
 export class WASIWorker {
@@ -60,27 +63,16 @@ export class WASIWorker {
 
     public async run(moduleUrl: string): Promise<number> {
         wasiWorkerDebug("WASIWorker this._wasiOptions: ", this._wasiOptions);
-        const wasiOptionsProxied = getWasiOptionsProxied(this._wasiOptions);
 
         await this.createWorker();
 
         if (this.worker && this.wasiWorkerThread) {
-            //worker.on("message", (incoming) => {
-            this.worker.addEventListener("message", (msg: MessageEvent<any>) => {
-                wasiWorkerDebug("WASIWorker incoming message: ", { msg });
-            });
-            try {
-                await this.wasiWorkerThread.setOptions(wasiOptionsProxied);
-            } catch (err: any) {
-                wasiWorkerDebug("wasiWorkerThread.setOptions err: ", err);
-            }
-
-            wasiWorkerDebug("WASIWorker run: ");
             return await this.wasiWorkerThread.run(moduleUrl);
         } else {
             throw new Error("Wasi Worker not initialized");
         }
     }
+
 
     public async createWorker(wasiExperimentalSocketsNamespace?: string): Promise<{}> {
         let workerUrlString = "./wasiWorkerThread.js";
@@ -90,28 +82,24 @@ export class WASIWorker {
             //workerUrl = new URL("./wasiWorkerThreadNode.js", import.meta.url);
         }
         const workerUrl = getWorkerUrl(workerUrlString);
-		/*
-        // @ts-ignore
-        //const workerUrl = await import.meta.resolve(workerUrlString);
-        //const workerUrl = import.meta.resolveSync(workerUrlString);
-        const filePath = import.meta.file;
-        // @ts-ignore
-        const metaDir = import.meta.dir;
-        // @ts-ignore
-        const metaPath = import.meta.path;
-        const metaUrl = import.meta.url;
-
-        wasiWorkerDebug("WASIWorker metaUrl: ", metaUrl);
-        wasiWorkerDebug("WASIWorker metaPath: ", metaPath);
-        wasiWorkerDebug("WASIWorker metaDir: ", metaDir);
-        wasiWorkerDebug("WASIWorker filePath: ", filePath);
-        wasiWorkerDebug("WASIWorker workerUrl: ", workerUrl);
-	   	*/
 
         this.worker = await createWorker(workerUrl, { type: "module" });
 
         this.wasiWorkerThread = comlink.wrap<WasiWorkerThreadRunner>(this.worker);
         this._channel = createChannel();
+
+            //worker.on("message", (incoming) => {
+        this.worker.addEventListener("message", (msg: MessageEvent<any>) => {
+            wasiWorkerDebug("WASIWorker incoming message: ", { msg });
+        });
+        const wasiOptionsProxied = getWasiOptionsProxied(this._wasiOptions);
+        try {
+            await this.wasiWorkerThread.setOptions(wasiOptionsProxied);
+        } catch (err: any) {
+            wasiWorkerDebug("wasiWorkerThread.setOptions err: ", err);
+        }
+        wasiWorkerDebug("WASIWorker createWorker: ");
+
         const importNames = await this.wasiWorkerThread.initializeComponentImports(wasiExperimentalSocketsNamespace);
         this._componentImports = this.createComponentModuleImportProxy(importNames);
         return this._componentImports;
@@ -148,7 +136,7 @@ export class WASIWorker {
         const workerThread = wasiWorker.wasiWorkerThread;
         if (workerThread) {
             const handleComponentImportFunc = workerThread.handleComponentImport;
-            return createComponentModuleImportProxyPerImportForChannel(importName, channel, handleComponentImportFunc);
+            return createComponentImportOrResourceProxy("import", importName, channel, handleComponentImportFunc);
         } else {
             throw new Error("WasiWorkerThread not set");
         }
@@ -158,6 +146,15 @@ export class WASIWorker {
 export class WasiWorkerThreadRunner {
     constructor() {
         initializeComlinkHandlers();
+        if (!isBun()) {
+            RegisterProvider("node", node);
+        //} else if (isBun()) {
+        //    const bunimport = await import("@wasmin/bun-fs-js");
+        //    const bunfs = bunimport.bun;
+        //    RegisterProvider("bun", bunfs);
+        }
+        // @ts-ignore
+        //RegisterProvider("nfs", nfs);
     }
     private wasiWorkerOptions?: WasiWorkerOptions;
     private wasi?: WASI;
@@ -170,7 +167,7 @@ export class WasiWorkerThreadRunner {
     public async toWasiOptions(wasiWorkerOptions?: WasiWorkerOptions): Promise<WasiOptions> {
         let tty = wasiWorkerOptions?.tty;
         if (!tty) {
-            tty = new TTY(80, 24, true);
+            tty = new TTYImplementation(80, 24, true);
         }
         const wasiOpts: WasiOptions = {
             stdin: wasiWorkerOptions?.stdin,
@@ -180,6 +177,8 @@ export class WasiWorkerThreadRunner {
             args: wasiWorkerOptions?.args,
             abortSignal: wasiWorkerOptions?.abortSignal,
             tty: tty,
+            name: wasiWorkerOptions?.name,
+            componentMode: wasiWorkerOptions?.componentMode,
         };
 
         if (wasiWorkerOptions?.openFiles) {
@@ -195,6 +194,7 @@ export class WasiWorkerThreadRunner {
 
         return wasiOpts;
     }
+    /*
     public setStdOutWriter(writeFunc: (buf: Uint8Array) => Promise<void>): void {
         wasiWorkerDebug("WasiWorkerThread setStdOutWriter writeFunc: ", writeFunc);
         const newStdout = {
@@ -205,23 +205,22 @@ export class WasiWorkerThreadRunner {
         } else {
             throw new Error("WasiOptions not set");
         }
-    }
+    }*/
 
     public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
-        if (!this.wasi) {
-            this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
-        }
+        this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
         return await this.wasi.initializeComponentImports(wasiExperimentalSocketsNamespace);
     }
 
     public async handleComponentImport(
         channel: Channel,
         messageId: string,
+        callType: HandleCallType,
         importName: string,
         functionName: string,
         args: any[]
     ): Promise<any> {
-        await this.wasi?.handleComponentImport(channel, messageId, importName, functionName, args);
+        await this.wasi?.handleComponentImport(channel, messageId, callType, importName, functionName, args);
     }
 
     public async handleCoreImport(
@@ -253,19 +252,16 @@ export class WasiWorkerThreadRunner {
         wasiWorkerDebug("WasiWorkerThread run: moduleUrl:", moduleUrl);
 
         wasiWorkerDebug("WasiWorkerThread wasiOptions: ", this.wasiWorkerOptions);
+        
+        //this.wasi = new WASI(await this.toWasiOptions(wasiWorkerOpts));
+        //wasiWorkerDebug("WasiWorkerThread wasi: ");
 
-        if (this.wasiWorkerOptions) {
-            const wasiWorkerOpts = this.wasiWorkerOptions;
-            wasiWorkerDebug("WasiWorkerThread wasiWorkerOpts: ", wasiWorkerOpts);
+        const { wasmBuf } = await getWasmBuffer(moduleUrl);
 
-            this.wasi = new WASI(await this.toWasiOptions(wasiWorkerOpts));
-            wasiWorkerDebug("WasiWorkerThread wasi: ");
-
-            const { wasmBuf } = await getWasmBuffer(moduleUrl);
-
+        if (this.wasi) {
             return await this.wasi.run(wasmBuf);
         } else {
-            throw new Error("run wasiOptions not set");
+            throw new Error("run WASI not set");
         }
     }
 }
@@ -279,6 +275,7 @@ function createChannel(): Channel {
     return channel;
 }
 
+
 export function getWasiOptionsProxied(options: WasiWorkerOptions): WasiWorkerOptions {
     const wasiOptionsProxied: WasiWorkerOptions = {};
     wasiOptionsProxied.args = options.args;
@@ -287,23 +284,29 @@ export function getWasiOptionsProxied(options: WasiWorkerOptions): WasiWorkerOpt
 
     const origStdIn = options.stdin;
     if (origStdIn) {
-        wasiOptionsProxied.stdin = origStdIn;
+        const stdInProxied = comlink.proxy(origStdIn)
+        wasiOptionsProxied.stdin = stdInProxied;
     }
 
     const origStdOut = options.stdout;
     if (origStdOut) {
-        wasiOptionsProxied.stdout = origStdOut;
+        const stdOutProxied = comlink.proxy(origStdOut)
+        wasiOptionsProxied.stdout = stdOutProxied;
     }
 
     const origStdErr = options.stderr;
     if (origStdErr) {
-        wasiOptionsProxied.stderr = origStdErr;
+        const stdErrProxied = comlink.proxy(origStdErr)
+        wasiOptionsProxied.stderr = stdErrProxied;
     }
 
     const origTty = options.tty;
     if (origTty) {
-        wasiOptionsProxied.tty = origTty;
+        const ttyProxied = comlink.proxy(origTty)
+        wasiOptionsProxied.tty = ttyProxied;
     }
+    wasiOptionsProxied.componentMode = options.componentMode;
 
     return wasiOptionsProxied;
 }
+

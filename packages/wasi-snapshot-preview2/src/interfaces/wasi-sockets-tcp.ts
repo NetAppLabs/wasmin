@@ -12,16 +12,22 @@ export interface WasiSocketsTcpAsync {
    * Unlike in POSIX, this function is async. This enables interactive WASI hosts to inject permission prompts.
    * 
    * # Typical `start` errors
-   * - `address-family-mismatch`:   The `local-address` has the wrong address family. (EINVAL)
-   * - `already-bound`:             The socket is already bound. (EINVAL)
-   * - `concurrency-conflict`:      Another `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `invalid-argument`:          The `local-address` has the wrong address family. (EAFNOSUPPORT, EFAULT on Windows)
+   * - `invalid-argument`:          `local-address` is not a unicast address. (EINVAL)
+   * - `invalid-argument`:          `local-address` is an IPv4-mapped IPv6 address, but the socket has `ipv6-only` enabled. (EINVAL)
+   * - `invalid-state`:             The socket is already bound. (EINVAL)
    * 
    * # Typical `finish` errors
-   * - `ephemeral-ports-exhausted`: No ephemeral ports available. (EADDRINUSE, ENOBUFS on Windows)
+   * - `address-in-use`:            No ephemeral ports available. (EADDRINUSE, ENOBUFS on Windows)
    * - `address-in-use`:            Address is already in use. (EADDRINUSE)
    * - `address-not-bindable`:      `local-address` is not an address that the `network` can bind to. (EADDRNOTAVAIL)
    * - `not-in-progress`:           A `bind` operation is not in progress.
    * - `would-block`:               Can't finish the operation, it is still in progress. (EWOULDBLOCK, EAGAIN)
+   * 
+   * # Implementors note
+   * When binding to a non-zero port, this bind operation shouldn't be affected by the TIME_WAIT
+   * state of a recently closed socket on the same local address (i.e. the SO_REUSEADDR socket
+   * option should be set implicitly on platforms that require it).
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/bind.html>
@@ -29,8 +35,6 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-bind>
    * - <https://man.freebsd.org/cgi/man.cgi?query=bind&sektion=2&format=html>
    */
-   startBind(this_: TcpSocket, network: Network, localAddress: IpSocketAddress): Promise<void>;
-   finishBind(this_: TcpSocket): Promise<void>;
   /**
    * Connect to a remote endpoint.
    * 
@@ -38,21 +42,33 @@ export interface WasiSocketsTcpAsync {
    * - the socket is transitioned into the Connection state
    * - a pair of streams is returned that can be used to read & write to the connection
    * 
+   * POSIX mentions:
+   * > If connect() fails, the state of the socket is unspecified. Conforming applications should
+   * > close the file descriptor and create a new socket before attempting to reconnect.
+   * 
+   * WASI prescribes the following behavior:
+   * - If `connect` fails because an input/state validation error, the socket should remain usable.
+   * - If a connection was actually attempted but failed, the socket should become unusable for further network communication.
+   * Besides `drop`, any method after such a failure may return an error.
+   * 
    * # Typical `start` errors
-   * - `address-family-mismatch`:   The `remote-address` has the wrong address family. (EAFNOSUPPORT)
-   * - `invalid-remote-address`:    The IP address in `remote-address` is set to INADDR_ANY (`0.0.0.0` / `::`). (EADDRNOTAVAIL on Windows)
-   * - `invalid-remote-address`:    The port in `remote-address` is set to 0. (EADDRNOTAVAIL on Windows)
-   * - `already-attached`:          The socket is already attached to a different network. The `network` passed to `connect` must be identical to the one passed to `bind`.
-   * - `already-connected`:         The socket is already in the Connection state. (EISCONN)
-   * - `already-listening`:         The socket is already in the Listener state. (EOPNOTSUPP, EINVAL on Windows)
-   * - `concurrency-conflict`:      Another `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `invalid-argument`:          The `remote-address` has the wrong address family. (EAFNOSUPPORT)
+   * - `invalid-argument`:          `remote-address` is not a unicast address. (EINVAL, ENETUNREACH on Linux, EAFNOSUPPORT on MacOS)
+   * - `invalid-argument`:          `remote-address` is an IPv4-mapped IPv6 address, but the socket has `ipv6-only` enabled. (EINVAL, EADDRNOTAVAIL on Illumos)
+   * - `invalid-argument`:          `remote-address` is a non-IPv4-mapped IPv6 address, but the socket was bound to a specific IPv4-mapped IPv6 address. (or vice versa)
+   * - `invalid-argument`:          The IP address in `remote-address` is set to INADDR_ANY (`0.0.0.0` / `::`). (EADDRNOTAVAIL on Windows)
+   * - `invalid-argument`:          The port in `remote-address` is set to 0. (EADDRNOTAVAIL on Windows)
+   * - `invalid-argument`:          The socket is already attached to a different network. The `network` passed to `connect` must be identical to the one passed to `bind`.
+   * - `invalid-state`:             The socket is already in the Connection state. (EISCONN)
+   * - `invalid-state`:             The socket is already in the Listener state. (EOPNOTSUPP, EINVAL on Windows)
    * 
    * # Typical `finish` errors
    * - `timeout`:                   Connection timed out. (ETIMEDOUT)
    * - `connection-refused`:        The connection was forcefully rejected. (ECONNREFUSED)
    * - `connection-reset`:          The connection was reset. (ECONNRESET)
-   * - `remote-unreachable`:        The remote address is not reachable. (EHOSTUNREACH, EHOSTDOWN, ENETUNREACH, ENETDOWN)
-   * - `ephemeral-ports-exhausted`: Tried to perform an implicit bind, but there were no ephemeral ports available. (EADDRINUSE, EADDRNOTAVAIL on Linux, EAGAIN on BSD)
+   * - `connection-aborted`:        The connection was aborted. (ECONNABORTED)
+   * - `remote-unreachable`:        The remote address is not reachable. (EHOSTUNREACH, EHOSTDOWN, ENETUNREACH, ENETDOWN, ENONET)
+   * - `address-in-use`:            Tried to perform an implicit bind, but there were no ephemeral ports available. (EADDRINUSE, EADDRNOTAVAIL on Linux, EAGAIN on BSD)
    * - `not-in-progress`:           A `connect` operation is not in progress.
    * - `would-block`:               Can't finish the operation, it is still in progress. (EWOULDBLOCK, EAGAIN)
    * 
@@ -62,13 +78,6 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-connect>
    * - <https://man.freebsd.org/cgi/man.cgi?connect>
    */
-   startConnect(this_: TcpSocket, network: Network, remoteAddress: IpSocketAddress): Promise<void>;
-  /**
-   * Note: the returned `input-stream` and `output-stream` are child
-   * resources of the `tcp-socket`. Implementations may trap if the
-   * `tcp-socket` is dropped before both of these streams are dropped.
-   */
-   finishConnect(this_: TcpSocket): Promise<[InputStream, OutputStream]>;
   /**
    * Start listening for new connections.
    * 
@@ -79,13 +88,12 @@ export interface WasiSocketsTcpAsync {
    * - the socket must already be explicitly bound.
    * 
    * # Typical `start` errors
-   * - `not-bound`:                 The socket is not bound to any local address. (EDESTADDRREQ)
-   * - `already-connected`:         The socket is already in the Connection state. (EISCONN, EINVAL on BSD)
-   * - `already-listening`:         The socket is already in the Listener state.
-   * - `concurrency-conflict`:      Another `bind`, `connect` or `listen` operation is already in progress. (EINVAL on BSD)
+   * - `invalid-state`:             The socket is not bound to any local address. (EDESTADDRREQ)
+   * - `invalid-state`:             The socket is already in the Connection state. (EISCONN, EINVAL on BSD)
+   * - `invalid-state`:             The socket is already in the Listener state.
    * 
    * # Typical `finish` errors
-   * - `ephemeral-ports-exhausted`: Tried to perform an implicit bind, but there were no ephemeral ports available. (EADDRINUSE)
+   * - `address-in-use`:            Tried to perform an implicit bind, but there were no ephemeral ports available. (EADDRINUSE)
    * - `not-in-progress`:           A `listen` operation is not in progress.
    * - `would-block`:               Can't finish the operation, it is still in progress. (EWOULDBLOCK, EAGAIN)
    * 
@@ -95,25 +103,28 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-listen>
    * - <https://man.freebsd.org/cgi/man.cgi?query=listen&sektion=2>
    */
-   startListen(this_: TcpSocket): Promise<void>;
-   finishListen(this_: TcpSocket): Promise<void>;
   /**
    * Accept a new client socket.
    * 
-   * The returned socket is bound and in the Connection state.
+   * The returned socket is bound and in the Connection state. The following properties are inherited from the listener socket:
+   * - `address-family`
+   * - `ipv6-only`
+   * - `keep-alive-enabled`
+   * - `keep-alive-idle-time`
+   * - `keep-alive-interval`
+   * - `keep-alive-count`
+   * - `hop-limit`
+   * - `receive-buffer-size`
+   * - `send-buffer-size`
    * 
    * On success, this function returns the newly accepted client socket along with
    * a pair of streams that can be used to read & write to the connection.
    * 
-   * Note: the returned `input-stream` and `output-stream` are child
-   * resources of the returned `tcp-socket`. Implementations may trap if the
-   * `tcp-socket` is dropped before its child streams are dropped.
-   * 
    * # Typical errors
-   * - `not-listening`: Socket is not in the Listener state. (EINVAL)
-   * - `would-block`:   No pending connections at the moment. (EWOULDBLOCK, EAGAIN)
-   * 
-   * Host implementations must skip over transient errors returned by the native accept syscall.
+   * - `invalid-state`:      Socket is not in the Listener state. (EINVAL)
+   * - `would-block`:        No pending connections at the moment. (EWOULDBLOCK, EAGAIN)
+   * - `connection-aborted`: An incoming connection was pending, but was terminated by the client before this listener could accept it. (ECONNABORTED)
+   * - `new-socket-limit`:   The new socket resource could not be created because of a system limit. (EMFILE, ENFILE)
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/accept.html>
@@ -121,12 +132,17 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-accept>
    * - <https://man.freebsd.org/cgi/man.cgi?query=accept&sektion=2>
    */
-   accept(this_: TcpSocket): Promise<[TcpSocket, InputStream, OutputStream]>;
   /**
    * Get the bound local address.
    * 
+   * POSIX mentions:
+   * > If the socket has not been bound to a local name, the value
+   * > stored in the object pointed to by `address` is unspecified.
+   * 
+   * WASI is stricter and requires `local-address` to return `invalid-state` when the socket hasn't been bound yet.
+   * 
    * # Typical errors
-   * - `not-bound`: The socket is not bound to any local address.
+   * - `invalid-state`: The socket is not bound to any local address.
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/getsockname.html>
@@ -134,12 +150,11 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-getsockname>
    * - <https://man.freebsd.org/cgi/man.cgi?getsockname>
    */
-   localAddress(this_: TcpSocket): Promise<IpSocketAddress>;
   /**
-   * Get the bound remote address.
+   * Get the remote address.
    * 
    * # Typical errors
-   * - `not-connected`: The socket is not connected to a remote address. (ENOTCONN)
+   * - `invalid-state`: The socket is not connected to a remote address. (ENOTCONN)
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpeername.html>
@@ -147,92 +162,114 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-getpeername>
    * - <https://man.freebsd.org/cgi/man.cgi?query=getpeername&sektion=2&n=1>
    */
-   remoteAddress(this_: TcpSocket): Promise<IpSocketAddress>;
+  /**
+   * Whether the socket is listening for new connections.
+   * 
+   * Equivalent to the SO_ACCEPTCONN socket option.
+   */
   /**
    * Whether this is a IPv4 or IPv6 socket.
    * 
    * Equivalent to the SO_DOMAIN socket option.
    */
-   addressFamily(this_: TcpSocket): Promise<IpAddressFamily>;
   /**
    * Whether IPv4 compatibility (dual-stack) mode is disabled or not.
    * 
    * Equivalent to the IPV6_V6ONLY socket option.
    * 
    * # Typical errors
-   * - `ipv6-only-operation`:  (get/set) `this` socket is an IPv4 socket.
-   * - `already-bound`:        (set) The socket is already bound.
+   * - `invalid-state`:        (set) The socket is already bound.
+   * - `not-supported`:        (get/set) `this` socket is an IPv4 socket.
    * - `not-supported`:        (set) Host does not support dual-stack sockets. (Implementations are not required to.)
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
    */
-   ipv6Only(this_: TcpSocket): Promise<boolean>;
-   setIpv6Only(this_: TcpSocket, value: boolean): Promise<void>;
   /**
    * Hints the desired listen queue size. Implementations are free to ignore this.
    * 
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * Any other value will never cause an error, but it might be silently clamped and/or rounded.
+   * 
    * # Typical errors
-   * - `already-connected`:    (set) The socket is already in the Connection state.
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `not-supported`:        (set) The platform does not support changing the backlog size after the initial listen.
+   * - `invalid-argument`:     (set) The provided value was 0.
+   * - `invalid-state`:        (set) The socket is already in the Connection state.
    */
-   setListenBacklogSize(this_: TcpSocket, value: bigint): Promise<void>;
   /**
+   * Enables or disables keepalive.
+   * 
+   * The keepalive behavior can be adjusted using:
+   * - `keep-alive-idle-time`
+   * - `keep-alive-interval`
+   * - `keep-alive-count`
+   * These properties can be configured while `keep-alive-enabled` is false, but only come into effect when `keep-alive-enabled` is true.
+   * 
    * Equivalent to the SO_KEEPALIVE socket option.
-   * 
-   * # Typical errors
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
    */
-   keepAlive(this_: TcpSocket): Promise<boolean>;
-   setKeepAlive(this_: TcpSocket, value: boolean): Promise<void>;
   /**
-   * Equivalent to the TCP_NODELAY socket option.
+   * Amount of time the connection has to be idle before TCP starts sending keepalive packets.
+   * 
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * Any other value will never cause an error, but it might be silently clamped and/or rounded.
+   * I.e. after setting a value, reading the same setting back may return a different value.
+   * 
+   * Equivalent to the TCP_KEEPIDLE socket option. (TCP_KEEPALIVE on MacOS)
    * 
    * # Typical errors
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `invalid-argument`:     (set) The provided value was 0.
    */
-   noDelay(this_: TcpSocket): Promise<boolean>;
-   setNoDelay(this_: TcpSocket, value: boolean): Promise<void>;
+  /**
+   * The time between keepalive packets.
+   * 
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * Any other value will never cause an error, but it might be silently clamped and/or rounded.
+   * I.e. after setting a value, reading the same setting back may return a different value.
+   * 
+   * Equivalent to the TCP_KEEPINTVL socket option.
+   * 
+   * # Typical errors
+   * - `invalid-argument`:     (set) The provided value was 0.
+   */
+  /**
+   * The maximum amount of keepalive packets TCP should send before aborting the connection.
+   * 
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * Any other value will never cause an error, but it might be silently clamped and/or rounded.
+   * I.e. after setting a value, reading the same setting back may return a different value.
+   * 
+   * Equivalent to the TCP_KEEPCNT socket option.
+   * 
+   * # Typical errors
+   * - `invalid-argument`:     (set) The provided value was 0.
+   */
   /**
    * Equivalent to the IP_TTL & IPV6_UNICAST_HOPS socket options.
    * 
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * 
    * # Typical errors
-   * - `already-connected`:    (set) The socket is already in the Connection state.
-   * - `already-listening`:    (set) The socket is already in the Listener state.
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `invalid-argument`:     (set) The TTL value must be 1 or higher.
+   * - `invalid-state`:        (set) The socket is already in the Connection state.
+   * - `invalid-state`:        (set) The socket is already in the Listener state.
    */
-   unicastHopLimit(this_: TcpSocket): Promise<number>;
-   setUnicastHopLimit(this_: TcpSocket, value: number): Promise<void>;
   /**
    * The kernel buffer space reserved for sends/receives on this socket.
    * 
-   * Note #1: an implementation may choose to cap or round the buffer size when setting the value.
-   * In other words, after setting a value, reading the same setting back may return a different value.
-   * 
-   * Note #2: there is not necessarily a direct relationship between the kernel buffer size and the bytes of
-   * actual data to be sent/received by the application, because the kernel might also use the buffer space
-   * for internal metadata structures.
+   * If the provided value is 0, an `invalid-argument` error is returned.
+   * Any other value will never cause an error, but it might be silently clamped and/or rounded.
+   * I.e. after setting a value, reading the same setting back may return a different value.
    * 
    * Equivalent to the SO_RCVBUF and SO_SNDBUF socket options.
    * 
    * # Typical errors
-   * - `already-connected`:    (set) The socket is already in the Connection state.
-   * - `already-listening`:    (set) The socket is already in the Listener state.
-   * - `concurrency-conflict`: (set) A `bind`, `connect` or `listen` operation is already in progress. (EALREADY)
+   * - `invalid-argument`:     (set) The provided value was 0.
+   * - `invalid-state`:        (set) The socket is already in the Connection state.
+   * - `invalid-state`:        (set) The socket is already in the Listener state.
    */
-   receiveBufferSize(this_: TcpSocket): Promise<bigint>;
-   setReceiveBufferSize(this_: TcpSocket, value: bigint): Promise<void>;
-   sendBufferSize(this_: TcpSocket): Promise<bigint>;
-   setSendBufferSize(this_: TcpSocket, value: bigint): Promise<void>;
   /**
    * Create a `pollable` which will resolve once the socket is ready for I/O.
-   * 
-   * The created `pollable` is a child resource of the `tcp-socket`.
-   * Implementations may trap if the `tcp-socket` is dropped before all
-   * derived `pollable`s created with this function are dropped.
    * 
    * Note: this function is here for WASI Preview2 only.
    * It's planned to be removed when `future` is natively supported in Preview3.
    */
-   subscribe(this_: TcpSocket): Promise<Pollable>;
   /**
    * Initiate a graceful shutdown.
    * 
@@ -246,7 +283,7 @@ export interface WasiSocketsTcpAsync {
    * The shutdown function does not close (drop) the socket.
    * 
    * # Typical errors
-   * - `not-connected`: The socket is not in the Connection state. (ENOTCONN)
+   * - `invalid-state`: The socket is not in the Connection state. (ENOTCONN)
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/shutdown.html>
@@ -254,34 +291,23 @@ export interface WasiSocketsTcpAsync {
    * - <https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-shutdown>
    * - <https://man.freebsd.org/cgi/man.cgi?query=shutdown&sektion=2>
    */
-   shutdown(this_: TcpSocket, shutdownType: ShutdownType): Promise<void>;
-  /**
-   * Dispose of the specified `tcp-socket`, after which it may no longer be used.
-   * 
-   * Similar to the POSIX `close` function.
-   * 
-   * Note: this function is scheduled to be removed when Resources are natively supported in Wit.
-   */
-   dropTcpSocket(this_: TcpSocket): Promise<void>;
 }
-import type { InputStream } from '../interfaces/wasi-io-streams';
+import type { InputStream } from '../interfaces/wasi-io-streams.js';
 export { InputStream };
-import type { OutputStream } from '../interfaces/wasi-io-streams';
+import type { OutputStream } from '../interfaces/wasi-io-streams.js';
 export { OutputStream };
-import type { Pollable } from '../interfaces/wasi-poll-poll';
+import type { Pollable } from '../interfaces/wasi-io-poll.js';
 export { Pollable };
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Duration } from '../interfaces/wasi-clocks-monotonic-clock.js';
+export { Duration };
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
 export { ErrorCode };
-import type { IpSocketAddress } from '../interfaces/wasi-sockets-network';
+import type { IpSocketAddress } from '../interfaces/wasi-sockets-network.js';
 export { IpSocketAddress };
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network';
+import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
 export { IpAddressFamily };
-/**
- * A TCP socket handle.
- */
-export type TcpSocket = number;
 /**
  * # Variants
  * 
@@ -296,3 +322,36 @@ export type TcpSocket = number;
  * Similar to `SHUT_RDWR` in POSIX.
  */
 export type ShutdownType = 'receive' | 'send' | 'both';
+
+export interface TcpSocket {
+  startBind(network: Network, localAddress: IpSocketAddress): Promise<void>;
+  finishBind(): Promise<void>;
+  startConnect(network: Network, remoteAddress: IpSocketAddress): Promise<void>;
+  finishConnect(): Promise<[InputStream, OutputStream]>;
+  startListen(): Promise<void>;
+  finishListen(): Promise<void>;
+  accept(): Promise<[TcpSocket, InputStream, OutputStream]>;
+  localAddress(): Promise<IpSocketAddress>;
+  remoteAddress(): Promise<IpSocketAddress>;
+  isListening(): Promise<boolean>;
+  addressFamily(): Promise<IpAddressFamily>;
+  ipv6Only(): Promise<boolean>;
+  setIpv6Only(value: boolean): Promise<void>;
+  setListenBacklogSize(value: bigint): Promise<void>;
+  keepAliveEnabled(): Promise<boolean>;
+  setKeepAliveEnabled(value: boolean): Promise<void>;
+  keepAliveIdleTime(): Promise<Duration>;
+  setKeepAliveIdleTime(value: Duration): Promise<void>;
+  keepAliveInterval(): Promise<Duration>;
+  setKeepAliveInterval(value: Duration): Promise<void>;
+  keepAliveCount(): Promise<number>;
+  setKeepAliveCount(value: number): Promise<void>;
+  hopLimit(): Promise<number>;
+  setHopLimit(value: number): Promise<void>;
+  receiveBufferSize(): Promise<bigint>;
+  setReceiveBufferSize(value: bigint): Promise<void>;
+  sendBufferSize(): Promise<bigint>;
+  setSendBufferSize(value: bigint): Promise<void>;
+  subscribe(): Promise<Pollable>;
+  shutdown(shutdownType: ShutdownType): Promise<void>;
+}

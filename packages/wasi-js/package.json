@@ -15,7 +15,12 @@
     "./wasi_snapshot_preview2/*": {
       "types": "./dist/wasi_snapshot_preview2/*.d.ts",
       "import": "./dist/wasi_snapshot_preview2/*.js"
+    },
+    "./testutil": {
+      "types": "./dist/testutil/index.d.ts",
+      "import": "./dist/testutil/index.js"
     }
+
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -54,6 +59,10 @@
     {
       "name": "tryggvil",
       "email": "tryggvi@netapp.com"
+    },
+    {
+      "name": "fridvin-netapp",
+      "email": "Fridvin.Oddbjornsson@netapp.com"
     }
   ],
   "license": "Apache-2.0",

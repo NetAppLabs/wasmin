@@ -1,12 +1,7 @@
 export namespace WasiFilesystemTypes {
-  export function readViaStream(this_: Descriptor, offset: Filesize): InputStream;
-  export function writeViaStream(this_: Descriptor, offset: Filesize): OutputStream;
-  export function appendViaStream(this_: Descriptor): OutputStream;
-  export function getType(this_: Descriptor): DescriptorType;
-  export function stat(this_: Descriptor): DescriptorStat;
-  export function dropDescriptor(this_: Descriptor): void;
+  export { Descriptor };
+  export function filesystemErrorCode(err: Error): ErrorCode | undefined;
 }
-export type Descriptor = number;
 export type Filesize = bigint;
 import type { InputStream } from '../interfaces/wasi-io-streams.js';
 export { InputStream };
@@ -117,7 +112,17 @@ export interface DescriptorStat {
   type: DescriptorType,
   linkCount: LinkCount,
   size: Filesize,
-  dataAccessTimestamp: Datetime,
-  dataModificationTimestamp: Datetime,
-  statusChangeTimestamp: Datetime,
+  dataAccessTimestamp?: Datetime,
+  dataModificationTimestamp?: Datetime,
+  statusChangeTimestamp?: Datetime,
+}
+import type { Error } from '../interfaces/wasi-io-streams.js';
+export { Error };
+
+export class Descriptor {
+  readViaStream(offset: Filesize): InputStream;
+  writeViaStream(offset: Filesize): OutputStream;
+  appendViaStream(): OutputStream;
+  getType(): DescriptorType;
+  stat(): DescriptorStat;
 }

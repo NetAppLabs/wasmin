@@ -11,9 +11,8 @@ export interface WasiSocketsTcpCreateSocketAsync {
    * All sockets are non-blocking. Use the wasi-poll interface to block on asynchronous operations.
    * 
    * # Typical errors
-   * - `not-supported`:                The host does not support TCP sockets. (EOPNOTSUPP)
-   * - `address-family-not-supported`: The specified `address-family` is not supported. (EAFNOSUPPORT)
-   * - `new-socket-limit`:             The new socket resource could not be created because of a system limit. (EMFILE, ENFILE)
+   * - `not-supported`:     The specified `address-family` is not supported. (EAFNOSUPPORT)
+   * - `new-socket-limit`:  The new socket resource could not be created because of a system limit. (EMFILE, ENFILE)
    * 
    * # References
    * - <https://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html>
@@ -23,11 +22,11 @@ export interface WasiSocketsTcpCreateSocketAsync {
    */
    createTcpSocket(addressFamily: IpAddressFamily): Promise<TcpSocket>;
 }
-import type { Network } from '../interfaces/wasi-sockets-network';
+import type { Network } from '../interfaces/wasi-sockets-network.js';
 export { Network };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network';
+import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
 export { ErrorCode };
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network';
+import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
 export { IpAddressFamily };
-import type { TcpSocket } from '../interfaces/wasi-sockets-tcp';
+import type { TcpSocket } from '../interfaces/wasi-sockets-tcp.js';
 export { TcpSocket };
