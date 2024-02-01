@@ -3,7 +3,7 @@ import * as comlink from "comlink";
 import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
 import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
-import { In, Out, isNode } from "./wasiUtils.js";
+import { isNode } from "./wasiUtils.js";
 import {
     Channel,
     makeAtomicsChannel,
@@ -12,9 +12,9 @@ import {
     uuidv4,
     writeMessage,
 } from "./vendored/sync-message/index.js";
-import { OpenFiles } from "./wasiFileSystem.js";
+import { OpenFiles, ReadableAsyncOrSync, WritableAsyncOrSync } from "./wasiFileSystem.js";
 import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js";
-import { TTY, TTYImplementation } from "./tty.js";
+import { TTY, TTYInstance } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 import { node } from "@wasmin/node-fs-js";
@@ -24,9 +24,9 @@ export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
 export interface WasiWorkerOptions {
     openFiles?: OpenFilesMap;
-    stdin?: In;
-    stdout?: Out;
-    stderr?: Out;
+    stdin?: ReadableAsyncOrSync;
+    stdout?: WritableAsyncOrSync;
+    stderr?: WritableAsyncOrSync;
     args?: string[];
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
@@ -146,7 +146,7 @@ export class WASIWorker {
 export class WasiWorkerThreadRunner {
     constructor() {
         initializeComlinkHandlers();
-        if (!isBun()) {
+        if (isNode()) {
             RegisterProvider("node", node);
         //} else if (isBun()) {
         //    const bunimport = await import("@wasmin/bun-fs-js");
@@ -167,7 +167,7 @@ export class WasiWorkerThreadRunner {
     public async toWasiOptions(wasiWorkerOptions?: WasiWorkerOptions): Promise<WasiOptions> {
         let tty = wasiWorkerOptions?.tty;
         if (!tty) {
-            tty = new TTYImplementation(80, 24, true);
+            tty = new TTYInstance(80, 24, true);
         }
         const wasiOpts: WasiOptions = {
             stdin: wasiWorkerOptions?.stdin,

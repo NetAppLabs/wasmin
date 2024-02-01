@@ -1,7 +1,7 @@
-import { ClocksMonotonicClockNamespace as clockm } from "@wasmin/wasi-snapshot-preview2";
-type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClockAsync;
-import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2";
-type ClocksWallClockAsync = clockw.WasiClocksWallClockAsync;
+import { ClocksMonotonicClockNamespace as clockm } from "@wasmin/wasi-snapshot-preview2/async";
+type ClocksMonotonicClockAsync = clockm.WasiClocksMonotonicClock;
+import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2/async";
+type ClocksWallClockAsync = clockw.WasiClocksWallClock;
 import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isNode, isNodeorBun, isNodeorBunorDeno, sleep } from "../../wasiUtils.js";
@@ -89,7 +89,7 @@ export class ClocksMonotonicClockAsyncHost implements ClocksMonotonicClockAsync 
         }
         const disposeFunc = this.openFiles.getDisposeResourceFunc();
         const pollable = new ClocksMonotonicPollable(when, disposeFunc);
-        this.openFiles.add(pollable);
+        this.openFiles.addResource(pollable);
         return pollable;
     }
 }

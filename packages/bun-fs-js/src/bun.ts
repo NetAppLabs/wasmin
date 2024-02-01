@@ -180,7 +180,7 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
                 throw err;
             });
         }
-        let fileHandle = await fs.open(this.path, "r+").catch((err) => {
+        const fileHandle = await fs.open(this.path, "r+").catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
@@ -431,7 +431,7 @@ function bunStatToStat(stat: BunStats): Stat {
 }
 
 function toUnixTimestampNumber(timeNs: bigint) {
-    let timeMs = Number(timeNs / 1_000_000n);
+    const timeMs = Number(timeNs / 1_000_000n);
     const timeMsFloored = Math.round(timeMs);
     // convert to fractional UNIX timestamp like 123.456
     const timeMsUnixSecondsFractional = timeMsFloored / 1000;

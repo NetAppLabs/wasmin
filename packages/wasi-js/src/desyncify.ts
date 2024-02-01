@@ -1,6 +1,6 @@
 import { Asyncify } from "./vendored/asyncify/asyncify.js";
 import { Channel, makeChannel, readMessage, syncSleep, uuidv4 } from "./vendored/sync-message/index.js";
-import { isFunction, wasmHandlerDebug } from "./workerUtils.js";
+import { isFunction, wasmWorkerClientDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isNode } from "./wasiUtils.js";
@@ -64,7 +64,7 @@ export async function instantiateWithAsyncDetection(
     channel?: Channel;
     worker?: WasmWorker;
 }> {
-    wasmHandlerDebug("instantiateWithAsyncDetection");
+    wasmWorkerClientDebug("instantiateWithAsyncDetection");
     let isAsyncified = false;
     let wasmMod: WebAssembly.Module;
     let sourceBuffer: BufferSource | null = null;
@@ -78,7 +78,7 @@ export async function instantiateWithAsyncDetection(
     const syncInstance = await WebAssembly.instantiate(wasmMod, imports);
     if (syncInstance.exports["asyncify_get_state"] == null) {
         isAsyncified = false;
-        wasmHandlerDebug("asyncify_get_state == null , isAsync: ", isAsyncified);
+        wasmWorkerClientDebug("asyncify_get_state == null , isAsync: ", isAsyncified);
     } else {
         // TODO: look into issue with wasi_vfs_pack_fs + asyncify - disable for now
         if (syncInstance.exports["wasi_vfs_pack_fs"] != null) {
@@ -86,7 +86,7 @@ export async function instantiateWithAsyncDetection(
         } else {
             isAsyncified = true;
         }
-        wasmHandlerDebug("asyncify_get_state != null, isAsync: ", isAsyncified);
+        wasmWorkerClientDebug("asyncify_get_state != null, isAsync: ", isAsyncified);
     }
     if (isAsyncified) {
         const state = new Asyncify();
@@ -120,10 +120,10 @@ export async function instantiateOnWasmWorker(
     worker?: WasmWorker;
     moduleInstanceId?: string;
 }> {
-    wasmHandlerDebug("instantiate making channel");
+    wasmWorkerClientDebug("instantiate making channel");
     let channel: Channel | null;
     channel = makeChannel();
-    wasmHandlerDebug("instantiate made channel: ", channel);
+    wasmWorkerClientDebug("instantiate made channel: ", channel);
 
     if (channel) {
         if (!sourceBuffer) {
@@ -137,9 +137,9 @@ export async function instantiateOnWasmWorker(
         }
 
         const threadRemote = worker?.coreRunner;
-        wasmHandlerDebug("instantiate wrapped threadRemote");
+        wasmWorkerClientDebug("instantiate wrapped threadRemote");
         const moduleInstanceId = uuidv4();
-        wasmHandlerDebug("instantiate wrapped threadRemote moduleInstanceId: ", moduleInstanceId);
+        wasmWorkerClientDebug("instantiate wrapped threadRemote moduleInstanceId: ", moduleInstanceId);
         const proxiedInstance = await handlerInstanciateProxy(
             sourceBuffer,
             imports,
@@ -148,7 +148,7 @@ export async function instantiateOnWasmWorker(
             handleImportFunc,
             moduleInstanceId
         );
-        wasmHandlerDebug("instantiate returning");
+        wasmWorkerClientDebug("instantiate returning");
 
         return {
             instance: proxiedInstance,
@@ -170,7 +170,7 @@ async function handlerInstanciateProxy(
     handleImportFunc?: HandleWasmImportFunc,
     moduleInstanceId?: string
 ): Promise<WebAssembly.Instance> {
-    wasmHandlerDebug("instantiateProxy");
+    wasmWorkerClientDebug("instantiateProxy");
 
     //let exportChannel: Channel | null;
     //exportChannel = makeChannel();
@@ -186,7 +186,7 @@ async function handlerInstanciateProxy(
             // wasmHandlerDebug("handlerInstanciateProxy: target: ", target, "name", name, "receiver", receiver);
             // wasmHandlerDebug("instantiateProxy get:", name);
             if (threadRemote && moduleInstanceId) {
-                wasmHandlerDebug("instantiateProxy creating wrappedExportFunction");
+                wasmWorkerClientDebug("instantiateProxy creating wrappedExportFunction");
                 // hack - refine this:
                 if (name == "$imports") {
                     // TODO: imlement fetching local $imports from local
@@ -210,7 +210,7 @@ async function handlerInstanciateProxy(
                 if (wrapExportFunctionSync) {
                     // In this case the wrappedExportFunction is synchronous
                     wrappedExportFunction = (...args: any[]) => {
-                        wasmHandlerDebug(
+                        wasmWorkerClientDebug(
                             "instantiateProxy calling wrappedExportFunction synchronous functionName: ",
                             functionName
                         );
@@ -248,10 +248,10 @@ async function handlerInstanciateProxy(
                 } else {
                     // In this case the wrappedExportFunction is async
                     wrappedExportFunction = async (...args: any[]) => {
-                        wasmHandlerDebug("instantiateProxy calling wrappedExportFunction async");
+                        wasmWorkerClientDebug("instantiateProxy calling wrappedExportFunction async");
                         const functionName = name as string;
                         const sargs = await args;
-                        wasmHandlerDebug(
+                        wasmWorkerClientDebug(
                             "instantiateProxy calling wrappedExportFunction async functionName: ",
                             functionName,
                             ", sargs: ",
@@ -277,15 +277,15 @@ async function handlerInstanciateProxy(
             }
         },
     });
-    wasmHandlerDebug("workerProxy creating: instanceProxy");
+    wasmWorkerClientDebug("workerProxy creating: instanceProxy");
     const instanceProxy: WebAssembly.Instance = {
         exports: exportsProxy,
     };
-    wasmHandlerDebug("workerProxy created: instanceProxy");
+    wasmWorkerClientDebug("workerProxy created: instanceProxy");
     const knownImports: Record<string, Record<string, ImportReference>> = {};
     if (importObject) {
         for (const [importKey, value] of Object.entries(importObject)) {
-            wasmHandlerDebug("workerProxy pushing importKey: ", importKey);
+            wasmWorkerClientDebug("workerProxy pushing importKey: ", importKey);
             knownImports[importKey] = {};
             if (value.$imports) {
                 const importValue = value.$imports as any as string;
@@ -313,7 +313,7 @@ async function handlerInstanciateProxy(
         }
     }
     if (threadRemote && channel && handleImportFunc) {
-        wasmHandlerDebug("workerProxy calling instantiate");
+        wasmWorkerClientDebug("workerProxy calling instantiate");
         threadRemote.instantiate(moduleSource, knownImports, channel, handleImportFunc, moduleInstanceId);
     } else {
         throw new Error("workerProxy, channel or handleImportFunc not set");

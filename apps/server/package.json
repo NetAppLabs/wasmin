@@ -20,10 +20,10 @@
   "dependencies": {
     "@cmdcode/nostr-emitter": "^1.1.15",
     "@molt/command": "^0.6.0",
-    "@tanstack/react-query": "^4.10.1",
-    "@trpc/client": "^10.4.0",
-    "@trpc/react": "^10.0.0-proxy-beta.20",
-    "@trpc/server": "^10.4.0",
+    "@tanstack/react-query": "^4.0.0",
+    "@trpc/client": "^10.45.0",
+    "@trpc/react-query": "^10.45.0",
+    "@trpc/server": "^10.45.0",
     "@wasmin/fs-js": "*",
     "@wasmin/node-fs-js": "*",
     "@wasmin/shell": "*",
@@ -31,7 +31,7 @@
     "bonjour-service": "^1.0.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "trpc-openapi": "^1.1.1",
+    "trpc-openapi": "^1.2.0",
     "unique-names-generator": "^4.7.1",
     "zod": "^3.20.2"
   },
@@ -44,6 +44,6 @@
     "npm-run-all": "^4.1.5",
     "react-refresh": "^0.14.0",
     "ts-node-dev": "^2.0.0",
-    "vite": "^4.3.9"
+    "vite": "^5.0.12"
   }
 }

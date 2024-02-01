@@ -1,7 +1,7 @@
-//import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasmin/wasi-snapshot-preview2"
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
-import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2";
-type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopensAsync;
+//import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasmin/wasi-snapshot-preview2/async"
+import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopens;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
@@ -59,7 +59,7 @@ export class FileSystemPreopensAsyncHost implements PreopensAsync {
     }
 }
 
-export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsync {
+export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypes {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -82,6 +82,7 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypesAsyn
 
 export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     private _wasiEnv: WasiEnv;
+    public _fd: number;
     public resource: number;
     private _path: string;
 
@@ -92,7 +93,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         return this.wasiEnv.openFiles;
     }
     get fd() {
-        return this.resource;
+        return this._fd;
     }
     get path() {
         return this._path;
@@ -101,8 +102,9 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     constructor(wasiOptions: WasiOptions, fd: number, path: string) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.resource = fd;
+        this._fd = fd;
         this._path = path;
+        this.resource = this.openFiles.addResource(this);
     }
     async readViaStream(offset: bigint): Promise<fs.InputStream> {
         try {
@@ -299,7 +301,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         }
     }
     async linkAt(oldPathFlags: fs.PathFlags, oldPath: string, newDescriptor: fs.Descriptor, newPath: string): Promise<void> {
-        throw new Error("Method not implemented. Symbolic links not supported");
+        throw 'not-permitted';
     }
     async openAt(pathFlags: fs.PathFlags, path: string, openFlags: fs.OpenFlags, flags: fs.DescriptorFlags): Promise<fs.Descriptor> {
         try {
@@ -428,6 +430,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     async [Symbol.asyncDispose](): Promise<void> {
         try {
             await this.openFiles.close(this.fd);
+            await this.openFiles.disposeResource(this);
         } catch (err: any) {
             wasiPreview2Debug("Descriptor[Symbol.asyncDispose]() err: ", err);
         }

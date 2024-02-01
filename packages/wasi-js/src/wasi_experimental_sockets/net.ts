@@ -1,5 +1,5 @@
 import { SystemError } from "../errors.js";
-import { Socket } from "../wasiFileSystem.js";
+import { Peekable, Socket } from "../wasiFileSystem.js";
 import { isNode, isNodeorBunorDeno } from "../wasiUtils.js";
 
 import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
@@ -35,7 +35,7 @@ export const deferredPromise = <T>() => {
     };
   };  
 
-export class NetTcpSocket extends Socket implements WasiSocket {
+export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     type: SocketType;
     constructor(family: AddressFamily, socketCreator: () => NodeNetTcpSocket, serverCreator?: () => NodeNetTcpServer, parentSocket?: NetTcpSocket) {
         super();
@@ -482,7 +482,7 @@ export class NetTcpSocket extends Socket implements WasiSocket {
     }
 }
 
-export class NetUdpSocket extends Socket implements WasiSocket {
+export class NetUdpSocket extends Socket implements WasiSocket, Peekable {
     type: SocketType;
     constructor(family: AddressFamily, socketCreator: (fam: AddressFamily) => NodeNetUdpSocket) {
         super();

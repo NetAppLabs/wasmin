@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYImplementation, TTYSize, Writable, Readable, sleep } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
 
 // File & Blob is now in node v19 (19.2)
@@ -45,7 +45,7 @@ function shellDebug(...args: any) {
     }
 }
 
-const tty = new TTYImplementation(cols, rows, rawMode, modeListener);
+const tty = new TTYInstance(cols, rows, rawMode, modeListener);
 
 async function termResize() {
     var columns = process.stdout.columns;
@@ -63,15 +63,15 @@ class BufferedIn implements Readable {
     read: (len: number) => Promise<Uint8Array>;
     peek: () => Promise<number>;
     constructor() {
-        this.read = this.readImpl.bind(this);
-        this.peek = this.peekImpl.bind(this);
+        this.read = this.readFunc.bind(this);
+        this.peek = this.peekFunc.bind(this);
     }
     get lastbuf() {
         return this._chunksQueue.shift();
     }
 
     // Returns the number of bytes available if any
-    async peekImpl(): Promise<number> {
+    async peekFunc(): Promise<number> {
         let trynum = 0;
         let tries = 500;
         while (trynum < tries) {
@@ -88,12 +88,12 @@ class BufferedIn implements Readable {
     }
 
     // Reads at maximum len number of bytes from buffer 
-    async readImpl(len: number): Promise<Uint8Array> {
-        return await this.readRecurseImpl(len, false);
+    async readFunc(len: number): Promise<Uint8Array> {
+        return await this.readRecurseFunc(len, false);
     }
 
     // Reads recurively
-    async readRecurseImpl(len: number, isRecursing?: boolean): Promise<Uint8Array> {
+    async readRecurseFunc(len: number, isRecursing?: boolean): Promise<Uint8Array> {
         if (len > 0) {
             const buf = this.lastbuf;
             if (buf) {
@@ -113,7 +113,7 @@ class BufferedIn implements Readable {
                         const firstChunk = buf;
                         const restLen = len - databufferLen;
                         // try read remaining of len and append it
-                        const nextChunk = await this.readRecurseImpl(restLen, true);
+                        const nextChunk = await this.readRecurseFunc(restLen, true);
                         const retChunks = appendToUint8Array(firstChunk, nextChunk);
                         return retChunks;
                     }

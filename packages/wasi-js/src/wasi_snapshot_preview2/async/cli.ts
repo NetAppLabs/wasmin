@@ -1,20 +1,20 @@
-import { CliBaseEnvironmentNamespace as clibe } from "@wasmin/wasi-snapshot-preview2";
+import { CliBaseEnvironmentNamespace as clibe } from "@wasmin/wasi-snapshot-preview2/async";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-type CliBaseEnvironmentAsync = clibe.WasiCliEnvironmentAsync;
-import { CliBaseExitNamespace as clib } from "@wasmin/wasi-snapshot-preview2";
+type CliBaseEnvironmentAsync = clibe.WasiCliEnvironment;
+import { CliBaseExitNamespace as clib } from "@wasmin/wasi-snapshot-preview2/async";
 import { ExitStatus } from "../../wasiUtils.js";
 type Result<T, E> = clib.Result<T, E>;
 import { wasiError } from "../../wasiUtils.js";
-import { CliBaseStderrNamespace as clibsderrns } from "@wasmin/wasi-snapshot-preview2";
-type CliBaseStderrAsync = clibsderrns.WasiCliStderrAsync;
+import { CliBaseStderrNamespace as clibsderrns } from "@wasmin/wasi-snapshot-preview2/async";
+type CliBaseStderrAsync = clibsderrns.WasiCliStderr;
 type OutputStream = clibsderrns.OutputStream;
-import { CliBaseStdinNamespace as clibsdinns } from "@wasmin/wasi-snapshot-preview2";
-type CliBaseStdinAsync = clibsdinns.WasiCliStdinAsync;
+import { CliBaseStdinNamespace as clibsdinns } from "@wasmin/wasi-snapshot-preview2/async";
+type CliBaseStdinAsync = clibsdinns.WasiCliStdin;
 type InputStream = clibsdinns.InputStream;
-import { CliBaseStdoutNamespace as clibsdoutns } from "@wasmin/wasi-snapshot-preview2";
+import { CliBaseStdoutNamespace as clibsdoutns } from "@wasmin/wasi-snapshot-preview2/async";
 import { wasiPreview2Debug } from "./preview2Utils.js";
 import { InStream, OutStream } from "./io.js";
-type CliBaseStdoutAsync = clibsdoutns.WasiCliStdoutAsync;
+type CliBaseStdoutAsync = clibsdoutns.WasiCliStdout;
 
 export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -40,7 +40,7 @@ export class CliBaseEnvironmentAsyncHost implements CliBaseEnvironmentAsync {
 
 }
 
-export class CliBaseExitAsyncHost implements clib.WasiCliExitAsync {
+export class CliBaseExitAsyncHost implements clib.WasiCliExit {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;

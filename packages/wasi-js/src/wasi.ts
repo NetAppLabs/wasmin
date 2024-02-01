@@ -17,14 +17,12 @@ import { TTY, TTYSize } from "./tty.js";
 import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console.js";
 import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems.js";
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
-import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
+import { OpenFiles, Readable, ReadableAsyncOrSync, Writable, WritableAsyncOrSync } from "./wasiFileSystem.js";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
 import {
     CStringArray,
-    In,
     isExitStatus,
     lineOut,
-    Out,
     sleep,
     wasiCallDebug,
     wasiDebug,
@@ -39,13 +37,12 @@ import {
 } from "./wasi_snapshot_preview2/async/index.js";
 import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
 import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
-//import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
 export interface WasiOptions {
     openFiles?: OpenFiles;
-    stdin?: In;
-    stdout?: Out;
-    stderr?: Out;
+    stdin?: ReadableAsyncOrSync;
+    stdout?: WritableAsyncOrSync;
+    stderr?: WritableAsyncOrSync;
     args?: string[];
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
@@ -76,9 +73,9 @@ export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
 export class WasiEnv implements WasiOptions {
     constructor(
         openFiles?: OpenFiles,
-        stdin?: In,
-        stdout?: Out,
-        stderr?: Out,
+        stdin?: ReadableAsyncOrSync,
+        stdout?: WritableAsyncOrSync,
+        stderr?: WritableAsyncOrSync,
         args?: string[],
         env?: Record<string, string>,
         abortSignal?: AbortSignal,
@@ -151,9 +148,9 @@ export class WasiEnv implements WasiOptions {
     private _cargs: CStringArray;
     private _cenv: CStringArray;
     private _openFiles: OpenFiles;
-    private _stdin: In;
-    private _stdout: Out;
-    private _stderr: Out;
+    private _stdin: ReadableAsyncOrSync;
+    private _stdout: WritableAsyncOrSync;
+    private _stderr: WritableAsyncOrSync;
     private _abortSignal?: AbortSignal;
     private _suspendStdIn = false;
     private _tty?: TTY;
@@ -177,19 +174,19 @@ export class WasiEnv implements WasiOptions {
     get stdin() {
         return this._stdin;
     }
-    set stdin(sin: In) {
+    set stdin(sin: ReadableAsyncOrSync) {
         this._stdin = sin;
     }
     get stdout() {
         return this._stdout;
     }
-    set stdout(sout: Out) {
+    set stdout(sout: WritableAsyncOrSync) {
         this._stdout = sout;
     }
     get stderr() {
         return this._stderr;
     }
-    set stderr(serr: Out) {
+    set stderr(serr: WritableAsyncOrSync) {
         this._stderr = serr;
     }
     get abortSignal() {
@@ -229,8 +226,8 @@ export class WASI {
         );
         this._wasiEnv = wasiEnv;
     }
-    //public component = false;
     public singleWasmWorker = true;
+    // Environment vor this WASI instance
     private _wasiEnv: WasiEnv;
 
     private _coreModuleInstance?: WebAssembly.Instance;
@@ -239,9 +236,10 @@ export class WASI {
 
     private _componentImportObject?: {};
     private _resources?: {};
-    private _componentInstance?: {};
 
+    // Channel for communication with WasmWorker if used
     private _channel?: Channel;
+    // Worker for optionally running WebAssembly Instance
     private _worker?: WasmWorker;
 
     public get componentImportObject(): {} {
@@ -388,37 +386,6 @@ export class WASI {
                 throw new Error("Channel not available");
             }
         }
-
-        /*
-        let instRes: {
-            instance: WebAssembly.Instance;
-            isAsyncified: boolean;
-            channel?: Channel;
-            worker?: WasmWorker;
-            moduleInstanceId?: string;
-        };
-        if (withAsyncDetection) {
-            instRes = await instantiateWithAsyncDetection(wasmModOrBufSource, imports, handleImportFunc);
-        } else {
-            let sourceBuffer: BufferSource | null = null;
-            if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
-                sourceBuffer = wasmModOrBufSource as BufferSource;
-            }
-            instRes = await instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc, this._worker);
-        }
-        wasiDebug("[run] got instRes: ", instRes);
-        if (!this._coreModuleImports && imports) {
-            this._coreModuleImports = imports;
-        }
-        this._coreModuleInstance = instRes.instance;
-        this._channel = instRes.channel;
-        if (this.singleWasmWorker) {
-            this._worker = instRes.worker;
-        }
-        wasiDebug("[run] setting channel: ", this._channel);
-
-        return this._coreModuleInstance;
-        */
         return null;
     }
 

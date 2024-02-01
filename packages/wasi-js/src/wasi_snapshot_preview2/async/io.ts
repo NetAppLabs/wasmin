@@ -1,21 +1,21 @@
-import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2";
-type IoStreamsAsync = io.WasiIoStreamsAsync;
+import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
+type IoStreamsAsync = io.WasiIoStreams;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isBadFileDescriptor, isErrorAgain, isIoError, translateError, wasiPreview2Debug } from "./preview2Utils.js";
 import { FsPollable, OpenFiles } from "../../wasiFileSystem.js";
 import { sleep } from "../../wasiUtils.js";
 import { USE_ACCEPTED_SOCKET_PROMISE } from "../../wasi_experimental_sockets/net.js";
 import { delay } from "../../wasi_experimental_sockets/common.js";
-import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2";
+import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2/async";
 import { Resource } from "../../wasiResources.js";
-import { StreamErrorLastOperationFailed } from "@wasmin/wasi-snapshot-preview2/dist/interfaces/wasi-io-streams.js";
-type IOPollAsync = pollns.WasiIoPollAsync;
+type IOPollAsync = pollns.WasiIoPoll;
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
 type Pollable = io.Pollable;
 //type StreamStatus = io.StreamStatus;
 type StreamErrorClosed = io.StreamErrorClosed;
+type StreamErrorLastOperationFailed = io.StreamErrorLastOperationFailed;
 
 export class InputStreamPollable implements FsPollable {
     _fd: number;
@@ -24,7 +24,7 @@ export class InputStreamPollable implements FsPollable {
     constructor(openFiles: OpenFiles, fd: number) {
         this._fd = fd;
         this.openFiles = openFiles;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
     async [Symbol.asyncDispose](): Promise<void> {
         await this.openFiles.disposeResource(this);
@@ -83,7 +83,7 @@ export class DummyPollable implements FsPollable {
     constructor(openFiles: OpenFiles, fd: number) {
         this.fd = fd;
         this.openFiles = openFiles;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
     async [Symbol.asyncDispose](): Promise<void> {
         await this.openFiles.disposeResource(this);
@@ -112,7 +112,7 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
 
     private _wasiEnv: WasiEnv;
@@ -205,13 +205,12 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
 
     async subscribe(): Promise<io.Pollable> {
         const pollable = new InputStreamPollable(this.openFiles, this.fd);
-        const resourceId = this._wasiEnv.openFiles.add(pollable);
         return pollable;
     }
 
     async [Symbol.asyncDispose]() {
         try {
-            await this._wasiEnv.openFiles.close(this.fd);
+            await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("InStream.Symbol.dispose err or closing fd: ", this.fd);
         }
@@ -225,7 +224,7 @@ export class OutStream implements OutputStream, Resource {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
 
     private _wasiEnv: WasiEnv;
@@ -244,8 +243,8 @@ export class OutStream implements OutputStream, Resource {
     async checkWrite(): Promise<bigint> {
         // Default to 1MB
         // TODO make more intelligent
-        return 4096n;
-        //return 1048576n;
+        //return 4096n;
+        return 1048576n;
     }
     async write(contents: Uint8Array): Promise<void> {
         try {
@@ -277,25 +276,53 @@ export class OutStream implements OutputStream, Resource {
     }
     async subscribe(): Promise<io.Pollable> {
         const pollable = new DummyPollable(this.openFiles, this.fd);
-        this._wasiEnv.openFiles.add(pollable);
         return pollable;
     }
-    writeZeroes(len: bigint): Promise<void> {
-        throw new Error("Method not implemented.");
+    async writeZeroes(len: bigint): Promise<void> {
+        let numLen = Number(len);
+        let arrZeroes = new Uint8Array(numLen);
+        await this.write(arrZeroes);
     }
-    blockingWriteZeroesAndFlush(len: bigint): Promise<void> {
-        throw new Error("Method not implemented.");
+    async blockingWriteZeroesAndFlush(len: bigint): Promise<void> {
+        await this.writeZeroes(len);
+        await this.blockingFlush();
     }
-    splice(src: io.InputStream, len: bigint): Promise<bigint> {
-        throw new Error("Method not implemented.");
+    async splice(src: io.InputStream, lenBig: bigint): Promise<bigint> {
+        let len = Number(lenBig);
+        let hasWritten = 0;
+        let moreWites = true;
+        while (moreWites) {
+            let numToRead = await this.checkWrite();
+            let readBytes = await src.read(numToRead);
+            let readBytesLen = readBytes.length;
+            if (readBytesLen == 0) {
+                moreWites = false;
+            } else {
+                hasWritten = hasWritten + readBytesLen;
+                if (hasWritten < len) {
+                    await this.write(readBytes);
+                } else if (hasWritten == len) {
+                    moreWites = false;
+                    await this.write(readBytes);
+                } else if (hasWritten > len ) {
+                    moreWites = false;
+                    let numberToCutOff = hasWritten - len;
+                    let newEnd = readBytesLen - numberToCutOff;
+                    // cut off the bytes to write:
+                    let readBytesSubArray = readBytes.subarray(0, newEnd );
+                    await this.write(readBytesSubArray);
+                }
+            }
+        }
+        return BigInt(hasWritten);
     }
-    blockingSplice(src: io.InputStream, len: bigint): Promise<bigint> {
-        throw new Error("Method not implemented.");
+    async blockingSplice(src: io.InputStream, len: bigint): Promise<bigint> {
+        return await this.splice(src,len);
     }
     
     async [Symbol.asyncDispose]() {
         try {
-            await this._wasiEnv.openFiles.close(this.fd);
+            await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);
         }

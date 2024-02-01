@@ -1,19 +1,19 @@
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
-type FilesystemFilesystemAsync = fs.WasiFilesystemTypesAsync;
-import { SocketsInstanceNetworkNamespace as ins } from "@wasmin/wasi-snapshot-preview2";
-type SocketsInstanceNetworkAsync = ins.WasiSocketsInstanceNetworkAsync;
-import { SocketsIpNameLookupNamespace as lookupns } from "@wasmin/wasi-snapshot-preview2";
-type SocketsIpNameLookupAsync = lookupns.WasiSocketsIpNameLookupAsync;
-import { SocketsNetworkNamespace as sockns } from "@wasmin/wasi-snapshot-preview2";
+import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
+type FilesystemFilesystem = fs.WasiFilesystemTypes;
+import { SocketsInstanceNetworkNamespace as ins } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsInstanceNetwork = ins.WasiSocketsInstanceNetwork;
+import { SocketsIpNameLookupNamespace as lookupns } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsIpNameLookup = lookupns.WasiSocketsIpNameLookup;
+import { SocketsNetworkNamespace as sockns } from "@wasmin/wasi-snapshot-preview2/async";
 type IpAddress = sockns.IpAddress;
 type IpSocketAddress = sockns.IpSocketAddress;
 type Ipv4SocketAddress = sockns.Ipv4SocketAddress;
 type Ipv6SocketAddress = sockns.Ipv6SocketAddress;
-type SocketsNetworkAsync = sockns.WasiSocketsNetworkAsync;
-import { SocketsTcpNamespace as socktcpns } from "@wasmin/wasi-snapshot-preview2";
-type SocketsTcpAsync = socktcpns.WasiSocketsTcpAsync;
-import { SocketsTcpCreateSocketNamespace as sockcreatetcpns } from "@wasmin/wasi-snapshot-preview2";
-type SocketsTcpCreateSocketAsync = sockcreatetcpns.WasiSocketsTcpCreateSocketAsync;
+type SocketsNetwork = sockns.WasiSocketsNetwork;
+import { SocketsTcpNamespace as socktcpns } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsTcp = socktcpns.WasiSocketsTcp;
+import { SocketsTcpCreateSocketNamespace as sockcreatetcpns } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsTcpCreateSocket = sockcreatetcpns.WasiSocketsTcpCreateSocket;
 
 const ERRNO_AGAIN = 6;
 
@@ -24,14 +24,14 @@ type WasiExperimentalSocketsSize = number;
 type WasiExperimentalSocketsRiflags = number;
 type WasiExperimentalSocketsAddrResolveStream = number;
 
-type WasiSnapshotPreview2FilesystemImportObject = FilesystemFilesystemAsync;
+type WasiSnapshotPreview2FilesystemImportObject = FilesystemFilesystem;
 
 type WasiSnapshotPreview2SocketsImportObject = {
-    socketsInstanceNetwork: SocketsInstanceNetworkAsync;
-    socketsNetwork: SocketsNetworkAsync;
-    socketsTcpCreateSocket: SocketsTcpCreateSocketAsync;
-    socketsTcp: SocketsTcpAsync;
-    socketsIpNameLookup: SocketsIpNameLookupAsync;
+    socketsInstanceNetwork: SocketsInstanceNetwork;
+    socketsNetwork: SocketsNetwork;
+    socketsTcpCreateSocket: SocketsTcpCreateSocket;
+    socketsTcp: SocketsTcp;
+    socketsIpNameLookup: SocketsIpNameLookup;
 };
 
 type WasiExperimentalSocketsAddressType = "ip4" | "ip6";
