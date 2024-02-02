@@ -173,7 +173,8 @@ export class IncomingBodyInstance implements IncomingBody, Readable, Peekable {
 
     async stream(): Promise<httpt.InputStream> {
         let fd = this.resource;
-        let instream = new InStream(this.wasiEnv, fd);
+        const closeFdOnStreamClose = false;
+        let instream = new InStream(this.wasiEnv, fd, closeFdOnStreamClose);
         return instream;
     }
     async finish(this_: httpt.IncomingBody): Promise<httpt.FutureTrailers> {

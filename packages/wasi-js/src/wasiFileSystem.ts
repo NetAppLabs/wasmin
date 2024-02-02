@@ -715,7 +715,7 @@ export class OpenFiles {
         }
     }
 
-    async openReader(fd: Fd, offset?: bigint): Promise<Fd> {
+    openReader(fd: Fd, offset?: bigint): Fd {
         let reader: Readable;
         if (!this.isFile(fd)) {
             return fd;
@@ -733,7 +733,7 @@ export class OpenFiles {
         return newFd;
     }
 
-    async openWriter(fd: Fd, offset?: bigint, append?: boolean): Promise<Fd> {
+    openWriter(fd: Fd, offset?: bigint, append?: boolean): Fd {
         let writer: Writable;
         if (!this.isFile(fd)) {
             return fd;
@@ -756,7 +756,7 @@ export class OpenFiles {
         return newFd;
     }
 
-    async openOpenDirectoryIterator(fd: Fd): Promise<Fd> {
+    openOpenDirectoryIterator(fd: Fd): Fd {
         const openDir = this.getAsDir(fd);
         const disposeFunc = this.getDisposeResourceFunc();
         const iter = new OpenDirectoryIterator(fd, openDir, disposeFunc);
@@ -764,7 +764,7 @@ export class OpenFiles {
         return iterFd;
     }
 
-    async getAsOpenDirectoryIterator(fd: Fd): Promise<OpenDirectoryIterator> {
+    getAsOpenDirectoryIterator(fd: Fd): OpenDirectoryIterator {
         const res = this.get(fd);
         return res as OpenDirectoryIterator;
     }

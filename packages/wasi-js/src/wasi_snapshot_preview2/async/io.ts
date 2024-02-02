@@ -108,14 +108,16 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
 }
 
 export class InStream implements InputStream, Resource, AsyncDisposable {
-    constructor(wasiOptions: WasiOptions, fd: number) {
+    constructor(wasiOptions: WasiOptions, fd: number, closeFdOnStreamClose: boolean) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
+        this.closeFdOnStreamClose = closeFdOnStreamClose;
         this.resource = this.openFiles.addResource(this);
     }
 
     private _wasiEnv: WasiEnv;
+    private closeFdOnStreamClose: boolean;
     public _fd: number;
     public resource: number;
     get wasiEnv() {
@@ -163,7 +165,7 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
                         toDebugString: async function (): Promise<string> {
                             return ioErr;
                         },
-                        [Symbol.asyncDispose]: function (): PromiseLike<void> {
+                        [Symbol.asyncDispose]: function (): Promise<void> {
                             throw new Error("Function not implemented.");
                         }
                     },
@@ -210,6 +212,9 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
 
     async [Symbol.asyncDispose]() {
         try {
+            if (this.closeFdOnStreamClose) {
+                await this.openFiles.close(this.fd);
+            }
             await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("InStream.Symbol.dispose err or closing fd: ", this.fd);
@@ -220,16 +225,18 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
 
 
 export class OutStream implements OutputStream, Resource {
-    constructor(wasiOptions: WasiOptions, fd: number) {
+    constructor(wasiOptions: WasiOptions, fd: number, closeFdOnStreamClose: boolean) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
         this.resource = this.openFiles.addResource(this);
+        this.closeFdOnStreamClose = closeFdOnStreamClose;
     }
 
     private _wasiEnv: WasiEnv;
     public _fd: number;
     public resource: number;
+    private closeFdOnStreamClose: boolean;
     get wasiEnv() {
         return this._wasiEnv;
     }
@@ -322,6 +329,9 @@ export class OutStream implements OutputStream, Resource {
     
     async [Symbol.asyncDispose]() {
         try {
+            if (this.closeFdOnStreamClose) {
+                await this.openFiles.close(this.fd);
+            }
             await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);

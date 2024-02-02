@@ -35,6 +35,11 @@ export interface WasiWorkerOptions {
     componentMode?: boolean,
 }
 
+/**
+ * 
+ * Interface from the client side for running WASI in its own dedicated Worker.
+ * 
+ */
 export class WASIWorker {
     constructor(wasiOptions: WasiWorkerOptions) {
         initializeComlinkHandlers();
@@ -143,6 +148,11 @@ export class WASIWorker {
     }
 }
 
+/**
+ * 
+ * Implementation of running a WASI instance in this Worker.
+ * 
+ */
 export class WasiWorkerThreadRunner {
     constructor() {
         initializeComlinkHandlers();

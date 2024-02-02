@@ -108,10 +108,10 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async readViaStream(offset: bigint): Promise<fs.InputStream> {
         try {
-            const newFd = await this.openFiles.openReader(this.fd, offset);
+            const newFd = this.openFiles.openReader(this.fd, offset);
             wasiPreview2Debug("FileSystemFileSystemAsyncHost: readViaStream newFd:", newFd);
-            const instr = new InStream(this._wasiEnv, newFd);
-            instr.resource = newFd;
+            const closeFdOnStreamClose = true;
+            const instr = new InStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return instr;
         } catch (err: any) {
             throw translateError(err);
@@ -119,10 +119,10 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async writeViaStream(offset: bigint): Promise<fs.OutputStream> {
         try {
-            const newFd = await this.openFiles.openWriter(this.fd, offset);
+            const newFd = this.openFiles.openWriter(this.fd, offset);
             wasiPreview2Debug("FileSystemFileSystemAsyncHost: writeViaStream newFd:", newFd);
-            const outstr = new OutStream(this._wasiEnv, newFd);
-            outstr.resource = newFd;
+            const closeFdOnStreamClose = true;
+            const outstr = new OutStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return outstr;
         } catch (err: any) {
             throw translateError(err);
@@ -130,9 +130,9 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async appendViaStream(): Promise<fs.OutputStream> {
         try {
-            const newFd = await this.openFiles.openWriter(this.fd, 0n, true);
-            const outstr = new OutStream(this._wasiEnv, newFd);
-            outstr.resource = newFd;
+            const newFd = this.openFiles.openWriter(this.fd, 0n, true);
+            const closeFdOnStreamClose = true;
+            const outstr = new OutStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return outstr;
         } catch (err: any) {
             throw translateError(err);
@@ -240,8 +240,8 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async readDirectory(): Promise<fs.DirectoryEntryStream> {
         try {
-            const dirReadFd = await this.openFiles.openOpenDirectoryIterator(this.fd);
-            const dirStream = await this.openFiles.getAsOpenDirectoryIterator(dirReadFd);
+            const dirReadFd = this.openFiles.openOpenDirectoryIterator(this.fd);
+            const dirStream = this.openFiles.getAsOpenDirectoryIterator(dirReadFd);
             return dirStream;
         } catch (err: any) {
             throw translateError(err);

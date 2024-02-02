@@ -150,11 +150,13 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         return this._sockFd;
     }
     get inputstream() {
-        const instream = new InStream(this._wasiEnv,this.sockFd);
+        const closeFdOnStreamClose = false;
+        const instream = new InStream(this._wasiEnv,this.sockFd, closeFdOnStreamClose);
         return instream;
     }
     get outputstream() {
-        const outstream = new OutStream(this._wasiEnv,this.sockFd);
+        let closeFdOnStreamClose = false;
+        const outstream = new OutStream(this._wasiEnv,this.sockFd, closeFdOnStreamClose);
         return outstream;
     }
 

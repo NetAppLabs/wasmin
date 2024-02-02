@@ -8,9 +8,15 @@ import { Channel, readMessage, uuidv4 } from "./vendored/sync-message/index.js";
 import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
 import { ResourceProxy, containsResourceObjects, createResourceProxy, createProxyForResources, getResourceSerializableForProxyObjects } from "./wasiResources.js";
 
+/**
+ * Interface from the client side when a running a WebAssembly instance or component
+ * on its own Worker
+ */
 export class WasmWorker {
     worker?: Worker;
+    // Runner when in Core mode
     coreRunner?: comlink.Remote<WasmCoreWorkerThreadRunner>;
+    // Runner when in Component mode
     componentRunner?: comlink.Remote<WasmComponentWorkerThreadRunner>;
 
     constructor() {
@@ -132,13 +138,13 @@ export function createComponentImportOrResourceProxy(
     return new Proxy(importTarget, {
         get: (_target, name, _receiver) => {
             const functionNameOrSymbol = name;
-            let functionName = "";
+            let functionNameOrMember = "";
             let isSymbolReference = false;
             if (isSymbol(functionNameOrSymbol)) {
-                functionName = functionNameOrSymbol.toString();
+                functionNameOrMember = functionNameOrSymbol.toString();
                 isSymbolReference = true;
             } else {
-                functionName = functionNameOrSymbol as string;
+                functionNameOrMember = functionNameOrSymbol as string;
             }
             /*if (functionName == "InputStream"
                 || functionName == "OutputStream" 
@@ -147,10 +153,10 @@ export function createComponentImportOrResourceProxy(
                 ) 
             */
             // Assuming we are referring to a resource if first character is UpperCase
-            if (!isSymbolReference && (functionName.charAt(0) === functionName.charAt(0).toUpperCase() ))
+            if (!isSymbolReference && (functionNameOrMember.charAt(0) === functionNameOrMember.charAt(0).toUpperCase() ))
             {
                 const dummyResource = createResourceProxy(
-                    functionName,
+                    functionNameOrMember,
                     callType,
                     importName,
                     channel,
@@ -158,18 +164,17 @@ export function createComponentImportOrResourceProxy(
                     getProxyFunctionToCall,
                 );
                 return dummyResource;
-            }
-            else if (functionName == "resource") {
+            } else if (functionNameOrMember == "resource") {
                 const res = importTarget as ResourceProxy;
                 return res.resource;
             }
-            else if (functionName == "prototype") {
+            else if (functionNameOrMember == "prototype") {
                 wasmWorkerClientDebug("trying to get prototype property");
                 return _receiver;
             } 
             
             const funcToCall = getProxyFunctionToCall(
-                functionName,
+                functionNameOrMember,
                 callType,
                 importName,
                 channel,
