@@ -3,7 +3,7 @@ import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-previ
 import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopens;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { FileOrDir, OpenDirectory, OpenFile, Socket } from "../../wasiFileSystem.js";
+import { FileOrDir, OpenDirectory, OpenDirectoryIterator, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
 import { unimplemented, wasiDebug, wasiError, wasiWarn } from "../../wasiUtils.js";
 import {
@@ -37,9 +37,7 @@ export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.Descriptor = FileSystemFileDescriptor;
     }
-    public Descriptor: typeof FileSystemFileDescriptor;
     private _wasiEnv: WasiEnv;
 
     async getDirectories(): Promise<[Descriptor, string][]> {
@@ -63,7 +61,12 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypes {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.Descriptor = FileSystemFileDescriptor;
+        this.DirectoryEntryStream = OpenDirectoryIterator;
     }
+    public Descriptor: typeof FileSystemFileDescriptor;
+    public DirectoryEntryStream: typeof OpenDirectoryIterator;
+
     async filesystemErrorCode(err: fs.Error): Promise<fs.ErrorCode | undefined> {
         let debugstr = err.toDebugString();
         wasiPreview2Debug("filesystemErrorCode: ", err);

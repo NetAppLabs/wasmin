@@ -72,9 +72,10 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
     private _wasiEnv: WasiEnv;
 
     async getStderr(): Promise<OutputStream> {
+        wasiPreview2Debug("CliBaseStderrAsyncHost getStderr");
         //TODO: synchronize stderr numbering in openFiles
         const stderr_fd_no = 2;
-        const closeFdOnStreamClose = true;
+        const closeFdOnStreamClose = false;
         const stderr = new OutStream(this._wasiEnv, stderr_fd_no, closeFdOnStreamClose);
         stderr.resource = stderr_fd_no;
         return stderr;
@@ -89,9 +90,10 @@ export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
     private _wasiEnv: WasiEnv;
 
     async getStdin(): Promise<InputStream> {
+        wasiPreview2Debug("CliBaseStderrAsyncHost getStdin");
         //TODO: synchronize stdin numbering in openFiles
         const stdin_fd_no = 0;
-        const closeFdOnStreamClose = true;
+        const closeFdOnStreamClose = false;
         const stdin = new InStream(this._wasiEnv, stdin_fd_no, closeFdOnStreamClose);
         stdin.resource = stdin_fd_no;
         return stdin;
@@ -106,9 +108,10 @@ export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
     private _wasiEnv: WasiEnv;
 
     async getStdout(): Promise<OutputStream> {
+        wasiPreview2Debug("CliBaseStderrAsyncHost getStdout");
         //TODO: synchronize stdin numbering in openFiles
         const stdout_fd_no = 1;
-        const closeFdOnStreamClose = true;
+        const closeFdOnStreamClose = false;
         const stdout = new OutStream(this._wasiEnv, stdout_fd_no, closeFdOnStreamClose);
         stdout.resource = stdout_fd_no;
         return stdout;

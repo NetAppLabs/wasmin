@@ -55,7 +55,9 @@ export class SocketsNetworkAsyncHost implements SocketsInstanceNetworkAsync, Soc
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._instanceNetworkId = -1;
+        this.Network = NetworkInstance;
     }
+    public Network: typeof NetworkInstance;
     private _wasiEnv: WasiEnv;
     private _instanceNetworkId: number;
 
@@ -99,7 +101,9 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.TcpSocket = TcpSocketInstance;
     }
+    public TcpSocket: typeof TcpSocketInstance;
     private _wasiEnv: WasiEnv;
 
     get wasiEnv() {
@@ -460,7 +464,9 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.UdpSocket = UdpSocketInstance;
     }
+    public UdpSocket: typeof UdpSocketInstance;
     private _wasiEnv: WasiEnv;
     get wasiEnv() {
         return this._wasiEnv;
@@ -879,7 +885,10 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.ResolveAddressStream = ResolveAddressIterator;
     }
+    public ResolveAddressStream: typeof ResolveAddressIterator;
+
     private _wasiEnv: WasiEnv;
     get wasiEnv() {
         return this._wasiEnv;

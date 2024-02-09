@@ -10,6 +10,7 @@ import {
     WasmRunMode,
     instantiateOnWasmWorker,
     instantiateWithAsyncDetection,
+    isStackSwitchingEnabled,
 } from "./desyncify.js";
 import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
@@ -38,6 +39,7 @@ import {
 } from "./wasi_snapshot_preview2/async/index.js";
 import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
 import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
+import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 
 
 /**
@@ -265,6 +267,8 @@ export class WASI {
     private _channel?: Channel;
     // Worker for optionally running WebAssembly.Instance
     private _worker?: WasmWorker;
+    // CommandRunner for component mode
+    private _commandRunner?: CommandRunner;
 
     public get componentImportObject(): {} {
         if (!this._componentImportObject) {
@@ -336,8 +340,40 @@ export class WASI {
             return await this.instantiateCore(wasmModOrBufSource, imports);
         }
     }
+
     // Instantiation for a WebAssembly Component Model Component
     public async instantiateComponent(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource
+    ): Promise<{runMode: WasmRunMode, instance: WebAssembly.Instance}> {
+        const useJspi = isStackSwitchingEnabled();
+        //const useJspi = false;
+        if (useJspi) {
+            let inst =  await this.instantiateComponentOnJSPI(wasmModOrBufSource);
+            return {
+                instance: inst,
+                runMode: "jspi-component"
+            }
+        } else {
+            let inst = await this.instantiateComponentOnWorker(wasmModOrBufSource);
+            return {
+                instance: inst,
+                runMode: "worker-component"
+            }
+        }
+    }
+
+        // Instantiation for a WebAssembly Component Model Component
+    public async instantiateComponentOnJSPI(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource
+    ): Promise<WebAssembly.Instance | any> {
+        await this.initializeComponentImports();
+        let impObject = this.componentImportObject;
+        this._commandRunner = new CommandRunner(impObject);
+        await this._commandRunner.instantiate(wasmModOrBufSource);
+    }
+
+    // Instantiation for a WebAssembly Component Model Component
+    public async instantiateComponentOnWorker(
         wasmModOrBufSource: WebAssembly.Module | BufferSource
     ): Promise<WebAssembly.Instance | any> {
         const importNames: string[] = [];
@@ -489,8 +525,8 @@ export class WASI {
     public async runComponent(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
         const importNames = await this.initializeComponentImports();
 
-        await this.instantiateComponent(wasmModOrBufSource);
-        let runMode: WasmRunMode = "worker-component";
+        let res = await this.instantiateComponent(wasmModOrBufSource);
+        let runMode = res.runMode;
         wasiCallDebug(` Running wasm in mode: ${runMode} `);
 
         if (this._worker) {
@@ -503,13 +539,23 @@ export class WASI {
                 }
                 return 0;
             } catch (err: any) {
-                wasiDebug("runComponent err:", err);
+                wasiDebug("runComponent worker err:", err);
                 return 1;
             } finally {
+                wasiDebug("runComponent worker finally");
                 this._worker.terminate();
             }
+        } else {
+            try {
+                await this._commandRunner?.run();
+                return 0;
+            } catch (err: any) {
+                wasiDebug("runComponent jspi err:", err);
+                return 1;
+            } finally {
+                wasiDebug("runComponent jspi finally:");
+            }
         }
-        throw new Error("WasmWorker not set");
     }
 
     public async runCore(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
@@ -676,6 +722,9 @@ export class WASI {
 
         let funcReturn, funcThrownError;
         try {
+            if (func === undefined) {
+                throw new Error(`Function ${functionName} not found on resource with importName: ${importName} and object: ${imp}`);
+            }
             // Binding "this" to section object for fuction
             const boundFunc = func.bind(imp);
             funcReturn = await boundFunc(...newArgs);
@@ -788,7 +837,8 @@ export class WASI {
     }
 
     private initializeWasiSnapshotPreview2Imports(): {} {
-        return constructWasiSnapshotPreview2Imports(this._wasiEnv);
+        let componentImports = constructWasiSnapshotPreview2Imports(this._wasiEnv);
+        return componentImports;
     }
 
     private initializeCoreImports(): WebAssembly.Imports {

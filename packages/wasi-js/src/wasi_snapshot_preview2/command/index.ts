@@ -1,7 +1,7 @@
 import { isExitStatus } from "../../wasiUtils.js";
 import { wasmWorkerThreadDebug } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../async/preview2Utils.js";
-import { instantiate, Root, ImportObject, compileCore } from "@wasmin/wasi-snapshot-preview1-command-component";
+import { instantiate as componentInstantiate, Root, ImportObject, compileCore } from "@wasmin/wasi-snapshot-preview1-command-component";
 import * as comlink from "comlink";
 
 export type WasiCommand = Root;
@@ -128,7 +128,7 @@ export class CommandRunner {
         try {
             if (importObject) {
                 const impObject = importObject as unknown as ImportObject;
-                this.commandComponent = await instantiate(boundCompilerFunc, impObject, instantiateCore);
+                this.commandComponent = await componentInstantiate(boundCompilerFunc, impObject, instantiateCore);
             }
         } catch (err: any) {
             throw err;
@@ -144,10 +144,10 @@ export class CommandRunner {
             try {
                 //this.commandComponent.run();
                 const runner = this.commandComponent.run;
-                runner.run();
+                await runner.run();
             } catch (err: any) {
                 if(!isExitStatus(err)) {
-                    console.log('run: err ', err);
+                    console.log('run: threw error: ', err);
                 }
             } finally {
                 this.cleanup();
