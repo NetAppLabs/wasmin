@@ -25,7 +25,7 @@ const wasi = new WasiImpl();
 
 const bytesMainModule = await (await fetchOrReadFile('./greeting.wasm')).buffer
 const mainModule = await WebAssembly.compile(bytesMainModule);
-
-const promInstance = await instantiatePromisified(mainModule, wasi);
+const importsObj = wasi.imports();
+const promInstance = await instantiatePromisified(mainModule, importsObj);
 
 const p = await wasi.start(promInstance)
