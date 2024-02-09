@@ -2,24 +2,32 @@
     "version": "0.1.0",
     "name": "@wasmin/wasi-snapshot-preview1-command-component",
     "type": "module",
-    "main": "component/index.js",
+    "main": "./index.js",
     "files": [
-        "component/index.d.ts",
-        "component/index.js",
-        "component/component.js",
-        "component/component.core.wasm",
-        "component/component.core2.wasm",
-        "component/component.core3.wasm",
-        "component/component.core4.wasm",
-        "component/component.core5.wasm"
+        "component-jspi/index.d.ts",
+        "component-jspi/index.js",
+        "component-jspi/component.js",
+        "component-jspi/component.core.wasm",
+        "component-jspi/component.core2.wasm",
+        "component-jspi/component.core3.wasm",
+        "component-jspi/component.core4.wasm",
+        "component-worker/index.d.ts",
+        "component-worker/index.js",
+        "component-worker/component.js",
+        "component-worker/component.core.wasm",
+        "component-worker/component.core2.wasm",
+        "component-worker/component.core3.wasm",
+        "component-worker/component.core4.wasm"
     ],
     "scripts": {
-        "build": "echo true",
+        "build": "tsc -p .",
         "build-jco": "./build.sh"
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^0.13.2",
         "@wasmin/tsconfig": "*"
     },
-    "dependencies": {}
+    "dependencies": {
+		"@wasmin/wasm-promisify": "*"
+	}
 }

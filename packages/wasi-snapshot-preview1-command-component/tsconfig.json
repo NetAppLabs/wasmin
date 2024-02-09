@@ -6,9 +6,11 @@
             "webworker",
             "esnext"
         ],
-        "outDir": "./component"
+        "outDir": "."
     },
     "include": [
-        "./component/index.ts"
+        "./index.ts",
+        "./component-jspi/index.ts",
+        "./component-worker/index.ts"
     ]
 }
