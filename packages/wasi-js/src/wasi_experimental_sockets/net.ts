@@ -542,8 +542,11 @@ export class NetUdpSocket extends Socket implements WasiSocket, Peekable {
         if (this._dataChunks.length == 0) {
             wasiSocketsDebug("udp socket:readFromWithoutRetry throwing EAGAIN as no data");
             await delay(1);
-            // assuming connected and empty buffer, no data available, telling client to try again
-            throw new SystemError(ErrnoN.AGAIN, true);
+            // check again after delay
+            if (this._dataChunks.length == 0) {
+                // assuming connected and empty buffer, no data available, telling client to try again
+                throw new SystemError(ErrnoN.AGAIN, true);
+            }
         }
 
         let availableChunks = this._dataChunks;

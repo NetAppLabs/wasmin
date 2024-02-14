@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
 
 // File & Blob is now in node v19 (19.2)
@@ -332,6 +332,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             },
             env: {
                 type: 'string',
+                multiple: true,
                 short: 'e',
             },
             worker: {
@@ -367,7 +368,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         shellDebug("shell args:",  args);
 
         let wasmArgs: string[] = [];
-
+        if (!env) {
+            env = {};
+        }
         const {
             values,
             positionals,
@@ -384,6 +387,24 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
         if (values.debug) {
             runDebug = true;
+        }
+        if (values.env) {
+            let envsArray: string[] = [];
+            if (isArray(values.env)) {
+                envsArray = values.env as string[];
+            } else {
+                let gotEnv = values.env as string;
+                envsArray = gotEnv.split(",");
+            }
+            for (const envVal of envsArray) {
+                let envKeyVal = envVal.split("=");
+                let envKey = envKeyVal[0];
+                if (envKeyVal.length>1) {
+                    let envVal = envKeyVal[1];
+                    env[envKey] = envVal;
+                }
+            }
+
         }
         if (values.mount) {
             mountUrl = values.mount as string;
@@ -468,7 +489,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         const preOpens: Record<string, FileSystemDirectoryHandle> = {};
         const rootDir = "/";
         const init_pwd = "/";
-        if (!env) {
+        /*if (!env) {
             env = {
                 RUST_BACKTRACE: "full",
                 //RUST_LOG: "wasi=trace",
@@ -483,7 +504,20 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 USER: "none",
                 HOME: "/",
             };
-        }
+        }*/
+        env["RUST_BACKTRACE"] = "full";
+        //env["RUST_LOG"] = "wasi=trace";
+        env["PWD"] = "/";
+        env["TERM"] = "xterm-256color";
+        env["COLORTERM"] = "truecolor";
+        env["LC_CTYPE"] = "UTF-8";
+        env["COMMAND_MODE"] = "unix2003";
+        env["FORCE_COLOR"] = "true";
+        env["PROMPT_INDICATOR"] = "true";
+        env["FORCE_COLOR"] = " > ";
+        //env["FORCE_HYPERLINK"] = "true";
+        env["USER"] = "none";
+        env["HOME"] = "/";
 
         const abortController = new AbortController();
 

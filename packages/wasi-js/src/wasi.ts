@@ -306,23 +306,9 @@ export class WASI {
         return this._wasiEnv.componentMode;
     }
 
-    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
+    public async initializeComponentImports(): Promise<string[]> {
         this.componentImportObject = this.initializeWasiSnapshotPreview2Imports();
-        if (wasiExperimentalSocketsNamespace) {
-            const componentImportObject = this.componentImportObject as WasiSnapshotPreview2AsyncImportObject;
-            const filesystem = () => componentImportObject["wasi:filesystem/types"];
-            const sockets = () => {
-                let sock = {
-                    socketsInstanceNetwork: componentImportObject["wasi:sockets/instance-network"],
-                    socketsNetwork: componentImportObject["wasi:sockets/network"],
-                    socketsTcpCreateSocket: componentImportObject["wasi:sockets/tcp-create-socket"],
-                    socketsTcp: componentImportObject["wasi:sockets/tcp"],
-                    socketsIpNameLookup: componentImportObject["wasi:sockets/ip-name-lookup"],
-                };
-                return sock;
-            };
-        }
-
+        
         const importNames: string[] = [];
         for (const [importName, _importValue] of Object.entries(this.componentImportObject)) {
             importNames.push(importName);

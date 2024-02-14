@@ -79,7 +79,7 @@ export class WASIWorker {
     }
 
 
-    public async createWorker(wasiExperimentalSocketsNamespace?: string): Promise<{}> {
+    public async createWorker(): Promise<{}> {
         let workerUrlString = "./wasiWorkerThread.js";
         //let workerUrl = new URL("./wasiWorkerThread.js", import.meta.url);
         if (isNode()) {
@@ -105,7 +105,7 @@ export class WASIWorker {
         }
         wasiWorkerDebug("WASIWorker createWorker: ");
 
-        const importNames = await this.wasiWorkerThread.initializeComponentImports(wasiExperimentalSocketsNamespace);
+        const importNames = await this.wasiWorkerThread.initializeComponentImports();
         this._componentImports = this.createComponentModuleImportProxy(importNames);
         return this._componentImports;
     }
@@ -217,9 +217,9 @@ export class WasiWorkerThreadRunner {
         }
     }*/
 
-    public async initializeComponentImports(wasiExperimentalSocketsNamespace?: string): Promise<string[]> {
+    public async initializeComponentImports(): Promise<string[]> {
         this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
-        return await this.wasi.initializeComponentImports(wasiExperimentalSocketsNamespace);
+        return await this.wasi.initializeComponentImports();
     }
 
     public async handleComponentImport(

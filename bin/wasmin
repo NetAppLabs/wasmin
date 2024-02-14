@@ -1,5 +1,4 @@
 #!/bin/bash
-
 BIN_SRC="$(realpath -- "${BASH_SOURCE[0]}"; )";
 BIN_DIR="$(dirname -- "${BIN_SRC}" )";
 #export WASMIN_COMPONENT=true
@@ -15,6 +14,7 @@ fi
 if [ "${WASMIN_RUNTIME}" == "node" ]; then
 	export V8_COMPILE_CACHE_CACHE_DIR=/tmp/v8-cache
 	node  --experimental-wasm-stack-switching --wasm-staging --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
+	#node --wasm-staging --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --liftoff-only --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --no-liftoff --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --turboshaft --turbo-stats --no-liftoff --trace-turbo-path=/tmp/turbo --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
