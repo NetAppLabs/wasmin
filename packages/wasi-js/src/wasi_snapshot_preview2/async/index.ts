@@ -145,13 +145,12 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
 export function ensureThisBound(importObj: WasiSnapshotPreview2AsyncImportObject): WasiSnapshotPreview2AsyncImportObject {
     for (const [nsKey, nsObj] of Object.entries(importObj)) {
         let nsObjAny = nsObj as any;
-        let nsObjProto = nsObjAny.__proto__;
+        let nsObjProto = Object.getPrototypeOf(nsObjAny);
         if (nsObjProto !== undefined) {
             for (let property of Object.getOwnPropertyNames(nsObjProto)) {
                 let elemKey = property;
                 let nsElement = nsObjAny[elemKey];
                 if (isFunction(nsElement)) {
-                    wasiPreview2Debug("ensureThisBound: nsKey: ", nsKey, "elemKey:", elemKey)
                     if (nsElement.bind) {
                         let newNsElement = nsElement.bind(nsObj);
                         let nsObjAny = nsObj as any;

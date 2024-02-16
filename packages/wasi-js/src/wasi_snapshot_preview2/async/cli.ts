@@ -77,7 +77,6 @@ export class CliBaseStderrAsyncHost implements CliBaseStderrAsync {
         const stderr_fd_no = 2;
         const closeFdOnStreamClose = false;
         const stderr = new OutStream(this._wasiEnv, stderr_fd_no, closeFdOnStreamClose);
-        stderr.resource = stderr_fd_no;
         return stderr;
     }
 }
@@ -95,7 +94,6 @@ export class CliBaseStdinAsyncHost implements CliBaseStdinAsync {
         const stdin_fd_no = 0;
         const closeFdOnStreamClose = false;
         const stdin = new InStream(this._wasiEnv, stdin_fd_no, closeFdOnStreamClose);
-        stdin.resource = stdin_fd_no;
         return stdin;
     }
 }
@@ -113,7 +111,6 @@ export class CliBaseStdoutAsyncHost implements CliBaseStdoutAsync {
         const stdout_fd_no = 1;
         const closeFdOnStreamClose = false;
         const stdout = new OutStream(this._wasiEnv, stdout_fd_no, closeFdOnStreamClose);
-        stdout.resource = stdout_fd_no;
         return stdout;
     }
 }

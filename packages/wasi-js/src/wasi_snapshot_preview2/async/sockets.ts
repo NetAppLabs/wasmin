@@ -279,7 +279,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             wasiPreview2Debug ("TcpSocketInstance.localAddress: localAddrInfo:", localAddrInfo);
             wasiPreview2Debug("TcpSocketInstance.localAddress err:", err);
             //throw translateError(err);
-            throw 'connection-aborted';
+            throw 'invalid-state';
         }
     }
     async remoteAddress(): Promise<sockn.IpSocketAddress> {

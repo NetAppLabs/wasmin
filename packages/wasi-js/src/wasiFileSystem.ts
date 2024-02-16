@@ -775,7 +775,8 @@ export class OpenFiles {
 
     async disposeResource(resource: Resource): Promise<void> {
         const resId = resource.resource;
-        await this.close(resId);
+        filesystemDebug("[disposeResource] resource:", resource);
+        const _res = this._take(resId);
     }
 
     addPreopenedDir(path: string, handle: Handle) {

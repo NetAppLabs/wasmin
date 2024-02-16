@@ -1,9 +1,9 @@
-import { jspiDebug, promisifyImportFunction } from "./util.js";
+import { isNode, jspiDebug, promisifyImportFunction } from "./util.js";
 import { PromisifiedWasmGenerator } from "./wasmgen.js";
 
 /**
  * Detects if JavaScript Promise Integration is enabed in runtime
- * @returns true if jspi/experimental-wasm-stack-switching is enabled in runtime
+ * @returns true if jspi/experimental-wasm-stack-switching is enabled in runtime node/deno
  */
 export function isStackSwitchingEnabled(): boolean {
     const WebAssemblyFunction = (WebAssembly as any).Function
@@ -15,25 +15,6 @@ export function isStackSwitchingEnabled(): boolean {
         return true;
     }
     return false;
-}
-
-export function isNode() {
-    // only node.js or bun has global process class
-    if (!isBun()) {
-        return globalThis.process != null;
-    } else {
-        return false;
-    }
-}
-
-export function isBun() {
-    // only bun has global Bun
-    try {
-        // @ts-ignore
-        return globalThis.Bun != null;
-    } catch (e) {
-        return false;
-    }
 }
 
 function hasFlags(...flags: string[]) {
@@ -50,7 +31,9 @@ function hasFlags(...flags: string[]) {
  *  Takes in a WebAssembly.Module with desired importObject and re-wires all imports and exports to be async capable
  *  with JSPI (JavaScript Promise Integration) - https://v8.dev/blog/jspi
  * 
- *  Note: this works currently only if experimental-wasm-stack-switching is enabled e.g. with --experimental-wasm-stack-switching on node/v8
+ *  Note: this works currently only if experimental-wasm-stack-switching is enabled 
+ *      e.g. with --experimental-wasm-stack-switching on node
+ *      and both --experimental-wasm-stack-switching and --experimental-wasm-type-reflection on deno
  * 
  *  Wasm is rewriteen with two extra modules:
  *  Wasm Adapter:

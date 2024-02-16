@@ -15,12 +15,14 @@ $JCO transpile component.wasm --async-mode -o component-jspi -I --no-wasi-shim
 
 # bug in jco to add Network, TerminalOutput, TerminalInput imports to resources
 sed -i .bak "s/let exports0;/let exports0;\nconst \{ Network \} = imports\[\"wasi:sockets\/instance-network\"\];\nconst \{ TerminalInput \} = imports\[\"wasi:cli\/terminal-stdin\"\];\nconst \{ TerminalOutput \} = imports\[\"wasi:cli\/terminal-stdout\"\];/g" component-worker/component.js
+sed -i .bak 's/e instanceof Error$1/true/g' component-worker/component.js
 rm component-worker/component.js.bak
 
 # bug in jco to add Network, TerminalOutput, TerminalInput imports to resources
 sed -i .bak "s/let exports0;/let exports0;\nconst \{ Network \} = imports\[\"wasi:sockets\/instance-network\"\];\nconst \{ TerminalInput \} = imports\[\"wasi:cli\/terminal-stdin\"\];\nconst \{ TerminalOutput \} = imports\[\"wasi:cli\/terminal-stdout\"\];/g" component-jspi/component.js
 # todo: fix issue with instanceof:
 sed -i .bak "s/ret instanceof Pollable/true/g" component-jspi/component.js
+sed -i .bak 's/e instanceof Error$1/true/g' component-jspi/component.js
 rm component-jspi/component.js.bak
 
 npx tsc -p .

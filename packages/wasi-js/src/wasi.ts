@@ -38,7 +38,7 @@ import {
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
 import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
-import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
+import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceImportAndId, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
 import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 
 
@@ -261,7 +261,7 @@ export class WASI {
 
     // Only used in Component mode
     private _componentImportObject?: {};
-    private _resources?: {};
+    //private _resources?: {};
 
     // Channel for communication with WasmWorker if used
     private _channel?: Channel;
@@ -279,12 +279,13 @@ export class WASI {
     public set componentImportObject(value: {}) {
         this._componentImportObject = value;
     }
-    public get resources(): {} {
+    
+    /*public get resources(): {} {
         if (!this._resources) {
             this._resources = new Map();
         }
         return this._resources;
-    }
+    }*/
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -601,7 +602,7 @@ export class WASI {
     /**
      * 
      * @param callType import or resource
-     * @param importName 
+     * @param importName identifier of import/resource to call
      * @returns 
      */
     public getObjectToCall(
@@ -614,8 +615,12 @@ export class WASI {
             const imp = componentImports[identifier];
             res = imp;
         } else  if (callType == "resource") {
-            const resources = this.resources as any;
-            res = resources[identifier];
+            let resIdentifiers = getResourceImportAndId(identifier);
+            if (resIdentifiers !== undefined ) {
+                let importName = resIdentifiers.importName;
+                let resourceId = resIdentifiers.resourceId;
+                res = this.lookupResource(importName, resourceId);
+            }
         }
         if (res !== undefined) {
             return res;
@@ -628,21 +633,25 @@ export class WASI {
         resourceId: number,
         res: any,
     ): any {
-        const identifier = getResourceIdentifier(importName, resourceId);
+        /*const identifier = getResourceIdentifier(importName, resourceId);
         const resources = this.resources as any;
         wasiDebug(`storeResource storing resource object with identifier: ${identifier}`);
         resources[identifier] = res;
+        */
+       // Noop for now
     }
 
     public lookupResource(
         importName: string,
         resourceId: number,
     ): Resource | undefined {
-        const identifier = getResourceIdentifier(importName, resourceId);
+        /*const identifier = getResourceIdentifier(importName, resourceId);
         const resources = this.resources as any;
         wasiDebug(`lookupResource lookung up resource object with identifier: ${identifier}`);
         const res = resources[identifier];
-        return res;
+        return res;*/
+        const res = this.wasiEnv.openFiles.get(resourceId);
+        return res as Resource;
     }
 
     public async handleComponentImport(
@@ -722,6 +731,12 @@ export class WASI {
             }
         } catch (err: any) {
             funcThrownError = err;
+            if (containsResourceObjects(funcThrownError)) {
+                let storeFunc = this.storeResource;
+                storeFunc = storeFunc.bind(this);
+                storeResourceObjects(importName, funcThrownError, storeFunc);
+                funcThrownError = getResourceSerializableForProxyObjects(funcThrownError);
+            }
         }
         if (funcThrownError) {
             wasiWorkerDebug(
