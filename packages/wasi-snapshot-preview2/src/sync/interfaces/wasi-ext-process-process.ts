@@ -86,8 +86,11 @@ export type ProcessStatus = 'created' | 'running' | 'waiting' | 'terminated';
  * ## `"invalid"`
  * 
  * Invalid executable, similar to `EINVAL` or `ENOEXEC` in POSIX.
+ * ## `"not-started"`
+ * 
+ * Process in not yet started
  */
-export type ErrorCode = 'access' | 'would-block' | 'insufficient-memory' | 'unsupported' | 'invalid';
+export type ErrorCode = 'access' | 'would-block' | 'insufficient-memory' | 'unsupported' | 'invalid' | 'not-started';
 export interface ExecArgs {
   /**
    * optional args - argv[0] contains name of the program like POSIX

@@ -39,6 +39,8 @@ interface process {
         unsupported,
         /// Invalid executable, similar to `EINVAL` or `ENOEXEC` in POSIX.
         invalid,
+        /// Process in not yet started
+        not-started,
     }
 
     record exec-args {

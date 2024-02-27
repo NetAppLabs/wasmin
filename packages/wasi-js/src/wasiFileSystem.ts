@@ -27,7 +27,7 @@ import {
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
 import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
-import { wasiFileSystemDebug } from "./wasiDebug.js";
+import { wasiError, wasiFileSystemDebug } from "./wasiDebug.js";
 
 
 /**
@@ -523,6 +523,22 @@ export class OpenFiles {
         }
     }
 
+    getPreOpens(): [OpenDirectory, number, string][] {
+        const preopens: [OpenDirectory, number, string][] = [];
+        const preopen_fd = FIRST_PREOPEN_FD;
+        try {
+            for (let i = preopen_fd; true; i++) {
+                const openDir = this.getPreOpen(i);
+                const path = openDir.path;
+                preopens.push([openDir, i, path]);
+            }
+        } catch (err: any) {
+            wasiError("getDirectories: err: ", err);
+        }
+        return preopens;
+    }
+
+
     async open(preOpen: OpenDirectory, path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
         wasiFileSystemDebug(`[open] path: ${path} openFlags: ${openFlags} fsFlags: ${fdFlags}`);
         if (path.startsWith("/")) {
@@ -540,6 +556,17 @@ export class OpenFiles {
             }
         }
         return this._add(pathWithPrefix, fileOrDir, fdFlags);
+    }
+
+    async openRelativeToRoot(path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
+        let foundRel = this.findRelPath(path);
+        if (foundRel) {
+            let preopenDir = foundRel.preOpen;
+            let num = await this.open(preopenDir, path);
+            return num;
+        } else {
+            throw new SystemError(ErrnoN.NOENT);            
+        }
     }
 
     get(fd: Fd): OpenResource {
@@ -823,6 +850,7 @@ export class OpenFiles {
     // eslint-disable-next-line @typescript-eslint/member-ordering
     findRelPath(path: string) {
         wasiFileSystemDebug("[findRelPath]");
+        let fdNumber = 0;
         /// Are the `prefix_len` bytes pointed to by `prefix` a prefix of `path`?
         function prefixMatches(prefix: string, path: string) {
             // Allow an empty string as a prefix of any relative path.
@@ -851,7 +879,8 @@ export class OpenFiles {
         let matchLen = 0;
         let foundPre;
         for (let i = this._firstNonPreopenFd - 1; i >= FIRST_PREOPEN_FD; --i) {
-            const pre = this.get(i as Fd) as OpenDirectory;
+            let fdNumberTry = i;
+            const pre = this.get(fdNumberTry as Fd) as OpenDirectory;
             let prefix = pre.path;
 
             if (path !== "." && !path.startsWith("./")) {
@@ -869,12 +898,12 @@ export class OpenFiles {
             // the requested path, take that as the new best path.
             if ((!foundPre || prefix.length > matchLen) && prefixMatches(prefix, path)) {
                 foundPre = pre;
+                fdNumber = fdNumberTry;
                 matchLen = prefix.length;
             }
         }
 
         if (!foundPre) {
-            //throw new Error(`Couldn't resolve the given path via preopened directories.`);
             throw new SystemError(ErrnoN.NOENT);
         }
 
@@ -888,6 +917,7 @@ export class OpenFiles {
         computed = computed || ".";
 
         return {
+            preopenFd: fdNumber,
             preOpen: foundPre,
             relativePath: computed,
         };

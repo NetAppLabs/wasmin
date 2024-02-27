@@ -212,6 +212,14 @@ export interface WasiIoStreams {
       tag: 'closed',
     }
     
+    export interface InputStream extends Disposable {
+      read(len: bigint): Uint8Array;
+      blockingRead(len: bigint): Uint8Array;
+      skip(len: bigint): bigint;
+      blockingSkip(len: bigint): bigint;
+      subscribe(): Pollable;
+    }
+    
     export interface OutputStream extends Disposable {
       checkWrite(): bigint;
       write(contents: Uint8Array): void;
@@ -223,13 +231,5 @@ export interface WasiIoStreams {
       blockingWriteZeroesAndFlush(len: bigint): void;
       splice(src: InputStream, len: bigint): bigint;
       blockingSplice(src: InputStream, len: bigint): bigint;
-    }
-    
-    export interface InputStream extends Disposable {
-      read(len: bigint): Uint8Array;
-      blockingRead(len: bigint): Uint8Array;
-      skip(len: bigint): bigint;
-      blockingSkip(len: bigint): bigint;
-      subscribe(): Pollable;
     }
     

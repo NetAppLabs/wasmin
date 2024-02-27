@@ -33,12 +33,12 @@ export class FileSystemPreopensAsyncHost implements PreopensAsync {
 
     async getDirectories(): Promise<[Descriptor, string][]> {
         const preopens: [Descriptor, string][] = [];
-        const preopen_fd = FIRST_PREOPEN_FD;
+        let preOpenDirs = this._wasiEnv.openFiles.getPreOpens();
         try {
-            for (let i = preopen_fd; true; i++) {
-                const openDir = this._wasiEnv.openFiles.getPreOpen(i);
-                const path = openDir.path;
-                const desc = new FileSystemFileDescriptor(this._wasiEnv, i, path);
+            for (const preOpen of preOpenDirs) {
+                const fd = preOpen[1];
+                const path = preOpen[2];
+                const desc = new FileSystemFileDescriptor(this._wasiEnv, fd, path);
                 preopens.push([desc, path]);
             }
         } catch (err: any) {

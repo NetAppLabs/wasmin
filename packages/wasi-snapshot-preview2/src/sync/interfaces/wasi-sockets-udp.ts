@@ -266,17 +266,6 @@ export interface WasiSocketsUdp {
       remoteAddress?: IpSocketAddress,
     }
     
-    export interface OutgoingDatagramStream extends Disposable {
-      checkSend(): bigint;
-      send(datagrams: OutgoingDatagram[]): bigint;
-      subscribe(): Pollable;
-    }
-    
-    export interface IncomingDatagramStream extends Disposable {
-      receive(maxResults: bigint): IncomingDatagram[];
-      subscribe(): Pollable;
-    }
-    
     export interface UdpSocket extends Disposable {
       startBind(network: Network, localAddress: IpSocketAddress): void;
       finishBind(): void;
@@ -290,6 +279,17 @@ export interface WasiSocketsUdp {
       setReceiveBufferSize(value: bigint): void;
       sendBufferSize(): bigint;
       setSendBufferSize(value: bigint): void;
+      subscribe(): Pollable;
+    }
+    
+    export interface IncomingDatagramStream extends Disposable {
+      receive(maxResults: bigint): IncomingDatagram[];
+      subscribe(): Pollable;
+    }
+    
+    export interface OutgoingDatagramStream extends Disposable {
+      checkSend(): bigint;
+      send(datagrams: OutgoingDatagram[]): bigint;
       subscribe(): Pollable;
     }
     

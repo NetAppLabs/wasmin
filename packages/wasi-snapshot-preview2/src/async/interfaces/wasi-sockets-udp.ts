@@ -266,9 +266,8 @@ export interface WasiSocketsUdp {
       remoteAddress?: IpSocketAddress,
     }
     
-    export interface OutgoingDatagramStream extends AsyncDisposable {
-      checkSend(): Promise<bigint>;
-      send(datagrams: OutgoingDatagram[]): Promise<bigint>;
+    export interface IncomingDatagramStream extends AsyncDisposable {
+      receive(maxResults: bigint): Promise<IncomingDatagram[]>;
       subscribe(): Promise<Pollable>;
     }
     
@@ -288,8 +287,9 @@ export interface WasiSocketsUdp {
       subscribe(): Promise<Pollable>;
     }
     
-    export interface IncomingDatagramStream extends AsyncDisposable {
-      receive(maxResults: bigint): Promise<IncomingDatagram[]>;
+    export interface OutgoingDatagramStream extends AsyncDisposable {
+      checkSend(): Promise<bigint>;
+      send(datagrams: OutgoingDatagram[]): Promise<bigint>;
       subscribe(): Promise<Pollable>;
     }
     

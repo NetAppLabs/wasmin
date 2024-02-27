@@ -266,7 +266,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             }
             fsflags = sock.fdFlags;
         } else {
-            return ErrnoN.BADF;
+            rightsBase = RIGHTS_FILE_BASE;
+            rightsInheriting = BigInt(0);
+            filetype = FiletypeN.UNKNOWN;
         }
         const newFdstat: Fdstat = {
             fs_filetype: filetype,
@@ -880,9 +882,6 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                         await this.delay(1000);
                     } else {
                         let errNo = ErrnoN.SUCCESS;
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: _suspendStdIn==false");
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: args: ", this.cargs);
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: env: ", this.cenv);
                         let nBytes = 0n;
                         try {
                             const ofd = this.openFiles.get(fd_forread);

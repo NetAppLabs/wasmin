@@ -111,10 +111,10 @@ export async function forEachIoVec(
     cb: (buf: Uint8Array) => Promise<number>,
     checkAbort: () => void
 ) {
+    //wasiPreview1Debug(`forEachIoVec: iovsLen ${iovsLen}`);
     let totalHandled = 0;
     for (let i = 0; i < iovsLen; i++) {
         const iovec = Iovec.get(buffer, iovsPtr);
-        wasiPreview1Debug(`iovec.bufLen ${iovec.buf_len}`);
         const buf = new Uint8Array(buffer, iovec.buf, iovec.buf_len);
         const handled = await cb(buf);
 
