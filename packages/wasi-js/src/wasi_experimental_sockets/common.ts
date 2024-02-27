@@ -1,4 +1,5 @@
 import { SystemError } from "../errors.js";
+import { wasiSocketsDebug } from "../wasiDebug.js";
 import { Socket } from "../wasiFileSystem.js";
 import { Addr, AddrTypeN, ErrnoN } from "./bindings.js";
 
@@ -120,21 +121,6 @@ export function createPromiseWithTimeout(
     return Promise.race([promise, timeout]);
 }
 
-export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
-    const newArray = new Uint8Array(arr.length + data.length);
-    newArray.set(arr); // copy old data
-    newArray.set(data, arr.length); // copy new data after end of old data
-    return newArray;
-}
-
-declare let globalThis: any;
-globalThis.WASI_SOCKETS_DEBUG = false;
-
-export function wasiSocketsDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_SOCKETS_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
 
 export function IPv4AddressToArray(addr: string): [number, number, number, number] {
     const saddrs = addr.split(".");

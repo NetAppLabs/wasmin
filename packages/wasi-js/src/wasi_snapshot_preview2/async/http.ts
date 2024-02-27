@@ -3,7 +3,7 @@ import { HttpTypesNamespace as httpt } from "@wasmin/wasi-snapshot-preview2/asyn
 import { IoStreamsNamespace as ion } from "@wasmin/wasi-snapshot-preview2/async";
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { wasiPreview2Debug } from "./preview2Utils.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 import { DummyPollable, InStream } from "./io.js";
 import { Resource } from "../../wasiResources.js";
 import { Peekable, Readable } from "../../wasiFileSystem.js";

@@ -1,0 +1,95 @@
+
+interface process {
+    use wasi:io/streams@0.2.0.{input-stream};
+    use wasi:io/streams@0.2.0.{output-stream};
+    use wasi:filesystem/types@0.2.0.{descriptor};
+    use wasi:clocks/wall-clock@0.2.0.{datetime};
+
+    type process-id = u64;
+    type env-variable = tuple<string,string>;
+
+    flags capabilites {
+        /// inherit capabilities from parent process
+        inherit,
+        /// no capabilities
+        none,
+        /// only filesystem
+        filesystem,
+        /// network
+        network,
+        /// all capabilities
+        all,
+    }
+
+    enum process-status {
+        created,
+        running,
+        waiting,
+        terminated,
+    }
+
+    enum error-code {
+        /// Permission denied, similar to `EACCES` in POSIX.
+        access,
+        /// Resource unavailable, or operation would block, similar to `EAGAIN` and `EWOULDBLOCK` in POSIX.
+        would-block,
+        /// Not enough space, similar to `ENOMEM` in POSIX.
+        insufficient-memory,
+        /// Not supported, similar to `ENOTSUP` and `ENOSYS` in POSIX.
+        unsupported,
+        /// Invalid executable, similar to `EINVAL` or `ENOEXEC` in POSIX.
+        invalid,
+    }
+
+    record exec-args {
+        /// optional args - argv[0] contains name of the program like POSIX
+        argv: option<list<string>>,
+        /// optional environment variables
+        env: option<list<env-variable>>,
+        /// root descriptor of process - may be none
+        root: option<descriptor>, 
+        /// capabilities
+        capabilities: option<capabilites>,
+    }
+
+    resource process {
+        /// Process ID - returns None if not started
+        get-process-id: func() -> option<process-id>;
+        get-name: func() -> string;
+        get-argv: func() -> option<list<string>>;
+        get-env: func() -> option<list<env-variable>>;
+        get-stdin: func() -> output-stream;
+        set-stdin: func(stdin: output-stream);
+        get-stdout: func() -> input-stream;
+        set-stdout: func(stdout: input-stream);
+        get-stderr: func() -> input-stream;
+        set-stderr: func(stderr: input-stream);
+        get-status: func() -> process-status;
+        get-parent: func() -> option<process>;
+        get-children: func() -> option<list<process>>;
+        get-root: func() -> option<descriptor>;
+        get-capabilities: func() -> option<capabilites>;
+        get-time-start: func() -> datetime;
+        get-time-end: func() -> datetime;
+
+        // optional exported Descriptor from process
+        // exported-descriptor: func() -> option<descriptor>;
+
+        /// Start Process
+        start: func() -> result<process-id,error-code>;
+        /// Terminate Process
+        terminate: func() -> result<_,error-code>;
+    }
+    
+
+    /// Execute process
+    /// Equivalent to calling create and then calling start
+    exec: func(name: string, args: option<exec-args>) -> result<process, error-code>;
+
+    /// Create process - do not start it
+    create: func(name: string, args: option<exec-args>) -> result<process, error-code>;
+    
+    /// List of processes
+    processes: func() -> list<process>;
+
+}

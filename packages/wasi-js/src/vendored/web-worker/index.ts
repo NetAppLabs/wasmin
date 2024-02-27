@@ -2,7 +2,7 @@
 // included and modified here because code is outdated
 
 import { transfer } from "comlink";
-import { isNode } from "../../wasiUtils.js";
+import { isNode } from "../../utils.js";
 
 //type ConstructorOf<C> = { new (...args: any[]): C }
 //

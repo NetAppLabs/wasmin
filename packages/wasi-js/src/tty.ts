@@ -1,7 +1,10 @@
-const TTY_DEBUG = false;
+declare global {
+    var TTY_DEBUG: boolean;
+}
+globalThis.TTY_DEBUG = false;
 
 function ttyDebug(msg?: any, ...optionalParams: any[]): void {
-    if (TTY_DEBUG) {
+    if (globalThis.TTY_DEBUG) {
         console.debug(msg, ...optionalParams);
     }
 }
@@ -21,11 +24,11 @@ export interface TTY {
 }
 
 export class TTYInstance implements TTY {
-    constructor(columns: number, rows: number, rawMode: boolean, modeListener?: (rawMode: boolean) => void) {
+    constructor(columns: number, rows: number, rawMode: boolean, rawModeListener?: (rawMode: boolean) => Promise<void>) {
         this._columns = columns;
         this._rows = rows;
         this._rawMode = rawMode;
-        this._modeListener = modeListener;
+        this._rawModeListener = rawModeListener;
         this.setSize = this.setSizeImpl.bind(this);
         this.getSize = this.getSizeImpl.bind(this);
         this.getRawMode = this.getRawModeImpl.bind(this);
@@ -33,10 +36,15 @@ export class TTYInstance implements TTY {
         this.setOnResize = this.setOnResizeImpl.bind(this);
     }
     async setRawModeImpl(rawMode: boolean): Promise<void> {
-        this.rawMode = rawMode;
+        ttyDebug("TTYInstance set rawMode: ", rawMode);
+        if (this._rawModeListener) {
+            await this._rawModeListener(rawMode);
+        }
+        this._rawMode = rawMode;
+        return;
     }
     async getRawModeImpl(): Promise<boolean> {
-        return this.rawMode;
+        return this._rawMode;
     }
     async getSizeImpl(): Promise<TTYSize> {
         let size: TTYSize = {
@@ -47,7 +55,9 @@ export class TTYInstance implements TTY {
     }
     async setSizeImpl(size: TTYSize): Promise<void> {
         this._rows = size.rows;
+        ttyDebug('setting rows: ', size.rows);
         this._columns = size.columns;
+        ttyDebug('setting columns: ', size.columns);
         if (this._onResize) {
             await this._onResize(size);
         }
@@ -58,7 +68,7 @@ export class TTYInstance implements TTY {
     _columns: number;
     _rows: number;
     _rawMode: boolean;
-    _modeListener?: (rawMode: boolean) => void;
+    _rawModeListener?: (rawMode: boolean) => Promise<void>;
     setSize: (size: TTYSize) => Promise<void>;
     getSize: () => Promise<TTYSize>;
     getRawMode: () => Promise<boolean>;
@@ -66,14 +76,4 @@ export class TTYInstance implements TTY {
     _onResize?: TTYOnResizeFunc;
     setOnResize: (resizeFunc: TTYOnResizeFunc) => Promise<void>;
 
-    set rawMode(rawMode: boolean) {
-        ttyDebug("set rawMode: ", rawMode);
-        if (this._modeListener) {
-            this._modeListener(rawMode);
-        }
-        this._rawMode = rawMode;
-    }
-    get rawMode() {
-        return this._rawMode;
-    }
 }

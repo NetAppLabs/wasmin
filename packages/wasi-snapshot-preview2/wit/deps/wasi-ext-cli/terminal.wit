@@ -1,0 +1,70 @@
+
+/// Terminal input.
+///
+/// In the future, this may include functions for disabling echoing,
+/// disabling input buffering so that keyboard events are sent through
+/// immediately, querying supported features, and so on.
+interface terminal-input-extended {
+    /// The input side of a terminal.
+    resource terminal-input-extended {
+        get-raw-mode: func() -> bool;
+        set-raw-mode: func(raw-mode: bool);
+    }
+}
+
+/// Terminal output.
+///
+/// In the future, this may include functions for querying the terminal
+/// size, being notified of terminal size changes, querying supported
+/// features, and so on.
+interface terminal-output-extended {
+    record terminal-size {
+        columns: u32,
+        rows: u32,
+    }
+    /// The output side of a terminal.
+    resource terminal-output-extended {
+        get-size: func() -> terminal-size;
+    }
+}
+
+/// An interface providing an optional `terminal-input-extended` for stdin as a
+/// link-time authority.
+interface terminal-stdin-extended {
+    use terminal-input-extended.{terminal-input-extended};
+    use wasi:cli/terminal-input@0.2.0.{terminal-input};
+
+    /// If stdin is connected to a terminal, return a `terminal-input-extended` handle
+    /// allowing further interaction with it.
+    get-terminal-stdin: func() -> option<terminal-input-extended>;
+    /// convert to extended resource
+    to-extended: func(input: terminal-input) -> option<terminal-input-extended>;
+}
+
+/// An interface providing an optional `terminal-output-extended` for stdout as a
+/// link-time authority.
+interface terminal-stdout-extended {
+    use terminal-output-extended.{terminal-output-extended};
+    use wasi:cli/terminal-output@0.2.0.{terminal-output};
+
+    /// If stdout is connected to a terminal, return a `terminal-output-extended` handle
+    /// allowing further interaction with it.
+    get-terminal-stdout: func() -> option<terminal-output-extended>;
+    /// convert to extended resource
+    to-extended: func(input: terminal-output) -> option<terminal-output-extended>;
+
+}
+
+/// An interface providing an optional `terminal-output-extended` for stderr as a
+/// link-time authority.
+interface terminal-stderr-extended {
+    use terminal-output-extended.{terminal-output-extended};
+    use wasi:cli/terminal-output@0.2.0.{terminal-output};
+
+    /// If stderr is connected to a terminal, return a `terminal-output-extended` handle
+    /// allowing further interaction with it.
+    get-terminal-stderr: func() -> option<terminal-output-extended>;
+    /// convert to extended resource
+    to-extended: func(input: terminal-output) -> option<terminal-output-extended>;
+
+}

@@ -24,22 +24,19 @@ import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_pr
 import {
     CStringArray,
     isExitStatus,
-    lineOut,
-    sleep,
-    wasiCallDebug,
-    wasiDebug,
-    wasiError,
-    wasiFdDebug,
-} from "./wasiUtils.js";
+    consoleWriter,
+} from "./wasiPreview1Utils.js";
 import { initializeWasiExperimentalSocketsToImports } from "./wasi_experimental_sockets/host.js";
 import { Channel, makeChannel, writeMessage } from "./vendored/sync-message/index.js";
 import {
     WasiSnapshotPreview2AsyncImportObject,
     constructWasiSnapshotPreview2Imports,
 } from "./wasi_snapshot_preview2/async/index.js";
-import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
+import { getSymbolForString, isSymbol, isSymbolStringIdentifier } from "./workerUtils.js";
 import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceImportAndId, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
 import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
+import { wasiCallDebug, wasiDebug, wasiError, wasiPreview1FdDebug, wasiWorkerDebug } from "./wasiDebug.js";
+import { sleep } from "./utils.js";
 
 
 /**
@@ -116,14 +113,14 @@ export class WasiEnv implements WasiOptions {
         this._openFiles.set(0, rstdin);
 
         if (!stdout) {
-            stdout = lineOut(console.log);
+            stdout = consoleWriter(console.log);
         }
         this._stdout = stdout;
         const wstdout = stdout as Writable;
         this._openFiles.set(1, wstdout);
 
         if (!stderr) {
-            stderr = lineOut(console.error);
+            stderr = consoleWriter(console.error);
         }
         this._stderr = stderr;
         const wstderr = stderr as Writable;
@@ -790,7 +787,7 @@ export class WASI {
 
                 this._coreModuleMemory = mem;
                 if (functionName == "fd_read" || functionName == "fd_write") {
-                    wasiFdDebug(`[WASI.handleCoreImport] calling: [${importName}.${functionName}] args: `, args);
+                    wasiPreview1FdDebug(`[WASI.handleCoreImport] calling: [${importName}.${functionName}] args: `, args);
                 } else {
                     wasiDebug(`[WASI.handleCoreImport] calling: [${importName}.${functionName}] args: `, args);
                 }

@@ -637,10 +637,6 @@ export interface MetadataHashValue {
   upper: bigint,
 }
 
-export interface DirectoryEntryStream extends Disposable {
-  readDirectoryEntry(): DirectoryEntry | undefined;
-}
-
 export interface Descriptor extends Disposable {
   readViaStream(offset: Filesize): InputStream;
   writeViaStream(offset: Filesize): OutputStream;
@@ -669,4 +665,8 @@ export interface Descriptor extends Disposable {
   isSameObject(other: Descriptor): boolean;
   metadataHash(): MetadataHashValue;
   metadataHashAt(pathFlags: PathFlags, path: string): MetadataHashValue;
+}
+
+export interface DirectoryEntryStream extends Disposable {
+  readDirectoryEntry(): DirectoryEntry | undefined;
 }

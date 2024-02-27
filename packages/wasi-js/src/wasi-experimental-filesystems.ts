@@ -2,18 +2,20 @@ import { getDirectoryHandleByURL } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { clamp_host, data_view, UTF8_DECODER, utf8_encode, UTF8_ENCODED_LEN } from "./intrinsics.js";
 import { WasiEnv } from "./wasi.js";
-import { wasiDebug, unimplemented, translateErrorToErrorno } from "./wasiUtils.js";
+import { unimplemented, translateErrorToErrorno } from "./wasiPreview1Utils.js";
 import { ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import { showDirectoryPicker } from "@wasmin/fs-js";
+import { wasiPreview1Debug } from "./wasiDebug.js";
 
 export function addWasiExperimentalFilesystemsToImports(
+    importNs: string,
     imports: any,
     obj: WasiExperimentalFilesystems,
     get_export: (name: string) => WebAssembly.ExportValue
 ): void {
-    if (!("wasi-experimental-filesystems" in imports)) imports["wasi-experimental-filesystems"] = {};
+    if (!(importNs in imports)) imports[importNs] = {};
     //@ts-ignore
-    imports["wasi-experimental-filesystems"]["mount"] = async function (arg0, arg1, arg2, arg3) {
+    imports[importNs]["fs_mount"] = async function (arg0, arg1, arg2, arg3) {
         const memory = get_export("memory");
         const ptr0 = arg0;
         const len0 = arg1;
@@ -28,7 +30,7 @@ export function addWasiExperimentalFilesystemsToImports(
         return clamp_host(ret, 0, 4294967295);
     };
     //@ts-ignore
-    imports["wasi-experimental-filesystems"]["umount"] = async function (arg0, arg1) {
+    imports[importNs]["fs_umount"] = async function (arg0, arg1) {
         const memory = get_export("memory");
         const ptr0 = arg0;
         const len0 = arg1;
@@ -38,7 +40,7 @@ export function addWasiExperimentalFilesystemsToImports(
         return clamp_host(ret, 0, 4294967295);
     };
     //@ts-ignore
-    imports["wasi-experimental-filesystems"]["mounts"] = async function (arg0) {
+    imports[importNs]["fs_mounts"] = async function (arg0) {
         const memory = get_export("memory");
         //@ts-ignore
         const realloc = get_export("canonical_abi_realloc");
@@ -121,7 +123,7 @@ class WasiExperimentalFilesystemsHost implements WasiExperimentalFilesystems {
     private _wasiEnv: WasiEnv;
     async mount(sourceMountURL: string, destMountPath: string): Promise<number> {
         try {
-            wasiDebug(
+            wasiPreview1Debug(
                 `[WasiExperimentalFilesystems:mount] sourceMountURL: ${sourceMountURL} , destMountPath: ${destMountPath}`
             );
 
@@ -146,17 +148,17 @@ class WasiExperimentalFilesystemsHost implements WasiExperimentalFilesystems {
                 resolve(ErrnoN.SUCCESS);
             });
         } catch (err: any) {
-            wasiDebug("WasiExperimentalFilesystemsHost: error: ", err);
+            wasiPreview1Debug("WasiExperimentalFilesystemsHost: error: ", err);
             return translateErrorToErrorno(err);
         }
     }
     async umount(dest: string): Promise<number> {
-        wasiDebug(`[WasiExperimentalFilesystems:umount] dest: ${dest}`);
+        wasiPreview1Debug(`[WasiExperimentalFilesystems:umount] dest: ${dest}`);
         unimplemented("umount");
         return 0;
     }
     async mounts(): Promise<MountInfo[]> {
-        wasiDebug(`[WasiExperimentalFilesystems:mounts]`);
+        wasiPreview1Debug(`[WasiExperimentalFilesystems:mounts]`);
         unimplemented("mounts");
         throw new SystemError(ErrnoN.NOSYS);
         //const list = new MountInfo{path: "", fs: "", attributes=""};
@@ -170,5 +172,10 @@ export function initializeWasiExperimentalFilesystemsToImports(
     wasiEnv: WasiEnv
 ) {
     const wHost = new WasiExperimentalFilesystemsHost(wasiEnv);
-    addWasiExperimentalFilesystemsToImports(imports, wHost, get_export);
+
+    let experimentalFileSystemsNs = "wasi_experimental_filesystems";
+    addWasiExperimentalFilesystemsToImports(experimentalFileSystemsNs, imports, wHost, get_export);
+    let wasiPreview1Ns = "wasi_snapshot_preview1";
+    addWasiExperimentalFilesystemsToImports(wasiPreview1Ns, imports, wHost, get_export);
+
 }

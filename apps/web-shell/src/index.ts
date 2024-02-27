@@ -233,7 +233,7 @@ if (REGISTER_GITHUB) {
                 console.log(`read: num: ${num}`);
             }
             let charOrLine = "";
-            const isRawMode = tty.rawMode;
+            const isRawMode = await tty.getRawMode();
             let onData: IDisposable | undefined;
             if (isRawMode) {
                 // in rawmode we read each character directly from term
@@ -260,8 +260,8 @@ if (REGISTER_GITHUB) {
         },
     };
 
-    const stdoutWriteFunc = function (data: Uint8Array) {
-        const isRawMode = tty.rawMode;
+    const stdoutWriteFunc = async function (data: Uint8Array) {
+        const isRawMode = await tty.getRawMode();
         if (isRawMode) {
             const str = textDecoder.decode(data);
             localEcho.print(str);
@@ -281,13 +281,13 @@ if (REGISTER_GITHUB) {
 
     if (DEBUG_MODE) {
         stderr = {
-            write(data: Uint8Array) {
+            async write(data: Uint8Array) {
                 console.error(textDecoder.decode(data, { stream: true }));
             },
         };
     }
 
-    const modeListener = function (rawMode: boolean): void {
+    const modeListener = async function (rawMode: boolean): Promise<void> {
         if (DEBUG_MODE) {
             console.debug(`debug: setting rawMode: ${rawMode}`);
         }

@@ -1,7 +1,7 @@
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
 type NewTimestamp = fs.NewTimestamp;
 import { SystemError } from "../../errors.js";
-import { translateErrorToErrorno } from "../../wasiUtils.js";
+import { translateErrorToErrorno } from "../../wasiPreview1Utils.js";
 import { AdviceN, ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
 import { SocketsNetworkNamespace as sock } from "@wasmin/wasi-snapshot-preview2/async";
 import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2/async";
@@ -963,16 +963,5 @@ export class ResourceManager {
         if (fdhandle.close) {
             await fdhandle.close();
         }
-    }
-}
-
-declare global {
-    var WASI_PREVIEW2_DEBUG: boolean;
-}
-globalThis.WASI_PREVIEW2_DEBUG = false;
-
-export function wasiPreview2Debug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_PREVIEW2_DEBUG) {
-        console.debug(msg, ...optionalParams);
     }
 }

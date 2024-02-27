@@ -4,12 +4,6 @@ import { CreateProcessId } from "./util.js";
 
 import { Readable, WASI, Writable } from "@wasmin/wasi-js";
 
-/*function randomBytes(count: number) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const webcrypto = require("crypto").webcrypto;
-    const arr = new Uint8Array(count);
-    return webcrypto.getRandomValues(arr);
-}*/
 
 class BufferedInOut implements Writable, Readable {
     buf!: Uint8Array;

@@ -212,6 +212,14 @@ export interface WasiIoStreams {
       tag: 'closed',
     }
     
+    export interface InputStream extends AsyncDisposable {
+      read(len: bigint): Promise<Uint8Array>;
+      blockingRead(len: bigint): Promise<Uint8Array>;
+      skip(len: bigint): Promise<bigint>;
+      blockingSkip(len: bigint): Promise<bigint>;
+      subscribe(): Promise<Pollable>;
+    }
+    
     export interface OutputStream extends AsyncDisposable {
       checkWrite(): Promise<bigint>;
       write(contents: Uint8Array): Promise<void>;
@@ -223,13 +231,5 @@ export interface WasiIoStreams {
       blockingWriteZeroesAndFlush(len: bigint): Promise<void>;
       splice(src: InputStream, len: bigint): Promise<bigint>;
       blockingSplice(src: InputStream, len: bigint): Promise<bigint>;
-    }
-    
-    export interface InputStream extends AsyncDisposable {
-      read(len: bigint): Promise<Uint8Array>;
-      blockingRead(len: bigint): Promise<Uint8Array>;
-      skip(len: bigint): Promise<bigint>;
-      blockingSkip(len: bigint): Promise<bigint>;
-      subscribe(): Promise<Pollable>;
     }
     

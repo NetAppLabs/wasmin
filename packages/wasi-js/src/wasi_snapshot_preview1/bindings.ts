@@ -3,7 +3,7 @@
  */
 
 import { TextDecoderWrapper } from "../utils.js";
-import { wasiDebug } from "../wasiUtils.js";
+import { wasiPreview1Debug } from "../wasiDebug.js";
 
 // Pointer to target
 export type ptr<T> = number & { _pointerTarget: T };
@@ -2289,7 +2289,7 @@ export function addWasiSnapshotPreview1ToImports(
             handler.checkAbort();
         } catch (err: any) {
             const eRet = errorHandler2(err);
-            wasiDebug("wasi_snapshot_preview1 proc_exit handled error", err, eRet);
+            wasiPreview1Debug("wasi_snapshot_preview1 proc_exit handled error", err, eRet);
         }
     };
     imports["wasi_snapshot_preview1"]["proc_raise"] = async function (_sig: any) {

@@ -1,3 +1,10 @@
+import { WasiExtCliTerminalInputExtended } from './interfaces/wasi-ext-cli-terminal-input-extended.js';
+import { WasiExtCliTerminalOutputExtended } from './interfaces/wasi-ext-cli-terminal-output-extended.js';
+import { WasiExtCliTerminalStderrExtended } from './interfaces/wasi-ext-cli-terminal-stderr-extended.js';
+import { WasiExtCliTerminalStdinExtended } from './interfaces/wasi-ext-cli-terminal-stdin-extended.js';
+import { WasiExtCliTerminalStdoutExtended } from './interfaces/wasi-ext-cli-terminal-stdout-extended.js';
+import { WasiExtFilesystemsMount } from './interfaces/wasi-ext-filesystems-mount.js';
+import { WasiExtProcessProcess } from './interfaces/wasi-ext-process-process.js';
 import { WasiCliEnvironment } from './interfaces/wasi-cli-environment.js';
 import { WasiCliExit } from './interfaces/wasi-cli-exit.js';
 import { WasiCliStderr } from './interfaces/wasi-cli-stderr.js';

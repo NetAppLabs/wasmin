@@ -73,7 +73,7 @@ import { TerminalOutputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalOutput = TerminalOutputNamespace.WasiCliTerminalOutput;
 import { TerminalStderrAsyncHost, TerminalStdinAsyncHost, TerminalStdoutAsyncHost } from "./terminal.js";
 import { isFunction } from "../../workerUtils.js";
-import { wasiPreview2Debug } from "./preview2Utils.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 
 export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:cli/environment": CliBaseEnvironment;

@@ -1,7 +1,7 @@
 import { FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
-import { Handle, Readable, ReadableAsyncOrSync, Writable, WritableAsyncOrSync } from "./wasiFileSystem.js";
+import { Handle, ReadableAsyncOrSync, WritableAsyncOrSync } from "./wasiFileSystem.js";
 import {
     Errno,
     ErrnoN,
@@ -14,65 +14,7 @@ import {
     Size,
     string,
 } from "./wasi_snapshot_preview1/bindings.js";
-
-
-declare global {
-    var WASI_DEBUG: boolean;
-    var WASI_CALL_DEBUG: boolean;
-    var WASI_FD_DEBUG: boolean;
-    var WASI_RESOURCE_DEBUG: boolean;
-}
-globalThis.WASI_DEBUG = false;
-globalThis.WASI_CALL_DEBUG = false;
-globalThis.WASI_FD_DEBUG = false;
-globalThis.WASI_RESOURCE_DEBUG = false;
-
-export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasiDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasiResourceDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_RESOURCE_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasiCallDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_CALL_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasiError(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_DEBUG) {
-        console.error(msg, ...optionalParams);
-        if (msg instanceof Error) {
-            const e = msg as Error;
-            console.error(e.name);
-            console.error(e.message);
-            console.error(e.cause);
-            console.error(e.stack);
-        }
-    }
-}
-
-export function wasiFdDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_FD_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { wasiPreview1Debug, wasiError } from "./wasiDebug.js";
 
 export const stringOut = (writeStr: (chunk: string) => void): WritableAsyncOrSync => {
     const decoder = new TextDecoderWrapper();
@@ -84,7 +26,7 @@ export const stringOut = (writeStr: (chunk: string) => void): WritableAsyncOrSyn
     };
 };
 
-export const lineOut = (writeLn: (chunk: string) => void): WritableAsyncOrSync => {
+export const consoleWriter = (writeLn: (chunk: string) => void): WritableAsyncOrSync => {
     let lineBuf = "";
 
     return stringOut((chunk) => {
@@ -108,7 +50,7 @@ export const bufferIn = (buffer: Uint8Array): ReadableAsyncOrSync => {
 };
 
 export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, filestat_ptr: ptr<Filestat>) {
-    wasiDebug("populateFileStat:");
+    wasiPreview1Debug("populateFileStat:");
     const isFile: boolean = (handle as any).getFile;
 
     let inode = 0n;
@@ -148,7 +90,7 @@ export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, file
         mtim: mtime,
         ctim: ctime,
     };
-    wasiDebug("populateFileStat: newFstat: ", newFstat);
+    wasiPreview1Debug("populateFileStat: newFstat: ", newFstat);
     Filestat.set(buffer, filestat_ptr, newFstat);
 }
 
@@ -172,7 +114,7 @@ export async function forEachIoVec(
     let totalHandled = 0;
     for (let i = 0; i < iovsLen; i++) {
         const iovec = Iovec.get(buffer, iovsPtr);
-        wasiDebug(`iovec.bufLen ${iovec.buf_len}`);
+        wasiPreview1Debug(`iovec.bufLen ${iovec.buf_len}`);
         const buf = new Uint8Array(buffer, iovec.buf, iovec.buf_len);
         const handled = await cb(buf);
 
@@ -258,6 +200,20 @@ export function parseCStringArray(cStringArray: string): string[] {
     }
 }
 
+export function parseCStringArrayToKeyValue(cStringArray: string): Record<string, string> {
+    let map: Record<string, string> = {};
+    let stringArray = parseCStringArray(cStringArray);
+    for (const str of stringArray) {
+        let valuesSplit = str.split("=");
+        if (valuesSplit.length > 1) {
+            let key = valuesSplit[0];
+            let val = valuesSplit[1];
+            map[key] = val;
+        }
+    }
+    return map;
+}
+
 export function unimplemented(msg?: string) {
     console.error("[unimplemented] ", msg);
     throw new SystemError(ErrnoN.NOSYS);
@@ -326,56 +282,6 @@ export function translateErrorToErrorno(err: any): Errno {
     }
     wasiError("translateErrorToErrorno: Uknownerror: ", err);
     return ErrnoN.INVAL;
-}
-
-export function isNodeorBunorDeno() {
-    if (isDeno()) {
-        return true;
-    } else {
-        return isNodeorBun();
-    }
-}
-
-export function isNodeorBun() {
-    return globalThis.process != null;
-}
-
-export function isNode() {
-    // only node.js or bun has global process class
-    if (!isBun()) {
-        return globalThis.process != null;
-    } else {
-        return false;
-    }
-}
-
-export function copyBuffer(src: ArrayBufferLike, dst: ArrayBufferLike) {
-    const srcBytes = new Uint8Array(src);
-    const size = src.byteLength;
-    const view = new DataView(dst);
-    for (let i = 0; i < size; i++) {
-        view.setUint8(i, srcBytes[i]);
-    }
-}
-
-export function isBun() {
-    // only bun has global Bun
-    try {
-        // @ts-ignore
-        return globalThis.Bun != null;
-    } catch (e) {
-        return false;
-    }
-}
-
-export function isDeno() {
-    // only deno has global Deno
-    try {
-        // @ts-ignore
-        return globalThis.Deno != null;
-    } catch (e) {
-        return false;
-    }
 }
 
 export const RIGHTS_ALL =
@@ -474,3 +380,5 @@ export const RIGHTS_STDOUT_BASE =
     RightsN.POLL_FD_READWRITE;
 
 export const RIGHTS_CHARACTER_DEVICE_BASE = RIGHTS_STDIN_BASE | RIGHTS_STDOUT_BASE;
+export { wasiPreview1Debug as wasiDebug };
+

@@ -7,8 +7,9 @@ import {
     WasmRunMode,
 } from "./desyncify.js";
 import { Channel, readMessage, uuidv4, writeMessage } from "./vendored/sync-message/index.js";
-import { copyBuffer, sleep } from "./wasiUtils.js";
-import { initializeComlinkHandlers, isFunction, wasmWorkerThreadDebug } from "./workerUtils.js";
+import { wasmWorkerThreadDebug } from "./wasiDebug.js";
+import { copyBuffer, sleep } from "./utils.js";
+import { initializeComlinkHandlers, isFunction } from "./workerUtils.js";
 import * as comlink from "comlink";
 
 

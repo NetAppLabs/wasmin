@@ -1,20 +1,20 @@
 import { SystemError } from "../errors.js";
+import { appendToUint8Array } from "../utils.js";
 import { Peekable, Socket } from "../wasiFileSystem.js";
-import { isNode, isNodeorBunorDeno, sleep } from "../wasiUtils.js";
+import { isNodeorBunorDeno } from "../utils.js";
 
 import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
 import {
     AddressInfo,
-    appendToUint8Array,
     delay,
     NodeNetUdpSocket,
     RemoteChunk,
     RemoteInfo,
     SocketType,
     WasiSocket,
-    wasiSocketsDebug,
 } from "./common.js";
 import { NodeNetTcpServer, NodeNetTcpSocket, AddressFamily } from "./common.js";
+import { wasiSocketsDebug } from "../wasiDebug.js";
 
 export const USE_ACCEPTED_SOCKET_PROMISE = false;
 export const USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 1;
@@ -597,16 +597,16 @@ export class NetUdpSocket extends Socket implements WasiSocket, Peekable {
         }
 
         let availableChunks = this._dataChunks;
-        const lastChunk = availableChunks.shift();
-        if (lastChunk) {
-            let returningBuf = lastChunk.buf;
-            const returningRinfo = lastChunk.rinfo;
-            const returningBufLen = returningBuf.length;
+        const firstChunk = availableChunks.shift();
+        if (firstChunk) {
+            let returningBuf = firstChunk.buf;
+            const returningRinfo = firstChunk.rinfo;
+            const returningBufLen = returningBuf.byteLength;
             wasiSocketsDebug("udp socket:readFromWithoutRetry returningBuf: ", returningBufLen);
             if (returningBufLen > len) {
-                returningBuf = lastChunk.buf.subarray(0, len);
+                returningBuf = firstChunk.buf.subarray(0, len);
                 this._dataChunks = this._dataChunks.slice(len);
-                const remainingBuf = lastChunk.buf.subarray(len);
+                const remainingBuf = firstChunk.buf.subarray(len);
                 const remainingBufLen = remainingBuf.length;
                 // pushing back the remaining buf
                 const remainingRinfo: RemoteInfo = {
@@ -616,7 +616,7 @@ export class NetUdpSocket extends Socket implements WasiSocket, Peekable {
                     family: returningRinfo.family,
                 };
                 wasiSocketsDebug("udp socket:readFromWithoutRetry returning remainingRinfo: ", remainingRinfo);
-                this._dataChunks.push({ buf: remainingBuf, rinfo: remainingRinfo });
+                this._dataChunks.unshift({ buf: remainingBuf, rinfo: remainingRinfo });
             }
             wasiSocketsDebug("udp socket:readFromWithoutRetry returning returningBuf.length: ", returningBuf.length);
             wasiSocketsDebug("udp socket:readFromWithoutRetry returning returningRinfo: ", returningRinfo);

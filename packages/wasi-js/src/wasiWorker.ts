@@ -1,9 +1,9 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers } from "./workerUtils.js";
 import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
-import { isNode } from "./wasiUtils.js";
+import { isNode } from "./utils.js";
 import {
     Channel,
     makeAtomicsChannel,
@@ -18,6 +18,7 @@ import { TTY, TTYInstance } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 import { node } from "@wasmin/node-fs-js";
+import { wasiWorkerDebug } from "./wasiDebug.js";
 //import { nfs } from "@wasmin/nfs-js";
 
 export type ProviderUrl = string;

@@ -23,11 +23,13 @@ import {
     IPv6AddressToArray,
     WasiSocket,
 } from "../../wasi_experimental_sockets/common.js";
-import { isBadFileDescriptor, isErrorAgain, translateToSocketsError, wasiPreview2Debug } from "./preview2Utils.js";
+import { isBadFileDescriptor, isErrorAgain, translateToSocketsError } from "./preview2Utils.js";
 import { DummyPollable, InStream, OutStream } from "./io.js";
 import { Resource } from "../../wasiResources.js";
-import { OpenFiles } from "../../wasiFileSystem.js";
-import { sleep } from "../../wasiUtils.js";
+import { OpenFiles, Peekable } from "../../wasiFileSystem.js";
+import { sleep } from "../../utils.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
+
 type UdpSocket = socku.UdpSocket;
 type OutgoingDatagram = socku.OutgoingDatagram;
 type OutgoingDatagramStream = socku.OutgoingDatagramStream
@@ -414,7 +416,8 @@ export class TcpSocketPollable implements Pollable {
         const ofd = this.openFiles.get(this.fd);
         const ofda = ofd as any;
         if (ofda.peek) {
-            let peekBytes = await ofda.peek();
+            let peekable = ofda as Peekable;
+            let peekBytes = await peekable.peek();
             wasiPreview2Debug(`[io/streams] TcpSocketPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
             if (peekBytes > 0) {
                 return true;
@@ -560,7 +563,6 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
             if (isErrorAgain(err)) {
                 wasiPreview2Debug("UdpIncomingDatagramStreamInstance.receive isErrorAgain:");
                 // this should not throw 'would-block' rather return an empty array
-                await sleep(1);
                 let datagrams: IncomingDatagram[] = [];
                 return datagrams;
             }
@@ -811,7 +813,8 @@ export class UdpSocketPollable implements Pollable {
         const ofd = this.openFiles.get(this.fd);
         const ofda = ofd as any;
         if (ofda.peek) {
-            let peekBytes = await ofda.peek();
+            let peekable = ofda as Peekable;
+            let peekBytes = await peekable.peek();
             wasiPreview2Debug(`[io/streams] UdpSocketPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
             if (peekBytes > 0) {
                 return true;

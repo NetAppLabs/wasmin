@@ -11,18 +11,43 @@ import { TerminalInputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalInputAsync = TerminalInputNamespace.WasiCliTerminalInput;
 import { TerminalOutputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalOutputAsync = TerminalOutputNamespace.WasiCliTerminalOutput;
+import { TerminalInputExtendedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalOutputExtendedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStdInExtendedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStdOutExtendedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStErrExtendedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 
+type WasiExtCliTerminalInputExtended = TerminalInputExtendedNamespace.WasiExtCliTerminalInputExtended;
+type TerminalInputExtended = TerminalInputExtendedNamespace.TerminalInputExtended;
+
+type WasiExtCliTerminalOutputExtended = TerminalOutputExtendedNamespace.WasiExtCliTerminalOutputExtended;
+type TerminalOutputExtended = TerminalOutputExtendedNamespace.TerminalOutputExtended;
+
+type WasiExtCliTerminalStdinExtended = TerminalStdInExtendedNamespace.WasiExtCliTerminalStdinExtended;
+type WasiExtCliTerminalStdoutExtended = TerminalStdOutExtendedNamespace.WasiExtCliTerminalStdoutExtended;
+type WasiExtCliTerminalStderrExtended = TerminalStErrExtendedNamespace.WasiExtCliTerminalStderrExtended;
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { Resource } from "../../wasiResources.js";
-import { wasiPreview2Debug } from "./preview2Utils.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 
-export class TerminalInputInstance implements TerminalInput, Resource {
+export class TerminalInputInstance implements TerminalInput, TerminalInputExtended, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this.fd = fd;
         this._wasiEnv = wasiEnv;
         this.resource = this.openFiles.addResource(this);
+    }
+    async getRawMode(): Promise<boolean> {
+        let rawMode =  await this._wasiEnv.tty?.getRawMode();
+        if (rawMode!== undefined) {
+            return rawMode;
+        } else {
+            return false;
+        }
+    }
+    async setRawMode(rawMode: boolean): Promise<void> {
+        await this._wasiEnv.tty?.setRawMode(rawMode);
     }
     private _wasiEnv: WasiEnv;
 
@@ -36,12 +61,23 @@ export class TerminalInputInstance implements TerminalInput, Resource {
     resource: number;
 };
 
-export class TerminalOutputInstance implements TerminalOutput, Resource {
+export class TerminalOutputInstance implements TerminalOutput,TerminalOutputExtended, Resource {
     constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this.fd = fd;
         this._wasiEnv = wasiEnv;
         this.resource = this.openFiles.addResource(this);
+    }
+    async getSize(): Promise<TerminalOutputExtendedNamespace.TerminalSize> {
+        let termSize = await this._wasiEnv.tty?.getSize();
+        if (termSize !== undefined) {
+            return termSize;
+        } else {
+            return {
+                columns: 80,
+                rows: 24,
+            }
+        }
     }
     private _wasiEnv: WasiEnv;
 
