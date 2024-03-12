@@ -3,22 +3,32 @@ export interface WasiExtProcessProcess {
    * Process ID - returns None if not started
    */
   /**
-   * optional exported Descriptor from process
-   * exported-descriptor: func() -> option<descriptor>;
+   * get-stdin-stream: func() -> output-stream;
+   */
+  /**
+   * get-stdout-stream: func() -> input-stream;
+   */
+  /**
+   * get-stderr-stream: func() -> input-stream;
+   */
+  /**
+   * get-process-control-stream: func() -> input-stream;
+   */
+  /**
    * Start Process
    */
   /**
    * Terminate Process
    */
   /**
-   * Execute process
-   * Equivalent to calling create and then calling start
+   * Shorthand Execute process
+   * Equivalent to calling create, then setting variables then calling start
    */
    exec(name: string, args: ExecArgs | undefined): Promise<Process>;
   /**
    * Create process - do not start it
    */
-   create(name: string, args: ExecArgs | undefined): Promise<Process>;
+   create(name: string): Promise<Process>;
   /**
    * List of processes
    */
@@ -111,23 +121,25 @@ export interface ExecArgs {
 }
 
 export interface Process extends AsyncDisposable {
-  getProcessId(): Promise<ProcessId | undefined>;
+  getProcessId(): Promise<ProcessId>;
   getName(): Promise<string>;
   getArgv(): Promise<string[] | undefined>;
+  setArgv(argv: string[]): Promise<void>;
   getEnv(): Promise<EnvVariable[] | undefined>;
-  getStdin(): Promise<OutputStream>;
-  setStdin(stdin: OutputStream): Promise<void>;
-  getStdout(): Promise<InputStream>;
-  setStdout(stdout: InputStream): Promise<void>;
-  getStderr(): Promise<InputStream>;
-  setStderr(stderr: InputStream): Promise<void>;
+  setEnv(env: EnvVariable[]): Promise<void>;
+  getStdin(): Promise<Descriptor>;
+  getStdout(): Promise<Descriptor>;
+  getStderr(): Promise<Descriptor>;
+  getProcessControl(): Promise<Descriptor>;
   getStatus(): Promise<ProcessStatus>;
   getParent(): Promise<Process | undefined>;
   getChildren(): Promise<Process[] | undefined>;
   getRoot(): Promise<Descriptor | undefined>;
+  setRoot(root: Descriptor): Promise<void>;
   getCapabilities(): Promise<Capabilites | undefined>;
-  getTimeStart(): Promise<Datetime>;
-  getTimeEnd(): Promise<Datetime>;
+  setCapabilities(caps: Capabilites): Promise<void>;
+  getTimeStart(): Promise<Datetime | undefined>;
+  getTimeEnd(): Promise<Datetime | undefined>;
   start(): Promise<ProcessId>;
   terminate(): Promise<void>;
 }

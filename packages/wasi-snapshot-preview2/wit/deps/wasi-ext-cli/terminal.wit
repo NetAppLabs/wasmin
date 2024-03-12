@@ -18,13 +18,13 @@ interface terminal-input-extended {
 /// size, being notified of terminal size changes, querying supported
 /// features, and so on.
 interface terminal-output-extended {
-    record terminal-size {
-        columns: u32,
-        rows: u32,
+    record rows-and-columns {
+        rows: u16,
+        columns: u16,
     }
     /// The output side of a terminal.
     resource terminal-output-extended {
-        get-size: func() -> terminal-size;
+        window-size: func() -> result<rows-and-columns>;
     }
 }
 

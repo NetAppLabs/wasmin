@@ -78,8 +78,8 @@ export function initializeWasiExperimentalProcessToImports(
 
 export interface WasiExperimentalProcess {
     exec(
-        cwd: string, 
-        name: string,
+        name: string, 
+        cwd: string,
         argv: string,
         env: string,
         proc_fd_ptr: mutptr<u32>,
@@ -117,8 +117,8 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         }
     }
     async exec(
-        cwd: string,
         name: string,
+        cwd: string,
         argvString: string,
         envString: string,
         proc_fd_ptr: mutptr<u32>,

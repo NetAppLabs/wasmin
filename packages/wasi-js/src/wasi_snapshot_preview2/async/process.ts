@@ -1,15 +1,20 @@
 import { ProcessNamespace as procns } from "@wasmin/wasi-snapshot-preview2/async";
 import { IoStreamsNamespace as ions } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fsn } from "@wasmin/wasi-snapshot-preview2/async";
 
 type WasiExtProcessProcess = procns.WasiExtProcessProcess;
 type Process = procns.Process;
 type ExecArgs = procns.ExecArgs;
 type ProcessId = procns.ProcessId;
 type ProcessStatus = procns.ProcessStatus;
+type Capabilites = procns.Capabilites;
+type EnvVariable = procns.EnvVariable;
 
 type ProcessErrorCode = procns.ErrorCode;
 type InputStream = ions.InputStream;
 type OutputStream = ions.OutputStream;
+type Descriptor = fsn.Descriptor;
+
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { Resource } from "../../wasiResources.js";
@@ -28,16 +33,32 @@ export class ProcessResource implements Process, Resource {
         this.execArgs = execArgs;
         this.status = 'created';
     }
+    async setArgv(argv: string[]): Promise<void> {
+        this.argv = argv;
+    }
+    async setEnv(env: EnvVariable[]): Promise<void> {
+        this.env = env;
+    }
+    async setRoot(root: Descriptor): Promise<void> {
+        this.root = root;
+    }
+    async setCapabilities(caps: Capabilites): Promise<void> {
+        this.capabilities = caps;
+    }
 
     private _wasiEnv: WasiEnv;
     private name: string;
-    private execArgs?: ExecArgs;
     private processId?: ProcessId;
     private innerProcess?: WasiProcess;
     private status: ProcessStatus;
-    private stdIn?: OutputStream;
-    private stdOut?: InputStream;
-    private stdErr?: InputStream;
+    private stdIn?: Descriptor;
+    private stdOut?: Descriptor;
+    private stdErr?: Descriptor;
+    private processControl?: Descriptor;
+    private argv?: string[];
+    private env?: EnvVariable[];
+    private capabilities?: Capabilites;
+    private root?: Descriptor;
 
     get openFiles() {
         return this._wasiEnv.openFiles;
@@ -46,9 +67,21 @@ export class ProcessResource implements Process, Resource {
         await this.openFiles.disposeResource(this);
     }
     resource: number;
+
+    set execArgs(execArgs: ExecArgs|undefined) {
+        if (execArgs) {
+            this.argv = execArgs.argv;
+            this.env = execArgs.env;
+            this.capabilities = execArgs.capabilities;
+            this.root = execArgs.root;
+        }
+    }
     
-    async getProcessId(): Promise<ProcessId | undefined> {
-        return this.processId;
+    async getProcessId(): Promise<ProcessId> {
+        if (this.processId !== undefined) {
+            return this.processId;
+        }
+        throw 'not-started';
     }
     async getName(): Promise<string> {
         return this.name;
@@ -59,36 +92,36 @@ export class ProcessResource implements Process, Resource {
     async getEnv(): Promise<procns.EnvVariable[] | undefined> {
         return this.execArgs?.env;
     }
-    async getStdin(): Promise<procns.OutputStream> {
+    async getStdin(): Promise<Descriptor> {
         if (this.stdIn !== undefined) {
             return this.stdIn;
         } else {
             throw 'not-started';
         }
     }
-    setStdin(stdin: procns.OutputStream): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    async getStdout(): Promise<procns.InputStream> {
+    async getStdout(): Promise<Descriptor> {
         if (this.stdOut !== undefined) {
             return this.stdOut;
         } else {
             throw 'not-started';
         }
     }
-    setStdout(stdout: procns.InputStream): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    async getStderr(): Promise<procns.InputStream> {
+    async getStderr(): Promise<Descriptor> {
         if (this.stdErr !== undefined) {
             return this.stdErr;
         } else {
             throw 'not-started';
         }
     }
-    setStderr(stderr: procns.InputStream): Promise<void> {
-        throw new Error("Method not implemented.");
+
+    async getProcessControl(): Promise<Descriptor> {
+        if (this.processControl !== undefined) {
+            return this.processControl;
+        } else {
+            throw 'not-started';
+        }
     }
+
     async getStatus(): Promise<procns.ProcessStatus> {
         return this.status;
     }
@@ -117,14 +150,15 @@ export class ProcessResource implements Process, Resource {
     initProcess(): void {
         let name = this.name;
         let cwd = "/";
-        let args: string[] = [];
+        let args: string[] | undefined;
+        if (this.argv !== undefined) {
+            args = this.argv;
+        } else {
+            args = [];
+        }
         let env: Record<string,string> = {};
-        if (this.execArgs !== undefined ) {
-            let argvFromArgs = this.execArgs.argv;
-            if (argvFromArgs !== undefined) {
-                args = argvFromArgs;
-            }
-            let envFromArgs = this.execArgs.env;
+        if (this.env !== undefined) {
+            let envFromArgs = this.env;
             if (envFromArgs !== undefined) {
                 for (const envArg of envFromArgs) {
                     const key = envArg[0];
@@ -132,14 +166,17 @@ export class ProcessResource implements Process, Resource {
                     env[key] = value;
                 }
             }
-            let rootDescriptor = this.execArgs.root;
-            if (rootDescriptor !== undefined) {
-                if (rootDescriptor instanceof FileSystemFileDescriptor) {
-                    let fsDesc = rootDescriptor as FileSystemFileDescriptor;
+        }
+        let rootDescriptor = this.root;
+        if (rootDescriptor !== undefined) {
+            if (rootDescriptor instanceof FileSystemFileDescriptor) {
+                let fsDesc = rootDescriptor as FileSystemFileDescriptor;
+                if (fsDesc.path !== undefined) {
                     cwd = fsDesc.path;
                 }
             }
         }
+
         let procControl = new ProcessControl();
         let newStdin = new BufferedPipe();
         let newStdOut = new BufferedPipe();
@@ -150,9 +187,10 @@ export class ProcessResource implements Process, Resource {
         let newStdOutFd = this._wasiEnv.openFiles.add(newStdOut);
         let newStdErrFd = this._wasiEnv.openFiles.add(newStdErr);
 
-        this.stdIn = getOutputStreamForWritableFd(this._wasiEnv, newStdInFd);
-        this.stdOut = getInputStreamForReadableFd(this._wasiEnv, newStdOutFd);
-        this.stdErr = getInputStreamForReadableFd(this._wasiEnv, newStdErrFd);
+        this.stdIn = new FileSystemFileDescriptor(this._wasiEnv, newStdInFd);
+        this.stdOut = new FileSystemFileDescriptor(this._wasiEnv, newStdOutFd);
+        this.stdErr = new FileSystemFileDescriptor(this._wasiEnv, newStdErrFd);
+        this.processControl = new FileSystemFileDescriptor(this._wasiEnv, newProcFd);
 
         let proc = new WasiProcess(
             this._wasiEnv,
@@ -190,8 +228,10 @@ export class WasiExtProcessProcessAsyncHost implements WasiExtProcessProcess {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.Process = ProcessResource;
     }
     private _wasiEnv: WasiEnv;
+    public Process: typeof ProcessResource;
     get wasiEnv() {
         return this._wasiEnv;
     }
@@ -199,14 +239,28 @@ export class WasiExtProcessProcessAsyncHost implements WasiExtProcessProcess {
         return this.wasiEnv.openFiles;
     }
 
-    async create(name: string, args: ExecArgs | undefined): Promise<Process> {
-        let proc = new ProcessResource(this.wasiEnv, name, args);
+    async create(name: string): Promise<Process> {
+        let proc = new ProcessResource(this.wasiEnv, name);
         return proc;
     }
 
-    async exec(name: string, args: ExecArgs | undefined): Promise<Process> {
+    async exec(name: string, execArgs: ExecArgs | undefined): Promise<Process> {
         try {
-            let proc = await this.create(name, args);
+            let proc = await this.create(name);
+            if (execArgs !== undefined) {
+                if (execArgs.argv !== undefined) {
+                    proc.setArgv(execArgs.argv);
+                }
+                if (execArgs.env !== undefined) {
+                    proc.setEnv(execArgs.env);
+                }
+                if (execArgs.root !== undefined) {
+                    proc.setRoot(execArgs.root);
+                }
+                if (execArgs.capabilities !== undefined) {
+                    proc.setCapabilities(execArgs.capabilities);
+                }
+            }
             proc.start()
                 .then(() => {
                     wasiPreview2Debug(`exec process.start: then`);

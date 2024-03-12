@@ -56,6 +56,14 @@ export function isDeno() {
     }
 }
 
+export function isNodeorDeno() {
+    if (isDeno()) {
+        return true;
+    } else {
+        return isNode();
+    }
+}
+
 export function isNodeorBunorDeno() {
     if (isDeno()) {
         return true;

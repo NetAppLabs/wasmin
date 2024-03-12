@@ -3,22 +3,32 @@ export interface WasiExtProcessProcess {
    * Process ID - returns None if not started
    */
   /**
-   * optional exported Descriptor from process
-   * exported-descriptor: func() -> option<descriptor>;
+   * get-stdin-stream: func() -> output-stream;
+   */
+  /**
+   * get-stdout-stream: func() -> input-stream;
+   */
+  /**
+   * get-stderr-stream: func() -> input-stream;
+   */
+  /**
+   * get-process-control-stream: func() -> input-stream;
+   */
+  /**
    * Start Process
    */
   /**
    * Terminate Process
    */
   /**
-   * Execute process
-   * Equivalent to calling create and then calling start
+   * Shorthand Execute process
+   * Equivalent to calling create, then setting variables then calling start
    */
    exec(name: string, args: ExecArgs | undefined): Process;
   /**
    * Create process - do not start it
    */
-   create(name: string, args: ExecArgs | undefined): Process;
+   create(name: string): Process;
   /**
    * List of processes
    */
@@ -111,23 +121,25 @@ export interface ExecArgs {
 }
 
 export interface Process extends Disposable {
-  getProcessId(): ProcessId | undefined;
+  getProcessId(): ProcessId;
   getName(): string;
   getArgv(): string[] | undefined;
+  setArgv(argv: string[]): void;
   getEnv(): EnvVariable[] | undefined;
-  getStdin(): OutputStream;
-  setStdin(stdin: OutputStream): void;
-  getStdout(): InputStream;
-  setStdout(stdout: InputStream): void;
-  getStderr(): InputStream;
-  setStderr(stderr: InputStream): void;
+  setEnv(env: EnvVariable[]): void;
+  getStdin(): Descriptor;
+  getStdout(): Descriptor;
+  getStderr(): Descriptor;
+  getProcessControl(): Descriptor;
   getStatus(): ProcessStatus;
   getParent(): Process | undefined;
   getChildren(): Process[] | undefined;
   getRoot(): Descriptor | undefined;
+  setRoot(root: Descriptor): void;
   getCapabilities(): Capabilites | undefined;
-  getTimeStart(): Datetime;
-  getTimeEnd(): Datetime;
+  setCapabilities(caps: Capabilites): void;
+  getTimeStart(): Datetime | undefined;
+  getTimeEnd(): Datetime | undefined;
   start(): ProcessId;
   terminate(): void;
 }

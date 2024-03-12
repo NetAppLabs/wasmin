@@ -29,12 +29,12 @@ export class UdpSocket {
   subscribe(): Pollable;
 }
 
+export class IncomingDatagramStream {
+  receive(maxResults: bigint): IncomingDatagram[];
+}
+
 export class OutgoingDatagramStream {
   checkSend(): bigint;
   send(datagrams: OutgoingDatagram[]): bigint;
   subscribe(): Pollable;
-}
-
-export class IncomingDatagramStream {
-  receive(maxResults: bigint): IncomingDatagram[];
 }

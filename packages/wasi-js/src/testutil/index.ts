@@ -1,10 +1,10 @@
-import path from "node:path";
-import fs from "node:fs/promises";
-import os from "node:os";
-import { readdir, readFile } from "node:fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn, isBun } from "../index.js";
+//import path from "node:path";
+//import fs from "node:fs/promises";
+//import os from "node:os";
+//import { readdir, readFile } from "node:fs/promises";
+import { WASI, stringOut, OpenFiles, bufferIn, isBun, isNode } from "../index.js";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
+//import { node } from "@wasmin/node-fs-js";
 import { memory } from "@wasmin/fs-js";
 
 const textEncoder = new TextEncoder();
@@ -51,6 +51,10 @@ export async function copyFsInto(rootPath: string, rootHandle: FileSystemDirecto
 
 
 export async function getRootSandboxForTest(rootPath: string): Promise<string> {
+    let path = await import('node:path');
+    let os = await import('node:os');
+    let fs = await import('node:fs/promises');
+
     let fixturesTestDir = rootPath;
     let copyFixturesToTmp = true;
     if (copyFixturesToTmp) {
@@ -76,7 +80,14 @@ export async function getRootHandle(backend: string, rootPath: string): Promise<
                 //const bun = bunmod.bun;
                 //dirHandle = await getOriginPrivateDirectory(bun, path.resolve(rootPath), false);
             //} else {
-                dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
+                if (isNode()) {
+                    let node = await import('@wasmin/node-fs-js');
+                    let path = await import('node:path');
+            
+                    dirHandle = await getOriginPrivateDirectory(node, path.resolve(rootPath), false);
+                } else {
+                    dirHandle = await getOriginPrivateDirectory(memory, "", false);
+                }
             //}
     }
     return dirHandle;
@@ -108,22 +119,26 @@ export async function constructTestsForTestSuites(testsuitePaths: string[]): Pro
 
 export async function constructTestsForTestSuite(testsuitePath: string): Promise<Test[]> {
     const tests: Test[] = [];
-    let files = await readdir(testsuitePath);
-    files.sort();
-    for (const fileName of files) {
-        const newTest = await constructOneTestForTestSuite(testsuitePath, fileName);
-        let skipThisWasm = false;
-        if (newTest) {
-            // Filter out if it already contains:
-            for (const t of tests) {
-                if (t.wasmPath) {
-                    if (t.wasmPath == newTest?.wasmPath) {
-                        skipThisWasm = true;
+    if (isNode()) {
+        let fs = await import("node:fs/promises");
+        let readdir = fs.readdir;
+        let files = await readdir(testsuitePath);
+        files.sort();
+        for (const fileName of files) {
+            const newTest = await constructOneTestForTestSuite(testsuitePath, fileName);
+            let skipThisWasm = false;
+            if (newTest) {
+                // Filter out if it already contains:
+                for (const t of tests) {
+                    if (t.wasmPath) {
+                        if (t.wasmPath == newTest?.wasmPath) {
+                            skipThisWasm = true;
+                        }
                     }
                 }
-            }
-            if (!skipThisWasm) {
-                tests.push(newTest);
+                if (!skipThisWasm) {
+                    tests.push(newTest);
+                }
             }
         }
     }
@@ -131,68 +146,50 @@ export async function constructTestsForTestSuite(testsuitePath: string): Promise
 }
 
 export async function constructOneTestForTestSuite(testsuitePath: string, fileName: string): Promise<Test | undefined> {
-    const skipList = ["manifest"];
-    if (fileName.endsWith(".json")) {
-        const testName = fileName.substring(0, fileName.length - ".json".length);
-        if (skipList.includes(testName)) {
-            return undefined;
-        }
-        const fullFileName = path.join(testsuitePath, fileName);
-        const fileContentsBuffer = await readFile(fullFileName);
-        const fileContents = textDecoder.decode(fileContentsBuffer);
-        const vars = JSON.parse(fileContents);
-        const wasmPath = path.resolve(path.join(testsuitePath, `${testName}.wasm`));
+    if (isNode()) {
+        const skipList = ["manifest"];
+        if (fileName.endsWith(".json")) {
+            let path = await import('node:path');
+        
+            const testName = fileName.substring(0, fileName.length - ".json".length);
+            if (skipList.includes(testName)) {
+                return undefined;
+            }
+            let fs = await import("node:fs/promises");
+            let readFile = fs.readFile;
+        
+            const fullFileName = path.join(testsuitePath, fileName);
+            const fileContentsBuffer = await readFile(fullFileName);
+            const fileContents = textDecoder.decode(fileContentsBuffer);
+            const vars = JSON.parse(fileContents);
+            const wasmPath = path.resolve(path.join(testsuitePath, `${testName}.wasm`));
 
-        const test = "wasi-testsuite-" + testName;
-        let args: string[] = [];
-        if (vars.args) {
-            args = vars.args;
-        }
-        let env: Record<string, string> = {};
-        if (vars.env) {
-            env = vars.env;
-        }
-        let dirs: string[] = [];
-        if (vars.dirs) {
-            dirs = vars.dirs;
-        }
-        let exitCode: number = 0;
-        if (vars.exit_code) {
-            exitCode = vars.exit_code;
-        }
-        let stdin: string = "";
-        if (vars.stdin) {
-            stdin = vars.stdin;
-        }
-        let stdout: string = "";
-        if (vars.stdout) {
-            stdout = vars.stdout;
-        }
-
-        const addedTest: Test = {
-            test: test,
-            args: args,
-            env: env,
-            dirs: dirs,
-            exitCode: exitCode,
-            stdin: stdin,
-            stdout: stdout,
-            wasmPath: wasmPath,
-            rootPath: testsuitePath,
-        };
-        return addedTest;
-    } else if (fileName.endsWith(".wasm")) {
-        const testName = fileName.substring(0, fileName.length - ".wasm".length);
-        const wasmPath = path.resolve(path.join(testsuitePath, `${testName}.wasm`));
-        let skipThisWasm = false;
-        if (!skipThisWasm) {
             const test = "wasi-testsuite-" + testName;
-            const args: string[] = [];
-            const env = {};
-            const dirs: string[] = [];
-            const exitCode = 0;
-            const stdin = "";
-            const stdout = "";
+            let args: string[] = [];
+            if (vars.args) {
+                args = vars.args;
+            }
+            let env: Record<string, string> = {};
+            if (vars.env) {
+                env = vars.env;
+            }
+            let dirs: string[] = [];
+            if (vars.dirs) {
+                dirs = vars.dirs;
+            }
+            let exitCode: number = 0;
+            if (vars.exit_code) {
+                exitCode = vars.exit_code;
+            }
+            let stdin: string = "";
+            if (vars.stdin) {
+                stdin = vars.stdin;
+            }
+            let stdout: string = "";
+            if (vars.stdout) {
+                stdout = vars.stdout;
+            }
+
             const addedTest: Test = {
                 test: test,
                 args: args,
@@ -205,6 +202,32 @@ export async function constructOneTestForTestSuite(testsuitePath: string, fileNa
                 rootPath: testsuitePath,
             };
             return addedTest;
+        } else if (fileName.endsWith(".wasm")) {
+            const testName = fileName.substring(0, fileName.length - ".wasm".length);
+            let path = await import('node:path');    
+            const wasmPath = path.resolve(path.join(testsuitePath, `${testName}.wasm`));
+            let skipThisWasm = false;
+            if (!skipThisWasm) {
+                const test = "wasi-testsuite-" + testName;
+                const args: string[] = [];
+                const env = {};
+                const dirs: string[] = [];
+                const exitCode = 0;
+                const stdin = "";
+                const stdout = "";
+                const addedTest: Test = {
+                    test: test,
+                    args: args,
+                    env: env,
+                    dirs: dirs,
+                    exitCode: exitCode,
+                    stdin: stdin,
+                    stdout: stdout,
+                    wasmPath: wasmPath,
+                    rootPath: testsuitePath,
+                };
+                return addedTest;
+            }
         }
     }
     return undefined;

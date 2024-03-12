@@ -141,9 +141,6 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
     get abortSignal() {
         return this.wasiEnv.abortSignal;
     }
-    get suspendStdIn() {
-        return this.wasiEnv.suspendStdIn;
-    }
     get isNode() {
         return this._isNode;
     }
@@ -874,46 +871,38 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
                 case EventtypeN.FD_READ: {
                     const fd_forread = u.data.file_descriptor;
                     wasiCallDebug("[poll_oneoff] event_type: fd_read, fd:", fd_forread);
-                    if (this.suspendStdIn == true) {
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: _suspendStdIn==true");
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: args: ", this.cargs);
-                        wasiPreview1Debug("poll_oneoff EventType.FdRead: env: ", this.cenv);
-
-                        await this.delay(1000);
-                    } else {
-                        let errNo = ErrnoN.SUCCESS;
-                        let nBytes = 0n;
-                        try {
-                            const ofd = this.openFiles.get(fd_forread);
-                            const ofda = ofd as any;
-                            if (ofda.peek) {
-                                let peekable = ofda as Peekable;
-                                const peekBytes = await peekable.peek();
-                                nBytes = BigInt(peekBytes);
-                                wasiCallDebug("[poll_oneoff] fd:", fd_forread, " peek:", nBytes);
-                            } else if (fd_forread == 0) {
-                                // TODO this is a workaround, specifically for stdin , fd=0
-                                // if peek is not implemented on stdin handle
-                                nBytes = 1n;
-                            }
-                        } catch(err: any) {
-                            wasiPreview1Debug("poll_oneoff EventType.FdRead err: ", err);
-                            errNo = ErrnoN.BADF; 
+                    let errNo = ErrnoN.SUCCESS;
+                    let nBytes = 0n;
+                    try {
+                        const ofd = this.openFiles.get(fd_forread);
+                        const ofda = ofd as any;
+                        if (ofda.peek) {
+                            let peekable = ofda as Peekable;
+                            const peekBytes = await peekable.peek();
+                            nBytes = BigInt(peekBytes);
+                            wasiCallDebug("[poll_oneoff] fd:", fd_forread, " peek:", nBytes);
+                        } else if (fd_forread == 0) {
+                            // TODO this is a workaround, specifically for stdin , fd=0
+                            // if peek is not implemented on stdin handle
+                            nBytes = 1n;
                         }
-
-                        // EventrwflagsN.NONE does not exist, setting to 0
-                        const eventFlagsNone = 0;
-                       
-                        addEventToReturn({
-                            userdata,
-                            error: errNo,
-                            type: u.tag,
-                            fd_readwrite: {
-                                nbytes: nBytes,
-                                flags: eventFlagsNone,
-                            },
-                        });
+                    } catch(err: any) {
+                        wasiPreview1Debug("poll_oneoff EventType.FdRead err: ", err);
+                        errNo = ErrnoN.BADF; 
                     }
+
+                    // EventrwflagsN.NONE does not exist, setting to 0
+                    const eventFlagsNone = 0;
+                    
+                    addEventToReturn({
+                        userdata,
+                        error: errNo,
+                        type: u.tag,
+                        fd_readwrite: {
+                            nbytes: nBytes,
+                            flags: eventFlagsNone,
+                        },
+                    });
                     break;
                 }
                 case EventtypeN.FD_WRITE: {

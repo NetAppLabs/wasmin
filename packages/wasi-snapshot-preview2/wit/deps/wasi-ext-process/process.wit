@@ -56,26 +56,29 @@ interface process {
 
     resource process {
         /// Process ID - returns None if not started
-        get-process-id: func() -> option<process-id>;
+        get-process-id: func() -> result<process-id,error-code>;
         get-name: func() -> string;
         get-argv: func() -> option<list<string>>;
+        set-argv: func(argv: list<string>);
         get-env: func() -> option<list<env-variable>>;
-        get-stdin: func() -> output-stream;
-        set-stdin: func(stdin: output-stream);
-        get-stdout: func() -> input-stream;
-        set-stdout: func(stdout: input-stream);
-        get-stderr: func() -> input-stream;
-        set-stderr: func(stderr: input-stream);
+        set-env: func(env: list<env-variable>);
+        //get-stdin-stream: func() -> output-stream;
+        get-stdin: func() -> result<descriptor,error-code>;
+        //get-stdout-stream: func() -> input-stream;
+        get-stdout: func() -> result<descriptor,error-code>;
+        //get-stderr-stream: func() -> input-stream;
+        get-stderr: func() -> result<descriptor,error-code>;
+        //get-process-control-stream: func() -> input-stream;
+        get-process-control: func() -> result<descriptor,error-code>;
         get-status: func() -> process-status;
         get-parent: func() -> option<process>;
         get-children: func() -> option<list<process>>;
         get-root: func() -> option<descriptor>;
+        set-root: func(root: descriptor);
         get-capabilities: func() -> option<capabilites>;
-        get-time-start: func() -> datetime;
-        get-time-end: func() -> datetime;
-
-        // optional exported Descriptor from process
-        // exported-descriptor: func() -> option<descriptor>;
+        set-capabilities: func(caps: capabilites);
+        get-time-start: func() -> option<datetime>;
+        get-time-end: func() -> option<datetime>;
 
         /// Start Process
         start: func() -> result<process-id,error-code>;
@@ -84,12 +87,12 @@ interface process {
     }
     
 
-    /// Execute process
-    /// Equivalent to calling create and then calling start
+    /// Shorthand Execute process
+    /// Equivalent to calling create, then setting variables then calling start
     exec: func(name: string, args: option<exec-args>) -> result<process, error-code>;
 
     /// Create process - do not start it
-    create: func(name: string, args: option<exec-args>) -> result<process, error-code>;
+    create: func(name: string) -> result<process, error-code>;
     
     /// List of processes
     processes: func() -> list<process>;

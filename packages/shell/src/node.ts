@@ -20,6 +20,7 @@ import { parseArgs } from "node:util";
 
 import chalk from 'chalk';
 import { BufferedPipe } from "@wasmin/wasi-js";
+import { initializeLogging } from "@wasmin/wasi-js";
 
 let DEBUG_MODE = false;
 const USE_MEMORY = false;
@@ -177,11 +178,11 @@ export function getSecretStore(): Record<string, Record<string, string | undefin
     return secretStore;
 }
 
-export async function getRootFS(driver: any, mountUrl: string, overlay: boolean): Promise<FileSystemDirectoryHandle> {
+export async function getRootFS(driver: any, mountUrl: string, unionOverlay: boolean): Promise<FileSystemDirectoryHandle> {
     const secretStore = getSecretStore();
     let rootfs: FileSystemDirectoryHandle;
     if (mountUrl != "") {
-        rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, overlay);
+        rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, unionOverlay);
     } else {
         // if environment variable NODE_ROOT_DIR is set it will use it as root path
         // else current directory
@@ -189,8 +190,7 @@ export async function getRootFS(driver: any, mountUrl: string, overlay: boolean)
         if (!nodePath || nodePath == "") {
             nodePath = process.cwd();
         }
-
-        rootfs = await getOriginPrivateDirectory(driver, nodePath, overlay);
+        rootfs = await getOriginPrivateDirectory(driver, nodePath, unionOverlay);
     }
     if (rootfs instanceof NFileSystemDirectoryHandle) {
         rootfs.secretStore = secretStore;
@@ -282,6 +282,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 type: 'string',
                 multiple: true,
             },
+            log: {
+                type: 'string',
+            },
             component: {
                 type: 'boolean',
                 short: 'c',
@@ -353,6 +356,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             let debugComponentsList = processMultipleArgValuesArray(values.trace);
             activateTraceDebugComponents(debugComponentsList)
         }
+        if (values.log) {
+            let fileNamePrefix = values.log as string;
+            await initializeLogging({
+                output: "file",
+                fileNamePrefix: fileNamePrefix,
+            })
+        }
         if (values.env) {
             env = processMultipleArgValuesToMap(values.env);
         }
@@ -401,6 +411,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
     ${fl('-e')}                            Evironment variables
     ${fl('-d')}                            Debug Mode
     ${fl('--trace [comp1,comp2]')}         Enable trace debug for copmonent name (e.g. preview1/preview2)
+    ${fl('--log [filename]')}              Enabling writing log/debug output to file
     ${fl('-u')}                            Enable Uniion overlayed FileSystem
     ${fl('-m, --mount')}   ${flv('[path|url]')}      Mount Path or URL and use as root
     ${fl('-w')}                            Run in worker

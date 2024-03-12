@@ -108,6 +108,8 @@ export class WasiProcess {
 
                         const file = await wasiFile.getFile();
                         const bufferSource = await file.arrayBuffer();
+                        wasiProcessDebug(`exec: tryByPath successful loading wasm from path: ${wasmFilePath}`);
+
                         moduleOrSource = bufferSource;
                         tryByUrl = false;
                     }
@@ -127,10 +129,11 @@ export class WasiProcess {
                         const contentType = res.headers.get("Content-Type");
                         if (contentType == "application/wasm") {
                             moduleOrSource = await res.arrayBuffer();
+                            wasiProcessDebug(`exec: tryByUrl successful loading wasm from  url: ${wasmUrl}`);
                         }
                     }
                 } catch (err: any) {
-                    wasiProcessDebug("exec: tryByUrl err: ", err);
+                    wasiProcessDebug("exec: tryByUrl err: ", err.message);
                 }
             }
 
@@ -147,7 +150,7 @@ export class WasiProcess {
         const runInSandbox = false;
         let openFiles: OpenFiles;
         if (runInSandbox) {
-            // not inheriting openfiles from parent:
+            // not inheriting sub openfiles from parent - instead use memory fs
             const preOpens: Record<string, FileSystemDirectoryHandle> = {};
             const memfs = await getOriginPrivateDirectory(memory);
             preOpens["/"] = memfs;
@@ -198,6 +201,7 @@ export class WasiProcess {
                     wasiProcessDebug(`proc rawModeListener waiting raw mode realTTYRawMode: ${realTTYRawMode} rawMode: ${rawMode}`);
                     await sleep(1);
                 }
+                await sleep(5);
                 wasiProcessDebug(`proc rawModeListener done waiting raw mode realTTYRawMode: ${realTTYRawMode} rawMode: ${rawMode}`);
             }
         };
@@ -222,6 +226,7 @@ export class WasiProcess {
             env: env,
             tty: processTty,
             name: processName,
+            componentMode: this.wasiEnv.componentMode,
         });
 
 

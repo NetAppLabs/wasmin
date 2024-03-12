@@ -33,7 +33,15 @@ export interface Stat {
     // accessedTime and modifiedTime in nanoseconds
 }
 
-// Extension to allow FileSystemHandle be able to be inserted into another
-export interface Insertable {
-    insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle>;
+export interface MountedEntry {
+    path: string,
+    source: string,
+    attributes: string[],
+}
+
+// Extension to allow FileSystemHandle be able to be Mounted onto another
+export interface Mountable {
+    mountHandle(handle: FileSystemHandle): Promise<FileSystemHandle>;
+    removeMounted(path: string): Promise<void>;
+    listMounted(recurseDepth?: number): Promise<MountedEntry[]>;
 }

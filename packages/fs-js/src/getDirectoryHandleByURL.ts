@@ -17,7 +17,7 @@ export function RegisterProvider(prefix: string, provFunc: providerFunc) {
 export async function getDirectoryHandleByURL(
     url: string,
     secretStore?: any,
-    wrapped = true
+    unionWrapped = true
 ): Promise<FileSystemDirectoryHandle> {
     //@ts-ignore
     RegisterProvider("memory", memory);
@@ -48,7 +48,7 @@ export async function getDirectoryHandleByURL(
             // @ts-ignore
             adapterHandle.url = url;
         }
-        if (wrapped) {
+        if (unionWrapped) {
             return new NFileSystemDirectoryHandle(adapterHandle);
         } else {
             return adapterHandle;

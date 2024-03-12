@@ -126,11 +126,11 @@
     (func $term_get_columns (result i32)))
 
   (import "wasi_snapshot_preview1" "fs_mount" 
-    (func $fs_mount (param i32 i32 i32 i32) (result i32)))
+    (func $fs_mount (param i32 i32 i32 i32 i32 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fs_umount" 
     (func $fs_umount (param i32 i32) (result i32)))
   (import "wasi_snapshot_preview1" "fs_mounts" 
-    (func $fs_mounts (param i32)))
+    (func $fs_mounts (param i32) (result i32)))
 
   (import "wasi_snapshot_preview1" "proc_exec" 
     (func $proc_exec (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))

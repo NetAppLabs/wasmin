@@ -3,25 +3,21 @@ interface mount {
 
     use wasi:filesystem/types@0.2.0.{descriptor};
 
+    record mount-entry {
+        path: string,
+        source: string,
+        attributes: list<string>,
+    }
+
     enum error-code {
         /// Permission denied, similar to `EACCES` in POSIX.
         access,
         /// Resource unavailable, or operation would block, similar to `EAGAIN` and `EWOULDBLOCK` in POSIX.
         would-block,
-        /// Not enough space, similar to `ENOMEM` in POSIX.
-        insufficient-memory,
-        /// No space left on device, similar to `ENOSPC` in POSIX.
-        insufficient-space,
         /// Not supported, similar to `ENOTSUP` and `ENOSYS` in POSIX.
         unsupported,
         /// Invalid parameters, similar to `EINVAL` in POSIX.
         invalid,
-    }
-
-    /// Arguments to mount
-    record mount-args {
-        source-url: string,
-        destination-path: string,
     }
 
     /// Get Union FS descriptor where new Descriptor is overlayed in top of source-descriptor
@@ -31,9 +27,14 @@ interface mount {
     get-descriptor-by-url: func(source-url: string) -> result<descriptor, error-code>;
 
     /// Mount under Descriptor
-    mount: func(desc: descriptor, args: mount-args) -> result<_, error-code>;
+    mount: func(desc: descriptor, source-url: string, destination-path: string) -> result<_, error-code>;
 
     /// Bind under Descriptor
     bind: func(parent-descriptor: descriptor, sub-descriptor: descriptor, destination-path: string) -> result<_, error-code>;
 
+    /// Un Mount from Descriptor
+    unmount: func(desc: descriptor, destination-path: string) -> result<_, error-code>;
+
+    // List mount under descriptor
+    mounts: func(desc: descriptor) -> result<list<mount-entry>, error-code>;
 }

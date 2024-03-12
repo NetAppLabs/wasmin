@@ -17,7 +17,6 @@ import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js"
 import { TTY, TTYInstance } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
-import { node } from "@wasmin/node-fs-js";
 import { wasiWorkerDebug } from "./wasiDebug.js";
 //import { nfs } from "@wasmin/nfs-js";
 
@@ -157,15 +156,6 @@ export class WASIWorker {
 export class WasiWorkerThreadRunner {
     constructor() {
         initializeComlinkHandlers();
-        if (isNode()) {
-            RegisterProvider("node", node);
-        //} else if (isBun()) {
-        //    const bunimport = await import("@wasmin/bun-fs-js");
-        //    const bunfs = bunimport.bun;
-        //    RegisterProvider("bun", bunfs);
-        }
-        // @ts-ignore
-        //RegisterProvider("nfs", nfs);
     }
     private wasiWorkerOptions?: WasiWorkerOptions;
     private wasi?: WASI;
@@ -219,6 +209,17 @@ export class WasiWorkerThreadRunner {
     }*/
 
     public async initializeComponentImports(): Promise<string[]> {
+        /*if (isNode()) {
+            let node = await import("@wasmin/node-fs-js");
+            // @ts-ignore
+            RegisterProvider("node", node);
+        } else if (isBun()) {
+            const bunimport = await import("@wasmin/bun-fs-js");
+            const bunfs = bunimport.bun;
+            RegisterProvider("bun", bunfs);
+        }*/
+        // @ts-ignore
+        //RegisterProvider("nfs", nfs);
         this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
         return await this.wasi.initializeComponentImports();
     }

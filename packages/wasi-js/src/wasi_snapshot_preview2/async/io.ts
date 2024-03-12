@@ -413,10 +413,12 @@ export class IoPollAsyncHost implements IOPollAsync {
                         }
                         wasiPreview2Debug(`poll.poll polling on ${typeName} resource: ${resource} fd: ${fd} err: `, err);
                     }
-                    out[i] = i;
+                    //out[i] = i;
                 } else {
+                    // TODO should we check for instance of ClocksMonotonicPollable
+                    // and block only if it is single in the list ?
                     await pollable.block();
-                    out[i] = i;
+                    //out[i] = i;
                 }
             }
         }

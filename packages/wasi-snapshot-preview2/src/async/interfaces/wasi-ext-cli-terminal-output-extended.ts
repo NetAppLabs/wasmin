@@ -1,10 +1,10 @@
 export interface WasiExtCliTerminalOutputExtended {
 }
-export interface TerminalSize {
-  columns: number,
+export interface RowsAndColumns {
   rows: number,
+  columns: number,
 }
 
 export interface TerminalOutputExtended extends AsyncDisposable {
-  getSize(): Promise<TerminalSize>;
+  windowSize(): Promise<RowsAndColumns>;
 }

@@ -10,14 +10,27 @@ export interface WasiExtFilesystemsMount {
   /**
    * Mount under Descriptor
    */
-   mount(desc: Descriptor, args: MountArgs): Promise<void>;
+   mount(desc: Descriptor, sourceUrl: string, destinationPath: string): Promise<void>;
   /**
    * Bind under Descriptor
    */
    bind(parentDescriptor: Descriptor, subDescriptor: Descriptor, destinationPath: string): Promise<void>;
+  /**
+   * Un Mount from Descriptor
+   */
+   unmount(desc: Descriptor, destinationPath: string): Promise<void>;
+  /**
+   * List mount under descriptor
+   */
+   mounts(desc: Descriptor): Promise<MountEntry[]>;
 }
 import type { Descriptor } from '../interfaces/wasi-filesystem-types.js';
 export { Descriptor };
+export interface MountEntry {
+  path: string,
+  source: string,
+  attributes: string[],
+}
 /**
  * # Variants
  * 
@@ -27,12 +40,6 @@ export { Descriptor };
  * ## `"would-block"`
  * 
  * Resource unavailable, or operation would block, similar to `EAGAIN` and `EWOULDBLOCK` in POSIX.
- * ## `"insufficient-memory"`
- * 
- * Not enough space, similar to `ENOMEM` in POSIX.
- * ## `"insufficient-space"`
- * 
- * No space left on device, similar to `ENOSPC` in POSIX.
  * ## `"unsupported"`
  * 
  * Not supported, similar to `ENOTSUP` and `ENOSYS` in POSIX.
@@ -40,11 +47,4 @@ export { Descriptor };
  * 
  * Invalid parameters, similar to `EINVAL` in POSIX.
  */
-export type ErrorCode = 'access' | 'would-block' | 'insufficient-memory' | 'insufficient-space' | 'unsupported' | 'invalid';
-/**
- * Arguments to mount
- */
-export interface MountArgs {
-  sourceUrl: string,
-  destinationPath: string,
-}
+export type ErrorCode = 'access' | 'would-block' | 'unsupported' | 'invalid';

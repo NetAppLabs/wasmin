@@ -21,7 +21,7 @@ export {
 
 export { PreNameCheck } from "./util.js";
 
-export type { Statable, Stat, Linkable, FileSystemLinkHandle } from "./ExtHandles.js";
+export type { Statable, Stat, Mountable, MountedEntry, Linkable, FileSystemLinkHandle } from "./ExtHandles.js";
 
 import {
     InvalidModificationError,

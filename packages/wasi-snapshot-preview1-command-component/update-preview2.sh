@@ -13,3 +13,4 @@ rm wasi_snapshot_preview1.reactor.wasm
 cp ../../../wasi-preview1-component-adapter/wasi_snapshot_preview1.reactor.wasm .
 cp ../../../wasi-preview1-component-adapter/wasi_snapshot_preview1.command.wasm .
 cp ../../../wasi-preview1-component-adapter/wasi_snapshot_preview1.command_sockets.wasm .
+cp ../../../wasi-preview1-component-adapter/wasi_snapshot_preview1.command_ext.wasm .

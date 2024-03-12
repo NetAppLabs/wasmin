@@ -4,10 +4,12 @@ import {
     FileSystemDirectoryHandle,
     FileSystemWritableFileStream,
     FileSystemHandlePermissionDescriptor,
+    Mountable,
 } from "../index.js";
 import { InvalidModificationError, NotAllowedError, NotFoundError, TypeMismatchError } from "../errors.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";
 import { FileSystemCreateWritableOptions, NFileSystemWritableFileStream, PreNameCheck } from "../index.js";
+import { MountedEntry } from "../ExtHandles.js";
 export class MemorySink extends DefaultSink<MemoryFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: MemoryFileHandle) {
         super(fileHandle);
@@ -105,7 +107,7 @@ export class MemoryFileHandle implements ImpleFileHandle<File, MemorySink>, File
 }
 
 export class MemoryFolderHandle
-    implements ImplFolderHandle<MemoryFileHandle, MemoryFolderHandle>, FileSystemDirectoryHandle
+    implements ImplFolderHandle<MemoryFileHandle, MemoryFolderHandle>, FileSystemDirectoryHandle, Mountable
 {
     constructor(name: string, writable = true) {
         this.name = name;
@@ -151,14 +153,59 @@ export class MemoryFolderHandle
         }
     }
 
-    async insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
+    async mountHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
         return new Promise<FileSystemHandle>((resolve, _reject) => {
             const subDir = handle.name;
             const subHandle = handle as unknown as MemoryFolderHandle | MemoryFileHandle;
+            this.markHandleExternal(subHandle);
             this._entries[subDir] = subHandle;
             const fsHandle = subHandle as unknown as FileSystemHandle;
             resolve(fsHandle);
         });
+    }
+    async removeMounted(path: string): Promise<void> {
+        let indexOfSlash = path.indexOf("/");
+        if (indexOfSlash == -1 ) {
+            await this.removeEntry(path, {recursive: false, onlyExternal: true})
+        } else if (indexOfSlash == 0 ) {
+            let subPath = path.substring(1);
+            await this.removeMounted(subPath);
+        } else if (indexOfSlash > 0 ) {
+            let subName = path.substring(0, indexOfSlash);
+            let restPath = path.substring(indexOfSlash+1);
+            let subdir = await this.getDirectoryHandle(subName);
+            await subdir.removeMounted(restPath);
+        }
+    }
+    async listMounted(recurseDepth?: number): Promise<MountedEntry[]> {
+        if (recurseDepth == undefined) {
+            recurseDepth = 3;
+        }
+        let ret: MountedEntry[] = [];
+        for (const [key, value] of Object.entries(this._entries)) {
+            if (this.isExternalHandle(value)) {
+                // @ts-ignore
+                let source = extHandle.url;
+                let entry: MountedEntry = {
+                    path: key,
+                    source: source,
+                    attributes: []
+                }
+                ret.push(entry);
+            } else {
+                if (recurseDepth > 0) {
+                    if (value.kind == "directory") {
+                        let subMounted = await value.listMounted(recurseDepth-1);
+                        for (const subMount of subMounted) {
+                            let subPath = subMount.path;
+                            subMount.path = key + "/" + subPath;
+                            ret.push(subMount);
+                        }
+                    }
+                }
+            }
+        }
+        return ret;
     }
 
     async isSameEntry(other: FileSystemHandle): Promise<boolean> {
@@ -206,16 +253,44 @@ export class MemoryFolderHandle
         }
     }
 
-    async removeEntry(name: string, opts?: { recursive?: boolean }): Promise<void> {
+    async removeEntry(name: string, opts?: { recursive?: boolean, onlyExternal?: boolean }): Promise<void> {
         PreNameCheck(name);
         const entry = this._entries[name];
         if (!entry) throw new NotFoundError();
+        if (this.isExternalHandle(entry)) {
+            let onlyExternal = false;
+            if (opts !== undefined) {
+                if (opts.onlyExternal !== undefined) {
+                    onlyExternal = opts.onlyExternal;
+                }
+            }
+            if (onlyExternal) {
+                delete this._entries[name];
+                return;
+            }
+        }
         if (opts) {
             entry.destroy(opts.recursive);
         } else {
             entry.destroy();
         }
         delete this._entries[name];
+    }
+
+    isExternalHandle(handle: FileSystemHandle): boolean {
+        let handleAny = handle as any;
+        if (handleAny.isExternal !== undefined) {
+            return true;
+        }
+        return false;
+    }
+
+    markHandleExternal(handle: FileSystemHandle) {
+        // Mark the handle with a property so we can track was external
+        Object.defineProperty(handle, "isExternal", {
+            enumerable: false,
+            value: true,
+        })
     }
 
     public destroy(recursive?: boolean) {

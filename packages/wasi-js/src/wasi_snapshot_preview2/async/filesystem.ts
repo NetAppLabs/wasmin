@@ -23,6 +23,7 @@ import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
 import { InStream, OutStream } from "./io.js";
 import { Resource } from "../../wasiResources.js";
 import { wasiPreview2Debug, wasiError, wasiWarn } from "../../wasiDebug.js";
+import { BufferedPipe } from "../../wasiPipes.js";
 
 export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -85,7 +86,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     private _wasiEnv: WasiEnv;
     public _fd: number;
     public resource: number;
-    private _path: string;
+    private _path?: string;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -100,7 +101,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         return this._path;
     }
 
-    constructor(wasiOptions: WasiOptions, fd: number, path: string) {
+    constructor(wasiOptions: WasiOptions, fd: number, path?: string) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
@@ -269,6 +270,15 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             if (resource instanceof OpenFile || resource instanceof OpenDirectory) {
                 const handle = resource.handle;
                 let stat = await populateDescriptorStat(this.fd, handle);
+                return stat;
+            } else if (resource instanceof BufferedPipe) {
+                let size = await resource.peek();
+                let sizeB = BigInt(size);
+                let stat: fs.DescriptorStat = {
+                    type: "fifo",
+                    linkCount: 0n,
+                    size: sizeB,
+                }
                 return stat;
             }
         } catch (err: any) {

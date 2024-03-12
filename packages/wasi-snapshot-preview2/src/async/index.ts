@@ -29,7 +29,7 @@ export * as TerminalOutputNamespace from "./interfaces/wasi-cli-terminal-output"
 
 export * as TerminalStdInExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stdin-extended";
 export * as TerminalStdOutExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stdout-extended";
-export * as TerminalStErrExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stderr-extended";
+export * as TerminalStdErrExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stderr-extended";
 export * as TerminalInputExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-input-extended";
 export * as TerminalOutputExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-output-extended";
 

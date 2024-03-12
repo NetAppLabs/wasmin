@@ -618,17 +618,9 @@ export type Trailers = Fields;
 export type StatusCode = number;
 export type Result<T, E> = { tag: 'ok', val: T } | { tag: 'err', val: E };
 
-export interface ResponseOutparam extends AsyncDisposable {
-  set(param: ResponseOutparam, response: Result<OutgoingResponse, ErrorCode>): Promise<void>;
-}
-
-export interface RequestOptions extends AsyncDisposable {
-  connectTimeout(): Promise<Duration | undefined>;
-  setConnectTimeout(duration: Duration | undefined): Promise<void>;
-  firstByteTimeout(): Promise<Duration | undefined>;
-  setFirstByteTimeout(duration: Duration | undefined): Promise<void>;
-  betweenBytesTimeout(): Promise<Duration | undefined>;
-  setBetweenBytesTimeout(duration: Duration | undefined): Promise<void>;
+export interface FutureTrailers extends AsyncDisposable {
+  subscribe(): Promise<Pollable>;
+  get(): Promise<Result<Result<Trailers | undefined, ErrorCode>, void> | undefined>;
 }
 
 export interface Fields extends AsyncDisposable {
@@ -642,20 +634,15 @@ export interface Fields extends AsyncDisposable {
   clone(): Promise<Fields>;
 }
 
-export interface IncomingBody extends AsyncDisposable {
-  stream(): Promise<InputStream>;
-  finish(this_: IncomingBody): Promise<FutureTrailers>;
-}
-
 export interface IncomingResponse extends AsyncDisposable {
   status(): Promise<StatusCode>;
   headers(): Promise<Headers>;
   consume(): Promise<IncomingBody>;
 }
 
-export interface FutureIncomingResponse extends AsyncDisposable {
-  subscribe(): Promise<Pollable>;
-  get(): Promise<Result<Result<IncomingResponse, ErrorCode>, void> | undefined>;
+export interface IncomingBody extends AsyncDisposable {
+  stream(): Promise<InputStream>;
+  finish(this_: IncomingBody): Promise<FutureTrailers>;
 }
 
 export interface OutgoingRequest extends AsyncDisposable {
@@ -671,6 +658,10 @@ export interface OutgoingRequest extends AsyncDisposable {
   headers(): Promise<Headers>;
 }
 
+export interface ResponseOutparam extends AsyncDisposable {
+  set(param: ResponseOutparam, response: Result<OutgoingResponse, ErrorCode>): Promise<void>;
+}
+
 export interface IncomingRequest extends AsyncDisposable {
   method(): Promise<Method>;
   pathWithQuery(): Promise<string | undefined>;
@@ -680,9 +671,23 @@ export interface IncomingRequest extends AsyncDisposable {
   consume(): Promise<IncomingBody>;
 }
 
-export interface FutureTrailers extends AsyncDisposable {
+export interface RequestOptions extends AsyncDisposable {
+  connectTimeout(): Promise<Duration | undefined>;
+  setConnectTimeout(duration: Duration | undefined): Promise<void>;
+  firstByteTimeout(): Promise<Duration | undefined>;
+  setFirstByteTimeout(duration: Duration | undefined): Promise<void>;
+  betweenBytesTimeout(): Promise<Duration | undefined>;
+  setBetweenBytesTimeout(duration: Duration | undefined): Promise<void>;
+}
+
+export interface OutgoingBody extends AsyncDisposable {
+  write(): Promise<OutputStream>;
+  finish(this_: OutgoingBody, trailers: Trailers | undefined): Promise<void>;
+}
+
+export interface FutureIncomingResponse extends AsyncDisposable {
   subscribe(): Promise<Pollable>;
-  get(): Promise<Result<Result<Trailers | undefined, ErrorCode>, void> | undefined>;
+  get(): Promise<Result<Result<IncomingResponse, ErrorCode>, void> | undefined>;
 }
 
 export interface OutgoingResponse extends AsyncDisposable {
@@ -690,9 +695,4 @@ export interface OutgoingResponse extends AsyncDisposable {
   setStatusCode(statusCode: StatusCode): Promise<void>;
   headers(): Promise<Headers>;
   body(): Promise<OutgoingBody>;
-}
-
-export interface OutgoingBody extends AsyncDisposable {
-  write(): Promise<OutputStream>;
-  finish(this_: OutgoingBody, trailers: Trailers | undefined): Promise<void>;
 }

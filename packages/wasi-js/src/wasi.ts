@@ -168,7 +168,6 @@ export class WasiEnv implements WasiOptions {
     private _stdout: WritableAsyncOrSync;
     private _stderr: WritableAsyncOrSync;
     private _abortSignal?: AbortSignal;
-    private _suspendStdIn = false;
     private _tty?: TTY;
     private _componentMode: boolean;
 
@@ -207,12 +206,6 @@ export class WasiEnv implements WasiOptions {
     }
     get abortSignal() {
         return this._abortSignal;
-    }
-    get suspendStdIn() {
-        return this._suspendStdIn;
-    }
-    set suspendStdIn(susp: boolean) {
-        this._suspendStdIn = susp;
     }
     get tty() {
         return this._tty;

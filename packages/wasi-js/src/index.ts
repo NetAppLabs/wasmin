@@ -8,5 +8,6 @@ export * from "./wasmComponentWorkerThreadRunner.js";
 export * from "./wasmCoreWorkerThreadRunner.js";
 export * from "./workerUtils.js";
 export * from "./wasiPipes.js";
+export * from "./wasiLogging.js";
 
 //export * from './wasi_snapshot_preview2/index.js';

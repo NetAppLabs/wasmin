@@ -17,5 +17,8 @@ await esbuild.build({
   //plugins: [envPlugin],
   //plugins: [metaUrlPlugin()],
   format: "cjs",
-  platform: "node"
+  platform: "node",
+  external: [
+    "bun",
+  ]
 })

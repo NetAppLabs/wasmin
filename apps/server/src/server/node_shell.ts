@@ -30,9 +30,9 @@ async function getRootFS(): Promise<FileSystemDirectoryHandle> {
         const secretStore = getSecretStore();
         rootfs.secretStore = secretStore;
         const procfs = await getProcFsHandle();
-        rootfs.insertHandle(procfs);
+        rootfs.mountHandle(procfs);
         const hostsfs = await getHostsFsHandle();
-        rootfs.insertHandle(hostsfs);
+        rootfs.mountHandle(hostsfs);
     }
     return rootfs;
 }

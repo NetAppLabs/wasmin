@@ -3,7 +3,8 @@ import { NFileSystemFileHandle } from "./NFileSystemFileHandle.js";
 import { getDirectoryHandleByURL } from "./getDirectoryHandleByURL.js";
 import { TypeMismatchError } from "./errors.js";
 import { FileSystemHandle } from "./FileSystemAccess.js";
-import { FileSystemDirectoryHandle, FileSystemFileHandle, PreNameCheck } from "./index.js";
+import { FileSystemDirectoryHandle, FileSystemFileHandle, Mountable, PreNameCheck } from "./index.js";
+import { MountedEntry } from "./ExtHandles.js";
 
 const FILESYSTEM_DEBUG = false;
 
@@ -12,16 +13,13 @@ export function fileSystemDebug(msg?: any, ...optionalParams: any[]): void {
         console.debug(msg, ...optionalParams);
     }
 }
-export class NFileSystemDirectoryHandle extends NFileSystemHandle implements FileSystemDirectoryHandle {
+export class NFileSystemDirectoryHandle extends NFileSystemHandle implements FileSystemDirectoryHandle, Mountable {
     constructor(public adapter: FileSystemDirectoryHandle, secretStore?: any) {
         super(adapter);
-        //this.getFile = this.getFileHandle;
-        //this.getDirectory = this.getDirectoryHandle;
-        //this.getEntries = this.values;
         this.secretStore = secretStore;
         this._externalHandleCache = {};
     }
-    static LINK_SUFFIX = ".link";
+    static MOUNTED_HANDLE_FILE_LINK_SUFFIX = ".link";
     secretStore: any;
     _externalHandleCache: Record<string, FileSystemDirectoryHandle | FileSystemFileHandle>;
 
@@ -39,7 +37,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             );
             return f;
         } catch (error: any) {
-            const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+            const newName = `${name}${NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX}`;
             try {
                 const f = await this.getExternalHandle(newName);
                 if (f.kind === "directory") {
@@ -57,7 +55,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
         this.fsDebug("entries: for :", this.adapter);
         for await (const [, entry] of this.adapter.entries()) {
             const entryName = entry.name;
-            if (entryName.endsWith(NFileSystemDirectoryHandle.LINK_SUFFIX)) {
+            if (entryName.endsWith(NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX)) {
                 const newEntry = await this.getExternalHandle(entryName);
                 const newEntryName = newEntry.name;
                 yield [
@@ -81,7 +79,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
         this.fsDebug("values: for :", this.adapter);
         for await (const [, entry] of this.adapter.entries()) {
             const entryName = entry.name;
-            if (entryName.endsWith(NFileSystemDirectoryHandle.LINK_SUFFIX)) {
+            if (entryName.endsWith(NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX)) {
                 const newEntry = await this.getExternalHandle(entryName);
                 yield newEntry.kind === "file"
                     ? new NFileSystemFileHandle(newEntry)
@@ -92,19 +90,13 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
                     : new NFileSystemDirectoryHandle(entry, this.secretStore);
             }
         }
-        /*
-    for await (const [, entry] of this.adapter.entries())
-      yield entry.kind === "file"
-        ? new NFileSystemFileHandle(entry)
-        : new NFileSystemDirectoryHandle(entry);
-    */
     }
 
     async *keys(): AsyncGenerator<string> {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for await (const [name, _] of this.adapter.entries()) {
-            if (name.endsWith(NFileSystemDirectoryHandle.LINK_SUFFIX)) {
-                const newName = name.replace(NFileSystemDirectoryHandle.LINK_SUFFIX, "");
+            if (name.endsWith(NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX)) {
+                const newName = name.replace(NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX, "");
                 yield newName;
             } else {
                 yield name;
@@ -119,7 +111,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             return f;
         } catch (error: any) {
             fileSystemDebug("getFileHandle: err: ", error);
-            const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+            const newName = `${name}${NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX}`;
             try {
                 const f = await this.getExternalHandle(newName);
                 if (f.kind === "file") {
@@ -131,14 +123,9 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             } catch (error2: any) {}
             throw error;
         }
-        /*
-    return new NFileSystemFileHandle(
-      await this.adapter.getFileHandle(name, options)
-    );
-    */
     }
 
-    async removeEntry(name: string, options = { recursive: false }): Promise<void> {
+    async removeEntry(name: string, options = { recursive: false}): Promise<void> {
         PreNameCheck(name);
         return this.adapter.removeEntry(name, options);
     }
@@ -187,16 +174,94 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
 
     // Extensions
 
-    // Inserts an external handle into the FS
-    async insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
-        // @ts-ignore
-        if (this.adapter.insertHandle) {
-            // @ts-ignore
-            return this.adapter.insertHandle(handle);
+    async removeMounted(path: string): Promise<void> {
+        let adapterany = this.adapter as any;
+        if (adapterany.removeMounted) {
+            return await adapterany.removeMounted(path);
+        } else {
+            let indexOfSlash = path.indexOf("/");
+            if (indexOfSlash == -1 ) {
+                let fileName = path;
+                const fileNameWithSuffix = `${fileName}${NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX}`;
+                await this.removeEntry(fileNameWithSuffix, {recursive: false})
+                delete this._externalHandleCache[path];
+            } else if (indexOfSlash == 0 ) {
+                let subPath = path.substring(1);
+                await this.removeMounted(subPath);
+            } else if (indexOfSlash > 0 ) {
+                let subName = path.substring(0, indexOfSlash);
+                let restPath = path.substring(indexOfSlash+1);
+                let subdir = await this.getDirectoryHandle(subName);
+                if (subdir instanceof NFileSystemDirectoryHandle) {
+                    await subdir.removeMounted(restPath);
+                }
+            }
+        }
+    }
+
+    async listMounted(recurseDepth?: number): Promise<MountedEntry[]> {
+        if (recurseDepth == undefined) {
+            recurseDepth = 3;
+        }
+        let adapterany = this.adapter as any;
+        if (adapterany.listMounted) {
+            return await adapterany.listMounted(recurseDepth);
+        } else {
+            this.fsDebug("listMounted: for :", this.adapter);
+            let ret: MountedEntry[] = [];
+            if (recurseDepth > 0 ) {
+                for await (const [, entry] of this.adapter.entries()) {
+                    const entryName = entry.name;
+                    if (entryName.endsWith(NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX)) {
+                        const newEntry = await this.getExternalHandle(entryName);
+                        let newEntryAny = newEntry as any;
+                        const newEntryName = newEntry.name;
+                        let sourceUrl = newEntryAny.url;
+                        if (sourceUrl == undefined) {
+                            if (newEntryAny.adapter !== undefined) {
+                                newEntryAny = newEntryAny.adapter;
+                                sourceUrl = newEntryAny.url;
+                            }
+                        }
+                        if (sourceUrl == undefined) {
+                            sourceUrl = "";
+                        }
+                        let entry: MountedEntry = {
+                            path: newEntryName,
+                            source: sourceUrl,
+                            attributes: []
+                        }
+                        ret.push(entry);
+                      
+                    } else {
+                        if (recurseDepth > 0) {
+                            if (entry.kind == "directory") {
+                                let subDir = new NFileSystemDirectoryHandle(entry, this.secretStore);
+                                let subMounted = await subDir.listMounted(recurseDepth-1);
+                                for (const subMount of subMounted) {
+                                    let subPath = subMount.path;
+                                    subMount.path = entryName + "/" + subPath;
+                                    ret.push(subMount);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+    }
+
+    // Mount an external handle into the FS
+    async mountHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
+        let adapterany = this.adapter as any;
+        if (adapterany.mountHandle) {
+            let mountable = adapterany as Mountable;
+            return mountable.mountHandle(handle);
         } else {
             const serializedHandle = JSON.stringify(handle);
             const fileName = handle.name;
-            const fileNameWithSuffix = `${fileName}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+            const fileNameWithSuffix = `${fileName}${NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX}`;
             const newFh = await this.adapter.getFileHandle(fileNameWithSuffix, {
                 create: true,
             });
@@ -210,7 +275,7 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             const cacheInsert = true;
             if (cacheInsert) {
                 const name = newFh;
-                const newName = `${name}${NFileSystemDirectoryHandle.LINK_SUFFIX}`;
+                const newName = `${name}${NFileSystemDirectoryHandle.MOUNTED_HANDLE_FILE_LINK_SUFFIX}`;
                 this._externalHandleCache[newName] = newFh;
             }
             return handle;
@@ -228,20 +293,23 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             const ab = await file.arrayBuffer();
             const str = new TextDecoder().decode(ab);
             try {
+                // deserialize handle from json
                 const obj = JSON.parse(str);
                 returnFh = obj as FileSystemDirectoryHandle | FileSystemFileHandle;
             } catch (error: any) {
                 fileSystemDebug("error on JSON.parse for getExternalHandle: ", error);
             }
-            let returnFhAny = returnFh as any;
-            if (returnFhAny.adapter) {
-                returnFh = returnFhAny.adapter;
-                returnFhAny = returnFh;
+            let returnFhDeserialized = returnFh as any;
+            if (returnFhDeserialized.adapter) {
+                // prefer the .adapter instance if any
+                returnFh = returnFhDeserialized.adapter;
+                returnFhDeserialized = returnFh;
             }
-            if (returnFhAny.url) {
+            if (returnFhDeserialized.url) {
                 const secretStore = this.secretStore;
                 try {
-                    returnFh = await getDirectoryHandleByURL(returnFhAny.url, secretStore);
+                    // re-awake the FS Handle by getting instance from URL
+                    returnFh = await getDirectoryHandleByURL(returnFhDeserialized.url, secretStore);
                 } catch (error: any) {
                     fileSystemDebug("error on getDirectoryHandleByURL: ", error);
                 }
@@ -249,6 +317,10 @@ export class NFileSystemDirectoryHandle extends NFileSystemHandle implements Fil
             if (returnFh == null) {
                 returnFh = newFh;
             }
+            // update name from set name
+            // if name is different from default populated by getDirectoryHandleByURL
+            // @ts-ignore
+            returnFh.name = returnFhDeserialized.name;
             this._externalHandleCache[fileName] = returnFh;
             if (returnFh.kind === "file") {
                 return returnFh as FileSystemFileHandle;

@@ -28,6 +28,7 @@ import {
 } from "@wasmin/fs-js";
 import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
 import { wasiError, wasiFileSystemDebug } from "./wasiDebug.js";
+import { Mountable, MountedEntry } from "@wasmin/fs-js";
 
 
 /**
@@ -804,31 +805,88 @@ export class OpenFiles {
     }
 
     async mountHandleOnRoot(handle: Handle, subDir = handle.name) {
-        return await this.mountHandleOnPath(handle, "/", subDir);
+        return await this.mountHandleOnUnderRootOnPath(handle, "/", subDir);
     }
 
-    async mountHandleOnPath(handle: Handle, destPath: string, subDir = handle.name) {
+    async mountHandleOnUnderRootOnPath(handle: Handle, destPath: string, subDir = handle.name) {
         if (subDir != handle.name) {
             // @ts-ignore
             handle.name = subDir;
         }
         const rootFd = FIRST_PREOPEN_FD;
         const rootDir = this.getAsDir(rootFd);
-        wasiFileSystemDebug(`mountHandleOnPath destPath: ${destPath} rootDirOpenFile: `, rootDir);
+        wasiFileSystemDebug(`mountHandleOnUnderRootOnPath destPath: ${destPath} rootDirOpenFile: `, rootDir);
         if (rootDir) {
-            const rootDirHandle = rootDir._handle;
-            wasiFileSystemDebug("mountHandleOnPath rootDirDirHandle: ", rootDirHandle);
-            let dirHandleToMountOn = rootDirHandle as any;
+            let parentDirHandle = rootDir._handle;
+            wasiFileSystemDebug(`mountHandleOnUnderRootOnPath destPath: ${destPath} parentDirHandle: `, parentDirHandle);
             if (destPath != "/") {
-                dirHandleToMountOn = await openDirectoryHandle(rootDirHandle, destPath);
+                parentDirHandle = await openDirectoryHandle(parentDirHandle, destPath);
             }
-            if (dirHandleToMountOn.insertHandle) {
-                dirHandleToMountOn.insertHandle(handle);
-            } else {
-                console.warn("Could not mount subdirectory on root: ", handle);
-            }
+            wasiFileSystemDebug("mountHandleOnUnderRootOnPath parentDirHandle: ", parentDirHandle);
+            return await this.mountHandleUnderParentOnPath(parentDirHandle, handle, subDir)
         }
     }
+
+    async unMountFomAbsolutePath(mountPath: string) {
+        const rootFd = FIRST_PREOPEN_FD;
+        const rootDir = this.getAsDir(rootFd);
+        let rootDirHandle = rootDir._handle;
+        return await this.unMountFomRelativePath(rootDirHandle, mountPath);
+    }
+    
+    async unMountFomRelativePath(dirHandle: FileSystemDirectoryHandle, mountPath: string) {
+        let dirHandleAny = dirHandle as any;
+        if (dirHandleAny.removeMounted) {
+            let mountableHandle = dirHandleAny as Mountable;
+            await mountableHandle.removeMounted(mountPath);
+        }
+    }
+
+
+    async listMountsUnderAbsolutePath(path: string): Promise<MountedEntry[]>{
+        const rootFd = FIRST_PREOPEN_FD;
+        const rootDir = this.getAsDir(rootFd);
+        let rootDirHandle = rootDir._handle;
+        let mountDirHandle = rootDirHandle;
+        if (path == "/") {
+            mountDirHandle = rootDirHandle
+        } else {
+            mountDirHandle = await openDirectoryHandle(rootDirHandle, path);
+        }
+        let mountDirAny = mountDirHandle as any;
+        if (mountDirAny.listMounted) {
+            let mountableDir = mountDirAny as Mountable;
+            return await mountableDir.listMounted();
+        }
+        return [];
+    }
+
+    async listMountsUnderDirectoryHandle(dirHandle: FileSystemDirectoryHandle): Promise<MountedEntry[]>{
+        let mountDirAny = dirHandle as any;
+        if (mountDirAny.listMounted) {
+            let mountableDir = mountDirAny as Mountable;
+            return await mountableDir.listMounted();
+        }
+        return [];
+    }
+
+
+    async mountHandleUnderParentOnPath(parentHandle: FileSystemDirectoryHandle, handle: Handle, subDir = handle.name) {
+        if (subDir != handle.name) {
+            // @ts-ignore
+            handle.name = subDir;
+        }
+        wasiFileSystemDebug("mountHandleUnderParentOnPath parentHandle: ", parentHandle);
+        let dirHandleToMountOn = parentHandle as any;
+        if (dirHandleToMountOn.mountHandle) {
+            let dirHandleToMountOnUnion = dirHandleToMountOn as Mountable;
+            dirHandleToMountOnUnion.mountHandle(handle);
+        } else {
+            wasiFileSystemDebug("Could not mount subdirectory on root: ", handle);
+            throw new Error(`Could not mount subdirectory on root ${handle.name}`);
+        }
+    }
+
 
     private _add(path: string, handle: Handle, fsFlags?: Fdflags) {
         wasiFileSystemDebug("[_add]", path);

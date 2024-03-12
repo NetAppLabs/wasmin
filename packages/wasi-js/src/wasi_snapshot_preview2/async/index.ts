@@ -1,4 +1,4 @@
-import { CliBaseEnvironmentNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { CliBaseEnvironmentNamespace, FilesystemsMountNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type CliBaseEnvironment = CliBaseEnvironmentNamespace.WasiCliEnvironment;
 import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type FilesystemPreopens = FilesystemPreopensNamespace.WasiFilesystemPreopens;
@@ -24,6 +24,17 @@ import { HttpOutgoingHandlerNamespace } from "@wasmin/wasi-snapshot-preview2/asy
 type WasiHttpOutgoingHandler = HttpOutgoingHandlerNamespace.WasiHttpOutgoingHandler;
 import { HttpTypesNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type WasiHttpTypes = HttpTypesNamespace.WasiHttpTypes;
+import { TerminalInputExtendedNamespace as terminputextns } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalOutputExtendedNamespace as termoutputextns } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStdInExtendedNamespace as termstdinextns } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStdOutExtendedNamespace as termstdoutextns } from "@wasmin/wasi-snapshot-preview2/async";
+import { TerminalStdErrExtendedNamespace as termstderrextns } from "@wasmin/wasi-snapshot-preview2/async";
+
+type TerminalInputExtended = terminputextns.WasiExtCliTerminalInputExtended;
+type TerminalOutputExtended = termoutputextns.WasiExtCliTerminalOutputExtended;
+type TerminalStdinExtended = termstdinextns.WasiExtCliTerminalStdinExtended;
+type TerminalStdoutExtended = termstdoutextns.WasiExtCliTerminalStdoutExtended;
+type TerminalStderrExtended = termstderrextns.WasiExtCliTerminalStderrExtended;
 
 import { WasiOptions } from "../../wasi.js";
 import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
@@ -72,8 +83,17 @@ type TerminalInput = TerminalInputNamespace.WasiCliTerminalInput;
 import { TerminalOutputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalOutput = TerminalOutputNamespace.WasiCliTerminalOutput;
 import { TerminalStderrAsyncHost, TerminalStdinAsyncHost, TerminalStdoutAsyncHost } from "./terminal.js";
+
+import { FilesystemsMountNamespace as fsmns } from "@wasmin/wasi-snapshot-preview2/async";
+import { ProcessNamespace as procns } from "@wasmin/wasi-snapshot-preview2/async";
+
+type WasiExtFilesystemsMount = fsmns.WasiExtFilesystemsMount;
+type WasiExtProcessProcess = procns.WasiExtProcessProcess;
+
 import { isFunction } from "../../workerUtils.js";
 import { wasiPreview2Debug } from "../../wasiDebug.js";
+import { WasiExtFilesystemsMountAsyncHost } from "./mount.js";
+import { WasiExtProcessProcessAsyncHost } from "./process.js";
 
 export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:cli/environment": CliBaseEnvironment;
@@ -102,6 +122,15 @@ export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:cli/terminal-stdin": TerminalStdin;
     "wasi:cli/terminal-stdout": TerminalStdout;
     "wasi:cli/terminal-stderr": TerminalStderr;
+    "wasi:cli/terminal-input": TerminalInput;
+    "wasi:cli/terminal-output": TerminalOutput;
+    "wasi-ext:cli/terminal-stdin-extended": TerminalInputExtended;
+    "wasi-ext:cli/terminal-stdout-extended": TerminalStdoutExtended;
+    "wasi-ext:cli/terminal-stderr-extended": TerminalStderrExtended;
+    "wasi-ext:cli/terminal-input-extended": TerminalInputExtended;
+    "wasi-ext:cli/terminal-output-extended": TerminalOutputExtended;
+    "wasi-ext:filesystems/mount": WasiExtFilesystemsMount,
+    "wasi-ext:process/process": WasiExtProcessProcess,
 };
 
 export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): WasiSnapshotPreview2AsyncImportObject {
@@ -109,6 +138,16 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
     const socketsTcpInstance = new SocketsTcpAsyncHost(wasiOptions);
     const socketsUdpInstance = new WasiSocketsUdpAsyncHost(wasiOptions);
     const socketsIpNameLookupInstance = new SocketsIpNameLookupAsyncHost(wasiOptions);
+
+    const termStdInHost = new TerminalStdinAsyncHost(wasiOptions);
+    const termStdOutHost = new TerminalStdoutAsyncHost(wasiOptions);
+    const termStdErrHost = new TerminalStderrAsyncHost(wasiOptions);
+    
+    const termInputHost = termStdInHost;
+    const termOutputHost = termStdOutHost;
+    const mountHost = new WasiExtFilesystemsMountAsyncHost(wasiOptions);
+    const processHost = new WasiExtProcessProcessAsyncHost(wasiOptions);
+
     let wasiPreview2Imports: WasiSnapshotPreview2AsyncImportObject = {
         "wasi:cli/environment": new CliBaseEnvironmentAsyncHost(wasiOptions),
         "wasi:cli/exit": new CliBaseExitAsyncHost(wasiOptions),
@@ -133,9 +172,18 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         "wasi:random/random": new RandomRandomAsyncHost(wasiOptions),
         "wasi:random/insecure": new RandomInsecureAsyncHost(wasiOptions),
         "wasi:random/insecure-seed": new RandomInsecureSeedAsyncHost(wasiOptions),
-        "wasi:cli/terminal-stdin": new TerminalStdinAsyncHost(wasiOptions),
-        "wasi:cli/terminal-stdout": new TerminalStdoutAsyncHost(wasiOptions),
-        "wasi:cli/terminal-stderr": new TerminalStderrAsyncHost(wasiOptions),
+        "wasi:cli/terminal-stdin": termStdInHost,
+        "wasi:cli/terminal-stdout": termStdOutHost,
+        "wasi:cli/terminal-stderr": termStdErrHost,
+        "wasi:cli/terminal-input": termInputHost,
+        "wasi:cli/terminal-output": termOutputHost,    
+        "wasi-ext:cli/terminal-stdin-extended": termStdInHost,
+        "wasi-ext:cli/terminal-stdout-extended": termStdOutHost,
+        "wasi-ext:cli/terminal-stderr-extended": termStdErrHost,
+        "wasi-ext:cli/terminal-input-extended": termInputHost,
+        "wasi-ext:cli/terminal-output-extended": termOutputHost,
+        "wasi-ext:filesystems/mount": mountHost,
+        "wasi-ext:process/process": processHost,
     };
     wasiPreview2Imports = ensureThisBound(wasiPreview2Imports);
     return wasiPreview2Imports;
