@@ -14,17 +14,10 @@ if (!globalThis.File) {
     globalThis.File = File;
 }
 
-/*
-const cmd = Command.parameters({
-    '--rpcport': z.number(),
-    '-v --verbose': z.boolean(),
-    '-d --daemonize': z.boolean(),
-  });
-*/
-
 async function main() {
     // prettier-ignore
     const cmd = Command
+    .create()
     .parameter(`rpcport`, z
       .number()
       .default(DEFAULT_RPC_PORT)

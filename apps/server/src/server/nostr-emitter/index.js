@@ -1,5 +1,7 @@
 
 
+// Code borrowed from https://github.com/cmdruid/nostr-emitter/blob/master/index.js
+
 /* eslint-disable @typescript-eslint/member-ordering */
 // Detect if we are running in the browser.
 const isBrowser = typeof window !== 'undefined'

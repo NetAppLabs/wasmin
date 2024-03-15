@@ -18,32 +18,32 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@cmdcode/nostr-emitter": "^1.1.15",
-    "@molt/command": "^0.6.0",
-    "@tanstack/react-query": "^4.0.0",
-    "@trpc/client": "^10.45.0",
-    "@trpc/react-query": "^10.45.0",
-    "@trpc/server": "^10.45.0",
+    "@cmdcode/nostr-emitter": "^2.0.9",
+    "@molt/command": "^0.9.0",
+    "@tanstack/react-query": "^5.28.0",
+    "@trpc/client": "^10.45.2",
+    "@trpc/react-query": "^10.45.2",
+    "@trpc/server": "^10.45.2",
     "@wasmin/fs-js": "*",
     "@wasmin/node-fs-js": "*",
     "@wasmin/shell": "*",
     "@wasmin/wasi-js": "*",
-    "bonjour-service": "^1.0.14",
+    "bonjour-service": "^1.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "trpc-openapi": "^1.2.0",
     "unique-names-generator": "^4.7.1",
-    "zod": "^3.20.2"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/filesystem": "^0.0.32",
-    "@types/react": "^18.0.21",
+    "@types/react": "^18.2.65",
     "@types/react-dom": "^18.0.6",
-    "@vitejs/plugin-react": "^3.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
     "@wasmin/tsconfig": "*",
     "npm-run-all": "^4.1.5",
     "react-refresh": "^0.14.0",
     "ts-node-dev": "^2.0.0",
-    "vite": "^5.0.12"
+    "vite": "^5.1.6"
   }
 }

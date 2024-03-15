@@ -9,12 +9,12 @@
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
     "@wasmin/tsconfig": "*",
-    "esbuild": "^0.14.39"
+    "esbuild": "^0.20.1"
   },
   "dependencies": {
-    "@wasmin/node-fs-js": "*",
     "@wasmin/fs-js": "*",
     "@wasmin/nfs-js": "*",
+    "@wasmin/node-fs-js": "*",
     "@wasmin/s3-fs-js": "*",
     "@wasmin/shell": "*",
     "@wasmin/wasi-js": "*"

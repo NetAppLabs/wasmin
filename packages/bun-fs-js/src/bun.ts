@@ -44,9 +44,9 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
 function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
-    return fh.fd;
+    //return fh.fd;
     // older bun seems to use number as fsSync.promises.FileHandle
-    // return fh as unknown as number;
+    return fh as unknown as number;
 }
 
 export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
