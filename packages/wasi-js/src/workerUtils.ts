@@ -1,5 +1,6 @@
 import * as comlink from "comlink";
 import { wasiWorkerDebug, wasiWorkerSerializeDebug, wasmWorkerClientDebug } from "./wasiDebug.js";
+import { isDeno } from "./utils.js";
 
 declare global {
     var WASMIN_WORKER_OVERRIDE_URLS: any;
@@ -13,9 +14,10 @@ export function getWorkerOverrideUrls(): Record<string,string> {
  }
 
 
-export function getWorkerUrl(workerUrlString: string): URL{
+export function getWorkerUrl(workerUrlString: string): URL | string {
     let workerUrl = new URL(workerUrlString, import.meta.url);
     const workerOverrideUrls = getWorkerOverrideUrls();
+    wasmWorkerClientDebug(`getWorkerUrl workerOverrideUrls: `, workerOverrideUrls);
     const overrideUrl = workerOverrideUrls[workerUrlString];
     if (overrideUrl !== undefined) {
         wasmWorkerClientDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);

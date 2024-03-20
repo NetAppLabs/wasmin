@@ -22,7 +22,7 @@ import chalk from 'chalk';
 import { BufferedPipe } from "@wasmin/wasi-js";
 import { initializeLogging } from "@wasmin/wasi-js";
 
-let DEBUG_MODE = false;
+let DEBUG_MODE = true;
 const USE_MEMORY = false;
 
 const textEncoder = new TextEncoder();
@@ -203,14 +203,22 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     path: string;
 }> {
     const defaultUrl = new URL("./nu.async.wasm", import.meta.url);
-    const defaultUrlAlt = new URL("./nu.async.wasm", "file:///tmp/wasmin-tmp/");
-    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrl, defaultUrlAlt];
+
+    // try alternative search:
+    let defaultUrlHref = defaultUrl.href;
+    let pathParts = defaultUrlHref.split(".wasm");
+    let newHref = `${pathParts[0]}-0000000000000000.wasm${pathParts[1]}`
+    const defaultUrl2 = new URL(newHref);
+
+    const defaultUrlLocalTmp = new URL("./nu.async.wasm", "file:///tmp/wasmin-tmp/");
+    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrl, defaultUrl2, defaultUrlLocalTmp];
 
     //let wasmBinary = "";
     let wasmBuf: BufferSource | undefined;
 
     let binaryFromEnv = wasmBinary;
-    if (binaryFromEnv && binaryFromEnv != " ") {
+    shellDebug(`binaryFromEnv: '${binaryFromEnv}'`)
+    if (binaryFromEnv && binaryFromEnv != "" && binaryFromEnv != " ") {
         try {
             const binaryFromEnvBuf = await promises.readFile(binaryFromEnv);
             wasmBinary = binaryFromEnv;
@@ -219,12 +227,22 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     } else {
         for (const modulePathTry of defaultModuleSearchPaths) {
             try {
+                shellDebug("trying reading from path/url ", modulePathTry);
                 const wasmBinaryTry = modulePathTry;
-                const wasmBufTry = await promises.readFile(wasmBinaryTry);
-                wasmBuf = wasmBufTry;
+                if (isBun()) {
+                    // @ts-ignore
+                    const compileBunFile = Bun.file(wasmBinaryTry);
+                    wasmBuf = await compileBunFile.arrayBuffer();    
+                } else {
+                    const wasmBufTry = await promises.readFile(wasmBinaryTry);
+                    wasmBuf = wasmBufTry;
+                }
                 wasmBinary = wasmBinaryTry.toString();
+                shellDebug("successful reading from path/url ", wasmBinary);
                 break;
-            } catch (err: any) {}
+            } catch (err: any) {
+                shellDebug('trying reading err: ', err);
+            }
         }
     }
 
@@ -489,6 +507,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 try {
                     const openFilesMap: OpenFilesMap = {};
                     if (mountUrl != "") {
+                        shellDebug("mountUrl: ", mountUrl);
                         openFilesMap["/"] = mountUrl;
                     }
                     const wasi = new WASIWorker({
@@ -512,7 +531,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         console.log(err);
                     }
                     prettyPrintError(err);
-                    shellDebug(err.message);
+                    shellDebug(err);
                 } finally {
                     if (DEBUG_MODE) {
                         shellDebug("finally");
@@ -522,8 +541,10 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             } else {
                 if (mount) {
                     const driver = USE_MEMORY ? memory : rootfsDriver || node;
+                    shellDebug("mountUrl: ", mountUrl);
                     const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useUnionOverlayFs);
                     preOpens[rootDir] = rootfs;
+                    shellDebug("preOpens: ", preOpens);
                 }
                 const openFiles = new OpenFiles(preOpens);
                 try {
@@ -571,6 +592,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
 }
 
 function prettyPrintError(err: any) {
+    console.log(err);
     let h2 = chalk.green.underline;
     let rd = chalk.red;
     let green = chalk.green;

@@ -8,7 +8,10 @@ import buffer from "node:buffer";
 import { MyFile } from "../src/fetch-blob/file";
 import { MyBlob } from "../src/fetch-blob/blob";
 import { fileFrom, blobFrom } from "../src/fetch-blob/form";
-import { capture } from "../src/test/util";
+
+export function capture(p: any): Promise<Error> {
+    return p.catch((_: Error) => _);
+}
 
 describe("fetch-blob", () => {
     const licensePath = path.resolve(path.join(__dirname, "..", "LICENSE"));

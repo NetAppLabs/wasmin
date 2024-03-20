@@ -19,8 +19,12 @@ import {
 } from "@wasmin/fs-js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
 
+// @ts-ignore because of issues with including @types/bun
+import { FileBlob, file as bunFile, version } from "bun";
+
 // @ts-ignore
-import { WritableStreamDefaultWriter, FileSystemWritableFileStream, FileBlob, BunFile } from "bun";
+import { WritableStreamDefaultWriter, FileSystemWritableFileStream } from "bun";
+
 
 const BUN_FS_DEBUG = false;
 
@@ -44,9 +48,20 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
 function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
-    //return fh.fd;
-    // older bun seems to use number as fsSync.promises.FileHandle
-    return fh as unknown as number;
+    let bunVersion = version;
+    let majMinPatch = bunVersion.split('.');
+    let smaj = majMinPatch[0];
+    let maj = Number(smaj);
+    let smin = majMinPatch[1];
+    let min = Number(smin);
+    let spatch = majMinPatch[2];
+    let patch = Number(spatch);
+    if (maj >= 1 && patch >= 16) {
+        return fh.fd;
+    } else {
+        // older bun seems to use number as fsSync.promises.FileHandle
+        return fh as unknown as number;
+    }
 }
 
 export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
@@ -157,8 +172,8 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
     // @ts-ignore because of typescript .prototype bug regarding File/Blob
     async getFile() {
         try {
-            // @ts-ignore
-            const bf = Bun.file(this.path) as File;
+            const bf = bunFile(this.path) as unknown as File;
+
             const f = bf;
             return f;
         } catch (err: any) {

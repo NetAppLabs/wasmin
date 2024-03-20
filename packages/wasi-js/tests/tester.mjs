@@ -14,7 +14,7 @@ import { isBun } from "@wasmin/wasi-js/index.js";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 
 let baseDir = scriptDir;
-//console.log("Current directory:", baseDir);
+console.log("Current directory:", baseDir);
 
 const textEncoder = new TextEncoder();
 
@@ -46,18 +46,22 @@ let actualStderr = "";
 //let test = "cant_dotdot";
 //let test = "stat";
 //let test = "ftruncate";
-
 //let test = "stdin";
 //stdin = "hello world";
 //let test = "stdout";
 //let test = "stdout_with_flush";
-let test = "freopen";
+//let test = "freopen";
 //let test = "poll";
 //let test = "read_file";
 //let test = "read_file_twice";
 //let test = "preopen_populates";
+let test = "clock_getres";
+//let test = "exitcode";
 
-let oneWasmPath = resolve(join(baseDir, "wasm", `${test}.wasm`));
+//let subdir = "wasm";
+let subdir = "shared-wasm";
+let oneWasmPath = resolve(join(baseDir, subdir, `${test}.wasm`));
+console.log("oneWasmPath:", oneWasmPath);
 //let oneWasmPath = resolve(join(baseDir, "component.core.wasm"));
 //const module = readFile(wasmPath).then((buf) => WebAssembly.compile(buf));
 const wasmMod = readFile(oneWasmPath);
@@ -86,7 +90,7 @@ const w = new WASI({
 });
 let actualExitCode = 0;
 try {
-    w.component = true;
+    //w.component = true;
     actualExitCode = await w.run(await wasmMod);
 } catch (err) {
     console.log("run err: ", err);

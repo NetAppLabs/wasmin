@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import { utimesSync, statSync } from "node:fs";
+import * as fsSync from "node:fs";
 
 import { join, basename } from "node:path";
 
@@ -16,16 +17,23 @@ import {
     Statable,
     FileSystemSyncAccessHandle,
 } from "@wasmin/fs-js";
-import { fileFrom } from "./fetch-blob/form.js";
+import { fileFrom } from "@wasmin/node-fs-js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
 import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
-import type { MyFile } from "./fetch-blob/file.js";
+
+
+async function fileFromDeno(filePath: string) {
+    // @ts-ignore
+    const fileBytes = await Deno.readFile(filePath);
+    const fileBlob = new File([fileBytes], filePath);
+    return fileBlob;
+}
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
-interface NodeStats {
+interface DenoStats {
     ino: bigint;
     dev: bigint;
     ctimeNs: bigint;
@@ -34,7 +42,7 @@ interface NodeStats {
     size: bigint;
 }
 
-export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
+export class DenoSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
     constructor(fileHandle: SinkFileHandle, size: number) {
         super(fileHandle);
         this.size = size;
@@ -73,7 +81,7 @@ export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemW
                 }
             } else if (chunk.type === "truncate") {
                 if (Number.isInteger(chunk.size) && chunk.size >= 0) {
-                    await this.fileHandle.truncate(chunk.size);
+                    fsSync.ftruncateSync(this.fileHandle.fd, chunk.size);
                     this.size = chunk.size;
                     if (this.position > this.size) {
                         this.position = this.size;
@@ -90,21 +98,21 @@ export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemW
             chunk = new Uint8Array(chunk);
         } else if (typeof chunk === "string") {
             let enc = new TextEncoder(); // always utf-8
-            //chunk = Buffer.from(chunk);
             chunk = enc.encode(chunk);
         } else if (chunk instanceof Blob) {
             // @ts-ignore
             for await (const data of chunk.stream()) {
-                const res = await this.fileHandle.writev([data as Uint8Array], this.position);
-                this.position += res.bytesWritten;
-                this.size += res.bytesWritten;
+                //const res = await this.fileHandle.writev([data as Uint8Array], this.position);
+                const bytesWritten = fsSync.writevSync(this.fileHandle.fd, [data as Uint8Array], this.position);
+                this.position += bytesWritten;
+                this.size += bytesWritten;
             }
             return;
         }
 
-        const res = await this.fileHandle.writev([chunk], this.position);
-        this.position += res.bytesWritten;
-        this.size += res.bytesWritten;
+        const bytesWritten = fsSync.writevSync(this.fileHandle.fd, [chunk as Uint8Array], this.position);
+        this.position += bytesWritten;
+        this.size += bytesWritten;
     }
 
     async close() {
@@ -112,21 +120,21 @@ export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemW
     }
 }
 
-export class NodeFileHandle
-    // @ts-ignore because of typescript .prototype bug regarding File/Blob
-    implements ImpleFileHandle<MyFile, NodeSink>, FileSystemFileHandle, Statable
+export class DenoFileHandle
+    implements ImpleFileHandle<File, DenoSink>, FileSystemFileHandle, Statable
 {
-    constructor(public path: string, public name: string) {}
+    constructor(
+        public path: string,
+        public name: string,
+    ) {}
 
     kind = "file" as const;
 
-    // @ts-ignore because of typescript .prototype bug regarding File/Blob
     async getFile(): Promise<File> {
         const _stat = await fs.stat(this.path, { bigint: true }).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
-        // @ts-ignore because of typescript .prototype bug regarding File/Blob
         return await fileFrom(this.path);
     }
 
@@ -145,13 +153,13 @@ export class NodeFileHandle
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
-        const { size } = await fileHandle.stat();
+        const { size } = await fs.stat(this.path);
         if (options && !options.keepExistingData) {
-            const s = new NodeSink(fileHandle, size);
+            const s = new DenoSink(fileHandle, size);
             await s.truncate(0);
             return s;
         }
-        return new NodeSink(fileHandle, size);
+        return new DenoSink(fileHandle, size);
     }
 
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
@@ -172,7 +180,7 @@ export class NodeFileHandle
 
     async stat(): Promise<Stat> {
         const nodeStat = await fs.stat(this.path, { bigint: true });
-        const stat = nodeStatToStat(nodeStat);
+        const stat = denoStatToStat(nodeStat);
         return stat;
     }
 
@@ -190,15 +198,17 @@ export class NodeFileHandle
         }
         const tSetAccessTime = toUnixTimestampNumber(setAccessTime);
         const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
-        //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
         await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
     }
 }
 
-export class NodeFolderHandle
-    implements ImplFolderHandle<NodeFileHandle, NodeFolderHandle>, FileSystemDirectoryHandle, Statable
+export class DenoFolderHandle
+    implements ImplFolderHandle<DenoFileHandle, DenoFolderHandle>, FileSystemDirectoryHandle, Statable
 {
-    constructor(public path: string, public name: string) {}
+    constructor(
+        public path: string,
+        public name: string,
+    ) {}
     writable = true;
     kind = "directory" as const;
 
@@ -210,7 +220,7 @@ export class NodeFolderHandle
         return "FileSystemDirectoryHandle";
     }
 
-    resolve(_possibleDescendant: NodeFileHandle | NodeFolderHandle): Promise<string[] | null> {
+    resolve(_possibleDescendant: DenoFileHandle | DenoFolderHandle): Promise<string[] | null> {
         throw new Error("Method not implemented.");
     }
 
@@ -226,7 +236,7 @@ export class NodeFolderHandle
         return "granted" as const;
     }
 
-    async *entries(): AsyncGenerator<[string, NodeFileHandle | NodeFolderHandle]> {
+    async *entries(): AsyncGenerator<[string, DenoFileHandle | DenoFolderHandle]> {
         const dir = this.path;
         const items = fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -236,14 +246,14 @@ export class NodeFolderHandle
             const path = join(dir, name);
             const stat = await fs.lstat(path, { bigint: true });
             if (stat.isFile()) {
-                yield [name, new NodeFileHandle(path, name)];
+                yield [name, new DenoFileHandle(path, name)];
             } else if (stat.isDirectory()) {
-                yield [name, new NodeFolderHandle(path, name)];
+                yield [name, new DenoFolderHandle(path, name)];
             }
         }
     }
 
-    async *values(): AsyncGenerator<NodeFileHandle | NodeFolderHandle> {
+    async *values(): AsyncGenerator<DenoFileHandle | DenoFolderHandle> {
         const dir = this.path;
         const items = await fs.readdir(dir).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
@@ -253,9 +263,9 @@ export class NodeFolderHandle
             const path = join(dir, name);
             const stat = await fs.lstat(path, { bigint: true });
             if (stat.isFile()) {
-                yield new NodeFileHandle(path, name);
+                yield new DenoFileHandle(path, name);
             } else if (stat.isDirectory()) {
-                yield new NodeFolderHandle(path, name);
+                yield new DenoFolderHandle(path, name);
             }
         }
     }
@@ -278,7 +288,7 @@ export class NodeFolderHandle
             if (err.code !== "ENOENT") throw err;
         });
         const isDirectory = stat?.isDirectory();
-        if (stat && isDirectory) return new NodeFolderHandle(path, name);
+        if (stat && isDirectory) return new DenoFolderHandle(path, name);
         if (stat && !isDirectory) throw new TypeMismatchError();
         if (!options.create) throw new NotFoundError();
         await fs.mkdir(path);
@@ -286,7 +296,7 @@ export class NodeFolderHandle
             if (err.code !== "ENOENT") throw err;
         });
         if (stat2) {
-            return new NodeFolderHandle(path, name);
+            return new DenoFolderHandle(path, name);
         } else {
             throw new NotFoundError();
         }
@@ -299,15 +309,15 @@ export class NodeFolderHandle
             if (err.code !== "ENOENT") throw err;
         });
         if (stat) {
-            if (stat.isFile()) return new NodeFileHandle(path, name);
+            if (stat.isFile()) return new DenoFileHandle(path, name);
             else throw new TypeMismatchError();
         }
         if (!opts.create) throw new NotFoundError();
         const fhandle = await fs.open(path, "w");
-        const stat2 = await fhandle.stat({ bigint: true });
+        const stat2 = await fs.stat(this.path, { bigint: true });
         stat2.ctime;
         await fhandle.close();
-        return new NodeFileHandle(path, name);
+        return new DenoFileHandle(path, name);
     }
 
     async removeEntry(name: string, opts?: { recursive?: boolean }) {
@@ -336,7 +346,7 @@ export class NodeFolderHandle
 
     async stat(): Promise<Stat> {
         const nodeStat = await fs.stat(this.path, { bigint: true });
-        const stat = nodeStatToStat(nodeStat);
+        const stat = denoStatToStat(nodeStat);
         return stat;
     }
 
@@ -361,11 +371,11 @@ export class NodeFolderHandle
 
 export default (absolutePath: string) => {
     const name = basename(absolutePath);
-    const fh = new NodeFolderHandle(absolutePath, name);
+    const fh = new DenoFolderHandle(absolutePath, name);
     return fh;
 };
 
-function nodeStatToStat(stat: NodeStats): Stat {
+function denoStatToStat(stat: DenoStats): Stat {
     const ctimeNs = stat.ctimeNs;
     const mtimeNs = stat.mtimeNs;
     const atimeNs = stat.atimeNs;
@@ -376,7 +386,7 @@ function nodeStatToStat(stat: NodeStats): Stat {
         accessedTime: atimeNs,
         modifiedTime: mtimeNs,
         inode: ino,
-        size
+        size,
     };
     return s;
 }

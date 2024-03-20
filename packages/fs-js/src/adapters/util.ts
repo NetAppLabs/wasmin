@@ -44,7 +44,7 @@ export const concatBuffers = (buffers: Uint8Array[]) => {
     return result;
 };
 export const streamToBuffer = (stream: ReadableStream) =>
-    new Promise<Buffer>((resolve, reject) => {
+    new Promise<Uint8Array>((resolve, reject) => {
         const reader = stream.getReader();
         const chunks: Uint8Array[] = [];
         utilDebug("starting streamToBuffer");
@@ -57,7 +57,7 @@ export const streamToBuffer = (stream: ReadableStream) =>
                         utilDebug("getData read then");
                         if (done) {
                             utilDebug("getData read then done");
-                            const ret = concatBuffers(chunks) as Buffer;
+                            const ret = concatBuffers(chunks) as Uint8Array;
                             resolve(ret);
                         } else {
                             utilDebug("getData read pushing chunk");
@@ -70,7 +70,7 @@ export const streamToBuffer = (stream: ReadableStream) =>
                         // Seems to be a special case with Safari as it throws the error:
                         // TypeError: read() called on a reader owned by no readable stream
                         // Workaround is to resolve Promise here:
-                        const ret = concatBuffers(chunks) as Buffer;
+                        const ret = concatBuffers(chunks) as Uint8Array;
                         resolve(ret);
                     })
                     .finally(function () {
@@ -96,11 +96,11 @@ export const streamToBuffer = (stream: ReadableStream) =>
     });
 
 export const streamToBufferNode = (stream: any) =>
-    new Promise<Buffer>((resolve, reject) => {
+    new Promise<Uint8Array>((resolve, reject) => {
         const chunks: Uint8Array[] = [];
         stream.on("data", (chunk: Uint8Array) => chunks.push(chunk));
         stream.on("error", reject);
-        stream.on("end", () => resolve(Buffer.concat(chunks)));
+        stream.on("end", () => resolve(concatBuffers(chunks)));
     });
 
 /**

@@ -29,6 +29,7 @@ import {
 import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
 import { wasiError, wasiFileSystemDebug } from "./wasiDebug.js";
 import { Mountable, MountedEntry } from "@wasmin/fs-js";
+import { isBun } from "./utils.js";
 
 
 /**
@@ -430,9 +431,18 @@ export class OpenFile implements Readable, Writable {
         wasiFileSystemDebug(`[read] slicing from: ${this.position} to ${toPos}`);
         const slice = file.slice(this.position, toPos);
         wasiFileSystemDebug(`[read] slice`, slice);
-        const arrayBuffer = await slice.arrayBuffer();
+        let arrayBuffer = await slice.arrayBuffer();
         wasiFileSystemDebug(`[read] arrayBuffer`, arrayBuffer);
-        this.position += arrayBuffer.byteLength;
+        let arrayBufferLength = arrayBuffer.byteLength;
+        if (isBun()) {
+            // issue with BunFile.slice(star,end) where end parameter is ignored
+            let expectedSize = toPos - this.position;
+            if (arrayBufferLength > expectedSize) {
+                arrayBuffer = arrayBuffer.slice(0, expectedSize);
+                arrayBufferLength = arrayBuffer.byteLength;
+            }
+        }
+        this.position += arrayBufferLength;
         return new Uint8Array(arrayBuffer);
     }
 

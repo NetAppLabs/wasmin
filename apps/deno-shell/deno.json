@@ -1,9 +1,11 @@
 {
   "imports": {
-    "@wasmin/*": "../../packages/*"
+    "@wasmin/shell": "../../packages/shell/src/index.ts"
   },
   "tasks": {
-    "run": "deno run --allow-env --allow-all --unstable-net --no-npm ./dist/index.js",
-    "compile": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --allow-all --allow-env --unstable-net -o ./wasmin-deno --no-npm ./dist/index.js"
+    "run": "deno run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net --no-npm ./dist/index.js",
+    "build-embeds": "deno run -A src/embedder.ts build",
+    "compile-sandboxed": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --unstable-net -o ./wasmin-deno --no-npm ./src/index.ts",
+    "compile": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-all --allow-env --unstable-net -o ./wasmin-deno --no-npm ./src/index.ts"
   }
 }

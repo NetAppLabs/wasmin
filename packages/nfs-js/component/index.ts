@@ -73,7 +73,7 @@ function fullNameFromReaddirplusEntry(parentName: string, entry: ReaddirplusEntr
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 let _fs: any;
 async function fetchCompile(url: URL) {
-    if (url.protocol === "compiled:") {
+    if (url.protocol === "compiled:" || url.pathname.startsWith("/$bunfs/root/")) {
         const filePaths = url.pathname.split("/");
         const fileName = filePaths[filePaths.length-1];
         url = new URL(fileName, "file:///tmp/wasmin-tmp/");

@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/bun-fs-js",
+  "name": "@wasmin/deno-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -19,8 +19,7 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "bun test",
-    "bun-test": "bun test"
+    "test": "deno --unstable-sloppy-imports test --allow-all"
   },
   "author": "tryggvil",
   "dependencies": {
@@ -28,7 +27,7 @@
   },
   "devDependencies": {
     "@wasmin/tsconfig": "*",
-    "bun-types": "^1.0.31",
-    "eslint-config-custom": "*"
+    "eslint-config-custom": "*",
+    "vitest": "^1.3.1"
   }
 }

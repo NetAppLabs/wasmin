@@ -12,17 +12,59 @@ import {
 } from "./util.js";
 
 import { FileSystemDirectoryHandle, isBun } from "../index.js";
-
-const testOnlyMemory = (name: string) => (name === "memory" ? test : test.skip);
-const testNotOnBun = (name: string) => (name === "bun" ? test.skip : test);
+import { isDeno } from "../NFileSystemFileHandle.js";
 
 export const TestsFileSystemHandle = (
     name: string,
     getRootFunc: () => Promise<FileSystemDirectoryHandle>,
-    beforeAllFunc?: () => {},
-    afterAllFunc?: () => {},
-    beforeEachFunc?: () => {}
+    beforeAllFunc?: (this: unknown) => void | Promise<void>,
+    afterAllFunc?: (this: unknown) => void | Promise<void>,
+    beforeEachFunc?: (this: unknown) => void | Promise<void>
 ) => {
+    return TestsFileSystemHandleImportTestDefinitions(
+        name,
+        // @ts-ignore
+        test,
+        // @ts-ignore
+        describe,
+        // @ts-ignore
+        expect,
+        // @ts-ignore
+        beforeEach,
+        // @ts-ignore
+        beforeAll,
+        // @ts-ignore
+        afterAll,
+        getRootFunc,
+        beforeAllFunc,
+        afterAllFunc,
+        beforeEachFunc,
+    )
+}
+
+export const TestsFileSystemHandleImportTestDefinitions = (
+    name: string,
+    // @ts-ignore
+    test: jest.It,
+    // @ts-ignore
+    describe: jest.Describe,
+    // @ts-ignore
+    expect: jest.Expect,
+    // @ts-ignore
+    beforeEach: jest.Lifecycle,
+    // @ts-ignore
+    beforeAll: jest.Lifecycle,
+    // @ts-ignore
+    afterAll: jest.Lifecycle,
+    getRootFunc: () => Promise<FileSystemDirectoryHandle>,
+    beforeAllFunc?: (this: unknown) => void | Promise<void>,
+    afterAllFunc?: (this: unknown) => void | Promise<void>,
+    beforeEachFunc?: (this: unknown) => void | Promise<void>,
+) => {
+
+    const testOnlyMemory = (name: string) => (name === "memory" ? test : test.skip);
+    const testNotOnBun = (name: string) => (name === "bun" ? test.skip : test);
+
     let root: FileSystemDirectoryHandle;
 
     beforeAll(async () => {
@@ -64,7 +106,7 @@ export const TestsFileSystemHandle = (
             expect(handle.kind).toBe("directory");
             expect(handle.name).toBe("non-existing-dir");
             expect(await getDirectoryEntryCount(handle)).toBe(0);
-            expect(await getSortedDirectoryEntries(root)).toStrictEqual(["non-existing-dir/"]);
+            expect(await getSortedDirectoryEntries(root)).toEqual(["non-existing-dir/"]);
         });
 
         test("getDirectoryHandle(create=false) returns existing directories", async () => {
@@ -77,7 +119,7 @@ export const TestsFileSystemHandle = (
             });
             expect(handle.kind).toBe("directory");
             expect(handle.name).toBe("dir-with-contents");
-            expect(await getSortedDirectoryEntries(handle)).toStrictEqual(["test-file"]);
+            expect(await getSortedDirectoryEntries(handle)).toEqual(["test-file"]);
         });
 
         test("getDirectoryHandle(create=true) returns existing directories without erasing", async () => {
@@ -90,7 +132,7 @@ export const TestsFileSystemHandle = (
             });
             expect(handle.kind).toBe("directory");
             expect(handle.name).toBe("dir-with-contents");
-            expect(await getSortedDirectoryEntries(handle)).toStrictEqual(["test-file"]);
+            expect(await getSortedDirectoryEntries(handle)).toEqual(["test-file"]);
         });
 
         test("getDirectoryHandle() when a file already exists with the same name", async () => {
@@ -237,7 +279,7 @@ export const TestsFileSystemHandle = (
             const handle = await createFileWithContents("file-to-remove", "12345", root);
             await createFileWithContents("file-to-keep", "abc", root);
             await root.removeEntry("file-to-remove");
-            expect(await getSortedDirectoryEntries(root)).toStrictEqual(["file-to-keep"]);
+            expect(await getSortedDirectoryEntries(root)).toEqual(["file-to-keep"]);
             const err = await capture(getFileContents(handle));
             let errMsg = "A requested file or directory could not be found at the time an operation was processed.";
             let errName = "NotFoundError";
@@ -264,7 +306,7 @@ export const TestsFileSystemHandle = (
             });
             await createFileWithContents("file-to-keep", "abc", root);
             await root.removeEntry("dir-to-remove");
-            expect(await getSortedDirectoryEntries(root)).toStrictEqual(["file-to-keep"]);
+            expect(await getSortedDirectoryEntries(root)).toEqual(["file-to-keep"]);
             const err = await capture(getSortedDirectoryEntries(handle));
             expect(err.message).toBe(
                 "A requested file or directory could not be found at the time an operation was processed."
@@ -280,8 +322,8 @@ export const TestsFileSystemHandle = (
             const err = await capture(root.removeEntry("dir-to-remove"));
             expect(err.message).toBe("The object can not be modified in this way.");
             expect(err.name).toBe("InvalidModificationError");
-            expect(await getSortedDirectoryEntries(root)).toStrictEqual(["dir-to-remove/"]);
-            expect(await getSortedDirectoryEntries(handle)).toStrictEqual(["file-in-dir"]);
+            expect(await getSortedDirectoryEntries(root)).toEqual(["dir-to-remove/"]);
+            expect(await getSortedDirectoryEntries(handle)).toEqual(["file-in-dir"]);
         });
 
         test("removeEntry() with empty name should fail", async () => {
@@ -318,7 +360,17 @@ export const TestsFileSystemHandle = (
             const file = await handle.getFile();
             const slice = file.slice(1, file.size);
             const actualContents = await slice.text();
-            expect(actualContents).toStrictEqual(fileContents.slice(1, fileContents.length));
+            expect(actualContents).toEqual(fileContents.slice(1, fileContents.length));
+        });
+
+        testNotOnBun(name)("getFile() provides a file that can be sliced not to end", async () => {
+            // TODO BunFile.slice() seems to be broken
+            const fileContents = "awesome content";
+            const handle = await createFileWithContents("awesome.txt", fileContents, root);
+            const file = await handle.getFile();
+            const slice = file.slice(1, file.size-1);
+            const actualContents = await slice.text();
+            expect(actualContents).toEqual(fileContents.slice(1, fileContents.length-1));
         });
 
         test("getFile() provides a file that can be read via arrayBuffer()", async () => {
@@ -327,7 +379,7 @@ export const TestsFileSystemHandle = (
             const file = await handle.getFile();
             const actualContents = await file.arrayBuffer();
             const expectedContents = new TextEncoder().encode(fileContents);
-            expect(actualContents).toStrictEqual(expectedContents.buffer);
+            expect(actualContents).toEqual(expectedContents.buffer);
         });
 
         test("getFile() provides a file that can be read via stream()", async () => {
@@ -346,7 +398,7 @@ export const TestsFileSystemHandle = (
                 actualContents.set(chunk.value, idx);
                 idx += chunk.value.byteLength;
             } while (true);
-            expect(actualContents).toStrictEqual(new TextEncoder().encode(fileContents));
+            expect(actualContents).toEqual(new TextEncoder().encode(fileContents));
         });
 
         test("getFile() provides a file that can be read via text()", async () => {
@@ -354,7 +406,7 @@ export const TestsFileSystemHandle = (
             const handle = await createFileWithContents("abysmal.txt", fileContents, root);
             const file = await handle.getFile();
             const actualContents = await file.text();
-            expect(actualContents).toStrictEqual(fileContents);
+            expect(actualContents).toEqual(fileContents);
         });
 
         test("getFile() returns last modified time", async () => {
@@ -366,7 +418,7 @@ export const TestsFileSystemHandle = (
             await wfs.close();
             const second_mtime = (await handle.getFile()).lastModified;
             const fileReplica = await handle.getFile();
-            expect(second_mtime).toStrictEqual(fileReplica.lastModified);
+            expect(second_mtime).toEqual(fileReplica.lastModified);
             expect(first_mtime < second_mtime);
         });
     });
@@ -484,8 +536,11 @@ export const TestsFileSystemHandle = (
         // expect(err.message).toBe("Aborted");
         let errMsg = "This operation was aborted";
         const isRunningInsideBun = isBun();
+        const isRunningInsideDeno = isDeno();
         if (isRunningInsideBun) {
             errMsg = "The operation was aborted.";
+        } else if (isRunningInsideDeno) {
+            errMsg = "The signal has been aborted";
         }
         expect(err.message).toBe(errMsg);
         err = await capture(wfs.close());
