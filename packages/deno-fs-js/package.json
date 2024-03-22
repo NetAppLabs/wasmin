@@ -23,7 +23,8 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasmin/fs-js": "*"
+    "@wasmin/fs-js": "*",
+    "@wasmin/node-fs-js": "*"
   },
   "devDependencies": {
     "@wasmin/tsconfig": "*",
