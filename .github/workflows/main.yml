@@ -37,9 +37,9 @@ jobs:
         go-version: '1.21'
         check-latest: true
     - name: bun
-      run: curl -fsSL https://bun.sh/install | bash && ln -s ~/.bun/bin/bun /usr/bin/bun
+      uses: oven-sh/setup-bun@v1
     - name: deno
-      run: curl -fsSL https://deno.land/install.sh | sh && ln -s /root/.deno/bin/deno /usr/bin/deno
+      uses: denoland/setup-deno@v1
     - name: install
       run: yarn install
     - name: Build
