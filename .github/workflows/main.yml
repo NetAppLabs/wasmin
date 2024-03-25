@@ -20,8 +20,11 @@ jobs:
     strategy:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        node-version: [ 20.x ]
-        os: [ ubuntu-latest ]
+        include:
+          - os: ubuntu-latest
+            wasmin_bun_artifact: wasmin-bun
+            wasmin_bun_asset: wasmin-bun-linux-amd64
+            node-version: 20.x
 
     steps:
     - uses: actions/checkout@v4
@@ -46,3 +49,13 @@ jobs:
       run: yarn build
     - name: Test
       run: yarn test
+    - name: build-exe-bun
+      run: ./build-exe-bun.sh
+    # Upload binary
+    - name: Upload wasmin binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GH_TOKEN }}
+        file: ./${{ matrix.wasmin_bun_artifact }}
+        asset_name: ${{ matrix.wasmin_bun_asset }}
+        tag: ${{ github.ref }}
