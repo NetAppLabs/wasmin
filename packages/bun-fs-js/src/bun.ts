@@ -56,11 +56,14 @@ function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
     let min = Number(smin);
     let spatch = majMinPatch[2];
     let patch = Number(spatch);
-    if (maj >= 1 && patch >= 16) {
-        return fh.fd;
-    } else {
+    if (maj < 1) {
         // older bun seems to use number as fsSync.promises.FileHandle
         return fh as unknown as number;
+    } else if (maj == 1 && min == 0 && patch <= 15) {
+        // older bun seems to use number as fsSync.promises.FileHandle
+        return fh as unknown as number;
+    } else {
+        return fh.fd;
     }
 }
 
