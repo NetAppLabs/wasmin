@@ -23,10 +23,14 @@ jobs:
           - os: ubuntu-latest
             wasmin_bun_artifact: wasmin-bun
             wasmin_bun_asset: wasmin-bun-linux-amd64
+            wasmin_deno_artifact: wasmin-deno
+            wasmin_deno_asset: wasmin-deno-linux-amd64
             node-version: 20.x
           - os: macos-latest
             wasmin_bun_artifact: wasmin-bun
             wasmin_bun_asset: wasmin-bun-macos-arm64
+            wasmin_deno_artifact: wasmin-deno
+            wasmin_deno_asset: wasmin-deno-macos-arm64
             node-version: 20.x
     steps:
     - uses: actions/checkout@v4
@@ -53,8 +57,10 @@ jobs:
       run: yarn test
     - name: build-exe-bun
       run: ./build-exe-bun.sh
+    - name: build-exe-deno
+      run: ./build-exe-deno.sh
     # Upload binary
-    - name: Upload wasmin binary to release
+    - name: Upload wasmin-bun binary to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GH_TOKEN }}
@@ -62,6 +68,14 @@ jobs:
         asset_name: ${{ matrix.wasmin_bun_asset }}
         tag: ${{ github.ref }}
         overwrite: true
+    - name: Upload wasmin-bun binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GH_TOKEN }}
+        file: ./${{ matrix.wasmin_deno_artifact }}
+        asset_name: ${{ matrix.wasmin_deno_asset }}
+        tag: ${{ github.ref }}
+        overwrite: true  
     - name: Log in to the Container registry
       if: ${{matrix.os == 'ubuntu-latest'}}
       uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
