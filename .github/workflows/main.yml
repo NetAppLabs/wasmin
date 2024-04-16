@@ -24,7 +24,10 @@ jobs:
             wasmin_bun_artifact: wasmin-bun
             wasmin_bun_asset: wasmin-bun-linux-amd64
             node-version: 20.x
-
+          - os: macos-latest
+            wasmin_bun_artifact: wasmin-bun
+            wasmin_bun_asset: wasmin-bun-macos-arm64
+            node-version: 20.x
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
