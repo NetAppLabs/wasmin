@@ -7,6 +7,7 @@ set -e
 
 cd apps/deno-shell
 rm -rf dist
+mkdir -p src/embed/static
 cp dir.ts src/embed/static
 
 yarn build
