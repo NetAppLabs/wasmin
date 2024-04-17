@@ -14,22 +14,67 @@ type TerminalOutputAsync = TerminalOutputNamespace.WasiCliTerminalOutput;
 
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
+import { Resource } from "../../wasiResources.js";
+import { wasiPreview2Debug } from "./preview2Utils.js";
 
-export class TerminalStdinAsyncHost implements TerminalStdinAsync {
-    constructor(wasiOptions: WasiOptions) {
+export class TerminalInputInstance implements TerminalInput, Resource {
+    constructor(wasiOptions: WasiOptions, fd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this.fd = fd;
         this._wasiEnv = wasiEnv;
+        this.resource = this.openFiles.addResource(this);
     }
     private _wasiEnv: WasiEnv;
 
     get openFiles() {
         return this._wasiEnv.openFiles;
     }
+    async [Symbol.asyncDispose](): Promise<void> {
+        return;
+    }
+    fd: number;
+    resource: number;
+};
+
+export class TerminalOutputInstance implements TerminalOutput, Resource {
+    constructor(wasiOptions: WasiOptions, fd: number) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this.fd = fd;
+        this._wasiEnv = wasiEnv;
+        this.resource = this.openFiles.addResource(this);
+    }
+    private _wasiEnv: WasiEnv;
+
+    get openFiles() {
+        return this._wasiEnv.openFiles;
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        return;
+    }
+    fd: number;
+    resource: number;
+
+};
+
+export class TerminalStdinAsyncHost implements TerminalStdinAsync {
+    constructor(wasiOptions: WasiOptions) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+        this.TerminalInput = TerminalInputInstance;
+    }
+    private _wasiEnv: WasiEnv;
+    public TerminalInput: typeof TerminalInputInstance;
+
+    get openFiles() {
+        return this._wasiEnv.openFiles;
+    }
 
     async getTerminalStdin(): Promise<TerminalInput | undefined> {
+        wasiPreview2Debug("TerminalStdinAsyncHost TerminalStdinAsyncHost");
         const stdin_fd = 0;
-        const stdin = this.openFiles.get(stdin_fd);
-        return stdin as TerminalInput;
+        //const stdin = this.openFiles.get(stdin_fd);
+        let termInstance = new TerminalInputInstance(this._wasiEnv, stdin_fd);
+        return termInstance;
     }
 }
 
@@ -37,16 +82,20 @@ export class TerminalStdoutAsyncHost implements TerminalStdoutAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.TerminalOutput = TerminalOutputInstance;
     }
     private _wasiEnv: WasiEnv;
+    public TerminalOutput: typeof TerminalOutputInstance;
+
     get openFiles() {
         return this._wasiEnv.openFiles;
     }
 
     async getTerminalStdout(): Promise<TerminalOutput | undefined> {
+        wasiPreview2Debug("TerminalStdoutAsyncHost getTerminalStdout");
         const stdout_fd = 1;
-        const stdin = this.openFiles.get(stdout_fd);
-        return stdin as TerminalOutput;
+        let termInstance = new TerminalOutputInstance(this._wasiEnv, stdout_fd);
+        return termInstance;
     }
 }
 
@@ -54,41 +103,18 @@ export class TerminalStderrAsyncHost implements TerminalStderrAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.TerminalOutput = TerminalOutputInstance;
     }
+    public TerminalOutput: typeof TerminalOutputInstance;
     private _wasiEnv: WasiEnv;
     get openFiles() {
         return this._wasiEnv.openFiles;
     }
     
     async getTerminalStderr(): Promise<TerminalOutput | undefined> {
-        const stderr_fd = 1;
-        const stdin = this.openFiles.get(stderr_fd);
-        return stdin as TerminalOutput;
-    }
-}
-
-export class TerminalInputAsyncHost implements TerminalInputAsync {
-    constructor(wasiOptions: WasiOptions) {
-        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
-        this._wasiEnv = wasiEnv;
-    }
-    private _wasiEnv: WasiEnv;
-
-    async dropTerminalInput(this0: TerminalInput): Promise<void> {
-        // TODO implement
-        // Silently ignored for now
-    }
-}
-
-export class TerminalOutputAsyncHost implements TerminalOutputAsync {
-    constructor(wasiOptions: WasiOptions) {
-        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
-        this._wasiEnv = wasiEnv;
-    }
-    private _wasiEnv: WasiEnv;
-
-    async dropTerminalOutput(this0: TerminalOutput): Promise<void> {
-        // TODO implement
-        // Silently ignored for now
+        wasiPreview2Debug("TerminalStderrAsyncHost getTerminalStderr");
+        const stderr_fd = 2;
+        let termInstance = new TerminalOutputInstance(this._wasiEnv, stderr_fd);
+        return termInstance;
     }
 }

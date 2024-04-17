@@ -102,7 +102,13 @@ export class IoStreamsAsyncHost implements IoStreamsAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.OutputStream = OutStream;
+        this.InputStream = InStream;
+
     }
+    public OutputStream: typeof OutStream;
+    public InputStream: typeof InStream;
+
     private _wasiEnv: WasiEnv;
 
 }
@@ -149,6 +155,7 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
         } catch (err: any) {
             wasiPreview2Debug("io.read(): err: ", err);
             if(isIoError(err)){
+                console.log("throwing StreamErrorClosed");
                 let err: StreamErrorClosed = {
                     tag: "closed"
                 }
@@ -159,14 +166,16 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
                 wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
                 //return new Uint8Array();
                 const ioErr = translateError(err);
+                console.log("throwing StreamErrorLastOperationFailed");
                 let throwErr: StreamErrorLastOperationFailed = {
                     tag: "last-operation-failed",
                     val: {
                         toDebugString: async function (): Promise<string> {
                             return ioErr;
                         },
-                        [Symbol.asyncDispose]: function (): Promise<void> {
-                            throw new Error("Function not implemented.");
+                        [Symbol.asyncDispose]: async function (): Promise<void> {
+                            // todo implement:
+                            return;
                         }
                     },
                 }
@@ -332,7 +341,7 @@ export class OutStream implements OutputStream, Resource {
             if (this.closeFdOnStreamClose) {
                 await this.openFiles.close(this.fd);
             }
-            await this.openFiles.disposeResource(this);
+            //await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);
         }
@@ -343,7 +352,10 @@ export class IoPollAsyncHost implements IOPollAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
+        this.Pollable = InputStreamPollable;
     }
+    public Pollable: typeof InputStreamPollable;
+
     async poll(in_: io.Pollable[]): Promise<Uint32Array> {
         const out: Uint32Array = new Uint32Array(in_.length);
         for (let i = 0; i < in_.length; i++) {

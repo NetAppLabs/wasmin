@@ -4,8 +4,9 @@ import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { RandomInsecureNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type RandomInsecureAsync = RandomInsecureNamespace.WasiRandomInsecure;
 import { RandomInsecureSeedNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { wasiPreview2Debug } from "./preview2Utils.js";
 type RandomInsecureSeedAsync = RandomInsecureSeedNamespace.WasiRandomInsecureSeed;
-export class RandomRandomAsynHost implements RandomRandomAsync {
+export class RandomRandomAsyncHost implements RandomRandomAsync {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
@@ -13,11 +14,13 @@ export class RandomRandomAsynHost implements RandomRandomAsync {
     private _wasiEnv: WasiEnv;
 
     async getRandomU64(): Promise<bigint> {
+        wasiPreview2Debug("RandomRandomAsyncHost getRandomU64");
         const ret = randomU64();
         return ret;
     }
 
     async getRandomBytes(len: bigint): Promise<Uint8Array> {
+        wasiPreview2Debug("RandomRandomAsyncHost getInsecureRandomBytes", len);
         const ret = randomBytes(len);
         return ret;
     }
@@ -30,10 +33,12 @@ export class RandomInsecureAsyncHost implements RandomInsecureAsync {
     }
     private _wasiEnv: WasiEnv;
     async getInsecureRandomBytes(len: bigint): Promise<Uint8Array> {
+        wasiPreview2Debug("RandomInsecureAsyncHost getInsecureRandomBytes", len);
         const ret = randomBytes(len);
         return ret;
     }
     async getInsecureRandomU64(): Promise<bigint> {
+        wasiPreview2Debug("RandomInsecureAsyncHost getInsecureRandomU64");
         const ret = randomU64();
         return ret;
     }
@@ -46,6 +51,7 @@ export class RandomInsecureSeedAsyncHost implements RandomInsecureSeedAsync {
     }
     private _wasiEnv: WasiEnv;
     async insecureSeed(): Promise<[bigint, bigint]> {
+        wasiPreview2Debug("RandomInsecureSeedAsyncHost insecureSeed");
         const rand1 = randomU64();
         const rand2 = randomU64();
         return [rand1, rand2];

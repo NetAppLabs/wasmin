@@ -29,7 +29,7 @@ import { WasiOptions } from "../../wasi.js";
 import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
 import { WasiHttpOutgoingHandlerAsyncHost, WasiHttpTypesAsyncHost } from "./http.js";
 import { IoPollAsyncHost, IoStreamsAsyncHost } from "./io.js";
-import { RandomInsecureSeedAsyncHost, RandomRandomAsynHost } from "./random.js";
+import { RandomInsecureSeedAsyncHost, RandomRandomAsyncHost } from "./random.js";
 import { RandomInsecureAsyncHost } from "./random.js";
 import { CliBaseEnvironmentAsyncHost } from "./cli.js";
 import { FileSystemPreopensAsyncHost } from "./filesystem.js";
@@ -71,7 +71,9 @@ import { TerminalInputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalInput = TerminalInputNamespace.WasiCliTerminalInput;
 import { TerminalOutputNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type TerminalOutput = TerminalOutputNamespace.WasiCliTerminalOutput;
-import { TerminalInputAsyncHost, TerminalOutputAsyncHost, TerminalStderrAsyncHost, TerminalStdinAsyncHost, TerminalStdoutAsyncHost } from "./terminal.js";
+import { TerminalStderrAsyncHost, TerminalStdinAsyncHost, TerminalStdoutAsyncHost } from "./terminal.js";
+import { isFunction } from "../../workerUtils.js";
+import { wasiPreview2Debug } from "./preview2Utils.js";
 
 export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:cli/environment": CliBaseEnvironment;
@@ -97,8 +99,6 @@ export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:random/random": RandomRandom;
     "wasi:random/insecure": RandomInsecure;
     "wasi:random/insecure-seed": RandomInsecureSeed;
-    "wasi:cli/terminal-input": TerminalInput;
-    "wasi:cli/terminal-output": TerminalOutput;
     "wasi:cli/terminal-stdin": TerminalStdin;
     "wasi:cli/terminal-stdout": TerminalStdout;
     "wasi:cli/terminal-stderr": TerminalStderr;
@@ -109,7 +109,7 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
     const socketsTcpInstance = new SocketsTcpAsyncHost(wasiOptions);
     const socketsUdpInstance = new WasiSocketsUdpAsyncHost(wasiOptions);
     const socketsIpNameLookupInstance = new SocketsIpNameLookupAsyncHost(wasiOptions);
-    const wasiPreview2Imports: WasiSnapshotPreview2AsyncImportObject = {
+    let wasiPreview2Imports: WasiSnapshotPreview2AsyncImportObject = {
         "wasi:cli/environment": new CliBaseEnvironmentAsyncHost(wasiOptions),
         "wasi:cli/exit": new CliBaseExitAsyncHost(wasiOptions),
         "wasi:cli/stdin": new CliBaseStdinAsyncHost(wasiOptions),
@@ -130,14 +130,36 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         "wasi:sockets/udp": socketsUdpInstance,
         "wasi:sockets/udp-create-socket": socketsUdpInstance,
         "wasi:sockets/ip-name-lookup": socketsIpNameLookupInstance,
-        "wasi:random/random": new RandomRandomAsynHost(wasiOptions),
+        "wasi:random/random": new RandomRandomAsyncHost(wasiOptions),
         "wasi:random/insecure": new RandomInsecureAsyncHost(wasiOptions),
         "wasi:random/insecure-seed": new RandomInsecureSeedAsyncHost(wasiOptions),
-        "wasi:cli/terminal-input": new TerminalInputAsyncHost(wasiOptions),
-        "wasi:cli/terminal-output": new TerminalOutputAsyncHost(wasiOptions),
         "wasi:cli/terminal-stdin": new TerminalStdinAsyncHost(wasiOptions),
         "wasi:cli/terminal-stdout": new TerminalStdoutAsyncHost(wasiOptions),
         "wasi:cli/terminal-stderr": new TerminalStderrAsyncHost(wasiOptions),
     };
+    wasiPreview2Imports = ensureThisBound(wasiPreview2Imports);
     return wasiPreview2Imports;
+}
+
+// Ensure that 'this' is bound on all instance functions
+export function ensureThisBound(importObj: WasiSnapshotPreview2AsyncImportObject): WasiSnapshotPreview2AsyncImportObject {
+    for (const [nsKey, nsObj] of Object.entries(importObj)) {
+        let nsObjAny = nsObj as any;
+        let nsObjProto = nsObjAny.__proto__;
+        if (nsObjProto !== undefined) {
+            for (let property of Object.getOwnPropertyNames(nsObjProto)) {
+                let elemKey = property;
+                let nsElement = nsObjAny[elemKey];
+                if (isFunction(nsElement)) {
+                    wasiPreview2Debug("ensureThisBound: nsKey: ", nsKey, "elemKey:", elemKey)
+                    if (nsElement.bind) {
+                        let newNsElement = nsElement.bind(nsObj);
+                        let nsObjAny = nsObj as any;
+                        nsObjAny[elemKey] = newNsElement;
+                    }
+                }
+            }
+        }
+    }
+    return importObj;
 }

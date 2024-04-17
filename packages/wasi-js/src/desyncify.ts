@@ -4,7 +4,7 @@ import { isFunction, wasmWorkerClientDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
-import { instantiatePromisified } from "@wasmin/wasm-promisify"; 
+import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify } from "@wasmin/wasm-promisify"; 
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -14,7 +14,7 @@ import { instantiatePromisified } from "@wasmin/wasm-promisify";
 //
 //
 
-export type WasmRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy" | "worker-component";
+export type WasmRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy" | "worker-component" | "jspi-component" ;
 
 export type ImportExportReference = {
     moduleInstanceId: string;
@@ -65,6 +65,11 @@ export type HandleWasmComponentImportFunc = (
     functionName: string,
     args: any[]
 ) => any;
+
+
+export function isStackSwitchingEnabled() {
+    return isStackSwitchingEnabledPromisify();
+}
 
 /**
  * 
@@ -148,18 +153,6 @@ export async function instantiateWithAsyncDetection(
     }
     wasmWorkerClientDebug("fallback on instantiating instance on WasmWorker");
     return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);
-}
-
-/**
- * Detects if JavaScript Promise Integration is enabed in runtime
- * @returns true if jspi/experimental-wasm-stack-switching is enabled
- */
-function isStackSwitchingEnabled(): boolean {
-    const WebAssemblyFunction = (WebAssembly as any).Function
-    if (typeof WebAssemblyFunction !== 'function') {
-        return false;
-    }
-    return true
 }
 
 /**
