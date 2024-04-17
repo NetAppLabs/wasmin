@@ -62,7 +62,7 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
         const preFile = this.file;
         try {
             await this.genericWrite(chunk);
-            let file = this.file;
+            const file = this.file;
             if (file) {
                 const path = this.fileHandle.path;
                 const body = await file.arrayBuffer();

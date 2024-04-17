@@ -1,4 +1,6 @@
 import path from "node:path";
+import fs from "node:fs/promises";
+import os from "node:os";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
 import { memory } from "@wasmin/fs-js";
@@ -20,17 +22,26 @@ switch (process.env.TEST_WASI_USING_BACKEND) {
 
 export async function getRootHandle(backend: string): Promise<FileSystemDirectoryHandle> {
     const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
+
     switch (backend) {
         case "memory":
             return getOriginPrivateDirectory(memory);
         //case "nfs-js": return new NfsDirectoryHandle(nfsUrl);
         default: {
+            let fixturesTestDir = path.resolve(path.join("tests", "fixtures"));
+            let copyFixturesToTmp = true;
+            if (copyFixturesToTmp) {
+                let sourceDir = fixturesTestDir;
+                let dstTemp = await fs.mkdtemp(path.join(os.tmpdir(), "wasmin-tests-"));
+                await fs.cp(sourceDir, dstTemp, {recursive: true});
+                fixturesTestDir = dstTemp;
+            }
             if (isBun()) {
                 const bunmod = await import("@wasmin/bun-fs-js");
                 const bun = bunmod.bun;
-                return getOriginPrivateDirectory(bun, path.resolve(path.join("tests", "fixtures")));
+                return getOriginPrivateDirectory(bun, fixturesTestDir);
             } else {
-                return getOriginPrivateDirectory(node, path.resolve(path.join("tests", "fixtures")));
+                return getOriginPrivateDirectory(node, fixturesTestDir);
             }
         }
     }

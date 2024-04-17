@@ -6,9 +6,9 @@ import { DiscoveryManagerInstance } from "./discovery.js";
 import { DEFAULT_REST_PORT, DEFAULT_RPC_PORT } from "./defaults.js";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import http from "http";
+import http from "node:http";
 import { createOpenApiHttpHandler } from "trpc-openapi";
-import { createHTTPServer } from "@trpc/server/adapters/standalone";
+//import { createHTTPServer } from "@trpc/server/adapters/standalone";
 
 /*
 type Proc = {

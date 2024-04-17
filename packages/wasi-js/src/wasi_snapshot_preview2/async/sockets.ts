@@ -1,18 +1,18 @@
-import { SocketsInstanceNetworkNamespace as socki } from "@wasmin/wasi-snapshot-preview2";
-type SocketsInstanceNetworkAsync = socki.WasiSocketsInstanceNetworkAsync;
+import { SocketsInstanceNetworkNamespace as socki } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsInstanceNetworkAsync = socki.WasiSocketsInstanceNetwork;
 type Network = socki.Network;
-import { SocketsNetworkNamespace as sockn } from "@wasmin/wasi-snapshot-preview2";
-type SocketsNetworkAsync = sockn.WasiSocketsNetworkAsync;
-import { SocketsTcpCreateSocketNamespace as socktc } from "@wasmin/wasi-snapshot-preview2";
-import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasmin/wasi-snapshot-preview2";
-type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocketAsync;
-import { SocketsIpNameLookupNamespace as socklookup } from "@wasmin/wasi-snapshot-preview2";
-type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookupAsync;
-import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2";
+import { SocketsNetworkNamespace as sockn } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsNetworkAsync = sockn.WasiSocketsNetwork;
+import { SocketsTcpCreateSocketNamespace as socktc } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocket;
+import { SocketsIpNameLookupNamespace as socklookup } from "@wasmin/wasi-snapshot-preview2/async";
+type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookup;
+import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
-import { SocketsTcpNamespace as sockt } from "@wasmin/wasi-snapshot-preview2";
-import { SocketsUdpNamespace as socku } from "@wasmin/wasi-snapshot-preview2";
+import { SocketsTcpNamespace as sockt } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsUdpNamespace as socku } from "@wasmin/wasi-snapshot-preview2/async";
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { createTcpSocket, createUdpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";
@@ -33,7 +33,7 @@ type OutgoingDatagram = socku.OutgoingDatagram;
 type OutgoingDatagramStream = socku.OutgoingDatagramStream
 type IncomingDatagram = socku.IncomingDatagram;
 type IncomingDatagramStream = socku.IncomingDatagramStream;
-type SocketsTcpAsync = sockt.WasiSocketsTcpAsync;
+type SocketsTcpAsync = sockt.WasiSocketsTcp;
 type TcpSocket = socktc.TcpSocket;
 type Pollable = sockt.Pollable;
 type IpSocketAddress = sockn.IpSocketAddress;
@@ -46,8 +46,8 @@ type Ipv4Address = sockn.Ipv4Address;
 type Ipv6Address = sockn.Ipv6Address;
 type IpAddressIpv4 = sockn.IpAddressIpv4;
 type IpAddressIpv6 = sockn.IpAddressIpv6;
-type WasiSocketsUdpAsync = socku.WasiSocketsUdpAsync;
-type WasiSocketsUdpCreateSocketAsync = sockuc.WasiSocketsUdpCreateSocketAsync;
+type WasiSocketsUdpAsync = socku.WasiSocketsUdp;
+type WasiSocketsUdpCreateSocketAsync = sockuc.WasiSocketsUdpCreateSocket;
 
 
 export class SocketsNetworkAsyncHost implements SocketsInstanceNetworkAsync, SocketsNetworkAsync {
@@ -68,12 +68,10 @@ export class SocketsNetworkAsyncHost implements SocketsInstanceNetworkAsync, Soc
     async instanceNetwork(): Promise<Network> {
         if (this._instanceNetworkId == -1) {
             const netInstance = new NetworkInstance(this._wasiEnv);
-            const netResourceId = this.openFiles.add(netInstance);
-            netInstance.resource = netResourceId;
-            this._instanceNetworkId = netResourceId;
+            this._instanceNetworkId = netInstance.resource;
         }
         const netInstance = this.openFiles.get(this._instanceNetworkId);
-        return netInstance;
+        return netInstance as Network;
     }
     async dropNetwork(netw: Network): Promise<void> {
         // no-op for now
@@ -85,9 +83,15 @@ export class NetworkInstance implements Resource {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
     private _wasiEnv: WasiEnv;
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
     resource: number;
 }
 
@@ -126,12 +130,14 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
 }
 
 export class TcpSocketInstance implements TcpSocket, Resource {
-    constructor(wasiOptions: WasiOptions, fd: number) {
+    constructor(wasiOptions: WasiOptions, sockFd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._sockFd = sockFd
         this._wasiEnv = wasiEnv;
-        this.resource = fd;
+        this.resource = this.openFiles.addResource(this);
     }
     private _wasiEnv: WasiEnv;
+    private _sockFd: number;
     public resource: number;
 
     get wasiEnv() {
@@ -140,17 +146,17 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     get openFiles() {
         return this.wasiEnv.openFiles;
     }
-    get fd() {
-        return this.resource;
+    get sockFd() {
+        return this._sockFd;
     }
     get inputstream() {
-        const instream = new InStream(this._wasiEnv,this.fd);
-        const resourceId = this.openFiles.add(instream);
+        const closeFdOnStreamClose = false;
+        const instream = new InStream(this._wasiEnv,this.sockFd, closeFdOnStreamClose);
         return instream;
     }
     get outputstream() {
-        const outstream = new OutStream(this._wasiEnv,this.fd);
-        const resourceId = this.openFiles.add(outstream);
+        let closeFdOnStreamClose = false;
+        const outstream = new OutStream(this._wasiEnv,this.sockFd, closeFdOnStreamClose);
         return outstream;
     }
 
@@ -158,9 +164,9 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         const res = this.openFiles.get(fd);
         return res as WasiSocket;
     }
-    async startBind(network: number, localAddress: IpSocketAddress): Promise<void> {
+    async startBind(network: Network, localAddress: IpSocketAddress): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const addrInfo = IpSocketAddressToAddrInfo(localAddress);
             await sock.bind(addrInfo);
@@ -175,7 +181,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async startConnect( network: Network, remoteAddress: sockn.IpSocketAddress): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
             const remoteAddr = remoteAddrInfo.address;
@@ -190,14 +196,14 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async finishConnect(): Promise<[InputStream, OutputStream]> {
         // returning as previously created in startConnect
-        const sockFd = this.fd;
+        const sockFd = this.sockFd;
         const inStream = this.inputstream;
         const outStream = this.outputstream;
         return [inStream, outStream];
     }
     async startListen(): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             // Network ignored for now
             const sock = this.getSocket(sockFd);
             // TODO look into backlog
@@ -214,8 +220,8 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async accept(): Promise<[TcpSocket, InputStream, OutputStream]> {
         try {
-            wasiPreview2Debug(`TcpSocketInstance.accept: starting on fd: ${this.fd}`);
-            const sockFd = this.fd;
+            wasiPreview2Debug(`TcpSocketInstance.accept: starting on fd: ${this.sockFd}`);
+            const sockFd = this.sockFd;
             const connectionCloser = async () => {
                 if (clientSock) {
                     wasiPreview2Debug(`accept connectionCloser clientSockFd: is ${clientSockFd}`);
@@ -253,7 +259,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     async localAddress(): Promise<sockn.IpSocketAddress> {
         let localAddrInfo: AddressInfo|undefined = undefined;
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             wasiPreview2Debug(`TcpSocketInstance.localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
             //wasiPreview2Debug("localAddress: sock: ", sock);
@@ -271,7 +277,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async remoteAddress(): Promise<sockn.IpSocketAddress> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const remoteAddrInfo = await sock.remoteAddress();
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
@@ -293,7 +299,7 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async addressFamily(): Promise<sockn.IpAddressFamily> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const localAddrInfo = await sock.address();
             const aFamily = localAddrInfo.family;
@@ -304,12 +310,6 @@ export class TcpSocketInstance implements TcpSocket, Resource {
             wasiPreview2Debug("TcpSocketInstance.addressFamily err: ", err);
             throw 'invalid-state';
         }
-    }
-    async ipv6Only(): Promise<boolean> {
-        return false;
-    }
-    async setIpv6Only(value: boolean): Promise<void> {
-        // no-op for now
     }
     async setListenBacklogSize(value: bigint): Promise<void> {
         throw new Error("Method not implemented.");
@@ -327,13 +327,12 @@ export class TcpSocketInstance implements TcpSocket, Resource {
         throw new Error("Method not implemented.");
     }
     async subscribe(): Promise<Pollable> {
-        const pollable = new TcpSocketPollable(this.openFiles, this.fd);
-        this.openFiles.add(pollable);
+        const pollable = new TcpSocketPollable(this.openFiles, this.sockFd);
         return pollable;
     }
     async shutdown(shutdownType: sockt.ShutdownType): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             sock.shutdown();
         } catch (err: any) {
@@ -377,10 +376,11 @@ export class TcpSocketInstance implements TcpSocket, Resource {
     }
     async [Symbol.asyncDispose]() : Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             if (this.openFiles.exists(sockFd)) {
                 this.openFiles.close(sockFd);
             }
+            this.openFiles.disposeResource(this);
         } catch (err: any) {
             // Swallow error:
             wasiPreview2Debug("TCPSocketInstance.dispose Symbol.asyncDispose err: ", err);
@@ -395,7 +395,10 @@ export class TcpSocketPollable implements Pollable {
     constructor(openFiles: OpenFiles, fd: number) {
         this._fd = fd;
         this.openFiles = openFiles;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
     }
     get fd() {
         return this._fd;
@@ -491,9 +494,11 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
     }
-
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
+    }
     private _wasiEnv: WasiEnv;
     private _fd: number;
     public resource: number;
@@ -546,7 +551,6 @@ export class UdpIncomingDatagramStreamInstance implements IncomingDatagramStream
     }
     async subscribe(): Promise<socklookup.Pollable> {
         const pollable = new DummyPollable(this.openFiles, this.fd);
-        this.openFiles.add(pollable);
         return pollable;
     }
 }
@@ -556,7 +560,10 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
-        this.resource = -1;
+        this.resource = this.openFiles.addResource(this);
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
     }
 
     private _wasiEnv: WasiEnv;
@@ -608,26 +615,27 @@ export class UdpOutgoingDatagramStreamInstance implements OutgoingDatagramStream
     }
     async subscribe(): Promise<socklookup.Pollable> {
         const pollable = new DummyPollable(this.openFiles, this.fd);
-        this.openFiles.add(pollable);
         return pollable;
     }
 }
 
 export class UdpSocketInstance implements UdpSocket, Resource {
-    constructor(wasiOptions: WasiOptions, fd: number) {
+    constructor(wasiOptions: WasiOptions, sockFd: number) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
-        this.resource = fd;
+        this._sockFd = sockFd;
+        this.resource = this.openFiles.addResource(this);
     }
 
     private _wasiEnv: WasiEnv;
+    public _sockFd: number;
     public resource: number;
 
     get wasiEnv() {
         return this._wasiEnv;
     }
-    get fd() {
-        return this.resource;
+    get sockFd() {
+        return this._sockFd;
     }
     get openFiles() {
         return this.wasiEnv.openFiles;
@@ -638,7 +646,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }
     async startBind(network: Network, localAddress: sockn.IpSocketAddress): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const addrInfo = IpSocketAddressToAddrInfo(localAddress);
             await sock.bind(addrInfo);
@@ -653,7 +661,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }
     async startConnect(network: Network, remoteAddress: sockn.IpSocketAddress): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const remoteAddrInfo = IpSocketAddressToAddrInfo(remoteAddress);
             const remoteAddr = remoteAddrInfo.address;
@@ -670,10 +678,8 @@ export class UdpSocketInstance implements UdpSocket, Resource {
         // no-op for now
     }
     async stream(remoteAddress: sockn.IpSocketAddress | undefined): Promise<[socku.IncomingDatagramStream, socku.OutgoingDatagramStream]> {
-        const incomingDataStream = new UdpIncomingDatagramStreamInstance(this.wasiEnv,this.fd);
-        const newIncomingResourceId = this.openFiles.add(incomingDataStream);
-        const outgoingDataStream = new UdpOutgoingDatagramStreamInstance(this.wasiEnv,this.fd);
-        const newOutgoingResourceId = this.openFiles.add(outgoingDataStream);
+        const incomingDataStream = new UdpIncomingDatagramStreamInstance(this.wasiEnv,this.sockFd);
+        const outgoingDataStream = new UdpOutgoingDatagramStreamInstance(this.wasiEnv,this.sockFd);
         return [incomingDataStream, outgoingDataStream];
     }/*
     async receive(sockFd: number, maxResults: bigint): Promise<socku.Datagram[]> {
@@ -733,7 +739,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }*/
     async localAddress(): Promise<sockn.IpSocketAddress> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             wasiPreview2Debug(`UDPSocketInstance.localAddress: calling this.getSocket: sockfd: ${sockFd}`);
             const sock = this.getSocket(sockFd);
             //wasiPreview2Debug("localAddress: sock: ", sock);
@@ -750,7 +756,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }
     async remoteAddress(): Promise<sockn.IpSocketAddress> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const remoteAddrInfo = await sock.remoteAddress();
             const remoteAddr = AddressInfoToIpSocketAddress(remoteAddrInfo);
@@ -772,7 +778,7 @@ export class UdpSocketInstance implements UdpSocket, Resource {
     }
     async addressFamily(): Promise<sockn.IpAddressFamily> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             const sock = this.getSocket(sockFd);
             const localAddrInfo = await sock.address();
             const aFamily = localAddrInfo.family;
@@ -782,12 +788,6 @@ export class UdpSocketInstance implements UdpSocket, Resource {
             wasiPreview2Debug("UDPSocketInstance.addressFamily err: ", err);
             throw 'invalid-state';
         }
-    }
-    async ipv6Only(): Promise<boolean> {
-        return false;
-    }
-    async setIpv6Only(value: boolean): Promise<void> {
-        // no-op for now
     }
     async unicastHopLimit(): Promise<number> {
         throw new Error("Method not implemented.");
@@ -808,16 +808,16 @@ export class UdpSocketInstance implements UdpSocket, Resource {
         throw new Error("Method not implemented.");
     }
     async subscribe(): Promise<Pollable> {
-        const pollable = new DummyPollable(this.openFiles, this.fd);
-        this.openFiles.add(pollable);
+        const pollable = new DummyPollable(this.openFiles, this.sockFd);
         return pollable;
     }
     async [Symbol.asyncDispose](): Promise<void> {
         try {
-            const sockFd = this.fd;
+            const sockFd = this.sockFd;
             if (this.openFiles.exists(sockFd)) {
                 this.openFiles.close(sockFd);
             }
+            this.openFiles.disposeResource(this);
         } catch (err: any) {
             // swallow error
             wasiPreview2Debug("UDPSocketInstance Symbol.asyncDispose err: ", err);
@@ -830,7 +830,10 @@ export class ResolveAddressIterator implements ResolveAddressStream, Resource {
     public openFiles: OpenFiles;
     constructor(openFiles: OpenFiles, public addresses: AddressInfo[], public addressFamily?: IpAddressFamily | undefined, public position: number = 0) {
         this.openFiles = openFiles,
-        this.resource = -1;
+        this.resource = openFiles.addResource(this);
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
     }
     nextAddress(): AddressInfo | null {
         while (this.addresses.length > this.position) {
@@ -868,7 +871,6 @@ export class ResolveAddressIterator implements ResolveAddressStream, Resource {
     }
     async subscribe(): Promise<Pollable> {
         const pollable = new DummyPollable(this.openFiles, this.resource);
-        this.openFiles.add(pollable);
         return pollable;
     }
 }
@@ -896,7 +898,6 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             const resolve = await getAddressResolver();
             const addresses = await resolve(host, port);
             const iter = new ResolveAddressIterator(this.openFiles, addresses);
-            const returnId = this.openFiles.add(iter);
             return iter;
         } catch (err: any) {
             // swallow error
@@ -905,31 +906,6 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
             throw 'invalid-name';
         }
     }
-    /*async resolveNextAddress(resId: ResolveAddressStream): Promise<IpAddress | undefined> {
-        try {
-            const res = this._addressLookupManager.get(resId);
-            if (res) {
-                const iter = res as ResolveAddressIterator;
-                const addrInfo = iter.nextAddress();
-                if (addrInfo) {
-                    const ipAddr = AddressInfoToIpAddress(addrInfo);
-                    return ipAddr;
-                }
-            }
-        } catch (err: any) {
-            // swallow error
-            //throw translateError(err);
-            wasiPreview2Debug("resolveNextAddress err: ", err);
-            throw 'name-unresolvable';
-        }
-        return undefined;
-    }
-    async dropResolveAddressStream(res: ResolveAddressStream): Promise<void> {
-        await this._addressLookupManager.close(res);
-    }
-    async subscribe(res: ResolveAddressStream): Promise<Pollable> {
-        throw new Error("Method not implemented.");
-    }*/
 }
 
 export function IpSocketAddressToAddrInfo(sockAddr: IpSocketAddress): AddressInfo {

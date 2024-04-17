@@ -1,5 +1,7 @@
-import path from "path";
-import { readdir, readFile } from "fs/promises";
+import path from "node:path";
+import fs from "node:fs/promises";
+import os from "node:os";
+import { readdir, readFile } from "node:fs/promises";
 import { WASI, stringOut, OpenFiles, bufferIn, isBun } from "../index.js";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
 import { node } from "@wasmin/node-fs-js";
@@ -47,6 +49,18 @@ export async function copyFsInto(rootPath: string, rootHandle: FileSystemDirecto
     }
 }
 
+
+export async function getRootSandboxForTest(rootPath: string): Promise<string> {
+    let fixturesTestDir = rootPath;
+    let copyFixturesToTmp = true;
+    if (copyFixturesToTmp) {
+        let sourceDir = fixturesTestDir;
+        let dstTemp = await fs.mkdtemp(path.join(os.tmpdir(), "wasmin-testsuite-tests-"));
+        await fs.cp(sourceDir, dstTemp, {recursive: true});
+        fixturesTestDir = dstTemp;
+    }
+    return fixturesTestDir;
+}
 
 export async function getRootHandle(backend: string, rootPath: string): Promise<FileSystemDirectoryHandle> {
     //const nfsUrl = "nfs://127.0.0.1" + path.resolve(".", "tests", "fixtures") + "/";
@@ -215,11 +229,12 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
     };
     let rootHandle: FileSystemDirectoryHandle;
     if (rootPath) {
+        let fixturesTestDir = await getRootSandboxForTest(rootPath);
         if (rootFsHandle) {
-            rootHandle = await rootFsHandle(rootPath);
+            rootHandle = await rootFsHandle(fixturesTestDir);
             //rootHandle = rootFsHandle;
         } else {
-            rootHandle = await getRootHandle(testFsBackend, rootPath);
+            rootHandle = await getRootHandle(testFsBackend, fixturesTestDir);
         }
     } else {
         throw Error("RootHandle not set");

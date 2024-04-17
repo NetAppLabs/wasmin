@@ -20,7 +20,7 @@ export interface TTY {
     setOnResize(onResizeFunc: TTYOnResizeFunc): Promise<void>;
 }
 
-export class TTYImplementation implements TTY {
+export class TTYInstance implements TTY {
     constructor(columns: number, rows: number, rawMode: boolean, modeListener?: (rawMode: boolean) => void) {
         this._columns = columns;
         this._rows = rows;

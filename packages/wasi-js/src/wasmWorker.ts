@@ -1,4 +1,4 @@
-import { getWorkerUrl, initializeComlinkHandlers, isSymbol, wasiWorkerDebug, wasmHandlerDebug } from "./workerUtils.js";
+import { getWorkerUrl, initializeComlinkHandlers, isSymbol, wasiWorkerDebug, wasmWorkerClientDebug } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
 import { isBun, isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
@@ -8,9 +8,15 @@ import { Channel, readMessage, uuidv4 } from "./vendored/sync-message/index.js";
 import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
 import { ResourceProxy, containsResourceObjects, createResourceProxy, createProxyForResources, getResourceSerializableForProxyObjects } from "./wasiResources.js";
 
+/**
+ * Interface from the client side when a running a WebAssembly instance or component
+ * on its own Worker
+ */
 export class WasmWorker {
     worker?: Worker;
+    // Runner when in Core mode
     coreRunner?: comlink.Remote<WasmCoreWorkerThreadRunner>;
+    // Runner when in Component mode
     componentRunner?: comlink.Remote<WasmComponentWorkerThreadRunner>;
 
     constructor() {
@@ -25,21 +31,21 @@ export class WasmWorker {
         }
         const workerUrl = getWorkerUrl(workerUrlString);
         
-        wasmHandlerDebug("workerUrl:", workerUrl);
+        wasmWorkerClientDebug("workerUrl:", workerUrl);
         worker = await createWorker(workerUrl, { type: "module" });
-        wasmHandlerDebug("createWorker: ", worker);
+        wasmWorkerClientDebug("createWorker: ", worker);
 
         if (worker) {
             // @ts-ignore
             if (globalThis.WASM_WORKER_THREAD_DEBUG) {
                 worker.addEventListener("message", (ev: MessageEvent<any>) => {
-                    wasmHandlerDebug("WasmThread worker message received: ", ev);
+                    wasmWorkerClientDebug("WasmThread worker message received: ", ev);
                 });
             }
             //worker.on("error", err => console.log("`Worker error:", err));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
         }
-        wasmHandlerDebug("createCoreWorker started worker");
+        wasmWorkerClientDebug("createCoreWorker started worker");
         const threadRemote = comlink.wrap<WasmCoreWorkerThreadRunner>(worker);
 
         this.coreRunner = threadRemote;
@@ -53,9 +59,9 @@ export class WasmWorker {
             workerUrlString = "./wasmComponentWorkerThreadNode.js";
         }
         const workerUrl = getWorkerUrl(workerUrlString);
-        wasmHandlerDebug("createComponentWorker workerUrl:", workerUrl);
+        wasmWorkerClientDebug("createComponentWorker workerUrl:", workerUrl);
         worker = await createWorker(workerUrl, { type: "module" });
-        wasmHandlerDebug("createWorker: ", worker);
+        wasmWorkerClientDebug("createWorker: ", worker);
 
         if (worker) {
             // @ts-ignore
@@ -67,7 +73,7 @@ export class WasmWorker {
             //worker.on("error", err => console.log("`Worker error:", err));
             //worker.on("exit", code => console.log(`Worker exited with code ${code}.`));
         }
-        wasmHandlerDebug("createComponentWorker started worker");
+        wasmWorkerClientDebug("createComponentWorker started worker");
         const threadRemote = comlink.wrap<WasmComponentWorkerThreadRunner>(worker);
 
         this.componentRunner = threadRemote;
@@ -132,13 +138,13 @@ export function createComponentImportOrResourceProxy(
     return new Proxy(importTarget, {
         get: (_target, name, _receiver) => {
             const functionNameOrSymbol = name;
-            let functionName = "";
+            let functionNameOrMember = "";
             let isSymbolReference = false;
             if (isSymbol(functionNameOrSymbol)) {
-                functionName = functionNameOrSymbol.toString();
+                functionNameOrMember = functionNameOrSymbol.toString();
                 isSymbolReference = true;
             } else {
-                functionName = functionNameOrSymbol as string;
+                functionNameOrMember = functionNameOrSymbol as string;
             }
             /*if (functionName == "InputStream"
                 || functionName == "OutputStream" 
@@ -147,10 +153,10 @@ export function createComponentImportOrResourceProxy(
                 ) 
             */
             // Assuming we are referring to a resource if first character is UpperCase
-            if (!isSymbolReference && (functionName.charAt(0) === functionName.charAt(0).toUpperCase() ))
+            if (!isSymbolReference && (functionNameOrMember.charAt(0) === functionNameOrMember.charAt(0).toUpperCase() ))
             {
                 const dummyResource = createResourceProxy(
-                    functionName,
+                    functionNameOrMember,
                     callType,
                     importName,
                     channel,
@@ -158,18 +164,17 @@ export function createComponentImportOrResourceProxy(
                     getProxyFunctionToCall,
                 );
                 return dummyResource;
-            }
-            else if (functionName == "resource") {
+            } else if (functionNameOrMember == "resource") {
                 const res = importTarget as ResourceProxy;
                 return res.resource;
             }
-            else if (functionName == "prototype") {
-                wasmHandlerDebug("trying to get prototype property");
+            else if (functionNameOrMember == "prototype") {
+                wasmWorkerClientDebug("trying to get prototype property");
                 return _receiver;
             } 
             
             const funcToCall = getProxyFunctionToCall(
-                functionName,
+                functionNameOrMember,
                 callType,
                 importName,
                 channel,
@@ -205,14 +210,14 @@ export function getProxyFunctionToCall(
         for (let arg of newArgs) {
             let arr = arg as Array<any>;
             if (ArrayBuffer.isView(arg)) {
-                wasmHandlerDebug("istransfer:", arg);
+                wasmWorkerClientDebug("istransfer:", arg);
                 let typedArray = arg as ArrayBufferView;
                 const lastBufferArrayBufferLike = typedArray.buffer;
                 if (lastBufferArrayBufferLike instanceof ArrayBuffer) {
                     lastBuffer = lastBufferArrayBufferLike as ArrayBuffer;
-                    wasmHandlerDebug("lastBuffer pre transfer: ", lastBuffer);
+                    wasmWorkerClientDebug("lastBuffer pre transfer: ", lastBuffer);
                     lastTypedArray = arr;
-                    wasmHandlerDebug("lastTypedArray pre transfer: ", lastTypedArray);
+                    wasmWorkerClientDebug("lastTypedArray pre transfer: ", lastTypedArray);
                     // Simply marking the ArrayBuffer under the array as Transferrable
                     // This puts the ArrayBuffer in the transfer cache
                     comlink.transfer(newArgs,[lastBuffer]);
@@ -221,7 +226,7 @@ export function getProxyFunctionToCall(
                 const resObj = getResourceSerializableForProxyObjects(arg);
                 if (resObj !== undefined) {
                     newArgs[i] = resObj;
-                    wasmHandlerDebug("resObj: ", resObj);
+                    wasmWorkerClientDebug("resObj: ", resObj);
                 } else {
                     newArgs[i] = arg;
                 }
@@ -229,18 +234,18 @@ export function getProxyFunctionToCall(
             i++;
         }
         const messageId = uuidv4();
-        wasmHandlerDebug(
+        wasmWorkerClientDebug(
             `Proxy handleComponentImportFunc: importName: ${importName} functionName:`,
             functionName
         );
         handleComponentImportFunc(channel, messageId, callType, importName, functionName, newArgs);
         let ret = readMessage(channel, messageId);
         if (lastBuffer) {
-            wasmHandlerDebug("lastBuffer post transfer: ", lastBuffer);
+            wasmWorkerClientDebug("lastBuffer post transfer: ", lastBuffer);
         }
-        wasmHandlerDebug("lastTypedArray post transfer: ", lastTypedArray);
+        wasmWorkerClientDebug("lastTypedArray post transfer: ", lastTypedArray);
         if (ret.error) {
-            wasmHandlerDebug("ret.error: ", ret.error);
+            wasmWorkerClientDebug("ret.error: ", ret.error);
             wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, ret.err);
             throw ret.error;
         }

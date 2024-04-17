@@ -5,11 +5,13 @@ import { GetProxyFunctionToCall, createComponentImportOrResourceProxy, getProxyF
 import { isArray, isSymbol } from "./workerUtils.js";
 import { wasiResourceDebug } from "./wasiUtils.js";
 
-export type StoreResourcesFunc = (importName: string, resourceId: number, resourceObject: any) => void;
+export type StoreResourcesFunc = (importName: string, resourceId: number, resourceObject: Resource) => void;
 
 export interface Resource {
-    resource: number
+    resource: number;
 }
+
+export type DisposeAsyncResourceFunc = (res: Resource) => Promise<void>;
 
 export function createProxyForResources(
     resObjOrAny: any,
@@ -17,7 +19,7 @@ export function createProxyForResources(
     channel: Channel,
     handleComponentImportFunc: HandleWasmComponentImportFunc,
 ) {
-    let getResourceObjFunc = (resObjInner: any ) => {
+    let getResourceObjFunc = (resObjInner: Resource ) => {
         const resourceId = resObjInner.resource;
         if (resourceId !== undefined) {
             const identifier = getResourceIdentifier(importName, resourceId);
@@ -108,7 +110,7 @@ type HandleResourceObjCallBack = (resourceObjOrAny: any) => void|any;
 type LookupResourceFunc = (importNamespace: string, resourceId: any) => Resource | undefined;
 
 export function storeResourceObjects(importNamespace: string, resourceObjOrAny: any, storeFunc: StoreResourcesFunc){
-    let storeResourceObjCallback = (resObj: any ) => {
+    let storeResourceObjCallback = (resObj: Resource ) => {
         const resourceId = resObj.resource;
         if (resourceId !== undefined) {
             storeFunc(importNamespace, resourceId, resObj);

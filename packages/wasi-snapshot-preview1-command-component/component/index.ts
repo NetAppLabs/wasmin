@@ -45,8 +45,7 @@ export interface ImportObject {
   'wasi:random/random': typeof WasiRandomRandom,
   'wasi:sockets/instance-network': typeof WasiSocketsInstanceNetwork,
   'wasi:sockets/ip-name-lookup': typeof WasiSocketsIpNameLookup,
-  // @ts-ignore
-  //'wasi:sockets/network': typeof WasiSocketsNetwork,
+  'wasi:sockets/network': typeof WasiSocketsNetwork,
   'wasi:sockets/tcp': typeof WasiSocketsTcp,
   'wasi:sockets/tcp-create-socket': typeof WasiSocketsTcpCreateSocket,
   'wasi:sockets/udp': typeof WasiSocketsUdp,

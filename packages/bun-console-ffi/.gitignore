@@ -1,5 +1,0 @@
-target
-.yarn
-node_modules
-dist
-.DS_Store

@@ -1,0 +1,4 @@
+// All of the same imports and exports available in the wasi:cli/command world
+world command {
+  include wasi:cli/command@0.2.0;
+}

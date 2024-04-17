@@ -1,4 +1,4 @@
-import { Mount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs";
+import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs";
 import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@wasmin/wasi-js";
 import {
@@ -86,8 +86,6 @@ async function fetchCompile(url: URL) {
 }
 
 async function compileCore(url: string) {
-    //url = "./" + url;
-    //return await fetchCompile(new URL(url, import.meta.url));
     if (url == "nfs_rs.core.wasm") {
         const metaUrl = new URL("./nfs_rs.core.wasm", import.meta.url);
         return await fetchCompile(metaUrl);
@@ -129,7 +127,7 @@ export interface NfsHandlePermissionDescriptor {
 }
 
 export class NfsHandle implements FileSystemHandle {
-    protected _mount: Mount;
+    protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
     protected _fullName: string;
@@ -143,7 +141,7 @@ export class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: Mount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string) {
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string) {
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
@@ -170,7 +168,7 @@ export class NfsHandle implements FileSystemHandle {
     async queryPermission(perm?: NfsHandlePermissionDescriptor): Promise<PermissionState> {
         return new Promise(async (resolve, reject) => {
             const mode = perm?.mode === "readwrite" ? AccessReadWrite : AccessRead;
-            const ret = nfsComponent.access(this._mount, this._fh, mode);
+            const ret = this._mount.access(this._fh, mode);
             if (ret !== 0) {
                 // XXX: ACCESS3_EXECUTE may be omitted for root directory access but we should still return 'granted'
                 resolve(
@@ -185,7 +183,7 @@ export class NfsHandle implements FileSystemHandle {
         return new Promise(async (resolve, reject) => {
             const mode = perm.mode === "readwrite" ? AccessReadWrite : AccessRead;
             try {
-                nfsComponent.setattr(this._mount, this._fh, undefined, mode, undefined, undefined, undefined, undefined, undefined);
+                this._mount.setattr(this._fh, undefined, mode, undefined, undefined, undefined, undefined, undefined);
                 resolve("granted");
             } catch (e: any) {
                 if (e.payload?.nfsErrorCode === NFS3ERR_PERM || e.payload?.nfsErrorCode === NFS3ERR_ACCES) {
@@ -212,7 +210,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
     constructor(url: string);
     constructor(toWrap: NfsHandle);
     constructor(param: string | NfsHandle) {
-        let mount: Mount;
+        let mount: NfsMount;
         let fhDir: Uint8Array;
         let fh: Uint8Array;
         let kind: FileSystemHandleKind;
@@ -221,7 +219,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         if (typeof param === "string") {
             const url = param;
             mount = nfsComponent.parseUrlAndMount(url);
-            fh = nfsComponent.lookupPath(mount, "/");
+            fh = mount.lookupPath("/");
             fhDir = fh;
             kind = "directory";
             fullName = "/";
@@ -243,7 +241,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         this.getEntries = this.values;
     }
     async stat(): Promise<Stat> {
-        const attr = nfsComponent.getattr(this._mount, this._fh);
+        const attr = this._mount.getattr(this._fh);
         const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
         const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);
         const stats: Stat = {
@@ -257,7 +255,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
         try {
-            const entries = nfsComponent.readdirplus(this._mount, this._fh);
+            const entries = this._mount.readdirplus(this._fh);
             for (const entry of entries) {
                 if (entry.fileName !== "." && entry.fileName !== "..") {
                     const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
@@ -305,8 +303,8 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfsComponent.lookup(this._mount, this._fh, name);
-                const attr = nfsComponent.getattr(this._mount, fh);
+                const fh = this._mount.lookup(this._fh, name);
+                const attr = this._mount.getattr(fh);
                 if (attr.attrType !== AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
@@ -328,7 +326,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 
             try {
                 const mode = 0o775;
-                const fh = nfsComponent.mkdir(this._mount, this._fh, name, mode);
+                const fh = this._mount.mkdir(this._fh, name, mode);
                 return resolve(
                     new NfsDirectoryHandle(
                         new NfsHandle(this._mount, this._fh, fh, "directory", this._fullName + name + "/", name)
@@ -343,8 +341,8 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfsComponent.lookup(this._mount, this._fh, name);
-                const attr = nfsComponent.getattr(this._mount, fh);
+                const fh = this._mount.lookup(this._fh, name);
+                const attr = this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
@@ -366,8 +364,8 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 
             try {
                 const mode = 0o664;
-                nfsComponent.create(this._mount, this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
-                const fh = nfsComponent.lookup(this._mount, this._fh, name);
+                this._mount.create(this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
+                const fh = this._mount.lookup(this._fh, name);
                 return resolve(
                     new NfsFileHandle(
                         new NfsHandle(this._mount, this._fh, fh, "file", this._fullName + name, name)
@@ -382,12 +380,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = nfsComponent.lookup(this._mount, this._fh, name);
-                const attr = nfsComponent.getattr(this._mount, fh);
+                const fh = this._mount.lookup(this._fh, name);
+                const attr = this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     this.removeDirectory(fh, this._fh, name, !!options?.recursive);
                 } else {
-                    nfsComponent.remove(this._mount, this._fh, name);
+                    this._mount.remove(this._fh, name);
                 }
                 return resolve();
             } catch (e: any) {
@@ -402,18 +400,18 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
     }
     private removeDirectory(fh: Uint8Array, parent: Uint8Array, name: string, recursive: boolean) {
         if (recursive) {
-            const entries = nfsComponent.readdirplus(this._mount, fh);
+            const entries = this._mount.readdirplus(fh);
             for (const entry of entries) {
                 if (entry.fileName !== "." && entry.fileName !== "..") {
                     if (entry.attr?.attrType === AttrTypeDirectory) {
                         this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
                     } else {
-                        nfsComponent.remove(this._mount, fh, entry.fileName);
+                        this._mount.remove(fh, entry.fileName);
                     }
                 }
             }
         }
-        nfsComponent.rmdir(this._mount, parent, name);
+        this._mount.rmdir(parent, name);
     }
     async resolve(possibleDescendant: FileSystemHandle): Promise<Array<string> | null> {
         return new Promise(async (resolve, reject) => {
@@ -510,15 +508,15 @@ export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
 // @ts-ignore
 export class NfsFile implements File {
     prototype: File;
-    private _mount: Mount;
+    private _mount: NfsMount;
     private _fh: Uint8Array;
     lastModified: number;
     name: string;
     webkitRelativePath: string;
     size: number;
     type: string;
-    constructor(mount: Mount, fh: Uint8Array, name: string) {
-        const attr = nfsComponent.getattr(mount, fh);
+    constructor(mount: NfsMount, fh: Uint8Array, name: string) {
+        const attr = mount.getattr(fh);
 
         this.prototype = new File([], name);
         this._mount = mount;
@@ -536,7 +534,7 @@ export class NfsFile implements File {
         const buf = new Uint8Array(size);
         while (size > 0) {
             const count = Math.min(size, MAX_READ_SIZE);
-            const chunk = nfsComponent.read(this._mount, this._fh, BigInt(pos), count);
+            const chunk = this._mount.read(this._fh, BigInt(pos), count);
             buf.set(chunk, idx);
             idx += chunk.byteLength;
             pos += count;
@@ -563,7 +561,7 @@ export class NfsFile implements File {
         let size = this.size;
         const readChunk = (): Uint8Array => {
             const count = Math.min(size, MAX_READ_SIZE);
-            const chunk = nfsComponent.read(this._mount, this._fh, BigInt(pos), count);
+            const chunk = this._mount.read(this._fh, BigInt(pos), count);
             pos += count;
             size -= count;
             return chunk;
@@ -590,12 +588,12 @@ export class NfsFile implements File {
 // @ts-ignore
 export class NfsBlob implements Blob {
     prototype: Blob;
-    private _mount: Mount;
+    private _mount: NfsMount;
     private _fh: Uint8Array;
     private _data: Uint8Array;
     size: number;
     type: string;
-    constructor(mount: Mount, fh: Uint8Array, data: Uint8Array, contentType?: string | undefined) {
+    constructor(mount: NfsMount, fh: Uint8Array, data: Uint8Array, contentType?: string | undefined) {
         this.prototype = new Blob();
         this._mount = mount;
         this._fh = fh;
@@ -634,7 +632,7 @@ export class NfsBlob implements Blob {
 }
 
 export class NfsSink implements FileSystemWritableFileStream {
-    private _mount: Mount;
+    private _mount: NfsMount;
     private _fhDir: Uint8Array;
     private _fh: Uint8Array;
     private _fhTmp: Uint8Array;
@@ -646,17 +644,17 @@ export class NfsSink implements FileSystemWritableFileStream {
     private _orgSize: number;
     private _newSize: number;
     private _position: number;
-    constructor(mount: Mount, fhDir: Uint8Array, fh: Uint8Array, fullName: string, options?: FileSystemCreateWritableOptions) {
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fullName: string, options?: FileSystemCreateWritableOptions) {
         this._fileName = fullName.slice(fullName.lastIndexOf("/") + 1);
         this._fileNameTmp = "." + this._fileName + "-tmp" + Date.now();
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
-        this._fhTmp = nfsComponent.create(mount, this._fhDir, this._fileNameTmp, 0o664);
+        this._fhTmp = mount.create(this._fhDir, this._fileNameTmp, 0o664);
         this._keepExisting = !!options?.keepExistingData;
         this._valid = true;
         this._locked = false;
-        this._orgSize = Number(nfsComponent.getattr(mount, fh).filesize);
+        this._orgSize = Number(mount.getattr(fh).filesize);
         this._newSize = this._keepExisting ? this._orgSize : 0;
         this._position = 0;
     }
@@ -667,8 +665,8 @@ export class NfsSink implements FileSystemWritableFileStream {
         let pos = 0n;
         while (size > 0) {
             const count = Math.min(size, MAX_READ_SIZE);
-            const contents = nfsComponent.read(this._mount, fhFrom, pos, count);
-            nfsComponent.write(this._mount, fhTo, pos, contents);
+            const contents = this._mount.read(fhFrom, pos, count);
+            this._mount.write(fhTo, pos, contents);
             pos += BigInt(count);
             size -= count;
         }
@@ -735,7 +733,7 @@ export class NfsSink implements FileSystemWritableFileStream {
 
             try {
                 this.ensureExistingIfToBeKept();
-                nfsComponent.write(this._mount, this._fhTmp, BigInt(this._position), new Uint8Array(buffer));
+                this._mount.write(this._fhTmp, BigInt(this._position), new Uint8Array(buffer));
                 this._position += buffer.byteLength;
                 if (this._position > this._newSize) {
                     this._newSize = this._position;
@@ -762,7 +760,7 @@ export class NfsSink implements FileSystemWritableFileStream {
             }
             try {
                 this.ensureExistingIfToBeKept();
-                nfsComponent.setattr(this._mount, this._fhTmp, undefined, undefined, undefined, undefined, BigInt(size), undefined, undefined);
+                this._mount.setattr(this._fhTmp, undefined, undefined, undefined, undefined, BigInt(size), undefined, undefined);
                 if (this._position > size) {
                     this._position = size;
                 }
@@ -781,9 +779,9 @@ export class NfsSink implements FileSystemWritableFileStream {
             try {
                 if (!this._keepExisting) {
                     // XXX: if this._keepExisting is still set, no writes or truncates have occurred
-                    nfsComponent.rename(this._mount, this._fhDir, this._fileNameTmp, this._fhDir, this._fileName);
+                    this._mount.rename(this._fhDir, this._fileNameTmp, this._fhDir, this._fileName);
                 } else {
-                    nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
+                    this._mount.remove(this._fhDir, this._fileNameTmp);
                 }
                 this._valid = false;
                 return resolve();
@@ -798,7 +796,7 @@ export class NfsSink implements FileSystemWritableFileStream {
                 return reject(new TypeError("invalid stream"));
             }
             try {
-                nfsComponent.remove(this._mount, this._fhDir, this._fileNameTmp);
+                this._mount.remove(this._fhDir, this._fileNameTmp);
                 this._valid = false;
                 return resolve();
             } catch (e: any) {

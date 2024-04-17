@@ -1,7 +1,7 @@
 import { FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
-import { Handle, Readable, Writable } from "./wasiFileSystem.js";
+import { Handle, Readable, ReadableAsyncOrSync, Writable, WritableAsyncOrSync } from "./wasiFileSystem.js";
 import {
     Errno,
     ErrnoN,
@@ -16,19 +16,16 @@ import {
 } from "./wasi_snapshot_preview1/bindings.js";
 
 
-declare let globalThis: any;
-if (!globalThis.WASI_DEBUG) {
-    globalThis.WASI_DEBUG = false;
+declare global {
+    var WASI_DEBUG: boolean;
+    var WASI_CALL_DEBUG: boolean;
+    var WASI_FD_DEBUG: boolean;
+    var WASI_RESOURCE_DEBUG: boolean;
 }
-if (!globalThis.WASI_CALL_DEBUG) {
-    globalThis.WASI_CALL_DEBUG = false;
-}
-if (!globalThis.WASI_FD_DEBUG) {
-    globalThis.WASI_FD_DEBUG = false;
-}
-if (!globalThis.WASI_RESOURCE_DEBUG) {
-    globalThis.WASI_RESOURCE_DEBUG = false;
-}
+globalThis.WASI_DEBUG = false;
+globalThis.WASI_CALL_DEBUG = false;
+globalThis.WASI_FD_DEBUG = false;
+globalThis.WASI_RESOURCE_DEBUG = false;
 
 export function wasiWarn(msg?: any, ...optionalParams: any[]): void {
     if (globalThis.WASI_DEBUG) {
@@ -77,15 +74,7 @@ export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export interface In {
-    read(len: number): Uint8Array | Promise<Uint8Array>;
-}
-
-export interface Out {
-    write(data: Uint8Array): void | Promise<void>;
-}
-
-export const stringOut = (writeStr: (chunk: string) => void): Out => {
+export const stringOut = (writeStr: (chunk: string) => void): WritableAsyncOrSync => {
     const decoder = new TextDecoderWrapper();
 
     return {
@@ -95,7 +84,7 @@ export const stringOut = (writeStr: (chunk: string) => void): Out => {
     };
 };
 
-export const lineOut = (writeLn: (chunk: string) => void): Out => {
+export const lineOut = (writeLn: (chunk: string) => void): WritableAsyncOrSync => {
     let lineBuf = "";
 
     return stringOut((chunk) => {
@@ -108,7 +97,7 @@ export const lineOut = (writeLn: (chunk: string) => void): Out => {
     });
 };
 
-export const bufferIn = (buffer: Uint8Array): In => {
+export const bufferIn = (buffer: Uint8Array): ReadableAsyncOrSync => {
     return {
         read: (len) => {
             const chunk = buffer.subarray(0, len);

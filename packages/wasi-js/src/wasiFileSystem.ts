@@ -15,7 +15,7 @@
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2";
+import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
 type FileSystemDescriptorNumber = number;
@@ -26,7 +26,7 @@ import {
     FileSystemFileHandle,
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
-import { Resource } from "./wasiResources.js";
+import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
 declare global {
     var WASI_FS_DEBUG: boolean
 }
@@ -38,15 +38,37 @@ function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
     }
 }
 
+/**
+ * Generic Writable stream interface
+ */
 export interface Readable {
     read(len: number): Promise<Uint8Array>;
 }
 
+export interface ReadableAsyncOrSync {
+    read(len: number): Uint8Array | Promise<Uint8Array>;
+}
+
+/**
+ * Generic Writable stream interface
+ */
 export interface Writable {
     write(data: Uint8Array): Promise<void>;
 }
 
+export interface WritableAsyncOrSync {
+    write(data: Uint8Array): void | Promise<void>;
+}
+
+/**
+ * Generic Interface too look if stream has more bytes
+ */
+export interface Peekable {
+    peek(): Promise<number>;
+}
+
 export class Socket implements Writable, Readable {
+
     private _fdFlags: Fdflags = 0;
     async read(_len: number): Promise<Uint8Array> {
         throw new SystemError(ErrnoN.NOTSUP);
@@ -64,7 +86,7 @@ export class Socket implements Writable, Readable {
     }
 }
 
-export interface FsPollable {
+export interface FsPollable extends AsyncDisposable {
     block(): Promise<void>;
     ready(): Promise<boolean>;
 }
@@ -72,7 +94,6 @@ export interface FsPollable {
 export type Handle = FileSystemFileHandle | FileSystemDirectoryHandle;
 
 export type OpenResource = OpenFile | OpenDirectory | Writable | Readable | Socket | OpenDirectoryIterator | FsPollable | Resource;
-
 export class OpenDirectory {
     constructor(public readonly path: string, readonly _handle: FileSystemDirectoryHandle, public isFile = false) {}
 
@@ -302,16 +323,21 @@ export class OpenDirectory {
     }
 }
 
-export class OpenDirectoryIterator implements Resource {
-    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory) {
+export class OpenDirectoryIterator implements Resource, AsyncDisposable {
+    constructor(fd: FileSystemDescriptorNumber, openDir: OpenDirectory, disposeFunc: DisposeAsyncResourceFunc) {
         this._descriptor = fd;
         this._openDir = openDir;
         this.resource = -1;
+        this.onDispose = disposeFunc;
+    }
+    [Symbol.asyncDispose](): Promise<void> {
+        return this.onDispose(this);
     }
     private _openDir: OpenDirectory;
     private _descriptor: FileSystemDescriptorNumber;
     private _cursor = 0;
     public resource: number;
+    public onDispose: DisposeAsyncResourceFunc;
 
     public get cursor(): number {
         return this._cursor;
@@ -559,6 +585,11 @@ export class OpenFiles {
         return newFd;
     }
 
+    addResource(res: Resource): Fd {
+        filesystemDebug("[addResource]", res);
+        return this.add(res);
+    }
+
     isFile(fd: Fd): boolean {
         const h = this.get(fd);
         if (h instanceof OpenFile) {
@@ -684,7 +715,7 @@ export class OpenFiles {
         }
     }
 
-    async openReader(fd: Fd, offset?: bigint): Promise<Fd> {
+    openReader(fd: Fd, offset?: bigint): Fd {
         let reader: Readable;
         if (!this.isFile(fd)) {
             return fd;
@@ -702,7 +733,7 @@ export class OpenFiles {
         return newFd;
     }
 
-    async openWriter(fd: Fd, offset?: bigint, append?: boolean): Promise<Fd> {
+    openWriter(fd: Fd, offset?: bigint, append?: boolean): Fd {
         let writer: Writable;
         if (!this.isFile(fd)) {
             return fd;
@@ -725,17 +756,26 @@ export class OpenFiles {
         return newFd;
     }
 
-    async openOpenDirectoryIterator(fd: Fd): Promise<Fd> {
+    openOpenDirectoryIterator(fd: Fd): Fd {
         const openDir = this.getAsDir(fd);
-        const iter = new OpenDirectoryIterator(fd, openDir);
-        const iterFd = this.add(iter);
-        iter.resource = iterFd;
+        const disposeFunc = this.getDisposeResourceFunc();
+        const iter = new OpenDirectoryIterator(fd, openDir, disposeFunc);
+        const iterFd = this.addResource(iter);
         return iterFd;
     }
 
-    async getAsOpenDirectoryIterator(fd: Fd): Promise<OpenDirectoryIterator> {
+    getAsOpenDirectoryIterator(fd: Fd): OpenDirectoryIterator {
         const res = this.get(fd);
         return res as OpenDirectoryIterator;
+    }
+
+    getDisposeResourceFunc(): DisposeAsyncResourceFunc {
+        return this.disposeResource.bind(this);
+    }
+
+    async disposeResource(resource: Resource): Promise<void> {
+        const resId = resource.resource;
+        await this.close(resId);
     }
 
     addPreopenedDir(path: string, handle: Handle) {

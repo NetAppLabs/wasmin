@@ -1,10 +1,10 @@
-import { Mount } from "./interfaces/component-nfs-rs-nfs";
+import { NfsMount } from "./interfaces/component-nfs-rs-nfs";
 import { Stat } from "@wasmin/fs-js";
 export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
 }
 export declare class NfsHandle implements FileSystemHandle {
-    protected _mount: Mount;
+    protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
     protected _fullName: string;
@@ -18,7 +18,7 @@ export declare class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: Mount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string);
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string);
     isSameEntry(other: FileSystemHandle): Promise<boolean>;
     queryPermission(perm?: NfsHandlePermissionDescriptor): Promise<PermissionState>;
     requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState>;
@@ -76,7 +76,7 @@ export declare class NfsFile implements File {
     webkitRelativePath: string;
     size: number;
     type: string;
-    constructor(mount: Mount, fh: Uint8Array, name: string);
+    constructor(mount: NfsMount, fh: Uint8Array, name: string);
     private uint8Array;
     arrayBuffer(): Promise<ArrayBuffer>;
     slice(start?: number | undefined, end?: number | undefined, contentType?: string | undefined): Blob;
@@ -90,7 +90,7 @@ export declare class NfsBlob implements Blob {
     private _data;
     size: number;
     type: string;
-    constructor(mount: Mount, fh: Uint8Array, data: Uint8Array, contentType?: string | undefined);
+    constructor(mount: NfsMount, fh: Uint8Array, data: Uint8Array, contentType?: string | undefined);
     arrayBuffer(): Promise<ArrayBuffer>;
     slice(start?: number | undefined, end?: number | undefined, contentType?: string | undefined): Blob;
     stream(): ReadableStream<Uint8Array>;
@@ -109,7 +109,7 @@ export declare class NfsSink implements FileSystemWritableFileStream {
     private _orgSize;
     private _newSize;
     private _position;
-    constructor(mount: Mount, fhDir: Uint8Array, fh: Uint8Array, fullName: string, options?: FileSystemCreateWritableOptions);
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fullName: string, options?: FileSystemCreateWritableOptions);
     get locked(): boolean;
     private copyContents;
     private ensureExistingIfToBeKept;

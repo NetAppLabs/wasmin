@@ -4,7 +4,7 @@ import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
 import { ImageAddon, IImageAddonOptions } from 'xterm-addon-image';
 import { FitAddon } from "xterm-addon-fit";
 import { WebglAddon } from "xterm-addon-webgl";
-import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYImplementation, TTYSize } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize } from "@wasmin/wasi-js";
 import { s3 } from "@wasmin/s3-fs-js";
 import { github } from "@wasmin/github-fs-js";
 //import { nfs } from "@wasmin/nfs-js";
@@ -358,7 +358,7 @@ if (REGISTER_GITHUB) {
     const cols = term.cols;
     const rows = term.rows;
     const rawMode = false;
-    const tty = new TTYImplementation(cols, rows, rawMode, modeListener);
+    const tty = new TTYInstance(cols, rows, rawMode, modeListener);
     onresize = async () => {
         console.log("onresize before fit");
         fitAddon.fit();

@@ -12,6 +12,22 @@
     "./*.js": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
+    },
+    "./sync": {
+      "types": "./dist/sync/index.d.ts",
+      "default": "./dist/sync/index.js"
+    },
+    "./sync/*.js": {
+      "types": "./dist/sync/*.d.ts",
+      "default": "./dist/sync/*.js"
+    },
+    "./async": {
+      "types": "./dist/async/index.d.ts",
+      "default": "./dist/async/index.js"
+    },
+    "./async/*.js": {
+      "types": "./dist/async/*.d.ts",
+      "default": "./dist/async/*.js"
     }
   },
   "main": "./dist/index.js",

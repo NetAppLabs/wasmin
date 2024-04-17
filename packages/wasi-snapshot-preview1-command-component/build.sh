@@ -10,7 +10,7 @@ wasm-tools component wit component.wasm
 
 jco transpile component.wasm -o component -I --no-wasi-shim
 
-
+# bug in jco to add TerminalInput etc
 sed -i .bak "s/let exports0;/let exports0;\nconst \{ Network \} = imports\[\"wasi:sockets\/instance-network\"\];\nconst \{ TerminalInput \} = imports\[\"wasi:cli\/terminal-stdin\"\];\nconst \{ TerminalOutput \} = imports\[\"wasi:cli\/terminal-stdout\"\];/g" component/component.js
 rm component/component.js.bak
 

@@ -429,7 +429,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         result_ptr: mutptr<Size>
     ): Promise<Errno> {
         wasiFdDebug("[fd_pwrite]", fd, iovs_ptr, iovs_len, result_ptr);
-        const newFd = await this.openFiles.openWriter(fd, offset);
+        const newFd = this.openFiles.openWriter(fd, offset);
         const out = this.openFiles.getAsWritable(newFd);
         try {
             await forEachIoVec(

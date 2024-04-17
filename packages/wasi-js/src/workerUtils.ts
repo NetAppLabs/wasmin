@@ -1,15 +1,20 @@
 import * as comlink from "comlink";
 import { isNode } from "./wasiUtils.js";
 
-declare let globalThis: any;
+declare global {
+    var WASI_WORKER_DEBUG: boolean;
+    var WASI_WORKER_SERIALIZE_DEBUG: boolean;
+    var WASM_WORKER_THREAD_DEBUG: boolean;
+    var WASM_WORKER_CLIENT_DEBUG: boolean;
+    var WASMIN_WORKER_OVERRIDE_URLS: any;
+}
 globalThis.WASI_WORKER_DEBUG = false;
-
 globalThis.WASI_WORKER_SERIALIZE_DEBUG = false;
 globalThis.WASM_WORKER_THREAD_DEBUG = false;
-globalThis.WASM_HANDLER_DEBUG = false;
+globalThis.WASM_WORKER_CLIENT_DEBUG = false;
 
-export function wasmHandlerDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASM_HANDLER_DEBUG) {
+export function wasmWorkerClientDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.WASM_WORKER_CLIENT_DEBUG) {
         if (isNode()) {
             workerDebugNode(msg, ...optionalParams);
         } else {
@@ -63,15 +68,15 @@ export function getWorkerUrl(workerUrlString: string): URL{
     const workerOverrideUrls = getWorkerOverrideUrls();
     const overrideUrl = workerOverrideUrls[workerUrlString];
     if (overrideUrl !== undefined) {
-        wasmHandlerDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);
+        wasmWorkerClientDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);
         workerUrl = new URL(overrideUrl);
     }
-    wasmHandlerDebug(`getWorkerUrl workerUrlString: ${workerUrlString} url:`, workerUrl);
+    wasmWorkerClientDebug(`getWorkerUrl workerUrlString: ${workerUrlString} url:`, workerUrl);
     return workerUrl;
 }
 
 export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlString: string) {
-    wasmHandlerDebug(`setWorkerOverrideUrl set overrided url ${workerOverrideUrlString} for ${workerUrlString}`);
+    wasmWorkerClientDebug(`setWorkerOverrideUrl set overrided url ${workerOverrideUrlString} for ${workerUrlString}`);
     const workerOverrideUrls = getWorkerOverrideUrls();
     workerOverrideUrls[workerUrlString] = workerOverrideUrlString;
 }

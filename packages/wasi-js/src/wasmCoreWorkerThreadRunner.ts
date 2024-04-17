@@ -4,12 +4,20 @@ import {
     ImportExportReference,
     ImportReference,
     StoreReceivedMemoryFunc,
+    WasmRunMode,
 } from "./desyncify.js";
 import { Channel, readMessage, uuidv4, writeMessage } from "./vendored/sync-message/index.js";
 import { copyBuffer, sleep } from "./wasiUtils.js";
 import { initializeComlinkHandlers, isFunction, wasmWorkerThreadDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
 
+
+/**
+ * 
+ * Implementation of the Worker when a core WebAssembly.Instance
+ * is running within this Worker
+ * 
+ */
 export class WasmCoreWorkerThreadRunner {
     constructor() {
         wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner creating");
@@ -37,15 +45,27 @@ export class WasmCoreWorkerThreadRunner {
         return this._wasmInstances;
     }
 
+    /**
+     * 
+     * Instantiates the WebAssembly.Instance on this Worker 
+     * with wrapped imports for communicating imports with client through handleImportFunc
+     * 
+     * @param modSource BufferSource for WebAssembly.Module
+     * @param knownImports 
+     * @param channel 
+     * @param handleImportFunc 
+     * @param moduleInstanceId 
+     * @returns 
+     */
     public async instantiate(
         modSource: BufferSource,
         knownImports: Record<string, Record<string, ImportReference>>,
         channel: Channel,
         handleImportFunc: HandleWasmImportFunc,
         moduleInstanceId?: string
-    ): Promise<void> {
+    ): Promise<WasmRunMode> {
         wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner instantiate");
-
+        let runMode: WasmRunMode = "worker-core-memory-copy";
         const storeReceivedMemoryFuncLocal = (buf: ArrayBufferLike) => {
             wasmWorkerThreadDebug("WasmCoreWorkerThreadRunner calling storeReceivedMemoryFuncLocal");
             if (this && this.exportsMemory) {
@@ -128,7 +148,11 @@ export class WasmCoreWorkerThreadRunner {
             instantiatedSource.instance.exports.memory instanceof WebAssembly.Memory
         ) {
             this._exportsMemory = instantiatedSource.instance.exports.memory;
+            if (this._exportsMemory.buffer instanceof SharedArrayBuffer) {
+                runMode = "worker-core-memory-shared";
+            }
         }
+        return runMode;
     }
 
     public cleanup(): void {

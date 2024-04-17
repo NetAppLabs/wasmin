@@ -4,9 +4,14 @@ import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 import { initializeComlinkHandlers, wasmWorkerThreadDebug } from "./workerUtils.js";
 import * as comlink from "comlink";
-//import { default as process } from "node:process";
-//import { default as events } from "node:events";
 
+
+/**
+ * 
+ * Implementation of the Worker when a WebAssembly component
+ * is running within this Worker
+ * 
+ */
 export class WasmComponentWorkerThreadRunner {
     commandRunner?: CommandRunner;
     handleComponentImportFunc?: any;

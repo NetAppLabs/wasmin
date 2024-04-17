@@ -7,6 +7,7 @@ import {
     HandleCallType,
     HandleWasmComponentImportFunc,
     HandleWasmImportFunc,
+    WasmRunMode,
     instantiateOnWasmWorker,
     instantiateWithAsyncDetection,
 } from "./desyncify.js";
@@ -17,14 +18,12 @@ import { TTY, TTYSize } from "./tty.js";
 import { initializeWasiExperimentalConsoleToImports } from "./wasi-experimental-console.js";
 import { initializeWasiExperimentalFilesystemsToImports } from "./wasi-experimental-filesystems.js";
 import { initializeWasiExperimentalProcessToImports } from "./wasi-experimental-process.js";
-import { OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
+import { OpenFiles, Readable, ReadableAsyncOrSync, Writable, WritableAsyncOrSync } from "./wasiFileSystem.js";
 import { initializeWasiSnapshotPreview1AsyncToImports } from "./wasi_snapshot_preview1/host.js";
 import {
     CStringArray,
-    In,
     isExitStatus,
     lineOut,
-    Out,
     sleep,
     wasiCallDebug,
     wasiDebug,
@@ -39,13 +38,17 @@ import {
 } from "./wasi_snapshot_preview2/async/index.js";
 import { getSymbolForString, isSymbol, isSymbolStringIdentifier, wasiWorkerDebug } from "./workerUtils.js";
 import { Resource, containsResourceObjects, createProxyForResources, getResourceIdentifier, getResourceObjectForResourceProxy, getResourceSerializableForProxyObjects, storeResourceObjects } from "./wasiResources.js";
-//import { WasiExperimentalSocketsPreview2Wrapper } from "./wasi_snapshot_preview2/async/wasi-experimental-sockets-wrapper.js";
 
+
+/**
+ * Interface for constructing Environment for
+ * a WASI instance
+ */
 export interface WasiOptions {
     openFiles?: OpenFiles;
-    stdin?: In;
-    stdout?: Out;
-    stderr?: Out;
+    stdin?: ReadableAsyncOrSync;
+    stdout?: WritableAsyncOrSync;
+    stderr?: WritableAsyncOrSync;
     args?: string[];
     env?: Record<string, string>;
     abortSignal?: AbortSignal;
@@ -54,6 +57,11 @@ export interface WasiOptions {
     componentMode?: boolean,
 }
 
+/**
+ * Converts a WasiOptions into a WasiEnv
+ * if wasiOptions is instanceof WasiEnv it returns it
+ * otherwise a copy is created.
+ */
 export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
     if (wasiOptions instanceof WasiEnv) {
         const wasiEnv = wasiOptions as WasiEnv;
@@ -67,18 +75,24 @@ export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
             wasiOptions.args,
             wasiOptions.env,
             wasiOptions.abortSignal,
-            wasiOptions.tty
+            wasiOptions.tty,
+            wasiOptions.name,
+            wasiOptions.componentMode
         );
         return wasiEnv;
     }
 }
 
+
+/**
+ * WasiEnv holds the environment for a WASI instance
+ */
 export class WasiEnv implements WasiOptions {
     constructor(
         openFiles?: OpenFiles,
-        stdin?: In,
-        stdout?: Out,
-        stderr?: Out,
+        stdin?: ReadableAsyncOrSync,
+        stdout?: WritableAsyncOrSync,
+        stderr?: WritableAsyncOrSync,
         args?: string[],
         env?: Record<string, string>,
         abortSignal?: AbortSignal,
@@ -151,9 +165,9 @@ export class WasiEnv implements WasiOptions {
     private _cargs: CStringArray;
     private _cenv: CStringArray;
     private _openFiles: OpenFiles;
-    private _stdin: In;
-    private _stdout: Out;
-    private _stderr: Out;
+    private _stdin: ReadableAsyncOrSync;
+    private _stdout: WritableAsyncOrSync;
+    private _stderr: WritableAsyncOrSync;
     private _abortSignal?: AbortSignal;
     private _suspendStdIn = false;
     private _tty?: TTY;
@@ -177,19 +191,19 @@ export class WasiEnv implements WasiOptions {
     get stdin() {
         return this._stdin;
     }
-    set stdin(sin: In) {
+    set stdin(sin: ReadableAsyncOrSync) {
         this._stdin = sin;
     }
     get stdout() {
         return this._stdout;
     }
-    set stdout(sout: Out) {
+    set stdout(sout: WritableAsyncOrSync) {
         this._stdout = sout;
     }
     get stderr() {
         return this._stderr;
     }
-    set stderr(serr: Out) {
+    set stderr(serr: WritableAsyncOrSync) {
         this._stderr = serr;
     }
     get abortSignal() {
@@ -213,6 +227,11 @@ export class WasiEnv implements WasiOptions {
 
 }
 
+/**
+ * 
+ * Main interface for instanciating a WASI instance in the current thread.
+ * For instanciating WASI in its own Worker see WASIWorker
+ */
 export class WASI {
     constructor(wasiOptions: WasiOptions) {
         const wasiEnv = new WasiEnv(
@@ -229,19 +248,22 @@ export class WASI {
         );
         this._wasiEnv = wasiEnv;
     }
-    //public component = false;
     public singleWasmWorker = true;
+    // Environment vor this WASI instance
     private _wasiEnv: WasiEnv;
 
+    // Only used in Core mode
     private _coreModuleInstance?: WebAssembly.Instance;
     private _coreModuleMemory?: WebAssembly.Memory;
     private _coreModuleImports?: WebAssembly.Imports;
 
+    // Only used in Component mode
     private _componentImportObject?: {};
     private _resources?: {};
-    private _componentInstance?: {};
 
+    // Channel for communication with WasmWorker if used
     private _channel?: Channel;
+    // Worker for optionally running WebAssembly.Instance
     private _worker?: WasmWorker;
 
     public get componentImportObject(): {} {
@@ -276,7 +298,6 @@ export class WASI {
         this._wasiEnv.componentMode = componentMode;
     }
 
-
     get componentMode() {
         return this._wasiEnv.componentMode;
     }
@@ -296,11 +317,6 @@ export class WASI {
                 };
                 return sock;
             };
-            /*const componentImportObjectAny = this.componentImportObject as any;
-            componentImportObjectAny[wasiExperimentalSocketsNamespace] = new WasiExperimentalSocketsPreview2Wrapper(
-                filesystem,
-                sockets
-            );*/
         }
 
         const importNames: string[] = [];
@@ -315,15 +331,14 @@ export class WASI {
         imports: WebAssembly.Imports
     ): Promise<any> {
         if (this.componentMode) {
-            return await this.instantiateComponent(wasmModOrBufSource, imports);
+            return await this.instantiateComponent(wasmModOrBufSource);
         } else {
             return await this.instantiateCore(wasmModOrBufSource, imports);
         }
     }
     // Instantiation for a WebAssembly Component Model Component
     public async instantiateComponent(
-        wasmModOrBufSource: WebAssembly.Module | BufferSource,
-        componentImportObject2: any
+        wasmModOrBufSource: WebAssembly.Module | BufferSource
     ): Promise<WebAssembly.Instance | any> {
         const importNames: string[] = [];
         for (const [importName, _importValue] of Object.entries(this.componentImportObject)) {
@@ -388,37 +403,6 @@ export class WASI {
                 throw new Error("Channel not available");
             }
         }
-
-        /*
-        let instRes: {
-            instance: WebAssembly.Instance;
-            isAsyncified: boolean;
-            channel?: Channel;
-            worker?: WasmWorker;
-            moduleInstanceId?: string;
-        };
-        if (withAsyncDetection) {
-            instRes = await instantiateWithAsyncDetection(wasmModOrBufSource, imports, handleImportFunc);
-        } else {
-            let sourceBuffer: BufferSource | null = null;
-            if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
-                sourceBuffer = wasmModOrBufSource as BufferSource;
-            }
-            instRes = await instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc, this._worker);
-        }
-        wasiDebug("[run] got instRes: ", instRes);
-        if (!this._coreModuleImports && imports) {
-            this._coreModuleImports = imports;
-        }
-        this._coreModuleInstance = instRes.instance;
-        this._channel = instRes.channel;
-        if (this.singleWasmWorker) {
-            this._worker = instRes.worker;
-        }
-        wasiDebug("[run] setting channel: ", this._channel);
-
-        return this._coreModuleInstance;
-        */
         return null;
     }
 
@@ -454,7 +438,7 @@ export class WASI {
             }
             let instRes: {
                 instance: WebAssembly.Instance;
-                isAsyncified: boolean;
+                runMode: WasmRunMode
                 channel?: Channel;
                 worker?: WasmWorker;
                 moduleInstanceId?: string;
@@ -469,6 +453,7 @@ export class WASI {
                 instRes = await instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc, this._worker);
             }
             wasiDebug("[run] got instRes: ", instRes);
+            wasiCallDebug(` Running wasm in mode: ${instRes.runMode} `);
             if (!this._coreModuleImports && imports) {
                 this._coreModuleImports = imports;
             }
@@ -504,7 +489,10 @@ export class WASI {
     public async runComponent(wasmModOrBufSource: WebAssembly.Module | BufferSource): Promise<number> {
         const importNames = await this.initializeComponentImports();
 
-        await this.instantiateComponent(wasmModOrBufSource, this.componentImportObject);
+        await this.instantiateComponent(wasmModOrBufSource);
+        let runMode: WasmRunMode = "worker-component";
+        wasiCallDebug(` Running wasm in mode: ${runMode} `);
+
         if (this._worker) {
             try {
                 if (this._worker && this._worker.componentRunner) {
@@ -877,3 +865,4 @@ export class WASI {
         this._worker = undefined;
     }
 }
+
