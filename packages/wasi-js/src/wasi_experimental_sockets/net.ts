@@ -1,6 +1,6 @@
 import { SystemError } from "../errors.js";
 import { Peekable, Socket } from "../wasiFileSystem.js";
-import { isNode, isNodeorBunorDeno } from "../wasiUtils.js";
+import { isNode, isNodeorBunorDeno, sleep } from "../wasiUtils.js";
 
 import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN } from "./bindings.js";
 import {
@@ -16,24 +16,19 @@ import {
 } from "./common.js";
 import { NodeNetTcpServer, NodeNetTcpSocket, AddressFamily } from "./common.js";
 
-export const USE_ACCEPTED_SOCKET_PROMISE = true;
-export const USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 100;
+export const USE_ACCEPTED_SOCKET_PROMISE = false;
+export const USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 1;
 export type AcceptedSocketPromiseType = ReturnType<typeof deferredPromise<NetTcpSocket|undefined>>;
 
-export const deferredPromise = <T>() => {
-    let resolve!: (value: T | PromiseLike<T>) => void;
-    let reject!: (reason?: any) => void;
+function deferredPromise<T>() {
+    let resolve: (value: T) => void = () => {};
+    let reject: (error?: string) => void = () => {};
     const promise = new Promise<T>((res, rej) => {
-      resolve = res;
-      reject = rej;
+        resolve = res
+        reject = rej
     });
-  
-    return {
-      resolve,
-      reject,
-      promise,
-    };
-  };  
+    return {promise, resolve, reject};
+}
 
 export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     type: SocketType;
@@ -120,10 +115,10 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     rejectAllAcceptPromises(): void {
         if (USE_ACCEPTED_SOCKET_PROMISE) {
             let acceptPromise = this._acceptedSocketPromises.shift();
-            while (acceptPromise) {
+            while (acceptPromise !== undefined) {
                 try {
                     wasiSocketsDebug("close acceptPromise rejecting");
-                    acceptPromise.reject();
+                    acceptPromise.reject("rejectAllAcceptPromises");
                     wasiSocketsDebug("close acceptPromise rejected");
                 } catch(err: any) {
                     wasiSocketsDebug("close acceptPromise err:", err);
@@ -133,17 +128,31 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         }
     }
 
-    async getAccptedSocketByPromise(): Promise<NetTcpSocket> {
-        let acceptedSocket: NetTcpSocket;
+    async getAcceptedSocketByPromise(): Promise<NetTcpSocket> {
+        let acceptedSocket = this._acceptedSockets.shift();
+        if (acceptedSocket !== undefined) {
+            return acceptedSocket;
+        }
         const acceptedPromise = deferredPromise<NetTcpSocket|undefined>();
         this.addAcceptedPromise(acceptedPromise);
         const { promise } = acceptedPromise;
         wasiSocketsDebug("tcp server timeoutPromise starting: ");
         wasiSocketsDebug(`tcp server timeoutPromises.length: ${this._acceptedSocketPromises.length}`);
-        const timeoutPromise = Promise.race([promise, new Promise((res, rej) => setTimeout(rej, USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT))]);
+        let timeoutPromise = new Promise(function(resolve, reject) {
+            let rejWithReason = () => {
+                reject("fromTimeout");
+            }
+            setTimeout(rejWithReason, USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT);
+        });
+        const timeoutPromiseRace = Promise.race([promise, timeoutPromise]);
         try {
-            const gotAcceptedSocket = await timeoutPromise;
-            if (gotAcceptedSocket) {
+            const gotAcceptedSocket = await timeoutPromiseRace.catch(
+                (reason: any) => {
+                    wasiSocketsDebug("promise rejected because", reason);
+                }
+            );
+            if (gotAcceptedSocket !== undefined) {
+                wasiSocketsDebug("getAccptedSocketByPromise got acceptedPromise");
                 acceptedSocket = gotAcceptedSocket as NetTcpSocket;
                 wasiSocketsDebug("tcp server timeoutPromise returning acceptedSocket");
                 return acceptedSocket;
@@ -157,13 +166,34 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         throw new Error("getAccptedSocketByPromise time out");
     }
 
+    notifyAcceptedSocket(acceptedSock: NetTcpSocket) {
+        if (USE_ACCEPTED_SOCKET_PROMISE) {
+            const acceptPromise = this.getAcceptedPromise();
+            if (acceptPromise !== undefined) {
+                wasiSocketsDebug("notifyAcceptedSocket() acceptPromise.resolve");
+                acceptPromise.resolve(acceptedSock);
+            } else {
+                wasiSocketsDebug("notifyAcceptedSocket() this._acceptedSockets.push");
+                this._acceptedSockets.push(acceptedSock);
+                wasiSocketsDebug("notifyAcceptedSocket rejectAllAcceptPromises()");
+                this.rejectAllAcceptPromises();
+            }
+        } else {
+            wasiSocketsDebug("notifyAcceptedSocket() else this._acceptedSockets.push");
+            this._acceptedSockets.push(acceptedSock);
+        }
+
+    }
+
     async hasConnectedClient(): Promise<boolean> {
         let hasConnectedClient = false;
         if (this.isListening()) {
             if (USE_ACCEPTED_SOCKET_PROMISE) {
                 try {
-                    const acceptedSock = await this.getAccptedSocketByPromise();
-                    this._acceptedSockets.push(acceptedSock);
+                    wasiSocketsDebug("hasConnectedClient() before getAccptedSocketByPromise()");
+                    const acceptedSock = await this.getAcceptedSocketByPromise();
+                    wasiSocketsDebug("hasConnectedClient() notifyAcceptedSocket()");
+                    this.notifyAcceptedSocket(acceptedSock);
                     hasConnectedClient = true;
                 } catch (err: any) {
                     wasiSocketsDebug("hasConnectedClient err: ", err);
@@ -247,6 +277,16 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         }
         wasiSocketsDebug("tcp socket:address: returning addr:", addr);
         if (addr.address && addr.family && addr.port) {
+            // normalize on deno as family is 4/6 on deno
+            let addrAny = addr as any;
+            let addrFamily = addrAny.family;
+            if (addrFamily == "4") {
+                addr.family = "IPv4";
+                wasiSocketsDebug("tcp socket:address: normalizing setting famly as IPv4");
+            } else if (addrFamily == "6") {
+                addr.family = "IPv6";
+                wasiSocketsDebug("tcp socket:address: normalizing setting famly as IPv6");
+            }
             return addr;
         } else {
             wasiSocketsDebug("tcp socket:address: unexpected malformed address");
@@ -290,7 +330,8 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         try {
             //wasiSocketsDebug("close:, ", this._nodeSocket);
             if (!this._closed) {
-                //this.rejectAllAcceptPromises();
+                wasiSocketsDebug("close() rejectAllAcceptPromises()");
+                this.rejectAllAcceptPromises();
                 this._nodeSocket.end();
                 this._closed = true;
             }
@@ -360,16 +401,9 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
                     newSocket._isServerConnection = true;
                     newSocket.setupListeners();
                     
-                    if (USE_ACCEPTED_SOCKET_PROMISE) {
-                        const acceptPromise = this.getAcceptedPromise();
-                        if (acceptPromise) {
-                            acceptPromise.resolve(newSocket);
-                        } else {
-                            superThis._acceptedSockets.push(newSocket);
-                        }
-                    } else {
-                        superThis._acceptedSockets.push(newSocket);
-                    }
+                    wasiSocketsDebug("server.on(connection) superThis.notifyAcceptedSocket()");
+                    superThis.notifyAcceptedSocket(newSocket);
+
                     newSocket._connected = true;
                     newSocket._ready = true;
                 });
@@ -398,7 +432,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         socket.on("data", (buf: Buffer) => {
             wasiSocketsDebug("tcp socket on data");
             if (this._parentSocket) {
-                wasiSocketsDebug("tcp socket on data rejectAllAcceptPromises");
+                wasiSocketsDebug("tcp socket.on(data) this._parentSocket.rejectAllAcceptPromises()");
                 this._parentSocket.rejectAllAcceptPromises();
             }
             if (buf) {
@@ -408,7 +442,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         socket.on("close", () => {
             superThis._closed = true;
             if (this._parentSocket) {
-                wasiSocketsDebug("tcp socket on close rejectAllAcceptPromises");
+                wasiSocketsDebug("tcp socket.on(close) this._parentSocket.rejectAllAcceptPromises()");
                 this._parentSocket.rejectAllAcceptPromises();
             }
             wasiSocketsDebug("tcp socket on close");
@@ -447,7 +481,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
             wasiSocketsDebug("tcp socket on end");
             wasiSocketsDebug("tcp socket : disconnected from peer");
             if (this._parentSocket) {
-                wasiSocketsDebug("tcp socket on end rejectAllAcceptPromises");
+                wasiSocketsDebug("tcp socket.on(end) this._parentSocket.rejectAllAcceptPromises()");
                 this._parentSocket.rejectAllAcceptPromises();
             }
             superThis._connected = false;
@@ -458,8 +492,21 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
         });
     }
     
-
     async getAcceptedSocket(): Promise<NetTcpSocket> {
+        wasiSocketsDebug("getAcceptedSocket()");
+        if (USE_ACCEPTED_SOCKET_PROMISE) {
+            try {
+                return await this.getAcceptedSocketByPromise();
+            } catch (err: any) {
+                throw new SystemError(ErrnoN.AGAIN, true);
+            }
+        } else {
+            return await this.getAcceptedSocketPlain();
+        }
+    }
+
+    async getAcceptedSocketPlain(): Promise<NetTcpSocket> {
+        wasiSocketsDebug("getAcceptedSocketPlain()");
         let acceptedSocket = this._acceptedSockets.shift();
         if (!acceptedSocket) {
             wasiSocketsDebug("tcp server accept throwing err: ErrnoN.AGAIN");

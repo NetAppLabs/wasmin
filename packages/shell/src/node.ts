@@ -513,8 +513,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         env["LC_CTYPE"] = "UTF-8";
         env["COMMAND_MODE"] = "unix2003";
         env["FORCE_COLOR"] = "true";
-        env["PROMPT_INDICATOR"] = "true";
-        env["FORCE_COLOR"] = " > ";
+        env["PROMPT_INDICATOR"] = " wasmin> ";
+        env["FORCE_COLOR"] = "true";
         //env["FORCE_HYPERLINK"] = "true";
         env["USER"] = "none";
         env["HOME"] = "/";

@@ -245,9 +245,13 @@ export function getProxyFunctionToCall(
         }
         wasmWorkerClientDebug("lastTypedArray post transfer: ", lastTypedArray);
         if (ret.error) {
-            wasmWorkerClientDebug("ret.error: ", ret.error);
-            wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, ret.err);
-            throw ret.error;
+            let retError = ret.error;
+            wasmWorkerClientDebug("ret.error: ", retError);
+            wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] error: `, retError);
+            if (containsResourceObjects(retError)) {
+                retError = createProxyForResources(retError, importName, channel, handleComponentImportFunc);
+            }
+            throw retError;
         }
         let retObj = ret.return;
         wasiCallDebug(`[wasi] [component] [${importName}] [${functionName}] return: `, retObj);

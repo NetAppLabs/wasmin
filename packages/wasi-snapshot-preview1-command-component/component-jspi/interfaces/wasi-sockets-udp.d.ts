@@ -20,10 +20,6 @@ export interface OutgoingDatagram {
   remoteAddress?: IpSocketAddress,
 }
 
-export class IncomingDatagramStream {
-  receive(maxResults: bigint): Promise<IncomingDatagram[]>;
-}
-
 export class OutgoingDatagramStream {
   checkSend(): Promise<bigint>;
   send(datagrams: OutgoingDatagram[]): Promise<bigint>;
@@ -37,4 +33,8 @@ export class UdpSocket {
   localAddress(): Promise<IpSocketAddress>;
   remoteAddress(): Promise<IpSocketAddress>;
   subscribe(): Promise<Pollable>;
+}
+
+export class IncomingDatagramStream {
+  receive(maxResults: bigint): Promise<IncomingDatagram[]>;
 }

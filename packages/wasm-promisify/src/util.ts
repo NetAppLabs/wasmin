@@ -1,7 +1,5 @@
 import { PromisifiedExports, initializeWebAssemblyFunction } from "./index.js";
 
-const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
-
 // TODO: look into inconsistency in funcref <-> anyfunc
 //type WasmRefType = "funcref" | "externref";
 type WasmRefType = "externref";
@@ -64,8 +62,50 @@ export function jspiDebug(message?: any, ...optionalParams: any[]) {
   }
 }
 
+export function isNodeorBunorDeno() {
+  if (isDeno()) {
+      return true;
+  } else {
+      return isNodeorBun();
+  }
+}
+
+export function isNodeorBun() {
+  return globalThis.process != null;
+}
+
+export function isNode() {
+  // only node.js or bun has global process class
+  if (!isBun()) {
+      return globalThis.process != null;
+  } else {
+      return false;
+  }
+}
+
+export function isBun() {
+  // only bun has global Bun
+  try {
+      // @ts-ignore
+      return globalThis.Bun != null;
+  } catch (e) {
+      return false;
+  }
+}
+
+export function isDeno() {
+  // only deno has global Deno
+  try {
+      // @ts-ignore
+      return globalThis.Deno != null;
+  } catch (e) {
+      return false;
+  }
+}
+
+
 export async function writeFile(path: string, buf: Uint8Array) {
-  if (isNode) {
+  if (isNode()) {
     let _fs = await import("fs/promises");
     return await _fs.writeFile(path, buf);
   }
@@ -344,6 +384,24 @@ export function promisifyImportFunction<T extends (...args: any[]) => any>(
   }
 }
 
+export function getWebAssemblyFunctionTypeForFunction(func: Function) {
+  const WebAssemblyFunction = initializeWebAssemblyFunction()
+  if (isNode()) {
+    const wffunc = WebAssemblyFunction.type(func);
+    return wffunc;
+  } else if (isDeno()) {
+    let anyFunc = func as any;
+    jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFunc: ", anyFunc);
+    let anyFuncType = anyFunc.type()
+    jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFuncType: ", anyFuncType);
+    return anyFuncType as WebAssemblyFunction;
+  } else {
+    const wffunc = WebAssemblyFunction.type(func);
+    return wffunc;
+  }
+}
+
+
 export function promisifyExportFunction<T extends Function = any>(
   functionName: string,
   func: Function
@@ -352,8 +410,11 @@ export function promisifyExportFunction<T extends Function = any>(
   if (typeof func !== 'function') {
       throw new TypeError('Only supported for Function')
   } else {
-      const wfparams = WebAssemblyFunction.type(func).parameters;
-      const wfresults = WebAssemblyFunction.type(func).results;
+      let wffunc = getWebAssemblyFunctionTypeForFunction(func);
+      // @ts-ignore
+      const wfparams = wffunc.parameters;
+      // @ts-ignore
+      const wfresults = wffunc.results;
       let firstParam = wfparams.at(0);
       let newParams = firstParam;
       let newResults = wfresults;
@@ -362,6 +423,7 @@ export function promisifyExportFunction<T extends Function = any>(
           jspiDebug(`promisifyExportFunction promisifying async function ${functionName}`, func);
 
           // cut off the externref if firstParam is externref
+          // @ts-ignore
           newParams = [...wfparams.slice(1)];
           // and rewrite the results to have only one 'externref'
           newResults = ['externref'];

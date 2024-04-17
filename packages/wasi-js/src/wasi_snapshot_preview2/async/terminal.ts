@@ -30,7 +30,7 @@ export class TerminalInputInstance implements TerminalInput, Resource {
         return this._wasiEnv.openFiles;
     }
     async [Symbol.asyncDispose](): Promise<void> {
-        return;
+        await this.openFiles.disposeResource(this);
     }
     fd: number;
     resource: number;
@@ -49,7 +49,7 @@ export class TerminalOutputInstance implements TerminalOutput, Resource {
         return this._wasiEnv.openFiles;
     }
     async [Symbol.asyncDispose](): Promise<void> {
-        return;
+        await this.openFiles.disposeResource(this);
     }
     fd: number;
     resource: number;

@@ -1208,6 +1208,20 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   let realloc0;
+  let realloc_real0;
+  realloc0= async function(...args) {
+    var ret = undefined;
+    while (ret === undefined) {
+      try {
+        var ret = await realloc_real0(...args);
+        return ret;
+      } catch(err) {
+        let timeout = new Promise((resolve) => setTimeout(resolve, 10));
+        console.log('realloc_real0err: ', err);
+        await timeout;
+      }
+    }
+  }
   
   async function trampoline34(arg0, arg1) {
     var handle1 = arg0;
@@ -7354,7 +7368,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant4.val;
             dataView(memory0).setInt8(arg2 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle3 = handleCnt0++;
@@ -7409,7 +7423,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant4.val;
             dataView(memory0).setInt8(arg2 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle3 = handleCnt0++;
@@ -7458,7 +7472,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant3.val;
             dataView(memory0).setInt8(arg1 + 8, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle2 = handleCnt0++;
@@ -7509,7 +7523,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant4.val;
             dataView(memory0).setInt8(arg3 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle3 = handleCnt0++;
@@ -7560,7 +7574,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant4.val;
             dataView(memory0).setInt8(arg3 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle3 = handleCnt0++;
@@ -7608,7 +7622,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
           case 'last-operation-failed': {
             const e = variant3.val;
             dataView(memory0).setInt8(arg1 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
+            if (!(true)) {
               throw new Error('Resource error: Not a valid "Error" resource.');
             }
             var handle2 = handleCnt0++;
@@ -10093,7 +10107,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     },
   }));
   memory0 = exports1.memory;
-  realloc0 = exports2.cabi_import_realloc;
+  realloc_real0 = exports2.cabi_import_realloc;
   ({ exports: exports3 } = await instantiateCore(await module3, {
     '': {
       $imports: exports0.$imports,

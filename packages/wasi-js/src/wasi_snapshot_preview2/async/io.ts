@@ -151,7 +151,7 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
         } catch (err: any) {
             wasiPreview2Debug("io.read(): err: ", err);
             if(isIoSocketsError(err)){
-                console.log("throwing StreamErrorClosed");
+                wasiPreview2Debug("throwing StreamErrorClosed");
                 let err: StreamErrorClosed = {
                     tag: "closed"
                 }
@@ -162,7 +162,7 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
             } else {
                 wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
                 const fsOrSocketsErr = translateToFsOrSocketsError(err);
-                console.log("throwing StreamErrorLastOperationFailed");
+                wasiPreview2Debug("throwing StreamErrorLastOperationFailed");
 
                 let errResource = new IOErrorResource(this._wasiEnv, fsOrSocketsErr);
                 let throwErr: StreamErrorLastOperationFailed = {
@@ -259,7 +259,15 @@ export class OutStream implements OutputStream, Resource {
             const written = contents.length;
             return;
         } catch (err: any) {
-            wasiPreview2Debug("[io/streams] write err: ",err);
+            wasiPreview2Debug(`[io/streams] write ${this.fd} catching err:`, err);
+            const fsOrSocketsErr = translateToFsOrSocketsError(err);
+            wasiPreview2Debug("throwing StreamErrorLastOperationFailed");
+            let errResource = new IOErrorResource(this._wasiEnv, fsOrSocketsErr);
+            let throwErr: StreamErrorLastOperationFailed = {
+                tag: "last-operation-failed",
+                val: errResource,
+            }
+            throw throwErr;
         }
     }
     async blockingWriteAndFlush(contents: Uint8Array): Promise<void> {
@@ -267,13 +275,33 @@ export class OutStream implements OutputStream, Resource {
             await this.write(contents);
             return await this.flush();
         } catch (err: any) {
-            wasiPreview2Debug("[io/streams] blockingWriteAndFlush err: ",err);
+            wasiPreview2Debug(`[io/streams] blockingWriteAndFlush ${this.fd} catching err:`, err);
+            const fsOrSocketsErr = translateToFsOrSocketsError(err);
+            wasiPreview2Debug("throwing StreamErrorLastOperationFailed");
+            let errResource = new IOErrorResource(this._wasiEnv, fsOrSocketsErr);
+            let throwErr: StreamErrorLastOperationFailed = {
+                tag: "last-operation-failed",
+                val: errResource,
+            }
+            throw throwErr;
         }
     }
     async flush(): Promise<void> {
-        if (this.openFiles.isFile(this.fd)) {
-            const fil = this.openFiles.getAsFile(this.fd);
-            await fil.flush();  
+        try {
+            if (this.openFiles.isFile(this.fd)) {
+                const fil = this.openFiles.getAsFile(this.fd);
+                await fil.flush();  
+            }
+        } catch (err: any) {
+            wasiPreview2Debug(`[io/streams] flush ${this.fd} catching err:`, err);
+            const fsOrSocketsErr = translateToFsOrSocketsError(err);
+            wasiPreview2Debug("throwing StreamErrorLastOperationFailed");
+            let errResource = new IOErrorResource(this._wasiEnv, fsOrSocketsErr);
+            let throwErr: StreamErrorLastOperationFailed = {
+                tag: "last-operation-failed",
+                val: errResource,
+            }
+            throw throwErr;
         }
         return;
     }
@@ -331,7 +359,7 @@ export class OutStream implements OutputStream, Resource {
             if (this.closeFdOnStreamClose) {
                 await this.openFiles.close(this.fd);
             }
-            //await this.openFiles.disposeResource(this);
+            await this.openFiles.disposeResource(this);
         } catch( err: any) {
             wasiPreview2Debug("OutStream.Symbol.dispose err or closing fd: ", this.fd);
         }

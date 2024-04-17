@@ -59,9 +59,17 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypes {
     public DirectoryEntryStream: typeof OpenDirectoryIterator;
 
     async filesystemErrorCode(err: fs.Error): Promise<fs.ErrorCode | undefined> {
-        let debugstr = err.toDebugString();
-        wasiPreview2Debug("filesystemErrorCode: ", err, "debugstr: ", debugstr);
-        return 'unsupported';
+        //console.log("filesystemErrorCode: err: ", err);
+        // TODO improve this - workaround
+        let errAny = err as any;
+        if (errAny.resource !== undefined) {
+            let resourceId = errAny.resource;
+            err = this.openFiles.get(resourceId) as unknown as fs.Error;
+        }
+        let debugstr = await err.toDebugString();
+        console.log("filesystemErrorCode: debugstr: ", debugstr);
+        //return 'unsupported';
+        return debugstr as fs.ErrorCode;
     }
     private _wasiEnv: WasiEnv;
 

@@ -198,6 +198,18 @@ export function handleResourceObject(resourceObjOrAny: any, handleCallback: Hand
     }
 }
 
+export function getResourceImportAndId(identifier: string) {
+    let resourceSplit = identifier.split(":");
+    if (resourceSplit.length>1) {
+        let importName = resourceSplit[0];
+        let sResourceId = resourceSplit[1];
+        let resourceId = Number(sResourceId);
+        return {
+            importName: importName,
+            resourceId: resourceId,
+        };
+    }
+}
 
 export function getResourceIdentifier(importName: string, resourceId: number) {
     const importNameSplit = importName.split('/');

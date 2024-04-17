@@ -618,57 +618,6 @@ export type Trailers = Fields;
 export type StatusCode = number;
 export type Result<T, E> = { tag: 'ok', val: T } | { tag: 'err', val: E };
 
-export interface RequestOptions extends Disposable {
-  connectTimeout(): Duration | undefined;
-  setConnectTimeout(duration: Duration | undefined): void;
-  firstByteTimeout(): Duration | undefined;
-  setFirstByteTimeout(duration: Duration | undefined): void;
-  betweenBytesTimeout(): Duration | undefined;
-  setBetweenBytesTimeout(duration: Duration | undefined): void;
-}
-
-export interface FutureTrailers extends Disposable {
-  subscribe(): Pollable;
-  get(): Result<Result<Trailers | undefined, ErrorCode>, void> | undefined;
-}
-
-export interface ResponseOutparam extends Disposable {
-  set(param: ResponseOutparam, response: Result<OutgoingResponse, ErrorCode>): void;
-}
-
-export interface OutgoingResponse extends Disposable {
-  statusCode(): StatusCode;
-  setStatusCode(statusCode: StatusCode): void;
-  headers(): Headers;
-  body(): OutgoingBody;
-}
-
-export interface IncomingResponse extends Disposable {
-  status(): StatusCode;
-  headers(): Headers;
-  consume(): IncomingBody;
-}
-
-export interface Fields extends Disposable {
-  fromList(entries: [FieldKey, FieldValue][]): Fields;
-  get(name: FieldKey): FieldValue[];
-  has(name: FieldKey): boolean;
-  set(name: FieldKey, value: FieldValue[]): void;
-  'delete'(name: FieldKey): void;
-  append(name: FieldKey, value: FieldValue): void;
-  entries(): [FieldKey, FieldValue][];
-  clone(): Fields;
-}
-
-export interface IncomingRequest extends Disposable {
-  method(): Method;
-  pathWithQuery(): string | undefined;
-  scheme(): Scheme | undefined;
-  authority(): string | undefined;
-  headers(): Headers;
-  consume(): IncomingBody;
-}
-
 export interface OutgoingRequest extends Disposable {
   body(): OutgoingBody;
   method(): Method;
@@ -682,6 +631,35 @@ export interface OutgoingRequest extends Disposable {
   headers(): Headers;
 }
 
+export interface RequestOptions extends Disposable {
+  connectTimeout(): Duration | undefined;
+  setConnectTimeout(duration: Duration | undefined): void;
+  firstByteTimeout(): Duration | undefined;
+  setFirstByteTimeout(duration: Duration | undefined): void;
+  betweenBytesTimeout(): Duration | undefined;
+  setBetweenBytesTimeout(duration: Duration | undefined): void;
+}
+
+export interface ResponseOutparam extends Disposable {
+  set(param: ResponseOutparam, response: Result<OutgoingResponse, ErrorCode>): void;
+}
+
+export interface Fields extends Disposable {
+  fromList(entries: [FieldKey, FieldValue][]): Fields;
+  get(name: FieldKey): FieldValue[];
+  has(name: FieldKey): boolean;
+  set(name: FieldKey, value: FieldValue[]): void;
+  'delete'(name: FieldKey): void;
+  append(name: FieldKey, value: FieldValue): void;
+  entries(): [FieldKey, FieldValue][];
+  clone(): Fields;
+}
+
+export interface FutureTrailers extends Disposable {
+  subscribe(): Pollable;
+  get(): Result<Result<Trailers | undefined, ErrorCode>, void> | undefined;
+}
+
 export interface OutgoingBody extends Disposable {
   write(): OutputStream;
   finish(this_: OutgoingBody, trailers: Trailers | undefined): void;
@@ -692,7 +670,29 @@ export interface FutureIncomingResponse extends Disposable {
   get(): Result<Result<IncomingResponse, ErrorCode>, void> | undefined;
 }
 
+export interface OutgoingResponse extends Disposable {
+  statusCode(): StatusCode;
+  setStatusCode(statusCode: StatusCode): void;
+  headers(): Headers;
+  body(): OutgoingBody;
+}
+
+export interface IncomingRequest extends Disposable {
+  method(): Method;
+  pathWithQuery(): string | undefined;
+  scheme(): Scheme | undefined;
+  authority(): string | undefined;
+  headers(): Headers;
+  consume(): IncomingBody;
+}
+
 export interface IncomingBody extends Disposable {
   stream(): InputStream;
   finish(this_: IncomingBody): FutureTrailers;
+}
+
+export interface IncomingResponse extends Disposable {
+  status(): StatusCode;
+  headers(): Headers;
+  consume(): IncomingBody;
 }
