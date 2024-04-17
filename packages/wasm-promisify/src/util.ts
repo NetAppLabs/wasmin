@@ -1,4 +1,4 @@
-import { PromisifiedExports, initializeWebAssemblyFunction } from ".";
+import { PromisifiedExports, initializeWebAssemblyFunction } from "./index.js";
 
 const isNode = typeof process !== "undefined" && process.versions && process.versions.node;
 

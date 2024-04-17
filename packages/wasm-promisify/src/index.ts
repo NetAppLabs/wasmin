@@ -7,10 +7,42 @@ import { PromisifiedWasmGenerator } from "./wasmgen.js";
  */
 export function isStackSwitchingEnabled(): boolean {
     const WebAssemblyFunction = (WebAssembly as any).Function
-    if (typeof WebAssemblyFunction !== 'function') {
+    if (typeof WebAssemblyFunction === 'function') {
+        if (isNode()) {
+            let hasStackSwitchingFlags = hasFlags('experimental-wasm-stack-switching');
+            return hasStackSwitchingFlags;
+        }
+        return true;
+    }
+    return false;
+}
+
+export function isNode() {
+    // only node.js or bun has global process class
+    if (!isBun()) {
+        return globalThis.process != null;
+    } else {
         return false;
     }
-    return true
+}
+
+export function isBun() {
+    // only bun has global Bun
+    try {
+        // @ts-ignore
+        return globalThis.Bun != null;
+    } catch (e) {
+        return false;
+    }
+}
+
+function hasFlags(...flags: string[]) {
+    //let nodeArgv = process.argv;
+    let nodeExecArgv = process.execArgv;
+    //let nodeArgv0 = process.argv0;
+    return flags.every(flag =>
+        nodeExecArgv.includes(/^-{1,2}/.test(flag) ? flag : '--' + flag)
+    )
 }
 
 /**

@@ -1,23 +1,21 @@
 import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
 type IoStreamsAsync = io.WasiIoStreams;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isBadFileDescriptor, isErrorAgain, isIoError, translateError, wasiPreview2Debug } from "./preview2Utils.js";
-import { FsPollable, OpenFiles } from "../../wasiFileSystem.js";
+import { isBadFileDescriptor, isErrorAgain, isIoSocketsError, translateToFsOrSocketsError, wasiPreview2Debug } from "./preview2Utils.js";
+import { OpenFiles } from "../../wasiFileSystem.js";
 import { sleep } from "../../wasiUtils.js";
-import { USE_ACCEPTED_SOCKET_PROMISE } from "../../wasi_experimental_sockets/net.js";
-import { delay } from "../../wasi_experimental_sockets/common.js";
 import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2/async";
 import { Resource } from "../../wasiResources.js";
 type IOPollAsync = pollns.WasiIoPoll;
+type IOError = io.Error;
 
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
 type Pollable = io.Pollable;
-//type StreamStatus = io.StreamStatus;
 type StreamErrorClosed = io.StreamErrorClosed;
 type StreamErrorLastOperationFailed = io.StreamErrorLastOperationFailed;
 
-export class InputStreamPollable implements FsPollable {
+export class InputStreamPollable implements Pollable, Resource {
     _fd: number;
     resource: number;
     openFiles: OpenFiles;
@@ -76,7 +74,7 @@ export class InputStreamPollable implements FsPollable {
     }
 }
 
-export class DummyPollable implements FsPollable {
+export class DummyPollable implements Pollable, Resource {
     openFiles: OpenFiles;
     fd: number;
     resource: number;
@@ -90,10 +88,12 @@ export class DummyPollable implements FsPollable {
     }
     async block(): Promise<void> {
         wasiPreview2Debug("DummyPollable:block");
+        await sleep(1);
         return;
     }
     async ready(): Promise<boolean> {
         wasiPreview2Debug("DummyPollable:ready");
+        await sleep(1);
         return true;
     }
 }
@@ -136,7 +136,6 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
         return this._fd;
     }
     async read(len: bigint): Promise<Uint8Array> {
-        //let streamStatus: StreamStatus = 'ended';
         let buffer: Uint8Array | undefined = undefined;
         try {
             wasiPreview2Debug(`[io/streams] io:read ${this.fd} starting`);
@@ -147,37 +146,28 @@ export class InStream implements InputStream, Resource, AsyncDisposable {
             // TODO: handle bigint
             buffer = await reader.read(Number(len));
             wasiPreview2Debug("io.read buffer: ", buffer);
-            /*if (buffer.length < len) {
-                isEnd = true;
-            }*/
             wasiPreview2Debug(`[io/streams] io:read ${this.fd} open`);
             wasiPreview2Debug(`[io/streams] io:read ${this.fd} returning`,buffer);
         } catch (err: any) {
             wasiPreview2Debug("io.read(): err: ", err);
-            if(isIoError(err)){
+            if(isIoSocketsError(err)){
                 console.log("throwing StreamErrorClosed");
                 let err: StreamErrorClosed = {
                     tag: "closed"
                 }
                 throw err;
             } else if(isErrorAgain(err)){
+                // catch EAGAIN / would-block and return empty array
                 return new Uint8Array();
             } else {
                 wasiPreview2Debug(`[io/streams] io:read ${this.fd} catching err:`, err);
-                //return new Uint8Array();
-                const ioErr = translateError(err);
+                const fsOrSocketsErr = translateToFsOrSocketsError(err);
                 console.log("throwing StreamErrorLastOperationFailed");
+
+                let errResource = new IOErrorResource(this._wasiEnv, fsOrSocketsErr);
                 let throwErr: StreamErrorLastOperationFailed = {
                     tag: "last-operation-failed",
-                    val: {
-                        toDebugString: async function (): Promise<string> {
-                            return ioErr;
-                        },
-                        [Symbol.asyncDispose]: async function (): Promise<void> {
-                            // todo implement:
-                            return;
-                        }
-                    },
+                    val: errResource,
                 }
                 throw throwErr;
             }
@@ -402,4 +392,30 @@ export class IoPollAsyncHost implements IOPollAsync {
         return out;
     }
     private _wasiEnv: WasiEnv;
+}
+
+export class IOErrorResource implements IOError, Resource {
+    constructor(wasiOptions: WasiOptions, errorString: string) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+        this.resource = this.openFiles.addResource(this);
+        this.errorString = errorString;
+    }
+    resource: number;
+    _wasiEnv: WasiEnv;
+    errorString: string;
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get openFiles() {
+        return this.wasiEnv.openFiles;
+    }
+
+    async toDebugString(): Promise<string> {
+        return this.errorString;
+    }
+    async [Symbol.asyncDispose](): Promise<void> {
+        await this.openFiles.disposeResource(this);
+    }
+
 }

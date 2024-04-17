@@ -12,6 +12,9 @@ import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnab
 //
 // "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy"
 //
+// 
+// worker-component for running a component in a dedicated Worker
+// jspi-component for running a component in a modified jspi capable module
 //
 
 export type WasmRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy" | "worker-component" | "jspi-component" ;

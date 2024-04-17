@@ -1,4 +1,3 @@
-//import { Descriptor, DescriptorType, Filesize, OutputStream } from "@wasmin/wasi-snapshot-preview2/async"
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
 import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopens;
@@ -10,24 +9,16 @@ import {
     adviceStringtoAdviceN,
     toDateTimeFromMs,
     toDateTimeFromNs,
-    toMillisFromDatetime,
-    toMillisFromTimestamp,
-    toNanosFromDatetime,
     toNanosFromTimestamp,
-    translateError,
+    translateToFsError,
     wasiPreview2Debug,
 } from "./preview2Utils.js";
 import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 
-type FileSize = fs.Filesize;
 type Descriptor = fs.Descriptor;
 type DescriptorType = fs.DescriptorType;
 type DescriptorStat = fs.DescriptorStat;
 type DescriptorFlags = fs.DescriptorFlags;
-type InputStream = fs.InputStream;
-type OutputStream = fs.OutputStream;
-type DirectoryEntryStream = fs.DirectoryEntryStream;
-type Filesize = fs.Filesize;
 
 import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
 import { InStream, OutStream } from "./io.js";
@@ -69,9 +60,8 @@ export class FileSystemFileSystemAsyncHost implements fs.WasiFilesystemTypes {
 
     async filesystemErrorCode(err: fs.Error): Promise<fs.ErrorCode | undefined> {
         let debugstr = err.toDebugString();
-        wasiPreview2Debug("filesystemErrorCode: ", err);
+        wasiPreview2Debug("filesystemErrorCode: ", err, "debugstr: ", debugstr);
         return 'unsupported';
-        //throw new Error("Method not implemented.");
     }
     private _wasiEnv: WasiEnv;
 
@@ -117,7 +107,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const instr = new InStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return instr;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async writeViaStream(offset: bigint): Promise<fs.OutputStream> {
@@ -128,7 +118,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const outstr = new OutStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return outstr;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async appendViaStream(): Promise<fs.OutputStream> {
@@ -138,7 +128,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const outstr = new OutStream(this._wasiEnv, newFd, closeFdOnStreamClose);
             return outstr;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async advise(offset: bigint, length: bigint, advice: fs.Advice): Promise<void> {
@@ -149,14 +139,14 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             //of.position = Number(offset);
             of.advice = adviceStringtoAdviceN(advice);
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async syncData(): Promise<void> {
         try {
             await this.openFiles.getAsFile(this.fd).flush();
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async getFlags(): Promise<fs.DescriptorFlags> {
@@ -184,14 +174,14 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             }
         } catch (err: any) {
             wasiPreview2Debug(`filesystem:getType for fd: ${this.fd} err: `, err);
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async setSize(size: bigint): Promise<void> {
         try {
             await this.openFiles.getAsFile(this.fd).setSize(Number(size));
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async setTimes(dataAccessTimestamp: fs.NewTimestamp, dataModificationTimestamp: fs.NewTimestamp): Promise<void> {
@@ -205,7 +195,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
                 await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
             }
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async read(length: bigint, offset: bigint): Promise<[Uint8Array, boolean]> {
@@ -224,7 +214,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             await input[Symbol.asyncDispose]();
             return [chunk, isEnd];
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async write(buffer: Uint8Array, offset: bigint): Promise<bigint> {
@@ -238,7 +228,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             await out[Symbol.asyncDispose]();
             return BigInt(wroteSize);
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async readDirectory(): Promise<fs.DirectoryEntryStream> {
@@ -247,14 +237,14 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const dirStream = this.openFiles.getAsOpenDirectoryIterator(dirReadFd);
             return dirStream;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async sync(): Promise<void> {
         try {
             await this.openFiles.getAsFile(this.fd).flush();
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async createDirectoryAt(path: string): Promise<void> {
@@ -262,7 +252,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const openDir = this.openFiles.getAsDir(this.fd);
             await openDir.openWithCreate(path, true, FileOrDir.Dir, openDir.handle);
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async stat(): Promise<fs.DescriptorStat> {
@@ -274,7 +264,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
                 return stat;
             }
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
         throw "bad-descriptor";
     }
@@ -286,7 +276,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             let stat = await populateDescriptorStat(this.fd, handle);
             return stat;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async setTimesAt(pathFlags: fs.PathFlags, path: string, dataAccessTimestamp: fs.NewTimestamp, dataModificationTimestamp: fs.NewTimestamp): Promise<void> {
@@ -300,7 +290,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
                 await uh.updateTimes(dataAccessTimestampNs, dataModificationTimestampNs);
             }
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async linkAt(oldPathFlags: fs.PathFlags, oldPath: string, newDescriptor: fs.Descriptor, newPath: string): Promise<void> {
@@ -353,7 +343,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const resultDescriptor = new FileSystemFileDescriptor(this.wasiEnv, resultFd, path);
             return resultDescriptor;
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async readlinkAt(path: string): Promise<string> {
@@ -366,7 +356,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const openDir = this.openFiles.getAsDir(fd);
             await openDir.delete(path);
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     renameAt(oldPath: string, newDescriptor: fs.Descriptor, newPath: string): Promise<void> {
@@ -382,7 +372,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             const dir = this.openFiles.getAsDir(fd);
             await dir.delete(path);
         } catch (err: any) {
-            throw translateError(err);
+            throw translateToFsError(err);
         }
     }
     async isSameObject(other: fs.Descriptor): Promise<boolean> {
@@ -479,8 +469,6 @@ async function populateDescriptorStat(fd: number, fHandle: FileSystemHandle): Pr
         }
     }
     const newStat: DescriptorStat = {
-        //device: 0n,
-        //inode: inode,
         type: ftype,
         linkCount: 0n,
         statusChangeTimestamp: ctime,

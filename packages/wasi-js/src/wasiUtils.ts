@@ -308,6 +308,12 @@ export function translateErrorToErrorno(err: any): Errno {
             case "AbortError":
                 code = ErrnoN.CANCELED;
                 break;
+            case "TypeMismatchError":
+                code = ErrnoN.INVAL;
+                break;
+            case "InvalidStateError":
+                code = ErrnoN.INVAL;
+                break;
         }
         if (code) {
             wasiError(`translateErrorToErrorno: code: ${code} : `, err);
