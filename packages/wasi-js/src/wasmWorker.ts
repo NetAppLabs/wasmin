@@ -1,6 +1,7 @@
-import { getWorkerUrl, initializeComlinkHandlers, isSymbol, wasiWorkerDebug, wasmWorkerClientDebug } from "./workerUtils.js";
+import { getWorkerUrl, initializeComlinkHandlers, isSymbol } from "./workerUtils.js";
 import Worker, { createWorker } from "./vendored/web-worker/index.js";
-import { isBun, isNode, wasiCallDebug, wasiDebug } from "./wasiUtils.js";
+import { isBun, isNode } from "./utils.js";
+import { wasiCallDebug, wasmWorkerClientDebug } from "./wasiDebug.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import * as comlink from "comlink";
 import { WasmComponentWorkerThreadRunner } from "./wasmComponentWorkerThreadRunner.js";

@@ -57,8 +57,6 @@ export async function getLogger(id?: string): Promise<Logger> {
                     errFile = `err-${id}.log`;
                 }
                 const logger = new Console({
-                    //stdout: fs.createWriteStream("out."+HostManagerInstance.self.id+".log"),
-                    //stderr: fs.createWriteStream("err."+HostManagerInstance.self.id+".log"),
                     stdout: fsSync.createWriteStream(outFile),
                     stderr: fsSync.createWriteStream(errFile),
                 });

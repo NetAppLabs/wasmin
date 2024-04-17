@@ -1,8 +1,9 @@
 import { HandleWasmComponentImportFunc, HandleWasmImportFunc } from "./desyncify.js";
 import { Channel, makeChannel } from "./vendored/sync-message/index.js";
+import { wasmWorkerThreadDebug } from "./wasiDebug.js";
 import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
-import { initializeComlinkHandlers, wasmWorkerThreadDebug } from "./workerUtils.js";
+import { initializeComlinkHandlers } from "./workerUtils.js";
 import * as comlink from "comlink";
 
 

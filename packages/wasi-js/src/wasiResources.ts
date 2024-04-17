@@ -3,7 +3,7 @@ import { HandleCallType, HandleWasmComponentImportFunc } from "./desyncify.js";
 import { Channel } from "./vendored/sync-message/index.js";
 import { GetProxyFunctionToCall, createComponentImportOrResourceProxy, getProxyFunctionToCall } from "./wasmWorker.js";
 import { isArray, isSymbol } from "./workerUtils.js";
-import { wasiResourceDebug } from "./wasiUtils.js";
+import { wasiResourceDebug } from "./wasiDebug.js";
 
 export type StoreResourcesFunc = (importName: string, resourceId: number, resourceObject: Resource) => void;
 

@@ -1,9 +1,9 @@
 import { WASI, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
-import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers, wasiWorkerDebug } from "./workerUtils.js";
+import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers } from "./workerUtils.js";
 import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
 import { createWorker, Worker } from "./vendored/web-worker/index.js";
-import { isNode } from "./wasiUtils.js";
+import { isNode } from "./utils.js";
 import {
     Channel,
     makeAtomicsChannel,
@@ -17,7 +17,7 @@ import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js"
 import { TTY, TTYInstance } from "./tty.js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
-import { node } from "@wasmin/node-fs-js";
+import { wasiWorkerDebug } from "./wasiDebug.js";
 //import { nfs } from "@wasmin/nfs-js";
 
 export type ProviderUrl = string;
@@ -156,15 +156,6 @@ export class WASIWorker {
 export class WasiWorkerThreadRunner {
     constructor() {
         initializeComlinkHandlers();
-        if (isNode()) {
-            RegisterProvider("node", node);
-        //} else if (isBun()) {
-        //    const bunimport = await import("@wasmin/bun-fs-js");
-        //    const bunfs = bunimport.bun;
-        //    RegisterProvider("bun", bunfs);
-        }
-        // @ts-ignore
-        //RegisterProvider("nfs", nfs);
     }
     private wasiWorkerOptions?: WasiWorkerOptions;
     private wasi?: WASI;
@@ -218,6 +209,17 @@ export class WasiWorkerThreadRunner {
     }*/
 
     public async initializeComponentImports(): Promise<string[]> {
+        /*if (isNode()) {
+            let node = await import("@wasmin/node-fs-js");
+            // @ts-ignore
+            RegisterProvider("node", node);
+        } else if (isBun()) {
+            const bunimport = await import("@wasmin/bun-fs-js");
+            const bunfs = bunimport.bun;
+            RegisterProvider("bun", bunfs);
+        }*/
+        // @ts-ignore
+        //RegisterProvider("nfs", nfs);
         this.wasi = new WASI(await this.toWasiOptions(this.wasiWorkerOptions));
         return await this.wasi.initializeComponentImports();
     }

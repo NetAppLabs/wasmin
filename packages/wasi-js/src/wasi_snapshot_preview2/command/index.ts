@@ -1,6 +1,6 @@
-import { isExitStatus } from "../../wasiUtils.js";
-import { wasmWorkerThreadDebug } from "../../workerUtils.js";
-import { wasiPreview2Debug } from "../async/preview2Utils.js";
+import { isExitStatus } from "../../wasiPreview1Utils.js";
+import { wasmWorkerThreadDebug } from "../../wasiDebug.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 import { instantiate as componentInstantiate, Root, ImportObject, compileCore } from "@wasmin/wasi-snapshot-preview1-command-component";
 import * as comlink from "comlink";
 

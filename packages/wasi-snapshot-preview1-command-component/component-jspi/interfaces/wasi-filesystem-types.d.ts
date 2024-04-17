@@ -172,6 +172,10 @@ export interface DirectoryEntry {
 import type { Error } from '../interfaces/wasi-io-streams.js';
 export { Error };
 
+export class DirectoryEntryStream {
+  readDirectoryEntry(): Promise<DirectoryEntry | undefined>;
+}
+
 export class Descriptor {
   readViaStream(offset: Filesize): Promise<InputStream>;
   writeViaStream(offset: Filesize): Promise<OutputStream>;
@@ -199,8 +203,4 @@ export class Descriptor {
   unlinkFileAt(path: string): Promise<void>;
   metadataHash(): Promise<MetadataHashValue>;
   metadataHashAt(pathFlags: PathFlags, path: string): Promise<MetadataHashValue>;
-}
-
-export class DirectoryEntryStream {
-  readDirectoryEntry(): Promise<DirectoryEntry | undefined>;
 }

@@ -43,7 +43,8 @@ export default defineConfig({
         'node:module',
         'node:console',
         'node:events',
-        'node:process'
+        'node:process',
+        'bun'
       ],
     },
     output: {

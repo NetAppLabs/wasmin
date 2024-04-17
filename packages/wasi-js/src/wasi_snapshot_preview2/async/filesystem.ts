@@ -4,14 +4,13 @@ type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopens;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenDirectoryIterator, OpenFile, Socket } from "../../wasiFileSystem.js";
 import { Fdflags, FdflagsN, Oflags, OflagsN } from "../../wasi_snapshot_preview1/bindings.js";
-import { unimplemented, wasiDebug, wasiError, wasiWarn } from "../../wasiUtils.js";
+import { unimplemented } from "../../wasiPreview1Utils.js";
 import {
     adviceStringtoAdviceN,
     toDateTimeFromMs,
     toDateTimeFromNs,
     toNanosFromTimestamp,
     translateToFsError,
-    wasiPreview2Debug,
 } from "./preview2Utils.js";
 import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasmin/fs-js";
 
@@ -23,6 +22,8 @@ type DescriptorFlags = fs.DescriptorFlags;
 import { FIRST_PREOPEN_FD } from "../../wasiFileSystem.js";
 import { InStream, OutStream } from "./io.js";
 import { Resource } from "../../wasiResources.js";
+import { wasiPreview2Debug, wasiError, wasiWarn } from "../../wasiDebug.js";
+import { BufferedPipe } from "../../wasiPipes.js";
 
 export class FileSystemPreopensAsyncHost implements PreopensAsync {
     constructor(wasiOptions: WasiOptions) {
@@ -33,12 +34,12 @@ export class FileSystemPreopensAsyncHost implements PreopensAsync {
 
     async getDirectories(): Promise<[Descriptor, string][]> {
         const preopens: [Descriptor, string][] = [];
-        const preopen_fd = FIRST_PREOPEN_FD;
+        let preOpenDirs = this._wasiEnv.openFiles.getPreOpens();
         try {
-            for (let i = preopen_fd; true; i++) {
-                const openDir = this._wasiEnv.openFiles.getPreOpen(i);
-                const path = openDir.path;
-                const desc = new FileSystemFileDescriptor(this._wasiEnv, i, path);
+            for (const preOpen of preOpenDirs) {
+                const fd = preOpen[1];
+                const path = preOpen[2];
+                const desc = new FileSystemFileDescriptor(this._wasiEnv, fd, path);
                 preopens.push([desc, path]);
             }
         } catch (err: any) {
@@ -85,7 +86,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     private _wasiEnv: WasiEnv;
     public _fd: number;
     public resource: number;
-    private _path: string;
+    private _path?: string;
 
     get wasiEnv() {
         return this._wasiEnv;
@@ -100,7 +101,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         return this._path;
     }
 
-    constructor(wasiOptions: WasiOptions, fd: number, path: string) {
+    constructor(wasiOptions: WasiOptions, fd: number, path?: string) {
         const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
         this._wasiEnv = wasiEnv;
         this._fd = fd;
@@ -270,6 +271,15 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
                 const handle = resource.handle;
                 let stat = await populateDescriptorStat(this.fd, handle);
                 return stat;
+            } else if (resource instanceof BufferedPipe) {
+                let size = await resource.peek();
+                let sizeB = BigInt(size);
+                let stat: fs.DescriptorStat = {
+                    type: "fifo",
+                    linkCount: 0n,
+                    size: sizeB,
+                }
+                return stat;
             }
         } catch (err: any) {
             throw translateToFsError(err);
@@ -278,7 +288,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     }
     async statAt(pathFlags: fs.PathFlags, path: string): Promise<fs.DescriptorStat> {
         try {
-            wasiDebug(`statAt: fd: ${this.fd} path: ${path}`);
+            wasiPreview2Debug(`statAt: fd: ${this.fd} path: ${path}`);
             const openDir = this.openFiles.getAsDir(this.fd);
             const handle = await openDir.getFileOrDir(path, FileOrDir.Any);
             let stat = await populateDescriptorStat(this.fd, handle);
@@ -329,7 +339,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
             fsMode |= todo;
             */
 
-            wasiDebug(`[openAt fd: ${fd}, oflags: ${oflags}, path: ${path}, fdflags: ${fdflags} ]`);
+            wasiPreview2Debug(`[openAt fd: ${fd}, oflags: ${oflags}, path: ${path}, fdflags: ${fdflags} ]`);
 
             if (fdflags & FdflagsN.NONBLOCK) {
                 wasiWarn(
@@ -347,7 +357,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
 
             const openDir = this.openFiles.getAsDir(fd);
             const resultFd = await this.openFiles.open(openDir, path, oflags, fdflags);
-            wasiDebug(`[openAt result: dirFd: ${fd}, path: ${path}, resultFd: ${resultFd} ]`);
+            wasiPreview2Debug(`[openAt result: dirFd: ${fd}, path: ${path}, resultFd: ${resultFd} ]`);
             const resultDescriptor = new FileSystemFileDescriptor(this.wasiEnv, resultFd, path);
             return resultDescriptor;
         } catch (err: any) {
@@ -360,7 +370,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     async removeDirectoryAt(path: string): Promise<void> {
         try {
             const fd = this.fd;
-            wasiDebug(`[removeDirectoryAt] fd: ${fd} path: ${path}`);
+            wasiPreview2Debug(`[removeDirectoryAt] fd: ${fd} path: ${path}`);
             const openDir = this.openFiles.getAsDir(fd);
             await openDir.delete(path);
         } catch (err: any) {
@@ -376,7 +386,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     async unlinkFileAt(path: string): Promise<void> {
         try {
             const fd = this.fd;
-            wasiDebug(`[unlinkFileAt] fd: ${fd} path: ${path}`);
+            wasiPreview2Debug(`[unlinkFileAt] fd: ${fd} path: ${path}`);
             const dir = this.openFiles.getAsDir(fd);
             await dir.delete(path);
         } catch (err: any) {

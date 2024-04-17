@@ -1,11 +1,13 @@
 import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
 type IoStreamsAsync = io.WasiIoStreams;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isBadFileDescriptor, isErrorAgain, isIoSocketsError, translateToFsOrSocketsError, wasiPreview2Debug } from "./preview2Utils.js";
-import { OpenFiles } from "../../wasiFileSystem.js";
-import { sleep } from "../../wasiUtils.js";
+import { isBadFileDescriptor, isErrorAgain, isIoSocketsError, translateToFsOrSocketsError } from "./preview2Utils.js";
+import { OpenFiles, Peekable } from "../../wasiFileSystem.js";
+import { sleep } from "../../utils.js";
 import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2/async";
 import { Resource } from "../../wasiResources.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
+
 type IOPollAsync = pollns.WasiIoPoll;
 type IOError = io.Error;
 
@@ -34,7 +36,8 @@ export class InputStreamPollable implements Pollable, Resource {
         const ofd = this.openFiles.get(this.fd);
         const ofda = ofd as any;
         if (ofda.peek) {
-            let peekBytes = await ofda.peek();
+            let peekable = ofda as Peekable;
+            let peekBytes = await peekable.peek();
             wasiPreview2Debug(`[io/streams] InputStreamPollable peekBytes: ${peekBytes} for fd: ${this.fd}`);
             if (peekBytes > 0) {
                 return true;
@@ -410,10 +413,12 @@ export class IoPollAsyncHost implements IOPollAsync {
                         }
                         wasiPreview2Debug(`poll.poll polling on ${typeName} resource: ${resource} fd: ${fd} err: `, err);
                     }
-                    out[i] = i;
+                    //out[i] = i;
                 } else {
+                    // TODO should we check for instance of ClocksMonotonicPollable
+                    // and block only if it is single in the list ?
                     await pollable.block();
-                    out[i] = i;
+                    //out[i] = i;
                 }
             }
         }

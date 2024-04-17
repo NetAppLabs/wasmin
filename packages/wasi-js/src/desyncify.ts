@@ -1,10 +1,11 @@
 import { Asyncify } from "./vendored/asyncify/asyncify.js";
 import { Channel, makeChannel, readMessage, syncSleep, uuidv4 } from "./vendored/sync-message/index.js";
-import { isFunction, wasmWorkerClientDebug } from "./workerUtils.js";
+import { isFunction } from "./workerUtils.js";
 import * as comlink from "comlink";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
 import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify } from "@wasmin/wasm-promisify"; 
+import { wasmWorkerClientDebug } from "./wasiDebug.js";
 
 //
 // desyncify is for allowing async imports in a WebAssembly.Instance
@@ -17,7 +18,57 @@ import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnab
 // jspi-component for running a component in a modified jspi capable module
 //
 
-export type WasmRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy" | "worker-component" | "jspi-component" ;
+/**
+ * Run modes for core WebAssembly Modules
+ * 
+ * asyncify:
+ *   Module must be pre-processed with asyncify.
+ *   Used if module is found to to be asyncified.
+ * 
+ * jspi:
+ *   Module is unmodified, but runtime must have support for experimental-wasm-stack-switching
+ *   or Javascript Promise Integration.
+ *   Used if jspi is availalable in runtime.
+ *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
+ *   in runtime using @wasmin/wasm-promisify library.
+ * 
+ * worker-core-memory-shared:
+ *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner
+ *    Module is modified by changing memory export to be Shared.
+ *    Used if module has an exported shared memory.
+ *    Returned WebAssembly.Instance is a proxy of the actual WebAssembly.Instance that is
+ *    running within the Worker.
+ *    For this case the wasmModOrBufSource must be a BufferSource and can not be a WebAssembly.Module
+ *    and handleImportFunc must be set.
+ *    Memory is passed between threads as SharedArrayBuffer.
+ * 
+ * worker-core-memory-copy:
+ *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner
+ *    Module is unmodified and memory is copied between threads.
+ *    Returned WebAssembly.Instance is a proxy of the actual WebAssembly.Instance that is
+ *    running within the Worker.
+ *    For this case the wasmModOrBufSource must be a BufferSource and can not be a WebAssembly.Module
+ *    and handleImportFunc must be set.
+ *    This is the fallback method if none of the above work.
+ */
+export type WasmCoreRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy";
+
+/**
+ * Run modes for core WebAssembly Components
+ * 
+ * worker-component:
+ *   Component is run in a dedicated WebWorker with WASI in main thread.
+ * 
+ * jspi-component:
+ *   Component is unmodified, but runtime must have support for experimental-wasm-stack-switching
+ *   or Javascript Promise Integration.
+ *   Used if jspi is availalable in runtime.
+ *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
+ *   in runtime using @wasmin/wasm-promisify library.
+ */
+export type WasmComponentRunMode = "worker-component" | "jspi-component" ;
+
+export type WasmRunMode = WasmCoreRunMode | WasmComponentRunMode;
 
 export type ImportExportReference = {
     moduleInstanceId: string;

@@ -1,5 +1,7 @@
 import { WasiEnv } from "../wasi.js";
-import { isNode, isNodeorBunorDeno, translateErrorToErrorno, wasiCallDebug } from "../wasiUtils.js";
+import { translateErrorToErrorno } from "../wasiPreview1Utils.js";
+import { isNodeorBunorDeno } from "../utils.js";
+import { wasiCallDebug, wasiSocketsDebug } from "../wasiDebug.js";
 import {
     Addr,
     AddressFamily,
@@ -19,7 +21,7 @@ import {
 } from "./bindings.js";
 
 import { SystemError } from "../errors.js";
-import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo, wasiSocketsDebug } from "./common.js";
+import { AddressInfo, AddressInfoToWasiAddr, WasiSocket, WasiAddrtoAddressInfo } from "./common.js";
 import {
     NetTcpSocket,
     NetUdpSocket,

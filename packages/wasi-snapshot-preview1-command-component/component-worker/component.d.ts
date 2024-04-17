@@ -1,3 +1,9 @@
+import { WasiExtCliTerminalInputExtended } from './interfaces/wasi-ext-cli-terminal-input-extended.js';
+import { WasiExtCliTerminalOutputExtended } from './interfaces/wasi-ext-cli-terminal-output-extended.js';
+import { WasiExtCliTerminalStdinExtended } from './interfaces/wasi-ext-cli-terminal-stdin-extended.js';
+import { WasiExtCliTerminalStdoutExtended } from './interfaces/wasi-ext-cli-terminal-stdout-extended.js';
+import { WasiExtFilesystemsMount } from './interfaces/wasi-ext-filesystems-mount.js';
+import { WasiExtProcessProcess } from './interfaces/wasi-ext-process-process.js';
 import { WasiCliEnvironment } from './interfaces/wasi-cli-environment.js';
 import { WasiCliExit } from './interfaces/wasi-cli-exit.js';
 import { WasiCliStderr } from './interfaces/wasi-cli-stderr.js';
@@ -25,6 +31,12 @@ import { WasiSocketsUdpCreateSocket } from './interfaces/wasi-sockets-udp-create
 import { WasiSocketsUdp } from './interfaces/wasi-sockets-udp.js';
 import { WasiCliRun } from './interfaces/wasi-cli-run.js';
 export interface ImportObject {
+  'wasi-ext:cli/terminal-input-extended@0.2.0': typeof WasiExtCliTerminalInputExtended,
+  'wasi-ext:cli/terminal-output-extended@0.2.0': typeof WasiExtCliTerminalOutputExtended,
+  'wasi-ext:cli/terminal-stdin-extended@0.2.0': typeof WasiExtCliTerminalStdinExtended,
+  'wasi-ext:cli/terminal-stdout-extended@0.2.0': typeof WasiExtCliTerminalStdoutExtended,
+  'wasi-ext:filesystems/mount@0.2.0': typeof WasiExtFilesystemsMount,
+  'wasi-ext:process/process@0.2.0': typeof WasiExtProcessProcess,
   'wasi:cli/environment@0.2.0': typeof WasiCliEnvironment,
   'wasi:cli/exit@0.2.0': typeof WasiCliExit,
   'wasi:cli/stderr@0.2.0': typeof WasiCliStderr,

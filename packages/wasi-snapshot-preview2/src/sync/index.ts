@@ -26,3 +26,12 @@ export * as TerminalStdOutNamespace from "./interfaces/wasi-cli-terminal-stdout"
 export * as TerminalStErrNamespace from "./interfaces/wasi-cli-terminal-stderr";
 export * as TerminalInputNamespace from "./interfaces/wasi-cli-terminal-input";
 export * as TerminalOutputNamespace from "./interfaces/wasi-cli-terminal-output";
+
+export * as TerminalStdInExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stdin-extended";
+export * as TerminalStdOutExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stdout-extended";
+export * as TerminalStdErrExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-stderr-extended";
+export * as TerminalInputExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-input-extended";
+export * as TerminalOutputExtendedNamespace from "./interfaces/wasi-ext-cli-terminal-output-extended";
+
+export * as ProcessNamespace from "./interfaces/wasi-ext-process-process";
+export * as FilesystemsMountNamespace from "./interfaces/wasi-ext-filesystems-mount";

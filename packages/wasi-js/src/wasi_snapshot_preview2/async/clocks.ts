@@ -4,9 +4,10 @@ import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-previe
 type ClocksWallClockAsync = clockw.WasiClocksWallClock;
 import { FsPollable } from "../../wasiFileSystem.js";
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
-import { isNode, isNodeorBun, isNodeorBunorDeno, sleep } from "../../wasiUtils.js";
-import { toDateTimeFromMs, toDateTimeFromNs, wasiPreview2Debug } from "./preview2Utils.js";
+import { isNodeorBunorDeno, sleep } from "../../utils.js";
+import { toDateTimeFromMs } from "./preview2Utils.js";
 import { DisposeAsyncResourceFunc, Resource } from "../../wasiResources.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 type Datetime = clockw.Datetime;
 type Instant = clockm.Instant;
 type Pollable = clockm.Pollable;

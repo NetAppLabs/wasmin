@@ -27,16 +27,9 @@ import {
     FileSystemWritableFileStream,
 } from "@wasmin/fs-js";
 import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
-declare global {
-    var WASI_FS_DEBUG: boolean
-}
-globalThis.WASI_FS_DEBUG = false;
+import { wasiError, wasiFileSystemDebug } from "./wasiDebug.js";
+import { Mountable, MountedEntry } from "@wasmin/fs-js";
 
-function filesystemDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_FS_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
 
 /**
  * Generic Writable stream interface
@@ -120,7 +113,7 @@ export class OpenDirectory {
     getEntries(start = 0): AsyncIterableIterator<FileSystemHandle> & {
         revert: (handle: FileSystemHandle) => void;
     } {
-        filesystemDebug(`[getEntries], path: ${this.path}`);
+        wasiFileSystemDebug(`[getEntries], path: ${this.path}`);
         if (this._currentIter?.pos !== start) {
             // We're at incorrect position and will have to skip [start] items.
             this._currentIter = {
@@ -191,7 +184,7 @@ export class OpenDirectory {
     async getFileOrDir(path: string, mode: FileOrDir.Dir, openFlags?: Oflags): Promise<FileSystemDirectoryHandle>;
     async getFileOrDir(path: string, mode: FileOrDir, openFlags?: Oflags): Promise<Handle>;
     async getFileOrDir(path: string, mode: FileOrDir, openFlags: Oflags = 0) {
-        filesystemDebug(`[getFileOrDir] path: ${path} mode: ${mode} openFlags: ${openFlags}`);
+        wasiFileSystemDebug(`[getFileOrDir] path: ${path} mode: ${mode} openFlags: ${openFlags}`);
         const { parent, name: maybeName } = await this._resolve(path);
         // Handle case when we couldn't get a parent, only direct handle
         // (this means it's a preopened directory).
@@ -226,7 +219,7 @@ export class OpenDirectory {
                     exists = false;
                 }
                 if (exists) {
-                    filesystemDebug(`throwing EXIST error as ${name} does exist`);
+                    wasiFileSystemDebug(`throwing EXIST error as ${name} does exist`);
                     throw new SystemError(ErrnoN.EXIST);
                 }
             }
@@ -247,12 +240,12 @@ export class OpenDirectory {
         // if mode is either FileOrDir.File or FileOrDir.Any
         if (mode & FileOrDir.File) {
             try {
-                filesystemDebug(
+                wasiFileSystemDebug(
                     `[openWithCreate]: trying: getFileHandle on parent: ${parentName} child: ${name} mode: ${mode}`
                 );
                 return await parent.getFileHandle(name, { create });
             } catch (err: any) {
-                filesystemDebug("openWithCreate err: ", err);
+                wasiFileSystemDebug("openWithCreate err: ", err);
                 if (err.name === "TypeMismatchError" || err.name === "TypeError") {
                     if (!(mode & FileOrDir.Dir)) {
                         // throw an error because we request dir but got file
@@ -269,7 +262,7 @@ export class OpenDirectory {
         }
         // else if mode is FileOrDir.Dir
         try {
-            filesystemDebug(
+            wasiFileSystemDebug(
                 `[openWithCreate]: trying: getDirectoryHandle on parent: ${parentName} child: ${name} mode: ${mode}`
             );
             return await parent.getDirectoryHandle(name, { create: create });
@@ -285,7 +278,7 @@ export class OpenDirectory {
     }
 
     async delete(path: string, options?: FileSystemRemoveOptions): Promise<void> {
-        filesystemDebug("[delete]");
+        wasiFileSystemDebug("[delete]");
         const { parent, name } = await this._resolve(path);
         if (!name) {
             throw new SystemError(ErrnoN.ACCES);
@@ -297,7 +290,7 @@ export class OpenDirectory {
     close() {}
 
     private async _resolve(path: string) {
-        filesystemDebug(`[_resolve] path: ${path}`);
+        wasiFileSystemDebug(`[_resolve] path: ${path}`);
         const parts = path ? path.split("/") : [];
         const resolvedParts = [];
         for (const item of parts) {
@@ -408,7 +401,7 @@ export class OpenFile implements Readable, Writable {
     private _writer: FileSystemWritableFileStream | undefined = undefined;
 
     async getFile(): Promise<File> {
-        filesystemDebug("[getfile]");
+        wasiFileSystemDebug("[getfile]");
         // TODO: do we really have to?
         //await this.flush();
         const f = await this._handle.getFile();
@@ -427,24 +420,24 @@ export class OpenFile implements Readable, Writable {
     }
 
     async read(len: number): Promise<Uint8Array> {
-        filesystemDebug(`[read] len: ${len}`);
+        wasiFileSystemDebug(`[read] len: ${len}`);
         const file = await this.getFile();
-        filesystemDebug(`[read] file`, file);
+        wasiFileSystemDebug(`[read] file`, file);
         let toPos = this.position + len;
         if (toPos > file.size) {
             toPos = file.size;
         }
-        filesystemDebug(`[read] slicing from: ${this.position} to ${toPos}`);
+        wasiFileSystemDebug(`[read] slicing from: ${this.position} to ${toPos}`);
         const slice = file.slice(this.position, toPos);
-        filesystemDebug(`[read] slice`, slice);
+        wasiFileSystemDebug(`[read] slice`, slice);
         const arrayBuffer = await slice.arrayBuffer();
-        filesystemDebug(`[read] arrayBuffer`, arrayBuffer);
+        wasiFileSystemDebug(`[read] arrayBuffer`, arrayBuffer);
         this.position += arrayBuffer.byteLength;
         return new Uint8Array(arrayBuffer);
     }
 
     async write(data: Uint8Array): Promise<void> {
-        filesystemDebug("[write]");
+        wasiFileSystemDebug("[write]");
         const writer = await this._getWriter();
         if (this.fdFlags & FdflagsN.APPEND) {
             // if Append mode then write to the end position of the file
@@ -456,7 +449,7 @@ export class OpenFile implements Readable, Writable {
     }
 
     async flush(): Promise<void> {
-        filesystemDebug("[flush]");
+        wasiFileSystemDebug("[flush]");
         if (!this._writer) return;
         await this._writer.close();
         this._writer = undefined;
@@ -510,7 +503,7 @@ export const FIRST_PREOPEN_FD = 3 as Fd;
 
 export class OpenFiles {
     constructor(preOpen: Record<string, FileSystemDirectoryHandle>) {
-        filesystemDebug("[preOpen]", preOpen);
+        wasiFileSystemDebug("[preOpen]", preOpen);
         for (const path in preOpen) {
             this._add(path, preOpen[path]);
         }
@@ -522,8 +515,8 @@ export class OpenFiles {
     private _firstNonPreopenFd: Fd;
 
     getPreOpen(fd: Fd): OpenDirectory {
-        filesystemDebug(`[getpreopen fd: ${fd}]`);
-        filesystemDebug("OpenFiles.this: ", this);
+        wasiFileSystemDebug(`[getpreopen fd: ${fd}]`);
+        wasiFileSystemDebug("OpenFiles.this: ", this);
         if (fd >= FIRST_PREOPEN_FD && fd < this._firstNonPreopenFd) {
             return this.get(fd) as OpenDirectory;
         } else {
@@ -531,8 +524,24 @@ export class OpenFiles {
         }
     }
 
+    getPreOpens(): [OpenDirectory, number, string][] {
+        const preopens: [OpenDirectory, number, string][] = [];
+        const preopen_fd = FIRST_PREOPEN_FD;
+        try {
+            for (let i = preopen_fd; true; i++) {
+                const openDir = this.getPreOpen(i);
+                const path = openDir.path;
+                preopens.push([openDir, i, path]);
+            }
+        } catch (err: any) {
+            wasiError("getDirectories: err: ", err);
+        }
+        return preopens;
+    }
+
+
     async open(preOpen: OpenDirectory, path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
-        filesystemDebug(`[open] path: ${path} openFlags: ${openFlags} fsFlags: ${fdFlags}`);
+        wasiFileSystemDebug(`[open] path: ${path} openFlags: ${openFlags} fsFlags: ${fdFlags}`);
         if (path.startsWith("/")) {
             throw new SystemError(ErrnoN.PERM);
         }
@@ -550,8 +559,19 @@ export class OpenFiles {
         return this._add(pathWithPrefix, fileOrDir, fdFlags);
     }
 
+    async openRelativeToRoot(path: string, openFlags?: Oflags, fdFlags?: Fdflags): Promise<number> {
+        let foundRel = this.findRelPath(path);
+        if (foundRel) {
+            let preopenDir = foundRel.preOpen;
+            let num = await this.open(preopenDir, path);
+            return num;
+        } else {
+            throw new SystemError(ErrnoN.NOENT);            
+        }
+    }
+
     get(fd: Fd): OpenResource {
-        filesystemDebug(`[get] fd: ${fd}`);
+        wasiFileSystemDebug(`[get] fd: ${fd}`);
         const openFile = this._files.get(fd);
         if (!openFile) {
             throw new SystemError(ErrnoN.BADF);
@@ -560,7 +580,7 @@ export class OpenFiles {
     }
 
     exists(fd: Fd): boolean {
-        filesystemDebug(`[exists] fd: ${fd}`);
+        wasiFileSystemDebug(`[exists] fd: ${fd}`);
         const openFile = this._files.get(fd);
         if (!openFile) {
             return false;
@@ -569,12 +589,12 @@ export class OpenFiles {
     }
 
     set(fd: Fd, res: OpenResource) {
-        filesystemDebug(`[set] fd: ${fd}`);
+        wasiFileSystemDebug(`[set] fd: ${fd}`);
         this._files.set(fd, res);
     }
 
     add(res: OpenResource): Fd {
-        filesystemDebug("[add]", res);
+        wasiFileSystemDebug("[add]", res);
         this._files.set(this._nextFd, res);
         const newFd = this._nextFd++ as Fd;
         const resAny = res as any;
@@ -586,7 +606,7 @@ export class OpenFiles {
     }
 
     addResource(res: Resource): Fd {
-        filesystemDebug("[addResource]", res);
+        wasiFileSystemDebug("[addResource]", res);
         return this.add(res);
     }
 
@@ -685,13 +705,13 @@ export class OpenFiles {
     }
 
     async renumber(from: Fd, to: Fd): Promise<void> {
-        filesystemDebug("[renumber] from fd:", from, "to fd:", to);
+        wasiFileSystemDebug("[renumber] from fd:", from, "to fd:", to);
         await this.close(to);
         this._files.set(to, this._take(from));
     }
 
     async close(fd: Fd) {
-        filesystemDebug("[close] fd:", fd);
+        wasiFileSystemDebug("[close] fd:", fd);
         const res = this._take(fd);
         const fdhandle = res as any;
         if (fdhandle.close) {
@@ -700,7 +720,7 @@ export class OpenFiles {
     }
 
     async closeReader(fd: Fd) {
-        filesystemDebug("[closeReader]");
+        wasiFileSystemDebug("[closeReader]");
         if (this.isFile(fd)) {
             const reader = this._take(fd) as OpenFile;
             await reader.close();
@@ -708,7 +728,7 @@ export class OpenFiles {
     }
 
     async closeWriter(fd: Fd) {
-        filesystemDebug("[closeWriter]");
+        wasiFileSystemDebug("[closeWriter]");
         if (this.isFile(fd)) {
             const writer = this._take(fd) as OpenFile;
             await writer.close();
@@ -775,7 +795,7 @@ export class OpenFiles {
 
     async disposeResource(resource: Resource): Promise<void> {
         const resId = resource.resource;
-        filesystemDebug("[disposeResource] resource:", resource);
+        wasiFileSystemDebug("[disposeResource] resource:", resource);
         const _res = this._take(resId);
     }
 
@@ -785,34 +805,91 @@ export class OpenFiles {
     }
 
     async mountHandleOnRoot(handle: Handle, subDir = handle.name) {
-        return await this.mountHandleOnPath(handle, "/", subDir);
+        return await this.mountHandleOnUnderRootOnPath(handle, "/", subDir);
     }
 
-    async mountHandleOnPath(handle: Handle, destPath: string, subDir = handle.name) {
+    async mountHandleOnUnderRootOnPath(handle: Handle, destPath: string, subDir = handle.name) {
         if (subDir != handle.name) {
             // @ts-ignore
             handle.name = subDir;
         }
         const rootFd = FIRST_PREOPEN_FD;
         const rootDir = this.getAsDir(rootFd);
-        filesystemDebug(`mountHandleOnPath destPath: ${destPath} rootDirOpenFile: `, rootDir);
+        wasiFileSystemDebug(`mountHandleOnUnderRootOnPath destPath: ${destPath} rootDirOpenFile: `, rootDir);
         if (rootDir) {
-            const rootDirHandle = rootDir._handle;
-            filesystemDebug("mountHandleOnPath rootDirDirHandle: ", rootDirHandle);
-            let dirHandleToMountOn = rootDirHandle as any;
+            let parentDirHandle = rootDir._handle;
+            wasiFileSystemDebug(`mountHandleOnUnderRootOnPath destPath: ${destPath} parentDirHandle: `, parentDirHandle);
             if (destPath != "/") {
-                dirHandleToMountOn = await openDirectoryHandle(rootDirHandle, destPath);
+                parentDirHandle = await openDirectoryHandle(parentDirHandle, destPath);
             }
-            if (dirHandleToMountOn.insertHandle) {
-                dirHandleToMountOn.insertHandle(handle);
-            } else {
-                console.warn("Could not mount subdirectory on root: ", handle);
-            }
+            wasiFileSystemDebug("mountHandleOnUnderRootOnPath parentDirHandle: ", parentDirHandle);
+            return await this.mountHandleUnderParentOnPath(parentDirHandle, handle, subDir)
         }
     }
 
+    async unMountFomAbsolutePath(mountPath: string) {
+        const rootFd = FIRST_PREOPEN_FD;
+        const rootDir = this.getAsDir(rootFd);
+        let rootDirHandle = rootDir._handle;
+        return await this.unMountFomRelativePath(rootDirHandle, mountPath);
+    }
+    
+    async unMountFomRelativePath(dirHandle: FileSystemDirectoryHandle, mountPath: string) {
+        let dirHandleAny = dirHandle as any;
+        if (dirHandleAny.removeMounted) {
+            let mountableHandle = dirHandleAny as Mountable;
+            await mountableHandle.removeMounted(mountPath);
+        }
+    }
+
+
+    async listMountsUnderAbsolutePath(path: string): Promise<MountedEntry[]>{
+        const rootFd = FIRST_PREOPEN_FD;
+        const rootDir = this.getAsDir(rootFd);
+        let rootDirHandle = rootDir._handle;
+        let mountDirHandle = rootDirHandle;
+        if (path == "/") {
+            mountDirHandle = rootDirHandle
+        } else {
+            mountDirHandle = await openDirectoryHandle(rootDirHandle, path);
+        }
+        let mountDirAny = mountDirHandle as any;
+        if (mountDirAny.listMounted) {
+            let mountableDir = mountDirAny as Mountable;
+            return await mountableDir.listMounted();
+        }
+        return [];
+    }
+
+    async listMountsUnderDirectoryHandle(dirHandle: FileSystemDirectoryHandle): Promise<MountedEntry[]>{
+        let mountDirAny = dirHandle as any;
+        if (mountDirAny.listMounted) {
+            let mountableDir = mountDirAny as Mountable;
+            return await mountableDir.listMounted();
+        }
+        return [];
+    }
+
+
+    async mountHandleUnderParentOnPath(parentHandle: FileSystemDirectoryHandle, handle: Handle, subDir = handle.name) {
+        if (subDir != handle.name) {
+            // @ts-ignore
+            handle.name = subDir;
+        }
+        wasiFileSystemDebug("mountHandleUnderParentOnPath parentHandle: ", parentHandle);
+        let dirHandleToMountOn = parentHandle as any;
+        if (dirHandleToMountOn.mountHandle) {
+            let dirHandleToMountOnUnion = dirHandleToMountOn as Mountable;
+            dirHandleToMountOnUnion.mountHandle(handle);
+        } else {
+            wasiFileSystemDebug("Could not mount subdirectory on root: ", handle);
+            throw new Error(`Could not mount subdirectory on root ${handle.name}`);
+        }
+    }
+
+
     private _add(path: string, handle: Handle, fsFlags?: Fdflags) {
-        filesystemDebug("[_add]", path);
+        wasiFileSystemDebug("[_add]", path);
         this._files.set(
             this._nextFd,
             handle.kind === "file" ? new OpenFile(path, handle, fsFlags) : new OpenDirectory(path, handle)
@@ -821,7 +898,7 @@ export class OpenFiles {
     }
 
     private _take(fd: Fd) {
-        filesystemDebug("[_take]");
+        wasiFileSystemDebug("[_take]");
         const handle = this.get(fd);
         this._files.delete(fd);
         return handle;
@@ -830,7 +907,8 @@ export class OpenFiles {
     // Translation of the algorithm from __wasilibc_find_relpath.
     // eslint-disable-next-line @typescript-eslint/member-ordering
     findRelPath(path: string) {
-        filesystemDebug("[findRelPath]");
+        wasiFileSystemDebug("[findRelPath]");
+        let fdNumber = 0;
         /// Are the `prefix_len` bytes pointed to by `prefix` a prefix of `path`?
         function prefixMatches(prefix: string, path: string) {
             // Allow an empty string as a prefix of any relative path.
@@ -859,7 +937,8 @@ export class OpenFiles {
         let matchLen = 0;
         let foundPre;
         for (let i = this._firstNonPreopenFd - 1; i >= FIRST_PREOPEN_FD; --i) {
-            const pre = this.get(i as Fd) as OpenDirectory;
+            let fdNumberTry = i;
+            const pre = this.get(fdNumberTry as Fd) as OpenDirectory;
             let prefix = pre.path;
 
             if (path !== "." && !path.startsWith("./")) {
@@ -877,12 +956,12 @@ export class OpenFiles {
             // the requested path, take that as the new best path.
             if ((!foundPre || prefix.length > matchLen) && prefixMatches(prefix, path)) {
                 foundPre = pre;
+                fdNumber = fdNumberTry;
                 matchLen = prefix.length;
             }
         }
 
         if (!foundPre) {
-            //throw new Error(`Couldn't resolve the given path via preopened directories.`);
             throw new SystemError(ErrnoN.NOENT);
         }
 
@@ -896,8 +975,30 @@ export class OpenFiles {
         computed = computed || ".";
 
         return {
+            preopenFd: fdNumber,
             preOpen: foundPre,
             relativePath: computed,
         };
+    }
+
+    /**
+     * 
+     * Returns a new OpenFiles cloned from subdirectory
+     * 
+     * @param subPath 
+     * @returns 
+     */
+    async cloneFromPath(subPath: string) {
+        let relativeRootDir: FileSystemDirectoryHandle | undefined = undefined;
+        const relPreOpen = this.findRelPath(subPath);
+        if (relPreOpen) {
+            const preOpenDir = relPreOpen.preOpen;
+            relativeRootDir = await preOpenDir.getFileOrDir(subPath, FileOrDir.Dir);
+        }
+        let relPreopenMap: Record<string, FileSystemDirectoryHandle> = {};
+        if (relativeRootDir !== undefined) {
+            relPreopenMap["/"] = relativeRootDir;
+        }
+        return new OpenFiles( relPreopenMap );
     }
 }

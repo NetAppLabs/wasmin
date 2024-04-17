@@ -1,26 +1,33 @@
 import { clamp_host } from "./intrinsics.js";
 import { TTY } from "./tty.js";
 import { WasiEnv } from "./wasi.js";
-import { wasiDebug } from "./wasiUtils.js";
 
-export function addWasiExperimentalConsoleToImports(imports: any, obj: WasiExperimentalConsole) {
-    if (!("wasi-experimental-console" in imports)) imports["wasi-experimental-console"] = {};
-    imports["wasi-experimental-console"]["term-get-columns"] = async function () {
+export function addWasiExperimentalConsoleToImports(importNs: string, imports: any, obj: WasiExperimentalConsole) {
+    if (!(importNs in imports)) imports[importNs] = {};
+    let term_get_columns_func = async function () {
         const ret = await obj.termGetColumns();
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-get-rows"] = async function () {
+    imports[importNs]["term_get_columns"] = term_get_columns_func;
+    imports[importNs]["term-get-columns"] = term_get_columns_func;
+    let term_get_rows_func = async function () {
         const ret = await obj.termGetRows();
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-set-raw-mode"] = async function (arg0: number) {
+    imports[importNs]["term_get_rows"] = term_get_rows_func;
+    imports[importNs]["term-get-rows"] = term_get_rows_func;
+    let term_set_raw_mode_func = async function (arg0: number) {
         const ret = await obj.termSetRawMode(arg0 >>> 0);
         return clamp_host(ret, 0, 4294967295);
     };
-    imports["wasi-experimental-console"]["term-get-raw-mode"] = async function () {
+    imports[importNs]["term_set_raw_mode"] = term_set_raw_mode_func;
+    imports[importNs]["term-set-raw-mode"] = term_set_raw_mode_func;
+    let term_get_raw_mode_func = async function () {
         const ret = await obj.termGetRawMode();
         return clamp_host(ret, 0, 4294967295);
     };
+    imports[importNs]["term_get_raw_mode"] = term_get_raw_mode_func;
+    imports[importNs]["term-get-raw-mode"] = term_get_raw_mode_func;
 }
 
 export interface WasiExperimentalConsole {
@@ -44,7 +51,6 @@ class WasiExperimentalConsoleHost implements WasiExperimentalConsole {
         return size.rows;
     }
     async termSetRawMode(mode: number): Promise<number> {
-        wasiDebug(`termSetRawMode mode: ${mode}`);
         if (mode == 1) {
             if (this._tty) {
                 const rawMode = true;
@@ -73,5 +79,11 @@ class WasiExperimentalConsoleHost implements WasiExperimentalConsole {
 
 export function initializeWasiExperimentalConsoleToImports(imports: any, tty: TTY) {
     const wHost = new WasiExperimentalConsoleHost(tty);
-    addWasiExperimentalConsoleToImports(imports, wHost);
+    let experimentalConsoleImportNs1 = "wasi_experimental_console";
+    addWasiExperimentalConsoleToImports(experimentalConsoleImportNs1, imports, wHost);
+    let experimentalConsoleImportNs2 = "wasi-experimental-console";
+    addWasiExperimentalConsoleToImports(experimentalConsoleImportNs2, imports, wHost);
+    let wasiPreview1Ns = "wasi_snapshot_preview1";
+    addWasiExperimentalConsoleToImports(wasiPreview1Ns, imports, wHost);
+
 }

@@ -2,9 +2,9 @@ import { CliBaseEnvironmentNamespace as clibe } from "@wasmin/wasi-snapshot-prev
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 type CliBaseEnvironmentAsync = clibe.WasiCliEnvironment;
 import { CliBaseExitNamespace as clib } from "@wasmin/wasi-snapshot-preview2/async";
-import { ExitStatus } from "../../wasiUtils.js";
+import { ExitStatus } from "../../wasiPreview1Utils.js";
 type Result<T, E> = clib.Result<T, E>;
-import { wasiError } from "../../wasiUtils.js";
+import { wasiError } from "../../wasiDebug.js";
 import { CliBaseStderrNamespace as clibsderrns } from "@wasmin/wasi-snapshot-preview2/async";
 type CliBaseStderrAsync = clibsderrns.WasiCliStderr;
 type OutputStream = clibsderrns.OutputStream;
@@ -12,7 +12,7 @@ import { CliBaseStdinNamespace as clibsdinns } from "@wasmin/wasi-snapshot-previ
 type CliBaseStdinAsync = clibsdinns.WasiCliStdin;
 type InputStream = clibsdinns.InputStream;
 import { CliBaseStdoutNamespace as clibsdoutns } from "@wasmin/wasi-snapshot-preview2/async";
-import { wasiPreview2Debug } from "./preview2Utils.js";
+import { wasiPreview2Debug } from "../../wasiDebug.js";
 import { InStream, OutStream } from "./io.js";
 type CliBaseStdoutAsync = clibsdoutns.WasiCliStdout;
 

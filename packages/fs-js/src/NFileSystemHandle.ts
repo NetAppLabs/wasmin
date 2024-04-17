@@ -7,10 +7,19 @@ const FS_DEBUG = false;
 export class NFileSystemHandle implements FileSystemHandle {
     constructor(public adapter: FileSystemHandle) {
         this.kind = adapter.kind;
-        this.name = adapter.name;
+        //this.name = adapter.name;
     }
-    name: string;
     kind: FileSystemHandleKind;
+
+    get name(){
+        return this.adapter.name;
+    }
+
+    set name(name: string){
+        // @ts-ignore
+        this.adapter.name = name
+    }
+
 
     fsDebug(message?: any, ...optionalParams: any[]) {
         if (FS_DEBUG) {

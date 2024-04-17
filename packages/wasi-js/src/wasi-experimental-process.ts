@@ -1,25 +1,33 @@
-import { getOriginPrivateDirectory, join, memory } from "@wasmin/fs-js";
-import { FileOrDir, OpenFiles } from "./wasiFileSystem.js";
 import { UTF8_DECODER, clamp_host } from "./intrinsics.js";
-import { WASI, WasiEnv } from "./wasi.js";
-import { wasiDebug, translateErrorToErrorno, parseCStringArray } from "./wasiUtils.js";
-import { Fd } from "./wasi_snapshot_preview1/bindings.js";
-import { TextDecoderWrapper } from "./utils.js";
-import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { WasiEnv } from "./wasi.js";
+import { translateErrorToErrorno, parseCStringArray, parseCStringArrayToKeyValue } from "./wasiPreview1Utils.js";
+import { mutptr, u32, u64 } from "./wasi_snapshot_preview1/bindings.js";
+import { BufferedPipe } from "./wasiPipes.js";
+import { wasiProcessDebug } from "./wasiDebug.js";
+import { ProcessControl, WasiProcess } from "./wasiProcess.js";
+
 
 export function addWasiExperimentalProcessToImports(
+    importsNS: string,
     imports: any,
     obj: WasiExperimentalProcess,
     get_export: (name: string) => WebAssembly.ExportValue
 ): void {
-    if (!("wasi-experimental-process" in imports)) imports["wasi-experimental-process"] = {};
-    imports["wasi-experimental-process"]["exec"] = async function (
+    if (!(importsNS in imports)) imports[importsNS] = {};
+    imports[importsNS]["proc_exec"] = async function (
         arg0: number,
         arg1: number,
         arg2: number,
         arg3: number,
         arg4: number,
-        arg5: number
+        arg5: number,
+        arg6: number,
+        arg7: number,
+        arg8: mutptr<u32>,
+        arg9: mutptr<u32>,
+        arg10: mutptr<u32>,
+        arg11: mutptr<u32>,
+        arg12: mutptr<u64>,
     ) {
         const memory = get_export("memory") as WebAssembly.Memory;
         const ptr0 = arg0;
@@ -28,12 +36,25 @@ export function addWasiExperimentalProcessToImports(
         const len1 = arg3;
         const ptr2 = arg4;
         const len2 = arg5;
+        const ptr3 = arg6;
+        const len3 = arg7;
+        const proc_fd_ptr = arg8;
+        const stdin_ptr = arg9;
+        const stdout_ptr = arg10;
+        const stderr_ptr = arg11;
+        const pid_ptr = arg12;
         let ret = 0;
         try {
             ret = await obj.exec(
                 UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr0, len0)),
                 UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr1, len1)),
-                UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr2, len2))
+                UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr2, len2)),
+                UTF8_DECODER.decode(new Uint8Array(memory.buffer, ptr3, len3)),
+                proc_fd_ptr,
+                stdin_ptr,
+                stdout_ptr,
+                stderr_ptr,
+                pid_ptr,
             );
         } catch (err: any) {
             return translateErrorToErrorno(err);
@@ -47,192 +68,113 @@ export function initializeWasiExperimentalProcessToImports(
     get_export: (name: string) => WebAssembly.ExportValue,
     wasi: WasiEnv
 ) {
-    const wHost = new WasiExperimentalProcessHost(wasi);
-    addWasiExperimentalProcessToImports(imports, wHost, get_export);
+    const wHost = new WasiExperimentalProcessHost(wasi, get_export);
+    let experimentalProcessNs = "wasi_experimental_process";
+    addWasiExperimentalProcessToImports(experimentalProcessNs, imports, wHost, get_export);
+    let wasiPreview1Ns = "wasi_snapshot_preview1";
+    addWasiExperimentalProcessToImports(wasiPreview1Ns, imports, wHost, get_export);
+
 }
 
 export interface WasiExperimentalProcess {
-    exec(cwd: string, name: string, argv: string): Promise<number>;
+    exec(
+        name: string, 
+        cwd: string,
+        argv: string,
+        env: string,
+        proc_fd_ptr: mutptr<u32>,
+        stdin_fd_ptr: mutptr<u32>,
+        stdout_fd_ptr: mutptr<u32>,
+        stderr_fd_ptr: mutptr<u32>,
+        pid_ptr: mutptr<u64>,
+    ): Promise<number>;
 }
 
 class WasiExperimentalProcessHost implements WasiExperimentalProcess {
-    constructor(wasi: WasiEnv) {
-        this._wasiEnv = wasi;
+    constructor(wasiEnv: WasiEnv, get_export?: (name: string) => WebAssembly.ExportValue) {
+        this._wasiEnv = wasiEnv;
+        this._get_exports_func = get_export;
     }
+    public _get_exports_func?: (name: string) => WebAssembly.ExportValue;
     private _wasiEnv: WasiEnv;
-    async exec(cwd: string, name: string, argvString: string): Promise<number> {
-        let nameWasmToWasi = "wasi";
-        wasiDebug("exec cwd: ", cwd);
-        wasiDebug("exec name: ", name);
-        //const argvString = string.get(this._getBuffer(), argv_ptr, argv_len);
-        wasiDebug("exec argvString: ", argvString);
-        const args: string[] = parseCStringArray(argvString);
-        wasiDebug("exec args: ", args);
-
-        // TODO simplify this
-        //prepend name as first arg:
-        //const nameWasm = name + ".wasm";
-
-        let moduleOrSource: WebAssembly.Module | BufferSource | undefined;
-
-        // Name with suffixes to try to execute:
-        const nameWasmTries = [name, name + ".async.wasm", name + ".wasm"];
-
-        for (const nameWasm of nameWasmTries) {
-            wasiDebug("exec args prepended: ", args);
-
-            const tryByPath = true;
-            let tryByUrl = true;
-
-            if (tryByPath) {
-                // Try by filesystem:
-                try {
-                    wasiDebug("cwd: ", cwd);
-                    wasiDebug("nameWasm: ", nameWasm);
-
-                    let wasmFilePath = join(cwd, nameWasm);
-                    if (wasmFilePath.startsWith("/")) {
-                        wasmFilePath = wasmFilePath.substring(1, wasmFilePath.length);
-                    }
-                    wasiDebug("wasi:exec: trying path: ", wasmFilePath);
-
-                    const relOpen = this._wasiEnv.openFiles.findRelPath(cwd);
-                    if (relOpen) {
-                        const preOpenDir = relOpen.preOpen;
-                        wasiDebug("preOpenDir: ", preOpenDir);
-
-                        const wasiFile = await preOpenDir.getFileOrDir(wasmFilePath, FileOrDir.File);
-
-                        const file = await wasiFile.getFile();
-                        const bufferSource = await file.arrayBuffer();
-                        moduleOrSource = bufferSource;
-                        tryByUrl = false;
-                    }
-                } catch (err: any) {
-                    wasiDebug("wasi:exec err: ", err);
-                }
-            }
-
-            if (tryByUrl) {
-                // Try by url:
-                const wasmUrl = "./" + nameWasm;
-                wasiDebug("wasi:exec: trying wasmUrl: ", wasmUrl);
-                try {
-                    //moduleWaiting = WebAssembly.compileStreaming(fetch(wasmUrl));
-                    const res = await fetch(wasmUrl);
-                    if (res.ok) {
-                        const contentType = res.headers.get("Content-Type");
-                        if (contentType == "application/wasm") {
-                            moduleOrSource = await res.arrayBuffer();
-                        }
-                    }
-                } catch (err: any) {
-                    wasiDebug("wasi:exec err: ", err);
-                }
-            }
-
-            if (moduleOrSource) {
-                nameWasmToWasi = nameWasm;
-                //args.splice(0, 0, nameWasm);
-                break;
-            }
-        }
-
-        if (!moduleOrSource) {
-            throw new Error(name + " not found");
-        }
-
-        const devnull = {
-            async read(len: number): Promise<Uint8Array> {
-                return new Promise((resolve) => {
-                    wasiDebug("devnull read: ", len);
-                    resolve(new Uint8Array([]));
-                });
-            },
-            async write(data: Uint8Array): Promise<void> {
-                const textDecoder = new TextDecoderWrapper();
-                const str = textDecoder.decode(data, { stream: true }).replaceAll("\n", "\r\n");
-                wasiDebug("devnull write: ", str);
-            },
-        };
-
-        const devNull = devnull;
-        const runInSandbox = false;
-        let openFiles: OpenFiles;
-        if (runInSandbox) {
-            // not inheriting openfiles from parent:
-            const preOpens: Record<string, FileSystemDirectoryHandle> = {};
-            const memfs = await getOriginPrivateDirectory(memory);
-            preOpens["/"] = memfs;
-            openFiles = new OpenFiles(preOpens);
+    get wasiEnv() {
+        return this._wasiEnv;
+    }
+    get memory(): WebAssembly.Memory | undefined {
+        if (this._get_exports_func) {
+            const eMem = this._get_exports_func("memory");
+            return eMem as WebAssembly.Memory;
         } else {
-            openFiles = this._wasiEnv.openFiles;
+            throw new Error("_get_exports_func not set");
         }
-        const oldStdin = this._wasiEnv.stdin;
-        const oldStdOut = this._wasiEnv.stdout;
-        const oldStderr = this._wasiEnv.stderr;
-        const abortSignal = this._wasiEnv.abortSignal;
-        let oldTtyRawMode = false;
-        if (this._wasiEnv.tty) {
-            oldTtyRawMode = await this._wasiEnv.tty.getRawMode();
+    }
+    get buffer() {
+        if (this.memory) {
+            const memory: WebAssembly.Memory = this.memory;
+            return memory.buffer;
+        } else {
+            throw new Error("memory not set for buffer");
         }
-        const env: Record<string, string> = {};
+    }
+    async exec(
+        name: string,
+        cwd: string,
+        argvString: string,
+        envString: string,
+        proc_fd_ptr: mutptr<u32>,
+        stdin_fd_ptr: mutptr<u32>,
+        stdout_fd_ptr: mutptr<u32>,
+        stderr_fd_ptr: mutptr<u32>,
+        pid_ptr: mutptr<u64>,
+    ): Promise<number> {
+        wasiProcessDebug("exec cwd: ", cwd);
+        wasiProcessDebug("exec name: ", name);
+        //const argvString = string.get(this._getBuffer(), argv_ptr, argv_len);
+        wasiProcessDebug("exec argvString: ", argvString);
+        const args: string[] = parseCStringArray(argvString);
+        wasiProcessDebug("exec args: ", args);
+        wasiProcessDebug("exec envString: ", envString);
+        let env = parseCStringArrayToKeyValue(envString);
 
-        // debug
-        env["RUST_BACKTRACE"] = "1";
-        env["RUST_LOG"] = "wasi=trace";
-        //temp workaround
-        env["USER"] = "none";
-        env["HOME"] = "/";
+        let stdinPtrVal = u32.get(this.buffer, stdin_fd_ptr);
+        wasiProcessDebug("exec stdinPtrVal: ", stdinPtrVal);
+        let stdOutPtrVal = u32.get(this.buffer, stdout_fd_ptr);
+        wasiProcessDebug("exec stdOutPtrVal: ", stdOutPtrVal);
 
-        const tty = this._wasiEnv.tty;
+        let procControl = new ProcessControl();
+        let newStdin = new BufferedPipe();
+        let newStdOut = new BufferedPipe();
+        let newStdErr = new BufferedPipe();
 
-        this._wasiEnv.suspendStdIn = true;
-        this._wasiEnv.stdin = devNull;
-        this._wasiEnv.stderr = devNull;
-        this._wasiEnv.stdout = devNull;
-        if (this._wasiEnv.tty) {
-            // resetting rawMode false for the new process
-            if (this._wasiEnv.tty) {
-                await this._wasiEnv.tty.setRawMode(false);
-            }
-        }
+        let newProcFd = this._wasiEnv.openFiles.add(procControl);
+        let newStdInFd = this._wasiEnv.openFiles.add(newStdin);
+        let newStdOutFd = this._wasiEnv.openFiles.add(newStdOut);
+        let newStdErrFd = this._wasiEnv.openFiles.add(newStdErr);
+        u32.set(this.buffer, proc_fd_ptr, newProcFd);
+        u32.set(this.buffer, stdin_fd_ptr, newStdInFd);
+        u32.set(this.buffer, stdout_fd_ptr, newStdOutFd);
+        u32.set(this.buffer, stderr_fd_ptr, newStdErrFd);
 
-        const exitCode = 0;
+        wasiProcessDebug("setting newProcFd: ", newProcFd);
+        wasiProcessDebug("setting newStdInFd: ", newStdInFd);
+        wasiProcessDebug("setting newStdOutFd: ", newStdOutFd);
+        wasiProcessDebug("setting newStdErrFd: ", newStdErrFd);
 
-        return new Promise((resolve, _reject) => {
-            const w = new WASI({
-                openFiles: openFiles,
-                abortSignal: abortSignal,
-                stdin: oldStdin,
-                stdout: oldStdOut,
-                stderr: oldStderr,
-                args: args,
-                env: env,
-                tty: tty,
-                name: nameWasmToWasi,
-            });
-            w.run(moduleOrSource!)
-                .then((exitCode) => {
-                    if (exitCode !== 0) {
-                        wasiDebug(`exec:run exit code: ${exitCode}`);
-                    }
-                    resolve(exitCode);
-                })
-                .catch((err: any) => {
-                    wasiDebug(`exec:run:catch exitCode: ${exitCode} err: ${err}`);
-                    resolve(translateErrorToErrorno(err));
-                })
-                .finally(async () => {
-                    wasiDebug(`exec:run:finally exitCode: ${exitCode}`);
-                    this._wasiEnv.stdin = oldStdin;
-                    this._wasiEnv.stdout = oldStdOut;
-                    this._wasiEnv.stderr = oldStderr;
-                    this._wasiEnv.suspendStdIn = false;
-                    if (this._wasiEnv.tty) {
-                        await this._wasiEnv.tty.setRawMode(oldTtyRawMode);
-                    }
-                });
-        });
+        let proc = new WasiProcess(
+            this._wasiEnv,
+            name,
+            cwd,
+            args,
+            env,
+            newStdin,
+            newStdOut,
+            newStdErr,
+            procControl
+        );
+
+        let pid = await proc.start();
+
+        u64.set(this.buffer, pid_ptr, pid);
+        return 0;
     }
 }

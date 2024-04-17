@@ -2,7 +2,6 @@
 BIN_SRC="$(realpath -- "${BASH_SOURCE[0]}"; )";
 BIN_DIR="$(dirname -- "${BIN_SRC}" )";
 #export WASMIN_COMPONENT=true
-
 if [ -z "${WASMIN_ROOT}" ]; then
 	WASMIN_ROOT="$(dirname "${BIN_DIR}"; )";
 fi
@@ -12,9 +11,11 @@ if [ -z "${WASMIN_RUNTIME}" ]; then
 fi
 
 if [ "${WASMIN_RUNTIME}" == "deno" ]; then
-	#deno  run --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/index.js $*
-	#deno  run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/index.js $*
-	deno  run --v8-flags=--experimental-wasm-stack-switching,--wasm-staging --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/index.js $*
+	if [ -z "${WASMIN_DENO_USE_JSPI}" ]; then
+		deno  run --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/index.js $*
+	else
+		deno  run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/index.js $*
+	fi
 elif [ "${WASMIN_RUNTIME}" == "bun" ]; then
 	bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 
 fi

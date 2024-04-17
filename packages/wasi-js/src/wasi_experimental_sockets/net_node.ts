@@ -5,12 +5,12 @@ import {
     NodeNetTcpServer,
     NodeNetTcpSocket,
     NodeNetUdpSocket,
-    wasiSocketsDebug,
 } from "./common.js";
 
 import { default as dgram } from "node:dgram";
 import { default as dns } from "node:dns";
 import { promises as dnsPromises } from "node:dns";
+import { wasiSocketsDebug } from "../wasiDebug.js";
 
 export function createNodeTcpSocket(): NodeNetTcpSocket {
     const nodeSock = new net.Socket();

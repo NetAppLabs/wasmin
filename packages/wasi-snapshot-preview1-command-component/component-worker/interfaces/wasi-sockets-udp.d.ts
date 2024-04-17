@@ -20,15 +20,6 @@ export interface OutgoingDatagram {
   remoteAddress?: IpSocketAddress,
 }
 
-export class UdpSocket {
-  startBind(network: Network, localAddress: IpSocketAddress): void;
-  finishBind(): void;
-  stream(remoteAddress: IpSocketAddress | undefined): [IncomingDatagramStream, OutgoingDatagramStream];
-  localAddress(): IpSocketAddress;
-  remoteAddress(): IpSocketAddress;
-  subscribe(): Pollable;
-}
-
 export class OutgoingDatagramStream {
   checkSend(): bigint;
   send(datagrams: OutgoingDatagram[]): bigint;
@@ -37,4 +28,13 @@ export class OutgoingDatagramStream {
 
 export class IncomingDatagramStream {
   receive(maxResults: bigint): IncomingDatagram[];
+}
+
+export class UdpSocket {
+  startBind(network: Network, localAddress: IpSocketAddress): void;
+  finishBind(): void;
+  stream(remoteAddress: IpSocketAddress | undefined): [IncomingDatagramStream, OutgoingDatagramStream];
+  localAddress(): IpSocketAddress;
+  remoteAddress(): IpSocketAddress;
+  subscribe(): Pollable;
 }

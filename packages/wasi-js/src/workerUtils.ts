@@ -1,58 +1,8 @@
 import * as comlink from "comlink";
-import { isNode } from "./wasiUtils.js";
+import { wasiWorkerDebug, wasiWorkerSerializeDebug, wasmWorkerClientDebug } from "./wasiDebug.js";
 
 declare global {
-    var WASI_WORKER_DEBUG: boolean;
-    var WASI_WORKER_SERIALIZE_DEBUG: boolean;
-    var WASM_WORKER_THREAD_DEBUG: boolean;
-    var WASM_WORKER_CLIENT_DEBUG: boolean;
     var WASMIN_WORKER_OVERRIDE_URLS: any;
-}
-globalThis.WASI_WORKER_DEBUG = false;
-globalThis.WASI_WORKER_SERIALIZE_DEBUG = false;
-globalThis.WASM_WORKER_THREAD_DEBUG = false;
-globalThis.WASM_WORKER_CLIENT_DEBUG = false;
-
-export function wasmWorkerClientDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASM_WORKER_CLIENT_DEBUG) {
-        if (isNode()) {
-            workerDebugNode(msg, ...optionalParams);
-        } else {
-            console.debug(msg, ...optionalParams);
-        }
-    }
-}
-
-export async function workerDebugNode(msg?: any, ...optionalParams: any[]): Promise<void> {
-    const { parentPort } = await import("node:worker_threads");
-    if (parentPort) {
-        const message = { msg: msg, params: [...optionalParams] };
-        parentPort.postMessage(message);
-    } else {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasmWorkerThreadDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASM_WORKER_THREAD_DEBUG) {
-        if (isNode()) {
-            workerDebugNode(msg, ...optionalParams);
-        } else {
-            console.debug(msg, ...optionalParams);
-        }
-    }
-}
-
-export function wasiWorkerDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_WORKER_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
-}
-
-export function wasiWorkerSerializeDebug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_WORKER_SERIALIZE_DEBUG) {
-        console.debug(msg, ...optionalParams);
-    }
 }
 
 export function getWorkerOverrideUrls(): Record<string,string> {

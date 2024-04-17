@@ -3,4 +3,9 @@
 world command-extended {
   include wasi:cli/command@0.2.0;
   import wasi:http/outgoing-handler@0.2.0;
+  import wasi-ext:cli/terminal-stdin-extended@0.2.0;
+  import wasi-ext:cli/terminal-stdout-extended@0.2.0;
+  import wasi-ext:cli/terminal-stderr-extended@0.2.0;
+  import wasi-ext:process/process@0.2.0;
+  import wasi-ext:filesystems/mount@0.2.0;
 }

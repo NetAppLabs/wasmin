@@ -14,10 +14,12 @@ import {
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemHandlePermissionDescriptor,
+    Mountable,
     NFileSystemWritableFileStream,
     PreNameCheck,
 } from "../index.js";
 import { FileSystemHandle } from "../index.js";
+import { MountedEntry } from "../ExtHandles.js";
 
 const INDEXEDDB_DEBUG = false;
 
@@ -135,11 +137,16 @@ function store(db: IDBDatabase): [IDBTransaction, IDBObjectStore] {
     return [tx, tx.objectStore("entries")];
 }
 
-function rimraf(evt: any, toDelete: IndexeddbFileHandle | IndexeddbFolderHandle, recursive = true) {
+function rimraf(evt: any, toDelete: IndexeddbFileHandle | IndexeddbFolderHandle, recursive = true, onlyRemoveExternal = false) {
     const { source, result } = evt.target;
-    for (const [id, isFile] of Object.values(toDelete || result)) {
-        if (isFile) source.delete(id);
-        else if (recursive) {
+    for (const [id, isFile, isExternal] of Object.values(toDelete || result)) {
+        if (isExternal) {
+            if (onlyRemoveExternal) {
+                source.delete(id);
+            }
+        } else if (isFile) {
+            source.delete(id);
+        } else if (recursive) {
             source.get(id).onsuccess = rimraf;
             source.delete(id);
         } else {
@@ -155,7 +162,7 @@ function rimraf(evt: any, toDelete: IndexeddbFileHandle | IndexeddbFolderHandle,
 }
 
 export class IndexeddbFolderHandle
-    implements ImplFolderHandle<IndexeddbFileHandle, IndexeddbFolderHandle>, FileSystemDirectoryHandle
+    implements ImplFolderHandle<IndexeddbFileHandle, IndexeddbFolderHandle>, FileSystemDirectoryHandle, Mountable
 {
     constructor(db: IDBDatabase, id: IDBValidKey, name: string) {
         this._db = db;
@@ -167,6 +174,7 @@ export class IndexeddbFolderHandle
         this.path = "";
         this._cachedEntries = {};
     }
+
     path: string;
     _db: IDBDatabase;
     _id: IDBValidKey;
@@ -402,7 +410,7 @@ export class IndexeddbFolderHandle
         });
     }
 
-    async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
+    async removeEntry(name: string, opts?: { recursive?: boolean, onlyExternal?: boolean }): Promise<void> {
         PreNameCheck(name);
         return new Promise<void>((resolve, reject) => {
             const [tx, table] = store(this._db);
@@ -417,7 +425,17 @@ export class IndexeddbFolderHandle
                 }
                 delete cwd[name];
                 table.put(cwd, this._id);
-                rimraf(evt, toDeleteFileOrFolder, !!opts.recursive);
+                let isRecursive = false;
+                let onlyExternal = false;
+                if (opts !== undefined) {
+                    if (opts.recursive !== undefined) {
+                        isRecursive = opts.recursive;
+                    }
+                    if (opts.onlyExternal !== undefined) {
+                        onlyExternal = opts.onlyExternal;
+                    }
+                }
+                rimraf(evt, toDeleteFileOrFolder, isRecursive, onlyExternal);
             };
             tx.oncomplete = () => {
                 delete this._cachedEntries[name];
@@ -430,7 +448,7 @@ export class IndexeddbFolderHandle
         });
     }
 
-    async insertHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
+    async mountHandle(handle: FileSystemHandle): Promise<FileSystemHandle> {
         const name = handle.name;
         const create = true;
         return new Promise((resolve, reject) => {
@@ -455,6 +473,69 @@ export class IndexeddbFolderHandle
                     : reject(new NotFoundError());
             };
         });
+    }
+    async removeMounted(path: string): Promise<void> {
+        let indexOfSlash = path.indexOf("/");
+        if (indexOfSlash == -1 ) {
+            await this.removeEntry(path, {recursive: false, onlyExternal: true})
+        } else if (indexOfSlash == 0 ) {
+            let subPath = path.substring(1);
+            await this.removeMounted(subPath);
+        } else if (indexOfSlash > 0 ) {
+            let subName = path.substring(0, indexOfSlash);
+            let restPath = path.substring(indexOfSlash+1);
+            let subdir = await this.getDirectoryHandle(subName);
+            await subdir.removeMounted(restPath);
+        }
+    }
+    async listMounted(recurseDepth?: number): Promise<MountedEntry[]> {
+        if (recurseDepth == undefined) {
+            recurseDepth = 3;
+        }
+        let ret: MountedEntry[] = [];
+        const req = store(this._db)[1].get(this._id);
+        await new Promise<void>((rs, rj) => {
+            req.onsuccess = () => rs();
+            req.onerror = () => rj(req.error);
+        });
+        const entries = req.result as IndexeddbFileHandle | IndexeddbFolderHandle[];
+        if (!entries) throw new NotFoundError();
+        for (const [name, [id, isFile, isExternal]] of Object.entries(entries)) {
+            if (isExternal) {
+                const extHandle = await this.getExternalFolderHandle(name, id, isFile, isExternal);
+                // @ts-ignore
+                let source = extHandle.url;
+                if (source == undefined) {
+                    let extHandleAny = extHandle as any;
+                    let adapterHandle = extHandleAny.adapter;
+                    if (adapterHandle !== undefined) {
+                        source = adapterHandle.url;
+                    }
+                }
+                if (source == undefined) {
+                    source = "";
+                }
+                let entry: MountedEntry = {
+                    path: name,
+                    source: source,
+                    attributes: []
+                }
+                ret.push(entry);
+            } else if (isFile) {
+                indexedDBDebug(`skipping file ${name} from listMounted`);
+            } else {
+                if (recurseDepth > 0) {
+                    let subDir = await this.getDirectoryHandle(name);
+                    let subMounted = await subDir.listMounted(recurseDepth-1);
+                    for (const subMount of subMounted) {
+                        let subPath = subMount.path;
+                        subMount.path = name + "/" + subPath;
+                        ret.push(subMount);
+                    }
+                }
+            }
+        }
+        return ret;
     }
 
     async loadSecurityStore(): Promise<any> {

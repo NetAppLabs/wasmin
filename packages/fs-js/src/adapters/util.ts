@@ -175,8 +175,12 @@ export async function openHandle(
                     return retDirHandle;
                 }
             } else {
-                utilDebug(`openHandle: before getDirectoryHandle pathPart: ${pathPart}`);
-                dirHandle = await dirHandle.getDirectoryHandle(pathPart);
+                if (pathPart == ".") {
+                    dirHandle = dirHandle;
+                } else {
+                    utilDebug(`openHandle: before getDirectoryHandle pathPart: ${pathPart}`);
+                    dirHandle = await dirHandle.getDirectoryHandle(pathPart);
+                }
             }
         }
     }

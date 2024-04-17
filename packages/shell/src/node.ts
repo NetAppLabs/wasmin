@@ -1,7 +1,8 @@
 import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray } from "@wasmin/wasi-js";
 import { promises } from "node:fs";
+import { Socket } from "node:net";
 
-// File & Blob is now in node v19 (19.2)
+// File & Blob is now in node v19+ (19.2)
 // ignored for now because @types/node is not updated for node 19.2
 // @ts-ignore
 //import { File, Blob } from 'node:buffer';
@@ -18,8 +19,10 @@ import { github } from "@wasmin/github-fs-js";
 import { parseArgs } from "node:util";
 
 import chalk from 'chalk';
+import { BufferedPipe } from "@wasmin/wasi-js";
+import { initializeLogging } from "@wasmin/wasi-js";
 
-const DEBUG_MODE = false;
+let DEBUG_MODE = false;
 const USE_MEMORY = false;
 
 const textEncoder = new TextEncoder();
@@ -27,25 +30,36 @@ const textDecoder = new TextDecoder();
 
 const cols = process.stdout.columns;
 const rows = process.stdout.rows;
-const rawMode = false;
 
-const modeListener = function (rawMode: boolean): void {
+const rawModeListener = async function (rawMode: boolean): Promise<void> {
+    shellDebug("node rawModeListener, setRawMode ", rawMode);
     if (rawMode) {
         process.stdin.setRawMode(rawMode);
+        while (process.stdin.isRaw != rawMode) {
+            shellDebug("node rawModeListener, process.stdin.isRaw ", process.stdin.isRaw);
+            await sleep(1);
+        }
     } else {
         process.stdin.setRawMode(rawMode);
+        while (process.stdin.isRaw != rawMode) {
+            shellDebug("node rawModeListener, process.stdin.isRaw ", process.stdin.isRaw);
+            await sleep(1);
+        }
     }
 };
 
-const SHELL_DEBUG = false;
+declare global {
+    var SHELL_DEBUG: boolean;
+}
+globalThis.SHELL_DEBUG = false;
 
 function shellDebug(...args: any) {
-    if (SHELL_DEBUG) {
+    if (globalThis.SHELL_DEBUG) {
         console.debug(...args);
     }
 }
 
-const tty = new TTYInstance(cols, rows, rawMode, modeListener);
+const tty = new TTYInstance(cols, rows, process.stdin.isRaw, rawModeListener);
 
 async function termResize() {
     var columns = process.stdout.columns;
@@ -54,91 +68,11 @@ async function termResize() {
         columns: columns,
         rows: rows,
     }
+    shellDebug(`termResize columns: ${columns} , rows: ${rows}`)
     await tty.setSize(size);
 }
 process.stdout.on("resize", termResize);
 
-class BufferedIn implements Readable {
-    _chunksQueue: Array<Uint8Array> = [];
-    read: (len: number) => Promise<Uint8Array>;
-    peek: () => Promise<number>;
-    constructor() {
-        this.read = this.readFunc.bind(this);
-        this.peek = this.peekFunc.bind(this);
-    }
-    get lastbuf() {
-        return this._chunksQueue.shift();
-    }
-
-    // Returns the number of bytes available if any
-    async peekFunc(): Promise<number> {
-        let trynum = 0;
-        let tries = 500;
-        while (trynum < tries) {
-            const buf = this._chunksQueue.at(0);
-            if (buf) {
-                if (buf.length > 0) {
-                    return buf.length;
-                }
-            }
-            await sleep(10);
-            trynum ++;
-        }
-        return 0;
-    }
-
-    // Reads at maximum len number of bytes from buffer 
-    async readFunc(len: number): Promise<Uint8Array> {
-        return await this.readRecurseFunc(len, false);
-    }
-
-    // Reads recurively
-    async readRecurseFunc(len: number, isRecursing?: boolean): Promise<Uint8Array> {
-        if (len > 0) {
-            const buf = this.lastbuf;
-            if (buf) {
-                const databufferLen = buf.length;
-                if (databufferLen > 0) {
-                    if (len < databufferLen) {
-                        const retChunks = buf.subarray(0, len);
-                        const leftChunks = buf.subarray(len);
-                        // insert back the remains of the chunk
-                        this._chunksQueue.unshift(leftChunks);
-                        return retChunks;
-                    } if (len == databufferLen) {
-                        const retChunks = buf;
-                        return retChunks;
-                    } else {
-                        // len > databufferLen
-                        const firstChunk = buf;
-                        const restLen = len - databufferLen;
-                        // try read remaining of len and append it
-                        const nextChunk = await this.readRecurseFunc(restLen, true);
-                        const retChunks = appendToUint8Array(firstChunk, nextChunk);
-                        return retChunks;
-                    }
-                }
-            }
-        }
-        if (!isRecursing) {
-            // sleep here to avoid blocking
-            // because sometimes read is called in a loop
-            await sleep(10);
-        }
-        return new Uint8Array(0);
-    }
-
-    // Callback to add data to buffer
-    ondata(data: Uint8Array): void {
-        this._chunksQueue.push(data);
-    }
-
-    // Callback to add string data to buffer
-    ondatastring(sdata: string): void {
-        const data = textEncoder.encode(sdata);
-        this.ondata(data);
-    }
-}
 
 export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Array {
     const newArray = new Uint8Array(arr.length + data.length);
@@ -148,59 +82,81 @@ export function appendToUint8Array(arr: Uint8Array, data: Uint8Array): Uint8Arra
 }
 
 
-const stdin = new BufferedIn();
-const onDataFunc = stdin.ondatastring.bind(stdin);
-process.stdin.on("data", onDataFunc);
-
-/*
-const stdin = {
-    async read(_num: number) {
-        let mychar = "";
-        try {
-            await new Promise<void>((resolve) => {
-                process.stdin.once("data", function (chunk) {
-                    const s: string = chunk as unknown as string;
-                    if (DEBUG_MODE) {
-                        console.debug("read from stdin: ", s);
-                    }
-                    mychar = s;
-                    return resolve();
-                });
-            });
-        } finally {
-            if (DEBUG_MODE) {
-                console.debug("stdin::read finally");
-            }
+const stdin = new BufferedPipe();
+const onDataFunc = stdin.ondata.bind(stdin);
+let onDataFuncProxy = (sbdata: Uint8Array|string) => {
+    let sdata: string;
+    if (isString(sbdata)) {
+        sdata = sbdata as string;
+    } else if (sbdata instanceof Buffer) {
+        let bdata = sbdata as Buffer;
+        const arrayBuffer = new ArrayBuffer(bdata.length);
+        const view = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < bdata.length; ++i) {
+            view[i] = bdata[i];
         }
-        return textEncoder.encode(mychar);
+        sbdata = view;
+        let adata = sbdata as Uint8Array;
+        sdata = textDecoder.decode(adata);
+    } else {
+        let adata = sbdata as Uint8Array;
+        sdata = textDecoder.decode(adata);
     }
-};
-*/
+    shellDebug("stdin onDataFuncProxy: ", sbdata);
+    if (sdata.includes('\x1b[')) {
+        shellDebug("stdin including control");
+        if (sdata.endsWith("R")) {
+            shellDebug("stdin returning cursor position");
+        }
+    }
+    return onDataFunc(sbdata);
+}
+if (SHELL_DEBUG) {
+    process.stdin.on("data", onDataFuncProxy);
+} else {
+    process.stdin.on("data", onDataFunc);
+}
+
+
+function isString(input: any) {  
+    return typeof input === 'string' && Object.prototype.toString.call(input) === '[object String]'
+}
+
+
+/**
+ * asyncWrite to make sure writes are finihsed on underlying
+ * streams (stdin/stdout)
+ **/
+async function asyncWrite(stream: Socket, buf: Uint8Array | string) {
+    var done = stream.write(buf);
+    if (!done) {
+        await new Promise(function (resolve) {
+            let writeResolver: any = undefined;
+            stream.on('drain', function () {
+                if (writeResolver) writeResolver();
+            });
+            writeResolver = resolve;
+        });
+    }
+}
+
 
 let stdout = {
-    write(data: Uint8Array) {
-        //console.log(" on stdout write callback: data: ", data);
-        let wr = process.stdout.write(data);
+    async write(data: Uint8Array) {
+        let TERM_REQUEST_CURSOR_POS = "\x1b[6n";
+        let str = textDecoder.decode(data);
+        if (str.includes(TERM_REQUEST_CURSOR_POS)){
+            shellDebug("stdout requesting cursor pos");
+        }
+        await asyncWrite(process.stdout, data);
+    },
+};
+let stderr = {
+    async write(data: Uint8Array) {
+        await asyncWrite(process.stderr, data);
     },
 };
 
-let stderr = {
-    write(data: Uint8Array) {
-        process.stderr.write(data);
-    },
-};
-if (DEBUG_MODE) {
-    stderr = {
-        write(data: Uint8Array) {
-            console.error(textDecoder.decode(data, { stream: true }));
-        },
-    };
-    stdout = {
-        write(data: Uint8Array) {
-            console.log(textDecoder.decode(data, { stream: true }));
-        },
-    };
-}
 
 export function getSecretStore(): Record<string, Record<string, string | undefined>> {
     const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
@@ -222,11 +178,11 @@ export function getSecretStore(): Record<string, Record<string, string | undefin
     return secretStore;
 }
 
-export async function getRootFS(driver: any, mountUrl: string, overlay: boolean): Promise<FileSystemDirectoryHandle> {
+export async function getRootFS(driver: any, mountUrl: string, unionOverlay: boolean): Promise<FileSystemDirectoryHandle> {
     const secretStore = getSecretStore();
     let rootfs: FileSystemDirectoryHandle;
     if (mountUrl != "") {
-        rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, overlay);
+        rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, unionOverlay);
     } else {
         // if environment variable NODE_ROOT_DIR is set it will use it as root path
         // else current directory
@@ -234,8 +190,7 @@ export async function getRootFS(driver: any, mountUrl: string, overlay: boolean)
         if (!nodePath || nodePath == "") {
             nodePath = process.cwd();
         }
-
-        rootfs = await getOriginPrivateDirectory(driver, nodePath, overlay);
+        rootfs = await getOriginPrivateDirectory(driver, nodePath, unionOverlay);
     }
     if (rootfs instanceof NFileSystemDirectoryHandle) {
         rootfs.secretStore = secretStore;
@@ -276,7 +231,8 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     if (wasmBuf) {
         return { buffer: wasmBuf, path: wasmBinary };
     } else {
-        throw new Error("Wasm module not found");
+        let yellow = chalk.yellow;
+        throw new Error(`Wasm module ${yellow(wasmBinary)} not found`);
     }
 }
 
@@ -322,6 +278,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 type: 'boolean',
                 short: 'd',
             },
+            trace: {
+                type: 'string',
+                multiple: true,
+            },
+            log: {
+                type: 'string',
+            },
             component: {
                 type: 'boolean',
                 short: 'c',
@@ -339,9 +302,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                 type: 'boolean',
                 short: 'w',
             },
-            overlay: {
+            union: {
                 type: 'boolean',
-                short: 'o',
+                short: 'u',
             },
             count: {
                 type: 'string'
@@ -355,7 +318,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         let componentMode = false;
         let runDebug = false;
         let workerMode = false;
-        let useOverlayFs = false;
+        let useUnionOverlayFs = false;
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
         let mount = true;
@@ -387,24 +350,21 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
         if (values.debug) {
             runDebug = true;
+            DEBUG_MODE = true;
+        }
+        if (values.trace) {
+            let debugComponentsList = processMultipleArgValuesArray(values.trace);
+            activateTraceDebugComponents(debugComponentsList)
+        }
+        if (values.log) {
+            let fileNamePrefix = values.log as string;
+            await initializeLogging({
+                output: "file",
+                fileNamePrefix: fileNamePrefix,
+            })
         }
         if (values.env) {
-            let envsArray: string[] = [];
-            if (isArray(values.env)) {
-                envsArray = values.env as string[];
-            } else {
-                let gotEnv = values.env as string;
-                envsArray = gotEnv.split(",");
-            }
-            for (const envVal of envsArray) {
-                let envKeyVal = envVal.split("=");
-                let envKey = envKeyVal[0];
-                if (envKeyVal.length>1) {
-                    let envVal = envKeyVal[1];
-                    env[envKey] = envVal;
-                }
-            }
-
+            env = processMultipleArgValuesToMap(values.env);
         }
         if (values.mount) {
             mountUrl = values.mount as string;
@@ -413,8 +373,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         if (values.worker) {
             workerMode = true;
         }
-        if (values.overlay) {
-            useOverlayFs = true;
+        if (values.union) {
+            useUnionOverlayFs = true;
         }
         if (values.count) {
             const sRunCount = values.count as string;
@@ -447,14 +407,16 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
    > wasmin [flags] [wasm] [arguments]
 
   ${h2('Flags')}:
-    ${fl('-c')}                          Run in component mode
-    ${fl('-e')}                          Evironment variables
-    ${fl('-d')}                          Debug Mode
-    ${fl('-o')}                          Enable Overlay FileSystem
-    ${fl('-m, --mount')}   ${flv('[path|url]')}    Mount Path or URL and use as root
-    ${fl('-w')}                          Run in worker
-    ${fl('--nomount')}                   No default mount
-    ${fl('--count')}                     Number of identical runs`);
+    ${fl('-c')}                            Run in component mode
+    ${fl('-e')}                            Evironment variables
+    ${fl('-d')}                            Debug Mode
+    ${fl('--trace [comp1,comp2]')}         Enable trace debug for copmonent name (e.g. preview1/preview2)
+    ${fl('--log [filename]')}              Enabling writing log/debug output to file
+    ${fl('-u')}                            Enable Uniion overlayed FileSystem
+    ${fl('-m, --mount')}   ${flv('[path|url]')}      Mount Path or URL and use as root
+    ${fl('-w')}                            Run in worker
+    ${fl('--nomount')}                     No default mount
+    ${fl('--count')}                       Number of identical runs`);
     
             process.exit(0);
         }
@@ -483,45 +445,28 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         //    RegisterProvider("bun", bunfs);
         }
 
-        process.stdin.resume();
+        //process.stdin.resume();
         process.stdin.setEncoding("utf8");
 
         const preOpens: Record<string, FileSystemDirectoryHandle> = {};
         const rootDir = "/";
         const init_pwd = "/";
-        /*if (!env) {
-            env = {
-                RUST_BACKTRACE: "full",
-                //RUST_LOG: "wasi=trace",
-                PWD: init_pwd,
-                TERM: "xterm-256color",
-                COLORTERM: "truecolor",
-                LC_CTYPE: "UTF-8",
-                COMMAND_MODE: "unix2003",
-                //FORCE_HYPERLINK: "true",
-                FORCE_COLOR: "true",
-                PROMPT_INDICATOR: " > ",
-                USER: "none",
-                HOME: "/",
-            };
-        }*/
+
         env["RUST_BACKTRACE"] = "full";
-        //env["RUST_LOG"] = "wasi=trace";
+        env["RUST_LOG"] = "wasi=trace";
         env["PWD"] = "/";
         env["TERM"] = "xterm-256color";
         env["COLORTERM"] = "truecolor";
         env["LC_CTYPE"] = "UTF-8";
         env["COMMAND_MODE"] = "unix2003";
         env["FORCE_COLOR"] = "true";
-        env["PROMPT_INDICATOR"] = " wasmin> ";
+        env["PROMPT_INDICATOR"] = "wasmin> ";
         env["FORCE_COLOR"] = "true";
         //env["FORCE_HYPERLINK"] = "true";
         env["USER"] = "none";
         env["HOME"] = "/";
 
         const abortController = new AbortController();
-
-
         let runs = 0;
         while (runs < runCount) {
             let startTime = performance.now();
@@ -563,7 +508,10 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
-                    console.log(err);
+                    if (DEBUG_MODE) {
+                        console.log(err);
+                    }
+                    prettyPrintError(err);
                     shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
@@ -574,7 +522,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             } else {
                 if (mount) {
                     const driver = USE_MEMORY ? memory : rootfsDriver || node;
-                    const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useOverlayFs);
+                    const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useUnionOverlayFs);
                     preOpens[rootDir] = rootfs;
                 }
                 const openFiles = new OpenFiles(preOpens);
@@ -596,7 +544,10 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         shellDebug(`Exit code: ${statusCode}`);
                     }
                 } catch (err: any) {
-                    console.log(err);
+                    if (DEBUG_MODE) {
+                        console.log(err);
+                    }
+                    prettyPrintError(err);
                     shellDebug(err.message);
                 } finally {
                     if (DEBUG_MODE) {
@@ -614,11 +565,76 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
         process.exit(0);
     } catch (err: any) {
-        if (err.code === 'ARG_UNKNOWN_OPTION') {
-            console.log(err.message);
-        } else {
-            throw err;
-        }    
+        prettyPrintError(err);
+        process.exit(1);
     }
 }
 
+function prettyPrintError(err: any) {
+    let h2 = chalk.green.underline;
+    let rd = chalk.red;
+    let green = chalk.green;
+    let yellow = chalk.yellow;
+
+    let binaryName = process.argv[0];
+    if (binaryName.indexOf("wasmin") == -1 ) {
+        binaryName = "wasmin";
+    }
+    console.log("");
+    console.log(` ${h2('Error running module:')}`);
+    console.log("");
+    console.log(` ${rd(err.message)}`);
+    console.log("");
+    console.log(` ${green(`Please execute ${yellow(binaryName + " -h")} for options`)}`);
+
+}
+
+function processMultipleArgValuesToMap(vals: any){
+    let ret: Record<string,string> = processMultipleArgValues(vals, true) as Record<string,string>;
+    return ret;
+}
+
+function processMultipleArgValuesArray(vals: any, keyValue?: boolean){
+    let ret: string[] = processMultipleArgValues(vals, false) as string[]
+    return ret;
+}
+
+function processMultipleArgValues(vals: any, keyValue?: boolean){
+    let retArray: string[] = [];
+    if (isArray(vals)) {
+        retArray = vals as string[];
+        if (retArray.length == 1 ) {
+            let gotSingle = retArray[0] as string;
+            retArray = gotSingle.split(",");
+        }
+    } else {
+        let gotSingle = vals as string;
+        retArray = gotSingle.split(",");
+    }
+    if (keyValue === true) {
+        let retMap: Record<string,string> = {};
+        for (const keyVal of retArray) {
+            let eKeyVal = keyVal.split("=");
+            let eKey = eKeyVal[0];
+            if (eKeyVal.length>1) {
+                let eVal = eKeyVal[1];
+                retMap[eKey] = eVal;
+            }
+        }
+        return retMap;
+    }
+    return retArray;
+}
+
+function activateTraceDebugComponents(components: string[]) {
+    shellDebug("activateTraceDebugComponents components: ", components);
+    for (const comp of components) {
+        let componentUpperCase = comp.toUpperCase();
+        let var1 = `WASI_${componentUpperCase}_DEBUG`;
+        let var2 = `${componentUpperCase}_DEBUG`;
+        let evalStatement1 = `if (globalThis.${var1} !== undefined) {globalThis.${var1}=true;}`;
+        let evalStatement2 = `if (globalThis.${var2} !== undefined) {globalThis.${var2}=true;}`;
+        eval(evalStatement1);
+        eval(evalStatement2);
+    }
+}

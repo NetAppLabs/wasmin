@@ -33,6 +33,7 @@ await esbuild.build({
     "node:os",
     "node:fs",
     "node:fs/promises",
-    "node:util"
+    "node:util",
+    "bun"
   ]
 })

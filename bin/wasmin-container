@@ -1,0 +1,12 @@
+#!/bin/bash
+
+VERSION="latest"
+
+MOUNT_CURDIR=true
+DOCKER_FLAGS=""
+
+if [ "${MOUNT_CURDIR}" == "true" ]; then
+		DOCKER_FLAGS="-v $(pwd):/mount"
+fi
+		
+docker run -it ${DOCKER_FLAGS} wasmin:${VERSION} $*

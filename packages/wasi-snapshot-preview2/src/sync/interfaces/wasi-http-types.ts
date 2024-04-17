@@ -618,6 +618,22 @@ export type Trailers = Fields;
 export type StatusCode = number;
 export type Result<T, E> = { tag: 'ok', val: T } | { tag: 'err', val: E };
 
+export interface RequestOptions extends Disposable {
+  connectTimeout(): Duration | undefined;
+  setConnectTimeout(duration: Duration | undefined): void;
+  firstByteTimeout(): Duration | undefined;
+  setFirstByteTimeout(duration: Duration | undefined): void;
+  betweenBytesTimeout(): Duration | undefined;
+  setBetweenBytesTimeout(duration: Duration | undefined): void;
+}
+
+export interface OutgoingResponse extends Disposable {
+  statusCode(): StatusCode;
+  setStatusCode(statusCode: StatusCode): void;
+  headers(): Headers;
+  body(): OutgoingBody;
+}
+
 export interface OutgoingRequest extends Disposable {
   body(): OutgoingBody;
   method(): Method;
@@ -631,13 +647,10 @@ export interface OutgoingRequest extends Disposable {
   headers(): Headers;
 }
 
-export interface RequestOptions extends Disposable {
-  connectTimeout(): Duration | undefined;
-  setConnectTimeout(duration: Duration | undefined): void;
-  firstByteTimeout(): Duration | undefined;
-  setFirstByteTimeout(duration: Duration | undefined): void;
-  betweenBytesTimeout(): Duration | undefined;
-  setBetweenBytesTimeout(duration: Duration | undefined): void;
+export interface IncomingResponse extends Disposable {
+  status(): StatusCode;
+  headers(): Headers;
+  consume(): IncomingBody;
 }
 
 export interface ResponseOutparam extends Disposable {
@@ -655,26 +668,9 @@ export interface Fields extends Disposable {
   clone(): Fields;
 }
 
-export interface FutureTrailers extends Disposable {
-  subscribe(): Pollable;
-  get(): Result<Result<Trailers | undefined, ErrorCode>, void> | undefined;
-}
-
-export interface OutgoingBody extends Disposable {
-  write(): OutputStream;
-  finish(this_: OutgoingBody, trailers: Trailers | undefined): void;
-}
-
-export interface FutureIncomingResponse extends Disposable {
-  subscribe(): Pollable;
-  get(): Result<Result<IncomingResponse, ErrorCode>, void> | undefined;
-}
-
-export interface OutgoingResponse extends Disposable {
-  statusCode(): StatusCode;
-  setStatusCode(statusCode: StatusCode): void;
-  headers(): Headers;
-  body(): OutgoingBody;
+export interface IncomingBody extends Disposable {
+  stream(): InputStream;
+  finish(this_: IncomingBody): FutureTrailers;
 }
 
 export interface IncomingRequest extends Disposable {
@@ -686,13 +682,17 @@ export interface IncomingRequest extends Disposable {
   consume(): IncomingBody;
 }
 
-export interface IncomingBody extends Disposable {
-  stream(): InputStream;
-  finish(this_: IncomingBody): FutureTrailers;
+export interface OutgoingBody extends Disposable {
+  write(): OutputStream;
+  finish(this_: OutgoingBody, trailers: Trailers | undefined): void;
 }
 
-export interface IncomingResponse extends Disposable {
-  status(): StatusCode;
-  headers(): Headers;
-  consume(): IncomingBody;
+export interface FutureTrailers extends Disposable {
+  subscribe(): Pollable;
+  get(): Result<Result<Trailers | undefined, ErrorCode>, void> | undefined;
+}
+
+export interface FutureIncomingResponse extends Disposable {
+  subscribe(): Pollable;
+  get(): Result<Result<IncomingResponse, ErrorCode>, void> | undefined;
 }

@@ -1,10 +1,14 @@
 import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
 type NewTimestamp = fs.NewTimestamp;
 import { SystemError } from "../../errors.js";
-import { translateErrorToErrorno } from "../../wasiUtils.js";
+import { translateErrorToErrorno } from "../../wasiPreview1Utils.js";
 import { AdviceN, ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
 import { SocketsNetworkNamespace as sock } from "@wasmin/wasi-snapshot-preview2/async";
 import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2/async";
+import { OpenFiles } from "../../wasiFileSystem.js";
+import { InStream, OutStream } from "./io.js";
+import { WasiOptions } from "../../wasi.js";
+import { FileSystemFileDescriptor } from "./filesystem.js";
 
 type ErrorCodeFS = fs.ErrorCode;
 type ErrorCodeSockets = sock.ErrorCode;
@@ -966,13 +970,31 @@ export class ResourceManager {
     }
 }
 
-declare global {
-    var WASI_PREVIEW2_DEBUG: boolean;
-}
-globalThis.WASI_PREVIEW2_DEBUG = false;
 
-export function wasiPreview2Debug(msg?: any, ...optionalParams: any[]): void {
-    if (globalThis.WASI_PREVIEW2_DEBUG) {
-        console.debug(msg, ...optionalParams);
+export function getInputStreamForReadableFd(wasiOptions: WasiOptions, fd: number) {
+    let openFiles = wasiOptions.openFiles;
+    if (openFiles!== undefined) {
+        let closeFdOnStreamClose = false;
+        let inStream = new InStream(wasiOptions, fd, closeFdOnStreamClose);
+        return inStream;
+    }
+}
+
+export function getOutputStreamForWritableFd(wasiOptions: WasiOptions, fd: number) {
+    let openFiles = wasiOptions.openFiles;
+    if (openFiles!== undefined) {
+        let closeFdOnStreamClose = false;
+        let outStream = new OutStream(wasiOptions, fd, closeFdOnStreamClose);
+        return outStream;
+    }
+}
+
+export async function openDescriptorForPath(wasiOptions: WasiOptions, path: string) {
+    let openFiles = wasiOptions.openFiles;
+    if (openFiles!== undefined) {
+        let closeFdOnStreamClose = false;
+        let dirFd = await openFiles.openRelativeToRoot(path);
+        let fsDesc = new FileSystemFileDescriptor(wasiOptions, dirFd, path);
+        return fsDesc;
     }
 }

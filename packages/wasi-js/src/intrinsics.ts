@@ -8,7 +8,7 @@ export function clamp_host(i: number, min: number, max: number) {
 
 let DATA_VIEW = new DataView(new ArrayBuffer(0));
 
-export function data_view(mem: any) {
+export function data_view(mem: WebAssembly.Memory) {
     if (DATA_VIEW.buffer !== mem.buffer) DATA_VIEW = new DataView(mem.buffer);
     return DATA_VIEW;
 }
@@ -16,9 +16,11 @@ export const UTF8_DECODER = new TextDecoderWrapper("utf-8");
 
 const UTF8_ENCODER = new TextEncoder();
 
-export function utf8_encode(
+export type realloc_func = (old_ptr: number, old_len: number, align: number, new_len: number) => Promise<number>;
+
+export async function utf8_encode(
     s: string,
-    realloc: (old_ptr: number, old_len: number, align: number, new_len: number) => number,
+    realloc: realloc_func,
     memory: any
 ) {
     if (typeof s !== "string") throw new TypeError("expected a string");
@@ -32,7 +34,7 @@ export function utf8_encode(
     let ptr = 0;
     let writtenTotal = 0;
     while (s.length > 0) {
-        ptr = realloc(ptr, alloc_len, 1, alloc_len + s.length);
+        ptr = await realloc(ptr, alloc_len, 1, alloc_len + s.length);
         alloc_len += s.length;
         const { read, written } = UTF8_ENCODER.encodeInto(
             s,
@@ -41,7 +43,7 @@ export function utf8_encode(
         writtenTotal += written || 0;
         s = s.slice(read);
     }
-    if (alloc_len > writtenTotal) ptr = realloc(ptr, alloc_len, 1, writtenTotal);
+    if (alloc_len > writtenTotal) ptr = await realloc(ptr, alloc_len, 1, writtenTotal);
     UTF8_ENCODED_LEN = writtenTotal;
     return ptr;
 }
