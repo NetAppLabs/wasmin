@@ -72,3 +72,6 @@ export type {
 
 import { TestsFileSystemHandle } from "./test/test-fs.js";
 export { TestsFileSystemHandle };
+
+import { TestsFileSystemHandleImportTestDefinitions } from "./test/test-fs.js";
+export { TestsFileSystemHandleImportTestDefinitions };

@@ -5,6 +5,7 @@ import {
     FileSystemWritableFileStream,
     FileSystemHandlePermissionDescriptor,
     Mountable,
+    FileSystemSyncAccessHandle,
 } from "../index.js";
 import { InvalidModificationError, NotAllowedError, NotFoundError, TypeMismatchError } from "../errors.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";

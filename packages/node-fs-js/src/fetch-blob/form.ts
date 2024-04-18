@@ -16,14 +16,14 @@ export const fileFrom = async (path: string, type?: string) => {
     return fromFile(s, path, type);
 };
 
-const fromBlob = (stat: Stats, path: string, type = "") => {
+export const fromBlob = (stat: Stats, path: string, type = "") => {
     const mtimeMsInt = Math.floor(stat.mtimeMs);
     return new MyBlob([new BlobDataItem(path, 0, stat.size, mtimeMsInt)], {
         type,
     });
 };
 
-const fromFile = (stat: Stats, path: string, type = "") => {
+export const fromFile = (stat: Stats, path: string, type = "") => {
     const mtimeMsInt = Math.floor(stat.mtimeMs);
     return new MyFile([new BlobDataItem(path, 0, stat.size, mtimeMsInt)], basename(path), {
         type,

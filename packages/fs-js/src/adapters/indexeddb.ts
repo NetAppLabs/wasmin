@@ -17,6 +17,7 @@ import {
     Mountable,
     NFileSystemWritableFileStream,
     PreNameCheck,
+    FileSystemSyncAccessHandle,
 } from "../index.js";
 import { FileSystemHandle } from "../index.js";
 import { MountedEntry } from "../ExtHandles.js";

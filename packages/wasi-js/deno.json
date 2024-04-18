@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@wasmin/fs-js": "../../packages/fs-js/src/index.ts",
+    "@wasmin/wasi-snapshot-preview1-command-component": "../../packages/wasi-snapshot-preview1-command-component/index.ts",
+    "@wasmin/wasi-snapshot-preview2":  "../../packages/wasi-snapshot-preview2/src/index.ts",
+    "@wasmin/wasm-promisify": "../../packages/wasm-promisify/src/index.ts"
+  },
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
+  }
+}

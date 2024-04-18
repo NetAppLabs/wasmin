@@ -6,7 +6,7 @@
       "webworker",
       "esnext"
     ],
-    "outDir": "./dist"
+    "outDir": "./dist",
   },
   "include": [
     "./src"
