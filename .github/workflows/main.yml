@@ -63,7 +63,7 @@ jobs:
     - name: Upload wasmin-bun binary to release
       uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: ${{ secrets.GH_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ./${{ matrix.wasmin_bun_artifact }}
         asset_name: ${{ matrix.wasmin_bun_asset }}
         tag: ${{ github.ref }}
@@ -71,7 +71,7 @@ jobs:
     - name: Upload wasmin-bun binary to release
       uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: ${{ secrets.GH_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ./${{ matrix.wasmin_deno_artifact }}
         asset_name: ${{ matrix.wasmin_deno_asset }}
         tag: ${{ github.ref }}
@@ -82,7 +82,7 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Extract metadata (tags, labels) for Docker
       if: ${{matrix.os == 'ubuntu-latest'}}
       id: meta
