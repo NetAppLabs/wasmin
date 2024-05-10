@@ -1,8 +1,10 @@
 #!/bin/bash
 
-rm component/nfs_rs.*
+rm -f component/nfs_rs.*
 rm -rf component/interfaces
 
+echo "jco being used: `which jco`"
+echo "jco version: `jco --version`"
 jco transpile nfs_rs.wasm -o component -I --no-wasi-shim
 
 if `git status | grep -q "modified:   component/interfaces/wasi-io-streams.d.ts"`; then
@@ -40,8 +42,5 @@ if `git status | grep -q "modified:   component/interfaces/wasi-io-streams.d.ts"
     fi
     rm wasi-io-streams.diff silly.diff
 fi
-
-cat component/nfs_rs.js | sed s/"const { instanceNetwork } ="/"const { Network, instanceNetwork } ="/g > component/nfs_rs.js~
-mv component/nfs_rs.js~ component/nfs_rs.js
 
 npx tsc -p .

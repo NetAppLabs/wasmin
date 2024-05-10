@@ -96,7 +96,7 @@
         "npm:@wasmin/node-fs-js",
         "npm:@wasmin/tsconfig",
         "npm:eslint-config-custom",
-        "npm:vitest@^1.3.1"
+        "npm:vitest@^1.5.0"
       ]
     }
   }

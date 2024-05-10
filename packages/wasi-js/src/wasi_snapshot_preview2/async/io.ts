@@ -1,5 +1,7 @@
 import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
 type IoStreamsAsync = io.WasiIoStreams;
+import { IoErrorNamespace as errorns } from "@wasmin/wasi-snapshot-preview2/async";
+type IoErrorAsync = errorns.WasiIoError;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isBadFileDescriptor, isErrorAgain, isIoSocketsError, translateToFsOrSocketsError } from "./preview2Utils.js";
 import { OpenFiles, Peekable } from "../../wasiFileSystem.js";
@@ -16,6 +18,15 @@ type OutputStream = io.OutputStream;
 type Pollable = io.Pollable;
 type StreamErrorClosed = io.StreamErrorClosed;
 type StreamErrorLastOperationFailed = io.StreamErrorLastOperationFailed;
+
+export class IoErrorAsyncHost implements IoErrorAsync {
+    constructor(wasiOptions: WasiOptions) {
+        const wasiEnv = wasiEnvFromWasiOptions(wasiOptions);
+        this._wasiEnv = wasiEnv;
+    }
+
+    private _wasiEnv: WasiEnv;
+}
 
 export class InputStreamPollable implements Pollable, Resource {
     _fd: number;
