@@ -79,10 +79,8 @@ class WasiExperimentalConsoleHost implements WasiExperimentalConsole {
 
 export function initializeWasiExperimentalConsoleToImports(imports: any, tty: TTY) {
     const wHost = new WasiExperimentalConsoleHost(tty);
-    let experimentalConsoleImportNs1 = "wasi_experimental_console";
-    addWasiExperimentalConsoleToImports(experimentalConsoleImportNs1, imports, wHost);
-    let experimentalConsoleImportNs2 = "wasi-experimental-console";
-    addWasiExperimentalConsoleToImports(experimentalConsoleImportNs2, imports, wHost);
+    let experimentalConsoleImportNs = "wasi_experimental_console";
+    addWasiExperimentalConsoleToImports(experimentalConsoleImportNs, imports, wHost);
     let wasiPreview1Ns = "wasi_snapshot_preview1";
     addWasiExperimentalConsoleToImports(wasiPreview1Ns, imports, wHost);
 

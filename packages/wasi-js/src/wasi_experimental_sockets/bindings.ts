@@ -887,12 +887,13 @@ export interface WasiExperimentalSocketsHandler {
 }
 
 export function addWasiExperimentalSocketsToImports(
+    importsNS: string,
     imports: any,
     obj: WasiExperimentalSocketsAsync,
     handler: WasiExperimentalSocketsHandler
 ): void {
-    if (!("wasi_experimental_sockets" in imports)) imports["wasi_experimental_sockets"] = {};
-    imports["wasi_experimental_sockets"]["addr_resolve"] = async function (
+    if (!(importsNS in imports)) imports[importsNS] = {};
+    imports[importsNS]["addr_resolve"] = async function (
         _host_ptr: any,
         _host_len: any,
         _port: any,
@@ -909,7 +910,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_addr_local"] = async function (_fd: any, _buf: any, _buf_len: any) {
+    imports[importsNS]["sock_addr_local"] = async function (_fd: any, _buf: any, _buf_len: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockAddrLocal(_fd, _buf, _buf_len);
@@ -919,7 +920,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_addr_remote"] = async function (_fd: any, _buf: any, _buf_len: any) {
+    imports[importsNS]["sock_addr_remote"] = async function (_fd: any, _buf: any, _buf_len: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockAddrRemote(_fd, _buf, _buf_len);
@@ -929,7 +930,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_open"] = async function (_af: any, _socktype: any, _result_ptr: any) {
+    imports[importsNS]["sock_open"] = async function (_af: any, _socktype: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockOpen(_af, _socktype, _result_ptr);
@@ -939,7 +940,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_close"] = async function (_fd: any) {
+    imports[importsNS]["sock_close"] = async function (_fd: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockClose(_fd);
@@ -949,7 +950,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_set_reuse_addr"] = async function (_fd: any, _reuse: any) {
+    imports[importsNS]["sock_set_reuse_addr"] = async function (_fd: any, _reuse: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockSetReuseAddr(_fd, _reuse);
@@ -959,7 +960,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_get_reuse_addr"] = async function (_fd: any, _result_ptr: any) {
+    imports[importsNS]["sock_get_reuse_addr"] = async function (_fd: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockGetReuseAddr(_fd, _result_ptr);
@@ -969,7 +970,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_set_reuse_port"] = async function (_fd: any, _reuse: any) {
+    imports[importsNS]["sock_set_reuse_port"] = async function (_fd: any, _reuse: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockSetReusePort(_fd, _reuse);
@@ -979,7 +980,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_get_reuse_port"] = async function (_fd: any, _result_ptr: any) {
+    imports[importsNS]["sock_get_reuse_port"] = async function (_fd: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockGetReusePort(_fd, _result_ptr);
@@ -989,7 +990,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_set_recv_buf_size"] = async function (_fd: any, _size: any) {
+    imports[importsNS]["sock_set_recv_buf_size"] = async function (_fd: any, _size: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockSetRecvBufSize(_fd, _size);
@@ -999,7 +1000,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_get_recv_buf_size"] = async function (_fd: any, _result_ptr: any) {
+    imports[importsNS]["sock_get_recv_buf_size"] = async function (_fd: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockGetRecvBufSize(_fd, _result_ptr);
@@ -1009,7 +1010,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_set_send_buf_size"] = async function (_fd: any, _size: any) {
+    imports[importsNS]["sock_set_send_buf_size"] = async function (_fd: any, _size: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockSetSendBufSize(_fd, _size);
@@ -1019,7 +1020,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_get_send_buf_size"] = async function (_fd: any, _result_ptr: any) {
+    imports[importsNS]["sock_get_send_buf_size"] = async function (_fd: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockGetSendBufSize(_fd, _result_ptr);
@@ -1029,7 +1030,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_bind"] = async function (_fd: any, _addr: any) {
+    imports[importsNS]["sock_bind"] = async function (_fd: any, _addr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockBind(_fd, _addr);
@@ -1039,7 +1040,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_listen"] = async function (_fd: any, _backlog: any) {
+    imports[importsNS]["sock_listen"] = async function (_fd: any, _backlog: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockListen(_fd, _backlog);
@@ -1049,7 +1050,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_accept"] = async function (_fd: any, _result_ptr: any) {
+    imports[importsNS]["sock_accept"] = async function (_fd: any, _result_ptr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockAccept(_fd, _result_ptr);
@@ -1059,7 +1060,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_connect"] = async function (_fd: any, _addr: any) {
+    imports[importsNS]["sock_connect"] = async function (_fd: any, _addr: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockConnect(_fd, _addr);
@@ -1069,7 +1070,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_recv"] = async function (
+    imports[importsNS]["sock_recv"] = async function (
         _fd: any,
         _buf: any,
         _buf_len: any,
@@ -1085,7 +1086,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_recv_from"] = async function (
+    imports[importsNS]["sock_recv_from"] = async function (
         _fd: any,
         _buf: any,
         _buf_len: any,
@@ -1103,7 +1104,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_send"] = async function (
+    imports[importsNS]["sock_send"] = async function (
         _fd: any,
         _buf: any,
         _buf_len: any,
@@ -1119,7 +1120,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_send_to"] = async function (
+    imports[importsNS]["sock_send_to"] = async function (
         _fd: any,
         _buf: any,
         _buf_len: any,
@@ -1136,7 +1137,7 @@ export function addWasiExperimentalSocketsToImports(
             return errorHandler2(err);
         }
     };
-    imports["wasi_experimental_sockets"]["sock_shutdown"] = async function (_fd: any, _how: any) {
+    imports[importsNS]["sock_shutdown"] = async function (_fd: any, _how: any) {
         const errorHandler2 = handler.handleError;
         try {
             const ret = await obj.sockShutdown(_fd, _how);
