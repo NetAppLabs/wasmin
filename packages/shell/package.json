@@ -9,7 +9,9 @@
     "src"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "run-s build:*",
+    "build:tsc": "tsc -p .",
+    "build:nu": "cp nu.async.wasm dist/",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsc -p . --watch",
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
