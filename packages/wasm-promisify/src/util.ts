@@ -386,10 +386,10 @@ export function promisifyImportFunction<T extends (...args: any[]) => any>(
 
 export function getWebAssemblyFunctionTypeForFunction(func: Function) {
   const WebAssemblyFunction = initializeWebAssemblyFunction()
-  if (isNode()) {
-    const wffunc = WebAssemblyFunction.type(func);
-    return wffunc;
-  } else if (isDeno()) {
+  //if (isNode()) { // old behaviour for node 21
+  //  const wffunc = WebAssemblyFunction.type(func);
+  //  return wffunc;
+  if (isDeno() || isNode()) {
     let anyFunc = func as any;
     jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFunc: ", anyFunc);
     let anyFuncType = anyFunc.type()
