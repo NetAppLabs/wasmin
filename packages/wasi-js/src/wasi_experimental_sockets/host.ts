@@ -435,5 +435,6 @@ export function initializeWasiExperimentalSocketsToImports(
         handleError: errorHandler,
     };
 
-    addWasiExperimentalSocketsToImports(imports, wHost, handler);
+    let experimentalSocketsNs = "wasi_experimental_sockets";
+    addWasiExperimentalSocketsToImports(experimentalSocketsNs, imports, wHost, handler);
 }
