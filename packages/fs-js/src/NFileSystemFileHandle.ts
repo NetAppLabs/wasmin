@@ -1,12 +1,22 @@
 import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
-import { FileSystemFileHandle } from "./index.js";
+import { FileSystemFileHandle, FileSystemSyncAccessHandle } from "./index.js";
 
 export function isBun() {
     // only bun has global Bun
     try {
         // @ts-ignore
         return globalThis.Bun != null;
+    } catch (e) {
+        return false;
+    }
+}
+
+export function isDeno() {
+    // only deno has global Deno
+    try {
+        // @ts-ignore
+        return globalThis.Deno != null;
     } catch (e) {
         return false;
     }

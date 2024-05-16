@@ -6,7 +6,8 @@ MOUNT_CURDIR=true
 DOCKER_FLAGS=""
 
 if [ "${MOUNT_CURDIR}" == "true" ]; then
-		DOCKER_FLAGS="-v $(pwd):/mount"
+		LOCAL_MOUNTDIR="$(pwd)"
+		DOCKER_FLAGS="--mount type=bind,source=${LOCAL_MOUNTDIR},target=/mount"
 fi
 		
 docker run -it ${DOCKER_FLAGS} wasmin:${VERSION} $*

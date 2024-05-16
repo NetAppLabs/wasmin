@@ -9,6 +9,7 @@ fi
 if [ -z "${WASMIN_RUNTIME}" ]; then
 	WASMIN_RUNTIME="deno"
 fi
+WASMIN_DENO_USE_JSPI="true"
 
 if [ "${WASMIN_RUNTIME}" == "deno" ]; then
 	if [ -z "${WASMIN_DENO_USE_JSPI}" ]; then

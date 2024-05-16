@@ -14,6 +14,7 @@ import {
     Stat,
     FileSystemHandlePermissionDescriptor,
     Statable,
+    FileSystemSyncAccessHandle,
 } from "@wasmin/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
 import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
@@ -88,11 +89,13 @@ export class NodeSink extends DefaultSink<SinkFileHandle> implements FileSystemW
         if (chunk instanceof ArrayBuffer) {
             chunk = new Uint8Array(chunk);
         } else if (typeof chunk === "string") {
-            chunk = Buffer.from(chunk);
+            let enc = new TextEncoder(); // always utf-8
+            //chunk = Buffer.from(chunk);
+            chunk = enc.encode(chunk);
         } else if (chunk instanceof Blob) {
             // @ts-ignore
             for await (const data of chunk.stream()) {
-                const res = await this.fileHandle.writev([data as Buffer], this.position);
+                const res = await this.fileHandle.writev([data as Uint8Array], this.position);
                 this.position += res.bytesWritten;
                 this.size += res.bytesWritten;
             }

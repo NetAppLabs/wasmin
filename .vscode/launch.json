@@ -22,6 +22,19 @@
             "type": "bun"
         },
         {
+            "request": "launch",
+            "name": "wasi-tester-deno",
+            "type": "node",
+            "program": "${workspaceFolder}/packages/wasi-js/tests/tester.mjs",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": [
+                "run"
+            ],
+            "args": [],
+            "attachSimplePort": 9229
+        },
+        {
             "name": "wasi-tester-suite",
             "args": ["--trace-warnings"],
             "program": "${workspaceFolder}/packages/wasi-js/tests/tester.suite.mjs",

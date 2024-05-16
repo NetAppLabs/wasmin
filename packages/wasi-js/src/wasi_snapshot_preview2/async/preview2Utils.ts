@@ -182,9 +182,6 @@ export function translateToSocketsError(err: any) {
         case ErrnoN.MFILE:
             errCode = "new-socket-limit";
             break;
-        case ErrnoN.MFILE:
-            errCode = "new-socket-limit";
-            break;
         //case ErrnoN.MLINK:
         //    errCode = "too-many-links";
         //    break;

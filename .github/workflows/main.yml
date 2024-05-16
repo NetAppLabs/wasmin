@@ -1,0 +1,100 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: wasmin-ci
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        include:
+          - os: ubuntu-latest
+            wasmin_bun_artifact: wasmin-bun
+            wasmin_bun_asset: wasmin-bun-linux-amd64
+            wasmin_deno_artifact: wasmin-deno
+            wasmin_deno_asset: wasmin-deno-linux-amd64
+            node-version: 20.x
+          - os: macos-latest
+            wasmin_bun_artifact: wasmin-bun
+            wasmin_bun_asset: wasmin-bun-macos-arm64
+            wasmin_deno_artifact: wasmin-deno
+            wasmin_deno_asset: wasmin-deno-macos-arm64
+            node-version: 20.x
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: yarn
+      run: npm install --global yarn
+    - name: Setup go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        check-latest: true
+    - name: bun
+      uses: oven-sh/setup-bun@v1
+    - name: deno
+      uses: denoland/setup-deno@v1
+    - name: install
+      run: yarn install
+    - name: Build
+      run: yarn build
+    - name: Test
+      run: yarn test
+    - name: build-exe-bun
+      run: ./build-exe-bun.sh
+    - name: build-exe-deno
+      run: ./build-exe-deno.sh
+    # Upload binary
+    - name: Upload wasmin-bun binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_bun_artifact }}
+        asset_name: ${{ matrix.wasmin_bun_asset }}
+        tag: ${{ github.ref }}
+        overwrite: true
+    - name: Upload wasmin-bun binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_deno_artifact }}
+        asset_name: ${{ matrix.wasmin_deno_asset }}
+        tag: ${{ github.ref }}
+        overwrite: true  
+    - name: Log in to the Container registry
+      if: ${{matrix.os == 'ubuntu-latest'}}
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract metadata (tags, labels) for Docker
+      if: ${{matrix.os == 'ubuntu-latest'}}
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images:
+          ghcr.io/${{ github.repository }}
+    - name: Build and push Docker images
+      if: ${{matrix.os == 'ubuntu-latest'}}
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
