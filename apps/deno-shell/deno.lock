@@ -1,7 +1,6 @@
 {
   "version": "3",
   "redirects": {
-    "https://deno.land/x/embedder/mod.ts": "https://deno.land/x/embedder@v1.1.1/mod.ts",
     "https://github.com/NfNitLoop/deno-embedder/raw/main/mod.ts": "https://raw.githubusercontent.com/NfNitLoop/deno-embedder/main/mod.ts"
   },
   "remote": {
@@ -93,9 +92,6 @@
     "https://deno.land/x/cliffy@v0.25.7/table/row.ts": "5f519ba7488d2ef76cbbf50527f10f7957bfd668ce5b9169abbc44ec88302645",
     "https://deno.land/x/cliffy@v0.25.7/table/table.ts": "ec204c9d08bb3ff1939c5ac7412a4c9ed7d00925d4fc92aff9bfe07bd269258d",
     "https://deno.land/x/cliffy@v0.25.7/table/utils.ts": "187bb7dcbcfb16199a5d906113f584740901dfca1007400cba0df7dcd341bc29",
-    "https://deno.land/x/embedder@v1.1.1/_src/util.ts": "ad5e7d892ac708f6d7d42b4bfcf2a8f11aa7e65ebd6a733728a5d6192e2409b0",
-    "https://deno.land/x/embedder@v1.1.1/embed.ts": "262813eb86d21b062928aaca3dea8d6a3f90ca6831458e77a8e0977c25e188ee",
-    "https://deno.land/x/embedder@v1.1.1/mod.ts": "b1a1b3c0bac5c3db40ef60d1f3e5a4fb9fcdd9314078014adb3f4e9da162f2dc",
     "https://raw.githubusercontent.com/NfNitLoop/deno-embedder/main/_src/util.ts": "ad5e7d892ac708f6d7d42b4bfcf2a8f11aa7e65ebd6a733728a5d6192e2409b0",
     "https://raw.githubusercontent.com/NfNitLoop/deno-embedder/main/embed.ts": "080f9d8fd6afbf3b576b9241449279c9d6850eae13e5294d77013a20ce04f37a",
     "https://raw.githubusercontent.com/NfNitLoop/deno-embedder/main/mod.ts": "b1a1b3c0bac5c3db40ef60d1f3e5a4fb9fcdd9314078014adb3f4e9da162f2dc"
