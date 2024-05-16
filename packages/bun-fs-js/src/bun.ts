@@ -47,19 +47,15 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
+const bunVersion: string = version;
+const bunVersionMajorMinorPatch = bunVersion.split('.');
+const bunVersionMajor = Number(bunVersionMajorMinorPatch[0]);
+const bunVersionMinor = Number(bunVersionMajorMinorPatch[1]);
+const bunVersionPatch = Number(bunVersionMajorMinorPatch[2]);
+const isSinkFileHandleNumber = (bunVersionMajor < 1) || (bunVersionMajor == 1 && bunVersionMinor == 0 && bunVersionPatch <= 15);
+
 function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
-    let bunVersion = version;
-    let majMinPatch = bunVersion.split('.');
-    let smaj = majMinPatch[0];
-    let maj = Number(smaj);
-    let smin = majMinPatch[1];
-    let min = Number(smin);
-    let spatch = majMinPatch[2];
-    let patch = Number(spatch);
-    if (maj < 1) {
-        // older bun seems to use number as fsSync.promises.FileHandle
-        return fh as unknown as number;
-    } else if (maj == 1 && min == 0 && patch <= 15) {
+    if (isSinkFileHandleNumber) {
         // older bun seems to use number as fsSync.promises.FileHandle
         return fh as unknown as number;
     } else {
