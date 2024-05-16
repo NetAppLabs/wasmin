@@ -19,5 +19,3 @@ cp ./apps/bun-shell/dist/wasmCoreWorkerThread.js ./apps/bun-shell/dist/wasmCoreW
 cp ./apps/bun-shell/dist/wasiWorkerThread.js ./apps/bun-shell/dist/wasiWorkerThread.wjs 
 
 bun build ./apps/bun-shell/dist/app.js --compile --loader .wjs:file --outfile=wasmin-bun
-
-mv ./apps/bun-shell/dist/wasmin-bun .
