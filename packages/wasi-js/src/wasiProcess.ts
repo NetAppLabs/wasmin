@@ -90,6 +90,10 @@ export class WasiProcess {
             if (tryByPath) {
                 // Try by filesystem:
                 try {
+                    // TODO inpect this:
+                    if (cwd == ".") {
+                        cwd = "/";
+                    }
                     wasiProcessDebug("exec: tryByPath cwd: ", cwd);
                     wasiProcessDebug("exec: tryByPath nameWasm: ", nameWasm);
 
