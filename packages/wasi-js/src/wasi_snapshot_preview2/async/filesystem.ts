@@ -197,7 +197,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         try {
             const of = this.openFiles.getAsFileOrDir(this.fd);
             const handle = of.handle;
-            if ((handle as any).updateTimes) {
+            if ("updateTimes" in handle) {
                 const uh = handle as unknown as Statable;
                 const dataAccessTimestampNs = toNanosFromTimestamp(dataAccessTimestamp);
                 const dataModificationTimestampNs = toNanosFromTimestamp(dataModificationTimestamp);
@@ -301,7 +301,7 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
         try {
             const opendir = this.openFiles.getAsDir(this.fd);
             const handle = await opendir.getFileOrDir(path, FileOrDir.Any);
-            if ((handle as any).updateTimes) {
+            if ("updateTimes" in handle) {
                 const uh = handle as unknown as Statable;
                 const dataAccessTimestampNs = toNanosFromTimestamp(dataAccessTimestamp);
                 const dataModificationTimestampNs = toNanosFromTimestamp(dataModificationTimestamp);
@@ -466,7 +466,7 @@ async function populateDescriptorStat(fd: number, fHandle: FileSystemHandle): Pr
     let atime = time;
     let mtime = time;
     let inode = 0n;
-    if ((fHandle as any).stat) {
+    if ("stat" in fHandle) {
         const statable = fHandle as unknown as Statable;
         const s = await statable.stat();
         const got_inode = s.inode;

@@ -111,6 +111,7 @@ export class NfsHandle {
     _mount;
     _fhDir;
     _fh;
+    _fileid;
     _fullName;
     kind;
     name;
@@ -122,10 +123,11 @@ export class NfsHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     isDirectory;
-    constructor(mount, fhDir, fh, kind, fullName, name) {
+    constructor(mount, fhDir, fh, fileid, kind, fullName, name) {
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
+        this._fileid = fileid;
         this._fullName = fullName;
         this.kind = kind;
         this.name = name;
@@ -141,6 +143,7 @@ export class NfsHandle {
             else {
                 resolve(other.kind === this.kind &&
                     other.name === this.name &&
+                    (!anyOther._fileid || anyOther._fileid === this._fileid) &&
                     (!anyOther._fullName || anyOther._fullName === this._fullName));
             }
         });
@@ -175,6 +178,19 @@ export class NfsHandle {
             }
         });
     }
+    async stat() {
+        const attr = this._mount.getattr(this._fh);
+        const mtime = BigInt(attr.mtime.seconds) * 1000000000n + BigInt(attr.mtime.nseconds);
+        const atime = BigInt(attr.atime.seconds) * 1000000000n + BigInt(attr.atime.nseconds);
+        const stats = {
+            inode: attr.fileid,
+            size: attr.filesize,
+            creationTime: mtime,
+            modifiedTime: mtime,
+            accessedTime: atime,
+        };
+        return stats;
+    }
 }
 export class NfsDirectoryHandle extends NfsHandle {
     [Symbol.asyncIterator] = this.entries;
@@ -191,14 +207,17 @@ export class NfsDirectoryHandle extends NfsHandle {
         let mount;
         let fhDir;
         let fh;
+        let fileid;
         let kind;
         let fullName;
         let name;
         if (typeof param === "string") {
             const url = param;
             mount = nfsComponent.parseUrlAndMount(url);
-            fh = mount.lookupPath("/");
+            const res = mount.lookupPath("/");
+            fh = res.obj;
             fhDir = fh;
+            fileid = res.attr ? res.attr.fileid : mount.getattr(fh).fileid;
             kind = "directory";
             fullName = "/";
             name = "";
@@ -208,29 +227,17 @@ export class NfsDirectoryHandle extends NfsHandle {
             mount = toWrap._mount;
             fhDir = toWrap._fhDir;
             fh = toWrap._fh;
+            fileid = toWrap._fileid;
             kind = toWrap.kind;
             fullName = toWrap._fullName;
             name = toWrap.name;
         }
-        super(mount, fhDir, fh, kind, fullName, name);
+        super(mount, fhDir, fh, fileid, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
         this.kind = "directory";
         this.isFile = false;
         this.isDirectory = true;
         this.getEntries = this.values;
-    }
-    async stat() {
-        const attr = this._mount.getattr(this._fh);
-        const mtime = BigInt(attr.mtime.seconds) * 1000000000n + BigInt(attr.mtime.nseconds);
-        const atime = BigInt(attr.atime.seconds) * 1000000000n + BigInt(attr.atime.nseconds);
-        const stats = {
-            inode: attr.fileid,
-            size: attr.filesize,
-            creationTime: mtime,
-            modifiedTime: mtime,
-            accessedTime: atime,
-        };
-        return stats;
     }
     async *entryHandles() {
         try {
@@ -239,10 +246,10 @@ export class NfsDirectoryHandle extends NfsHandle {
                 if (entry.fileName !== "." && entry.fileName !== "..") {
                     const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
                     if (fullName.endsWith("/")) {
-                        yield new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, entry.handle, "directory", fullName, entry.fileName));
+                        yield new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName));
                     }
                     else {
-                        yield new NfsFileHandle(new NfsHandle(this._mount, this._fh, entry.handle, "file", fullName, entry.fileName));
+                        yield new NfsFileHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName));
                     }
                 }
             }
@@ -275,12 +282,13 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType !== AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
-                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, fh, "directory", this._fullName + name + "/", name)));
+                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)));
             }
             catch (e) {
                 if (e instanceof TypeError) {
@@ -293,8 +301,10 @@ export class NfsDirectoryHandle extends NfsHandle {
             }
             try {
                 const mode = 0o775;
-                const fh = this._mount.mkdir(this._fh, name, mode);
-                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, fh, "directory", this._fullName + name + "/", name)));
+                const res = this._mount.mkdir(this._fh, name, mode);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
+                return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)));
             }
             catch (e) {
                 return reject(e);
@@ -305,12 +315,13 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
-                return resolve(new NfsFileHandle(new NfsHandle(this._mount, this._fh, fh, "file", this._fullName + name, name)));
+                return resolve(new NfsFileHandle(new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)));
             }
             catch (e) {
                 if (e instanceof TypeError) {
@@ -324,8 +335,10 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o664;
                 this._mount.create(this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
-                const fh = this._mount.lookup(this._fh, name);
-                return resolve(new NfsFileHandle(new NfsHandle(this._mount, this._fh, fh, "file", this._fullName + name, name)));
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
+                return resolve(new NfsFileHandle(new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)));
             }
             catch (e) {
                 return reject(e);
@@ -336,8 +349,9 @@ export class NfsDirectoryHandle extends NfsHandle {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     this.removeDirectory(fh, this._fh, name, !!options?.recursive);
                 }
@@ -422,7 +436,7 @@ export class NfsFileHandle extends NfsHandle {
     isDirectory;
     constructor(param) {
         const toWrap = param;
-        super(toWrap._mount, toWrap._fhDir, toWrap._fh, toWrap.kind, toWrap._fullName, toWrap.name);
+        super(toWrap._mount, toWrap._fhDir, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
         this.kind = "file";
         this.isFile = true;
         this.isDirectory = false;
@@ -606,7 +620,7 @@ export class NfsSink {
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
-        this._fhTmp = mount.create(this._fhDir, this._fileNameTmp, 0o664);
+        this._fhTmp = mount.create(this._fhDir, this._fileNameTmp, 0o664).obj;
         this._keepExisting = !!options?.keepExistingData;
         this._valid = true;
         this._locked = false;

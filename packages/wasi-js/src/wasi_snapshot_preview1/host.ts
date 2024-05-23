@@ -336,7 +336,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         wasiCallDebug("[fd_filestat_set_times] fd:", fd);
         const of = this.openFiles.getAsFileOrDir(fd);
         const handle = of.handle;
-        if ((handle as any).updateTimes) {
+        if ("updateTimes" in handle) {
             const uh = handle as unknown as Statable;
             let dataAccessTimestampNs: bigint | null = null;
             if (fst_flags & (FstflagsN.ATIM && FstflagsN.ATIM_NOW)) {
@@ -485,7 +485,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         const openDir = this.openFiles.getAsDir(fd);
         const dirfh = openDir.handle;
         let dot_inode = 0n;
-        if ((dirfh as any).stat) {
+        if ("_fileid" in dirfh) {
+            dot_inode = (dirfh as any)._fileid;
+        } else if ("stat" in dirfh) {
             const statable = dirfh as unknown as Statable;
             const s = await statable.stat();
             const got_inode = s.inode;
@@ -550,7 +552,9 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
             const nameLen = nameAsBytes.byteLength;
 
             let entry_inode = 0n;
-            if ((handle as any).stat) {
+            if ("_fileid" in handle) {
+                entry_inode = (handle as any)._fileid;
+            } else if ("stat" in handle) {
                 const statable = handle as unknown as Statable;
                 const s = await statable.stat();
                 const got_inode = s.inode;
@@ -702,7 +706,7 @@ export class WasiSnapshotPreview1AsyncHost implements WasiSnapshotPreview1Async 
         const path = string.get(this.buffer, path_ptr, path_len);
         const opendir = this.openFiles.getAsDir(fd);
         const handle = await opendir.getFileOrDir(path, FileOrDir.Any);
-        if ((handle as any).updateTimes) {
+        if ("updateTimes" in handle) {
             const uh = handle as unknown as Statable;
             let dataAccessTimestampNs: bigint | null = null;
             if (fst_flags & FstflagsN.ATIM) {
