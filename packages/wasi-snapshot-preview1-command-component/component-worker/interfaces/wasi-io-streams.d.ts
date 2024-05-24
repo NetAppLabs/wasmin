@@ -15,16 +15,16 @@ export interface StreamErrorClosed {
 import type { Pollable } from '../interfaces/wasi-io-poll.js';
 export { Pollable };
 
-export class InputStream {
-  read(len: bigint): Uint8Array;
-  blockingRead(len: bigint): Uint8Array;
-  subscribe(): Pollable;
-}
-
 export class OutputStream {
   checkWrite(): bigint;
   write(contents: Uint8Array): void;
   blockingWriteAndFlush(contents: Uint8Array): void;
   blockingFlush(): void;
+  subscribe(): Pollable;
+}
+
+export class InputStream {
+  read(len: bigint): Uint8Array;
+  blockingRead(len: bigint): Uint8Array;
   subscribe(): Pollable;
 }

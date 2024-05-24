@@ -24,17 +24,17 @@ export class IncomingDatagramStream {
   receive(maxResults: bigint): Promise<IncomingDatagram[]>;
 }
 
+export class OutgoingDatagramStream {
+  checkSend(): Promise<bigint>;
+  send(datagrams: OutgoingDatagram[]): Promise<bigint>;
+  subscribe(): Promise<Pollable>;
+}
+
 export class UdpSocket {
   startBind(network: Network, localAddress: IpSocketAddress): Promise<void>;
   finishBind(): Promise<void>;
   stream(remoteAddress: IpSocketAddress | undefined): Promise<[IncomingDatagramStream, OutgoingDatagramStream]>;
   localAddress(): Promise<IpSocketAddress>;
   remoteAddress(): Promise<IpSocketAddress>;
-  subscribe(): Promise<Pollable>;
-}
-
-export class OutgoingDatagramStream {
-  checkSend(): Promise<bigint>;
-  send(datagrams: OutgoingDatagram[]): Promise<bigint>;
   subscribe(): Promise<Pollable>;
 }

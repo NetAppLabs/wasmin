@@ -463,8 +463,10 @@ export class OpenFile implements Readable, Writable {
     async flush(): Promise<void> {
         wasiFileSystemDebug("[flush]");
         if (!this._writer) return;
-        await this._writer.close();
-        this._writer = undefined;
+        if ("flush" in this._writer) {
+            const writerAsAny = this._writer as any;
+            await writerAsAny.flush();
+        }
     }
 
     asFile(): OpenFile {
@@ -484,7 +486,9 @@ export class OpenFile implements Readable, Writable {
     }
 
     async close(): Promise<void> {
-        await this.flush();
+        if (!this._writer) return;
+        await this._writer.close();
+        this._writer = undefined;
     }
 
     public set fdFlags(fdFlags: Fdflags) {
