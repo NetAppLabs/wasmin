@@ -7,6 +7,7 @@ export declare class NfsHandle implements FileSystemHandle {
     protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
+    protected _fileid: bigint;
     protected _fullName: string;
     readonly kind: FileSystemHandleKind;
     readonly name: string;
@@ -18,10 +19,11 @@ export declare class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string);
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string);
     isSameEntry(other: FileSystemHandle): Promise<boolean>;
     queryPermission(perm?: NfsHandlePermissionDescriptor): Promise<PermissionState>;
     requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState>;
+    stat(): Promise<Stat>;
 }
 export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
     [Symbol.asyncIterator]: NfsDirectoryHandle["entries"];
@@ -36,7 +38,6 @@ export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemD
     readonly isDirectory: true;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
-    stat(): Promise<Stat>;
     private entryHandles;
     entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]>;
     keys(): AsyncIterableIterator<string>;

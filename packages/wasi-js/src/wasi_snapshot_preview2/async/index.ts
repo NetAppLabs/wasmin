@@ -12,6 +12,8 @@ import { CliBaseStderrNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type CliBaseStderr = CliBaseStderrNamespace.WasiCliStderr;
 import { FilesystemFilesystemNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type FilesystemFilesystem = FilesystemFilesystemNamespace.WasiFilesystemTypes;
+import { IoErrorNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+type IoError = IoErrorNamespace.WasiIoError;
 import { IoStreamsNamespace } from "@wasmin/wasi-snapshot-preview2/async";
 type IoStreams = IoStreamsNamespace.WasiIoStreams;
 import { RandomRandomNamespace } from "@wasmin/wasi-snapshot-preview2/async";
@@ -39,7 +41,7 @@ type TerminalStderrExtended = termstderrextns.WasiExtCliTerminalStderrExtended;
 import { WasiOptions } from "../../wasi.js";
 import { FileSystemFileSystemAsyncHost } from "./filesystem.js";
 import { WasiHttpOutgoingHandlerAsyncHost, WasiHttpTypesAsyncHost } from "./http.js";
-import { IoPollAsyncHost, IoStreamsAsyncHost } from "./io.js";
+import { IoErrorAsyncHost, IoPollAsyncHost, IoStreamsAsyncHost } from "./io.js";
 import { RandomInsecureSeedAsyncHost, RandomRandomAsyncHost } from "./random.js";
 import { RandomInsecureAsyncHost } from "./random.js";
 import { CliBaseEnvironmentAsyncHost } from "./cli.js";
@@ -105,8 +107,9 @@ export type WasiSnapshotPreview2AsyncImportObject = {
     "wasi:clocks/wall-clock": ClocksWallClock;
     "wasi:filesystem/preopens": FilesystemPreopens;
     "wasi:filesystem/types": FilesystemFilesystem;
-    'wasi:http/outgoing-handler': WasiHttpOutgoingHandler,
-    'wasi:http/types': WasiHttpTypes,  
+    "wasi:http/outgoing-handler": WasiHttpOutgoingHandler,
+    "wasi:http/types": WasiHttpTypes,  
+    "wasi:io/error": IoError;
     "wasi:io/streams": IoStreams;
     "wasi:io/poll": IoPoll;
     "wasi:sockets/instance-network": SocketsInstanceNetwork;
@@ -158,8 +161,9 @@ export function constructWasiSnapshotPreview2Imports(wasiOptions: WasiOptions): 
         "wasi:clocks/wall-clock": new ClocksWallClockAsyncHost(wasiOptions),
         "wasi:filesystem/preopens": new FileSystemPreopensAsyncHost(wasiOptions),
         "wasi:filesystem/types": new FileSystemFileSystemAsyncHost(wasiOptions),
-        'wasi:http/outgoing-handler': new WasiHttpOutgoingHandlerAsyncHost(wasiOptions),
-        'wasi:http/types': new WasiHttpTypesAsyncHost(wasiOptions),      
+        "wasi:http/outgoing-handler": new WasiHttpOutgoingHandlerAsyncHost(wasiOptions),
+        "wasi:http/types": new WasiHttpTypesAsyncHost(wasiOptions),      
+        "wasi:io/error": new IoErrorAsyncHost(wasiOptions),
         "wasi:io/streams": new IoStreamsAsyncHost(wasiOptions),
         "wasi:io/poll": new IoPollAsyncHost(wasiOptions),
         "wasi:sockets/instance-network": socketsNetworkInstance,

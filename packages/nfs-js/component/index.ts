@@ -130,6 +130,7 @@ export class NfsHandle implements FileSystemHandle {
     protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
+    protected _fileid: bigint;
     protected _fullName: string;
     readonly kind: FileSystemHandleKind;
     readonly name: string;
@@ -141,10 +142,11 @@ export class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, kind: FileSystemHandleKind, fullName: string, name: string) {
+    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string) {
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
+        this._fileid = fileid;
         this._fullName = fullName;
         this.kind = kind;
         this.name = name;
@@ -160,6 +162,7 @@ export class NfsHandle implements FileSystemHandle {
                 resolve(
                     other.kind === this.kind &&
                     other.name === this.name &&
+                    (!anyOther._fileid || anyOther._fileid === this._fileid) &&
                     (!anyOther._fullName || anyOther._fullName === this._fullName)
                 );
             }
@@ -194,6 +197,19 @@ export class NfsHandle implements FileSystemHandle {
             }
         });
     }
+    async stat(): Promise<Stat> {
+        const attr = this._mount.getattr(this._fh);
+        const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
+        const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);
+        const stats: Stat = {
+            inode: attr.fileid,
+            size: attr.filesize,
+            creationTime: mtime,
+            modifiedTime: mtime,
+            accessedTime: atime,
+        };
+        return stats;
+    }
 }
 
 export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
@@ -213,14 +229,17 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         let mount: NfsMount;
         let fhDir: Uint8Array;
         let fh: Uint8Array;
+        let fileid: bigint;
         let kind: FileSystemHandleKind;
         let fullName: string;
         let name: string;
         if (typeof param === "string") {
             const url = param;
             mount = nfsComponent.parseUrlAndMount(url);
-            fh = mount.lookupPath("/");
+            const res = mount.lookupPath("/");
+            fh = res.obj;
             fhDir = fh;
+            fileid = res.attr ? res.attr.fileid : mount.getattr(fh).fileid;
             kind = "directory";
             fullName = "/";
             name = "";
@@ -229,29 +248,17 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             mount = toWrap._mount;
             fhDir = toWrap._fhDir;
             fh = toWrap._fh;
+            fileid = toWrap._fileid;
             kind = toWrap.kind;
             fullName = toWrap._fullName;
             name = toWrap.name;
         }
-        super(mount, fhDir, fh, kind, fullName, name);
+        super(mount, fhDir, fh, fileid, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
         this.kind = "directory";
         this.isFile = false;
         this.isDirectory = true;
         this.getEntries = this.values;
-    }
-    async stat(): Promise<Stat> {
-        const attr = this._mount.getattr(this._fh);
-        const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
-        const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);
-        const stats: Stat = {
-            inode: attr.fileid,
-            size: attr.filesize,
-            creationTime: mtime,
-            modifiedTime: mtime,
-            accessedTime: atime,
-        };
-        return stats;
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
         try {
@@ -261,11 +268,11 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                     const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
                     if (fullName.endsWith("/")) {
                         yield new NfsDirectoryHandle(
-                            new NfsHandle(this._mount, this._fh, entry.handle, "directory", fullName, entry.fileName)
+                            new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName)
                         );
                     } else {
                         yield new NfsFileHandle(
-                            new NfsHandle(this._mount, this._fh, entry.handle, "file", fullName, entry.fileName)
+                            new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName)
                         );
                     }
                 }
@@ -303,14 +310,15 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType !== AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
                 return resolve(
                     new NfsDirectoryHandle(
-                        new NfsHandle(this._mount, this._fh, fh, "directory", this._fullName + name + "/", name)
+                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)
                     ) as FileSystemDirectoryHandle
                 );
             } catch (e: any) {
@@ -326,10 +334,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 
             try {
                 const mode = 0o775;
-                const fh = this._mount.mkdir(this._fh, name, mode);
+                const res = this._mount.mkdir(this._fh, name, mode);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 return resolve(
                     new NfsDirectoryHandle(
-                        new NfsHandle(this._mount, this._fh, fh, "directory", this._fullName + name + "/", name)
+                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)
                     ) as FileSystemDirectoryHandle
                 );
             } catch (e: any) {
@@ -341,14 +351,15 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
                 return resolve(
                     new NfsFileHandle(
-                        new NfsHandle(this._mount, this._fh, fh, "file", this._fullName + name, name)
+                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)
                     ) as FileSystemFileHandle
                 );
             } catch (e: any) {
@@ -365,10 +376,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             try {
                 const mode = 0o664;
                 this._mount.create(this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
-                const fh = this._mount.lookup(this._fh, name);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 return resolve(
                     new NfsFileHandle(
-                        new NfsHandle(this._mount, this._fh, fh, "file", this._fullName + name, name)
+                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)
                     ) as FileSystemFileHandle
                 );
             } catch (e: any) {
@@ -380,8 +393,9 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const fh = this._mount.lookup(this._fh, name);
-                const attr = this._mount.getattr(fh);
+                const res = this._mount.lookup(this._fh, name);
+                const fh = res.obj;
+                const attr = res.attr || this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     this.removeDirectory(fh, this._fh, name, !!options?.recursive);
                 } else {
@@ -467,7 +481,7 @@ export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
     readonly isDirectory: false;
     constructor(param: NfsHandle) {
         const toWrap = param as NfsFileHandle;
-        super(toWrap._mount, toWrap._fhDir, toWrap._fh, toWrap.kind, toWrap._fullName, toWrap.name);
+        super(toWrap._mount, toWrap._fhDir, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
         this.kind = "file";
         this.isFile = true;
         this.isDirectory = false;
@@ -650,7 +664,7 @@ export class NfsSink implements FileSystemWritableFileStream {
         this._mount = mount;
         this._fhDir = fhDir;
         this._fh = fh;
-        this._fhTmp = mount.create(this._fhDir, this._fileNameTmp, 0o664);
+        this._fhTmp = mount.create(this._fhDir, this._fileNameTmp, 0o664).obj;
         this._keepExisting = !!options?.keepExistingData;
         this._valid = true;
         this._locked = false;

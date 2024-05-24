@@ -9,6 +9,7 @@ export * as FilesystemPreopensNamespace from "./interfaces/wasi-filesystem-preop
 export * as FilesystemFilesystemNamespace from "./interfaces/wasi-filesystem-types";
 export * as HttpOutgoingHandlerNamespace from "./interfaces/wasi-http-outgoing-handler";
 export * as HttpTypesNamespace from "./interfaces/wasi-http-types";
+export * as IoErrorNamespace from "./interfaces/wasi-io-error";
 export * as IoStreamsNamespace from "./interfaces/wasi-io-streams";
 export * as IOPollNamespace from "./interfaces/wasi-io-poll";
 export * as RandomInsecureSeedNamespace from "./interfaces/wasi-random-insecure-seed";

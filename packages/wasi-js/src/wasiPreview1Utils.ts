@@ -51,7 +51,7 @@ export const bufferIn = (buffer: Uint8Array): ReadableAsyncOrSync => {
 
 export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, filestat_ptr: ptr<Filestat>) {
     wasiPreview1Debug("populateFileStat:");
-    const isFile: boolean = (handle as any).getFile;
+    const isFile: boolean = handle.kind === "file";
 
     let inode = 0n;
     let size = 0n;
@@ -59,7 +59,7 @@ export async function populateFileStat(buffer: ArrayBuffer, handle: Handle, file
     let mtime = 0n;
     let atime = 0n;
 
-    if ((handle as any).stat) {
+    if ("stat" in handle) {
         const statable = handle as unknown as Statable;
         const s = await statable.stat();
         const got_inode = s.inode;

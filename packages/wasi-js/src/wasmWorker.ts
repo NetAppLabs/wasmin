@@ -172,6 +172,17 @@ export function createComponentImportOrResourceProxy(
             else if (functionNameOrMember == "prototype") {
                 wasmWorkerClientDebug("trying to get prototype property");
                 return _receiver;
+            } else if (functionNameOrMember == "Symbol(handle)" || functionNameOrMember == "Symbol(cabiRep)") {
+                // FIXME: for Symbol(handle), we really should be returning resource identifier
+                //        however, if we do, then we will have to support code transpiled by jco, e.g. something like:
+                // ```
+                //      rsc0 = Object.create(ResolveAddressStream.prototype);
+                //      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+                //      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+                //      // ...
+                //      resolved = rsc0.resolveNextAddress();
+                // ```
+                return undefined;
             } 
             
             const funcToCall = getProxyFunctionToCall(

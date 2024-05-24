@@ -2,6 +2,8 @@ export namespace ComponentNfsRsNfs {
   export { NfsMount };
   export function parseUrlAndMount(url: string): NfsMount;
 }
+export type Fh = Uint8Array;
+export type Bytes = Uint8Array;
 export interface Time {
   seconds: number,
   nseconds: number,
@@ -20,6 +22,10 @@ export interface Attr {
   atime: Time,
   mtime: Time,
   ctime: Time,
+}
+export interface ObjRes {
+  obj: Fh,
+  attr?: Attr,
 }
 export interface PathConf {
   attr?: Attr,
@@ -40,7 +46,7 @@ export interface ReaddirplusEntry {
   fileName: string,
   cookie: bigint,
   attr?: Attr,
-  handle: Uint8Array,
+  handle: Fh,
 }
 export interface Error {
   nfsErrorCode?: number,
@@ -49,45 +55,45 @@ export interface Error {
 
 export class NfsMount {
   nullOp(): void;
-  access(fh: Uint8Array, mode: number): number;
+  access(fh: Fh, mode: number): number;
   accessPath(path: string, mode: number): number;
   close(seqid: number, stateid: bigint): void;
-  commit(fh: Uint8Array, offset: bigint, count: number): void;
+  commit(fh: Fh, offset: bigint, count: number): void;
   commitPath(path: string, offset: bigint, count: number): void;
-  create(dirFh: Uint8Array, filename: string, mode: number): Uint8Array;
-  createPath(path: string, mode: number): Uint8Array;
+  create(dirFh: Fh, filename: string, mode: number): ObjRes;
+  createPath(path: string, mode: number): ObjRes;
   delegpurge(clientid: bigint): void;
   delegreturn(stateid: bigint): void;
-  getattr(fh: Uint8Array): Attr;
+  getattr(fh: Fh): Attr;
   getattrPath(path: string): Attr;
-  setattr(fh: Uint8Array, guardCtime: Time | undefined, mode: number | undefined, uid: number | undefined, gid: number | undefined, size: bigint | undefined, atime: Time | undefined, mtime: Time | undefined): void;
+  setattr(fh: Fh, guardCtime: Time | undefined, mode: number | undefined, uid: number | undefined, gid: number | undefined, size: bigint | undefined, atime: Time | undefined, mtime: Time | undefined): void;
   setattrPath(path: string, specifyGuard: boolean, mode: number | undefined, uid: number | undefined, gid: number | undefined, size: bigint | undefined, atime: Time | undefined, mtime: Time | undefined): void;
   getfh(): void;
-  link(srcFh: Uint8Array, dstDirFh: Uint8Array, dstFilename: string): Attr;
+  link(srcFh: Fh, dstDirFh: Fh, dstFilename: string): Attr;
   linkPath(srcPath: string, dstPath: string): Attr;
-  symlink(srcPath: string, dstDirFh: Uint8Array, dstFilename: string): Uint8Array;
-  symlinkPath(srcPath: string, dstPath: string): Uint8Array;
-  readlink(fh: Uint8Array): string;
+  symlink(srcPath: string, dstDirFh: Fh, dstFilename: string): ObjRes;
+  symlinkPath(srcPath: string, dstPath: string): ObjRes;
+  readlink(fh: Fh): string;
   readlinkPath(path: string): string;
-  lookup(dirFh: Uint8Array, filename: string): Uint8Array;
-  lookupPath(path: string): Uint8Array;
-  pathconf(fh: Uint8Array): PathConf;
+  lookup(dirFh: Fh, filename: string): ObjRes;
+  lookupPath(path: string): ObjRes;
+  pathconf(fh: Fh): PathConf;
   pathconfPath(path: string): PathConf;
-  read(fh: Uint8Array, offset: bigint, count: number): Uint8Array;
-  readPath(path: string, offset: bigint, count: number): Uint8Array;
-  write(fh: Uint8Array, offset: bigint, data: Uint8Array): number;
-  writePath(path: string, offset: bigint, data: Uint8Array): number;
-  readdir(dirFh: Uint8Array): ReaddirEntry[];
+  read(fh: Fh, offset: bigint, count: number): Bytes;
+  readPath(path: string, offset: bigint, count: number): Bytes;
+  write(fh: Fh, offset: bigint, data: Bytes): number;
+  writePath(path: string, offset: bigint, data: Bytes): number;
+  readdir(dirFh: Fh): ReaddirEntry[];
   readdirPath(dirPath: string): ReaddirEntry[];
-  readdirplus(dirFh: Uint8Array): ReaddirplusEntry[];
+  readdirplus(dirFh: Fh): ReaddirplusEntry[];
   readdirplusPath(dirPath: string): ReaddirplusEntry[];
-  mkdir(dirFh: Uint8Array, dirname: string, mode: number): Uint8Array;
-  mkdirPath(path: string, mode: number): Uint8Array;
-  remove(dirFh: Uint8Array, filename: string): void;
+  mkdir(dirFh: Fh, dirname: string, mode: number): ObjRes;
+  mkdirPath(path: string, mode: number): ObjRes;
+  remove(dirFh: Fh, filename: string): void;
   removePath(path: string): void;
-  rmdir(dirFh: Uint8Array, dirname: string): void;
+  rmdir(dirFh: Fh, dirname: string): void;
   rmdirPath(path: string): void;
-  rename(fromDirFh: Uint8Array, fromFilename: string, toDirFh: Uint8Array, toFilename: string): void;
+  rename(fromDirFh: Fh, fromFilename: string, toDirFh: Fh, toFilename: string): void;
   renamePath(fromPath: string, toPath: string): void;
   umount(): void;
 }

@@ -1,9 +1,9 @@
 export namespace WasiSocketsTcpCreateSocket {
   export function createTcpSocket(addressFamily: IpAddressFamily): TcpSocket;
 }
-import type { IpAddressFamily } from '../interfaces/wasi-sockets-network.js';
+import type { IpAddressFamily } from './wasi-sockets-network.js';
 export { IpAddressFamily };
-import type { TcpSocket } from '../interfaces/wasi-sockets-tcp.js';
+import type { TcpSocket } from './wasi-sockets-tcp.js';
 export { TcpSocket };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
+import type { ErrorCode } from './wasi-sockets-network.js';
 export { ErrorCode };

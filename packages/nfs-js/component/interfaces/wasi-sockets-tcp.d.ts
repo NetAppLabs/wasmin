@@ -1,15 +1,15 @@
 export namespace WasiSocketsTcp {
   export { TcpSocket };
 }
-import type { Network } from '../interfaces/wasi-sockets-network.js';
+import type { Network } from './wasi-sockets-network.js';
 export { Network };
-import type { IpSocketAddress } from '../interfaces/wasi-sockets-network.js';
+import type { IpSocketAddress } from './wasi-sockets-network.js';
 export { IpSocketAddress };
-import type { ErrorCode } from '../interfaces/wasi-sockets-network.js';
+import type { ErrorCode } from './wasi-sockets-network.js';
 export { ErrorCode };
-import type { InputStream } from '../interfaces/wasi-io-streams.js';
+import type { InputStream } from './wasi-io-streams.js';
 export { InputStream };
-import type { OutputStream } from '../interfaces/wasi-io-streams.js';
+import type { OutputStream } from './wasi-io-streams.js';
 export { OutputStream };
 /**
  * # Variants
