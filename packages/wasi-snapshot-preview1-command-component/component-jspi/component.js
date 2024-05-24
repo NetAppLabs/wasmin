@@ -84,7 +84,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   
   const { TerminalInputExtended } = imports['wasi-ext:cli/terminal-input-extended'];
   const { TerminalOutputExtended } = imports['wasi-ext:cli/terminal-output-extended'];
-  const { getTerminalStdin } = imports['wasi-ext:cli/terminal-stdin-extended'];
+  const { getTerminalStdin: getTerminalStdin$1 } = imports['wasi-ext:cli/terminal-stdin-extended'];
   const { getTerminalStdout: getTerminalStdout$1 } = imports['wasi-ext:cli/terminal-stdout-extended'];
   const { mount, mounts, unmount } = imports['wasi-ext:filesystems/mount'];
   const { Process, create } = imports['wasi-ext:process/process'];
@@ -94,7 +94,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   const { getStdin } = imports['wasi:cli/stdin'];
   const { getStdout } = imports['wasi:cli/stdout'];
   const { getTerminalStderr } = imports['wasi:cli/terminal-stderr'];
-  const { getTerminalStdin: getTerminalStdin$1 } = imports['wasi:cli/terminal-stdin'];
+  const { getTerminalStdin } = imports['wasi:cli/terminal-stdin'];
   const { getTerminalStdout } = imports['wasi:cli/terminal-stdout'];
   const { now, resolution, subscribeDuration, subscribeInstant } = imports['wasi:clocks/monotonic-clock'];
   const { now: now$1, resolution: resolution$1 } = imports['wasi:clocks/wall-clock'];
@@ -205,7 +205,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     return handle2;
   }
   
-  async function trampoline17(arg0) {
+  async function trampoline16(arg0) {
     const ret = await subscribeInstant(BigInt.asUintN(64, arg0));
     if (!(true)) {
       throw new Error('Resource error: Not a valid "Pollable" resource.');
@@ -250,7 +250,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     await Process.prototype.setRoot.call(rsc0, rsc2);
   }
   
-  async function trampoline30() {
+  async function trampoline28() {
     const ret = await getStdin();
     if (!(ret instanceof InputStream)) {
       throw new Error('Resource error: Not a valid "InputStream" resource.');
@@ -260,7 +260,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     return handle0;
   }
   
-  async function trampoline31() {
+  async function trampoline29() {
     const ret = await getStdout();
     if (!(ret instanceof OutputStream)) {
       throw new Error('Resource error: Not a valid "OutputStream" resource.');
@@ -270,7 +270,21 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     return handle0;
   }
   
-  async function trampoline32(arg0) {
+  async function trampoline30(arg0) {
+    var handle1 = arg0;
+    var rsc0 = handleTable4.get(handle1).rep;
+    const ret = await TerminalInputExtended.prototype.getRawMode.call(rsc0);
+    return ret ? 1 : 0;
+  }
+  
+  async function trampoline32(arg0, arg1) {
+    var handle1 = arg0;
+    var rsc0 = handleTable4.get(handle1).rep;
+    var bool2 = arg1;
+    await TerminalInputExtended.prototype.setRawMode.call(rsc0, bool2 == 0 ? false : (bool2 == 1 ? true : throwInvalidBool()));
+  }
+  
+  async function trampoline34(arg0) {
     let variant0;
     switch (arg0) {
       case 0: {
@@ -292,20 +306,6 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       }
     }
     await exit(variant0);
-  }
-  
-  async function trampoline33(arg0) {
-    var handle1 = arg0;
-    var rsc0 = handleTable4.get(handle1).rep;
-    const ret = await TerminalInputExtended.prototype.getRawMode.call(rsc0);
-    return ret ? 1 : 0;
-  }
-  
-  async function trampoline34(arg0, arg1) {
-    var handle1 = arg0;
-    var rsc0 = handleTable4.get(handle1).rep;
-    var bool2 = arg1;
-    await TerminalInputExtended.prototype.setRawMode.call(rsc0, bool2 == 0 ? false : (bool2 == 1 ? true : throwInvalidBool()));
   }
   let exports2;
   
@@ -10464,7 +10464,92 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     dataView(memory0).setInt32(arg0 + 0, result1, true);
   }
   
-  async function trampoline110(arg0, arg1) {
+  async function trampoline110(arg0) {
+    const ret = await getTerminalStdin();
+    var variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalInput)) {
+        throw new Error('Resource error: Not a valid "TerminalInput" resource.');
+      }
+      var handle0 = handleCnt5++;
+      handleTable5.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  async function trampoline111(arg0) {
+    const ret = await getTerminalStdout();
+    var variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalOutput)) {
+        throw new Error('Resource error: Not a valid "TerminalOutput" resource.');
+      }
+      var handle0 = handleCnt7++;
+      handleTable7.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  async function trampoline112(arg0) {
+    const ret = await getTerminalStderr();
+    var variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalOutput)) {
+        throw new Error('Resource error: Not a valid "TerminalOutput" resource.');
+      }
+      var handle0 = handleCnt7++;
+      handleTable7.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  async function trampoline113(arg0) {
+    const ret = await getTerminalStdin$1();
+    var variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalInputExtended)) {
+        throw new Error('Resource error: Not a valid "TerminalInputExtended" resource.');
+      }
+      var handle0 = handleCnt4++;
+      handleTable4.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  async function trampoline114(arg0) {
+    const ret = await getTerminalStdout$1();
+    var variant1 = ret;
+    if (variant1 === null || variant1=== undefined) {
+      dataView(memory0).setInt8(arg0 + 0, 0, true);
+    } else {
+      const e = variant1;
+      dataView(memory0).setInt8(arg0 + 0, 1, true);
+      if (!(e instanceof TerminalOutputExtended)) {
+        throw new Error('Resource error: Not a valid "TerminalOutputExtended" resource.');
+      }
+      var handle0 = handleCnt6++;
+      handleTable6.set(handle0, { rep: e, own: true });
+      dataView(memory0).setInt32(arg0 + 4, handle0, true);
+    }
+  }
+  
+  async function trampoline115(arg0, arg1) {
     var handle1 = arg0;
     var rsc0 = handleTable6.get(handle1).rep;
     let ret;
@@ -10491,91 +10576,6 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       default: {
         throw new TypeError('invalid variant specified for result');
       }
-    }
-  }
-  
-  async function trampoline111(arg0) {
-    const ret = await getTerminalStderr();
-    var variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalOutput)) {
-        throw new Error('Resource error: Not a valid "TerminalOutput" resource.');
-      }
-      var handle0 = handleCnt7++;
-      handleTable7.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
-    }
-  }
-  
-  async function trampoline112(arg0) {
-    const ret = await getTerminalStdin();
-    var variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalInputExtended)) {
-        throw new Error('Resource error: Not a valid "TerminalInputExtended" resource.');
-      }
-      var handle0 = handleCnt4++;
-      handleTable4.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
-    }
-  }
-  
-  async function trampoline113(arg0) {
-    const ret = await getTerminalStdin$1();
-    var variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalInput)) {
-        throw new Error('Resource error: Not a valid "TerminalInput" resource.');
-      }
-      var handle0 = handleCnt5++;
-      handleTable5.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
-    }
-  }
-  
-  async function trampoline114(arg0) {
-    const ret = await getTerminalStdout();
-    var variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalOutput)) {
-        throw new Error('Resource error: Not a valid "TerminalOutput" resource.');
-      }
-      var handle0 = handleCnt7++;
-      handleTable7.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
-    }
-  }
-  
-  async function trampoline115(arg0) {
-    const ret = await getTerminalStdout$1();
-    var variant1 = ret;
-    if (variant1 === null || variant1=== undefined) {
-      dataView(memory0).setInt8(arg0 + 0, 0, true);
-    } else {
-      const e = variant1;
-      dataView(memory0).setInt8(arg0 + 0, 1, true);
-      if (!(e instanceof TerminalOutputExtended)) {
-        throw new Error('Resource error: Not a valid "TerminalOutputExtended" resource.');
-      }
-      var handle0 = handleCnt6++;
-      handleTable6.set(handle0, { rep: e, own: true });
-      dataView(memory0).setInt32(arg0 + 4, handle0, true);
     }
   }
   let exports3;
@@ -10642,15 +10642,14 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
   async function trampoline9(handle) {
     const handleEntry = handleTable8.get(handle);
     if (!handleEntry) {
-      //throw new Error(`Resource error: Invalid handle ${handle}`);
-    } else {
-      handleTable8.delete(handle);
-      if (handleEntry.own && handleEntry.rep[symbolAsyncDispose]) {
-        await handleEntry.rep[symbolAsyncDispose]();
-      }
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable8.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolAsyncDispose]) {
+      await handleEntry.rep[symbolAsyncDispose]();
     }
   }
-  async function trampoline16(handle) {
+  async function trampoline17(handle) {
     const handleEntry = handleTable0.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -10701,21 +10700,21 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
     }
   }
   async function trampoline25(handle) {
-    const handleEntry = handleTable5.get(handle);
-    if (!handleEntry) {
-      throw new Error(`Resource error: Invalid handle ${handle}`);
-    }
-    handleTable5.delete(handle);
-    if (handleEntry.own && handleEntry.rep[symbolAsyncDispose]) {
-      await handleEntry.rep[symbolAsyncDispose]();
-    }
-  }
-  async function trampoline26(handle) {
     const handleEntry = handleTable12.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
     }
     handleTable12.delete(handle);
+    if (handleEntry.own && handleEntry.rep[symbolAsyncDispose]) {
+      await handleEntry.rep[symbolAsyncDispose]();
+    }
+  }
+  async function trampoline26(handle) {
+    const handleEntry = handleTable5.get(handle);
+    if (!handleEntry) {
+      throw new Error(`Resource error: Invalid handle ${handle}`);
+    }
+    handleTable5.delete(handle);
     if (handleEntry.own && handleEntry.rep[symbolAsyncDispose]) {
       await handleEntry.rep[symbolAsyncDispose]();
     }
@@ -10730,7 +10729,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       await handleEntry.rep[symbolAsyncDispose]();
     }
   }
-  async function trampoline28(handle) {
+  async function trampoline31(handle) {
     const handleEntry = handleTable4.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -10740,7 +10739,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       await handleEntry.rep[symbolAsyncDispose]();
     }
   }
-  async function trampoline29(handle) {
+  async function trampoline33(handle) {
     const handleEntry = handleTable6.get(handle);
     if (!handleEntry) {
       throw new Error(`Resource error: Invalid handle ${handle}`);
@@ -10829,19 +10828,19 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       memory: exports1.memory,
     },
     'wasi-ext:cli/terminal-input-extended@0.2.0': {
-      '[method]terminal-input-extended.get-raw-mode': trampoline33,
-      '[method]terminal-input-extended.set-raw-mode': trampoline34,
-      '[resource-drop]terminal-input-extended': trampoline28,
+      '[method]terminal-input-extended.get-raw-mode': trampoline30,
+      '[method]terminal-input-extended.set-raw-mode': trampoline32,
+      '[resource-drop]terminal-input-extended': trampoline31,
     },
     'wasi-ext:cli/terminal-output-extended@0.2.0': {
-      '[method]terminal-output-extended.window-size': exports0['75'],
-      '[resource-drop]terminal-output-extended': trampoline29,
+      '[method]terminal-output-extended.window-size': exports0['80'],
+      '[resource-drop]terminal-output-extended': trampoline33,
     },
     'wasi-ext:cli/terminal-stdin-extended@0.2.0': {
-      'get-terminal-stdin': exports0['77'],
+      'get-terminal-stdin': exports0['78'],
     },
     'wasi-ext:cli/terminal-stdout-extended@0.2.0': {
-      'get-terminal-stdout': exports0['80'],
+      'get-terminal-stdout': exports0['79'],
     },
     'wasi-ext:filesystems/mount@0.2.0': {
       mount: exports0['57'],
@@ -10867,37 +10866,37 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       'get-environment': exports0['73'],
     },
     'wasi:cli/exit@0.2.0': {
-      exit: trampoline32,
+      exit: trampoline34,
     },
     'wasi:cli/stderr@0.2.0': {
       'get-stderr': trampoline0,
     },
     'wasi:cli/stdin@0.2.0': {
-      'get-stdin': trampoline30,
+      'get-stdin': trampoline28,
     },
     'wasi:cli/stdout@0.2.0': {
-      'get-stdout': trampoline31,
+      'get-stdout': trampoline29,
     },
     'wasi:cli/terminal-input@0.2.0': {
-      '[resource-drop]terminal-input': trampoline25,
+      '[resource-drop]terminal-input': trampoline26,
     },
     'wasi:cli/terminal-output@0.2.0': {
       '[resource-drop]terminal-output': trampoline27,
     },
     'wasi:cli/terminal-stderr@0.2.0': {
-      'get-terminal-stderr': exports0['76'],
+      'get-terminal-stderr': exports0['77'],
     },
     'wasi:cli/terminal-stdin@0.2.0': {
-      'get-terminal-stdin': exports0['78'],
+      'get-terminal-stdin': exports0['75'],
     },
     'wasi:cli/terminal-stdout@0.2.0': {
-      'get-terminal-stdout': exports0['79'],
+      'get-terminal-stdout': exports0['76'],
     },
     'wasi:clocks/monotonic-clock@0.2.0': {
       now: trampoline4,
       resolution: trampoline3,
       'subscribe-duration': trampoline10,
-      'subscribe-instant': trampoline17,
+      'subscribe-instant': trampoline16,
     },
     'wasi:clocks/wall-clock@0.2.0': {
       now: exports0['15'],
@@ -10942,7 +10941,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[resource-drop]error': trampoline1,
     },
     'wasi:io/poll@0.2.0': {
-      '[resource-drop]pollable': trampoline16,
+      '[resource-drop]pollable': trampoline17,
       poll: exports0['55'],
     },
     'wasi:io/streams@0.2.0': {
@@ -11004,7 +11003,7 @@ const { TerminalOutput } = imports["wasi:cli/terminal-stdout"];
       '[method]udp-socket.subscribe': trampoline11,
       '[resource-drop]incoming-datagram-stream': trampoline7,
       '[resource-drop]outgoing-datagram-stream': trampoline6,
-      '[resource-drop]udp-socket': trampoline26,
+      '[resource-drop]udp-socket': trampoline25,
     },
   }));
   memory0 = exports1.memory;
