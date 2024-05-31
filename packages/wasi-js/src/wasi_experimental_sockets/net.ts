@@ -253,9 +253,32 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     }
 
     async write(data: Uint8Array): Promise<void> {
-        wasiSocketsDebug("tcp socket:write");
-        await this.waitForConnect();
-        this._nodeSocket.write(data, "utf8");
+        let promisedWrite: Promise<void> = new Promise(async (resolve, reject) => {
+            wasiSocketsDebug("tcp socket:write");
+            await this.waitForConnect();
+            let writeCallback = (error: Error | null | undefined) => {
+                if (error) {
+                    wasiSocketsDebug("tcp socket:write got error: ", error);
+                    let errAny = error as any;
+                    // default to CONNRESET error
+                    let thowErr = new SystemError(ErrnoN.CONNRESET, false);
+                    if (errAny.code) {
+                        const errCode = errAny.code;
+                        if (errCode == "EPIPE") {
+                            thowErr = new SystemError(ErrnoN.PIPE, false);
+                        }
+                    }
+                    reject(thowErr);
+                } else {
+                    resolve();
+                }
+            }
+            let flushed = this._nodeSocket.write(data, "utf8", writeCallback);
+            if (!flushed) {
+                wasiSocketsDebug("tcp socket:write did not successfully flush");
+            }
+        });
+        return promisedWrite;
     }
 
     async address(): Promise<AddressInfo> {
