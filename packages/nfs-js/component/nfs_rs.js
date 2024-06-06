@@ -149,7 +149,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   let captureCnt4 = 0;
   handleTables[4] = handleTable4;
   
-  function trampoline7() {
+  function trampoline8() {
     const ret = instanceNetwork();
     if (!(ret instanceof Network)) {
       throw new TypeError('Resource error: Not a valid "Network" resource.');
@@ -332,804 +332,12 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   let memory0;
   let realloc0;
   let realloc1;
-  const handleTable6 = [T_FLAG, 0];
-  const captureTable6= new Map();
-  let captureCnt6 = 0;
-  handleTables[6] = handleTable6;
-  
-  function trampoline20(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
-    var handle1 = arg0;
-    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable6.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(TcpSocket.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    var handle4 = arg1;
-    var rep5 = handleTable4[(handle4 << 1) + 1] & ~T_FLAG;
-    var rsc3 = captureTable4.get(rep5);
-    if (!rsc3) {
-      rsc3 = Object.create(Network.prototype);
-      Object.defineProperty(rsc3, symbolRscHandle, { writable: true, value: handle4});
-      Object.defineProperty(rsc3, symbolRscRep, { writable: true, value: rep5});
-    }
-    curResourceBorrows.push(rsc3);
-    let variant6;
-    switch (arg2) {
-      case 0: {
-        variant6= {
-          tag: 'ipv4',
-          val: {
-            port: clampGuest(arg3, 0, 65535),
-            address: [clampGuest(arg4, 0, 255), clampGuest(arg5, 0, 255), clampGuest(arg6, 0, 255), clampGuest(arg7, 0, 255)],
-          }
-        };
-        break;
-      }
-      case 1: {
-        variant6= {
-          tag: 'ipv6',
-          val: {
-            port: clampGuest(arg3, 0, 65535),
-            flowInfo: arg4 >>> 0,
-            address: [clampGuest(arg5, 0, 65535), clampGuest(arg6, 0, 65535), clampGuest(arg7, 0, 65535), clampGuest(arg8, 0, 65535), clampGuest(arg9, 0, 65535), clampGuest(arg10, 0, 65535), clampGuest(arg11, 0, 65535), clampGuest(arg12, 0, 65535)],
-            scopeId: arg13 >>> 0,
-          }
-        };
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant discriminant for IpSocketAddress');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.startConnect(rsc3, variant6)};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant8 = ret;
-    switch (variant8.tag) {
-      case 'ok': {
-        const e = variant8.val;
-        dataView(memory0).setInt8(arg14 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant8.val;
-        dataView(memory0).setInt8(arg14 + 0, 1, true);
-        var val7 = e;
-        let enum7;
-        switch (val7) {
-          case 'unknown': {
-            enum7 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum7 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum7 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum7 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum7 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum7 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum7 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum7 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum7 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum7 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum7 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum7 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum7 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum7 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum7 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum7 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum7 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum7 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum7 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum7 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum7 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val7}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg14 + 1, enum7, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline21(arg0, arg1) {
-    var handle1 = arg0;
-    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable6.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(TcpSocket.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.finishConnect()};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant7 = ret;
-    switch (variant7.tag) {
-      case 'ok': {
-        const e = variant7.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        var [tuple3_0, tuple3_1] = e;
-        if (!(tuple3_0 instanceof InputStream)) {
-          throw new TypeError('Resource error: Not a valid "InputStream" resource.');
-        }
-        var handle4 = tuple3_0[symbolRscHandle];
-        if (!handle4) {
-          const rep = tuple3_0[symbolRscRep] || ++captureCnt2;
-          captureTable2.set(rep, tuple3_0);
-          handle4 = rscTableCreateOwn(handleTable2, rep);
-        }
-        dataView(memory0).setInt32(arg1 + 4, handle4, true);
-        if (!(tuple3_1 instanceof OutputStream)) {
-          throw new TypeError('Resource error: Not a valid "OutputStream" resource.');
-        }
-        var handle5 = tuple3_1[symbolRscHandle];
-        if (!handle5) {
-          const rep = tuple3_1[symbolRscRep] || ++captureCnt3;
-          captureTable3.set(rep, tuple3_1);
-          handle5 = rscTableCreateOwn(handleTable3, rep);
-        }
-        dataView(memory0).setInt32(arg1 + 8, handle5, true);
-        break;
-      }
-      case 'err': {
-        const e = variant7.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        var val6 = e;
-        let enum6;
-        switch (val6) {
-          case 'unknown': {
-            enum6 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum6 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum6 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum6 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum6 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum6 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum6 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum6 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum6 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum6 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum6 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum6 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum6 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum6 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum6 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum6 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum6 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum6 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum6 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum6 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum6 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val6}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 4, enum6, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline22(arg0, arg1) {
-    var handle1 = arg0;
-    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable6.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(TcpSocket.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.remoteAddress()};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant9 = ret;
-    switch (variant9.tag) {
-      case 'ok': {
-        const e = variant9.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        var variant7 = e;
-        switch (variant7.tag) {
-          case 'ipv4': {
-            const e = variant7.val;
-            dataView(memory0).setInt8(arg1 + 4, 0, true);
-            var {port: v3_0, address: v3_1 } = e;
-            dataView(memory0).setInt16(arg1 + 8, toUint16(v3_0), true);
-            var [tuple4_0, tuple4_1, tuple4_2, tuple4_3] = v3_1;
-            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple4_0), true);
-            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple4_1), true);
-            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple4_2), true);
-            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple4_3), true);
-            break;
-          }
-          case 'ipv6': {
-            const e = variant7.val;
-            dataView(memory0).setInt8(arg1 + 4, 1, true);
-            var {port: v5_0, flowInfo: v5_1, address: v5_2, scopeId: v5_3 } = e;
-            dataView(memory0).setInt16(arg1 + 8, toUint16(v5_0), true);
-            dataView(memory0).setInt32(arg1 + 12, toUint32(v5_1), true);
-            var [tuple6_0, tuple6_1, tuple6_2, tuple6_3, tuple6_4, tuple6_5, tuple6_6, tuple6_7] = v5_2;
-            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple6_0), true);
-            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple6_1), true);
-            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple6_2), true);
-            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple6_3), true);
-            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple6_4), true);
-            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple6_5), true);
-            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple6_6), true);
-            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple6_7), true);
-            dataView(memory0).setInt32(arg1 + 32, toUint32(v5_3), true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant7.tag)}\` (received \`${variant7}\`) specified for \`IpSocketAddress\``);
-          }
-        }
-        break;
-      }
-      case 'err': {
-        const e = variant9.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        var val8 = e;
-        let enum8;
-        switch (val8) {
-          case 'unknown': {
-            enum8 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum8 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum8 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum8 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum8 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum8 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum8 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum8 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum8 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum8 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum8 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum8 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum8 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum8 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum8 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum8 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum8 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum8 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum8 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum8 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum8 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val8}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg1 + 4, enum8, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline23(arg0, arg1, arg2) {
-    var handle1 = arg0;
-    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable6.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(TcpSocket.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    let enum3;
-    switch (arg1) {
-      case 0: {
-        enum3 = 'receive';
-        break;
-      }
-      case 1: {
-        enum3 = 'send';
-        break;
-      }
-      case 2: {
-        enum3 = 'both';
-        break;
-      }
-      default: {
-        throw new TypeError('invalid discriminant specified for ShutdownType');
-      }
-    }
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.shutdown(enum3)};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant5 = ret;
-    switch (variant5.tag) {
-      case 'ok': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        var val4 = e;
-        let enum4;
-        switch (val4) {
-          case 'unknown': {
-            enum4 = 0;
-            break;
-          }
-          case 'access-denied': {
-            enum4 = 1;
-            break;
-          }
-          case 'not-supported': {
-            enum4 = 2;
-            break;
-          }
-          case 'invalid-argument': {
-            enum4 = 3;
-            break;
-          }
-          case 'out-of-memory': {
-            enum4 = 4;
-            break;
-          }
-          case 'timeout': {
-            enum4 = 5;
-            break;
-          }
-          case 'concurrency-conflict': {
-            enum4 = 6;
-            break;
-          }
-          case 'not-in-progress': {
-            enum4 = 7;
-            break;
-          }
-          case 'would-block': {
-            enum4 = 8;
-            break;
-          }
-          case 'invalid-state': {
-            enum4 = 9;
-            break;
-          }
-          case 'new-socket-limit': {
-            enum4 = 10;
-            break;
-          }
-          case 'address-not-bindable': {
-            enum4 = 11;
-            break;
-          }
-          case 'address-in-use': {
-            enum4 = 12;
-            break;
-          }
-          case 'remote-unreachable': {
-            enum4 = 13;
-            break;
-          }
-          case 'connection-refused': {
-            enum4 = 14;
-            break;
-          }
-          case 'connection-reset': {
-            enum4 = 15;
-            break;
-          }
-          case 'connection-aborted': {
-            enum4 = 16;
-            break;
-          }
-          case 'datagram-too-large': {
-            enum4 = 17;
-            break;
-          }
-          case 'name-unresolvable': {
-            enum4 = 18;
-            break;
-          }
-          case 'temporary-resolver-failure': {
-            enum4 = 19;
-            break;
-          }
-          case 'permanent-resolver-failure': {
-            enum4 = 20;
-            break;
-          }
-          default: {
-            if ((e) instanceof Error) {
-              console.error(e);
-            }
-            
-            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
-          }
-        }
-        dataView(memory0).setInt8(arg2 + 1, enum4, true);
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  const handleTable1 = [T_FLAG, 0];
-  const captureTable1= new Map();
-  let captureCnt1 = 0;
-  handleTables[1] = handleTable1;
-  
-  function trampoline24(arg0, arg1, arg2) {
-    var handle1 = arg0;
-    var rep2 = handleTable2[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable2.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(InputStream.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.blockingRead(BigInt.asUintN(64, arg1))};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant6 = ret;
-    switch (variant6.tag) {
-      case 'ok': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg2 + 0, 0, true);
-        var val3 = e;
-        var len3 = val3.byteLength;
-        var ptr3 = realloc0(0, 0, 1, len3 * 1);
-        var src3 = new Uint8Array(val3.buffer || val3, val3.byteOffset, len3 * 1);
-        (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
-        dataView(memory0).setInt32(arg2 + 8, len3, true);
-        dataView(memory0).setInt32(arg2 + 4, ptr3, true);
-        break;
-      }
-      case 'err': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg2 + 0, 1, true);
-        var variant5 = e;
-        switch (variant5.tag) {
-          case 'last-operation-failed': {
-            const e = variant5.val;
-            dataView(memory0).setInt8(arg2 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
-              throw new TypeError('Resource error: Not a valid "Error" resource.');
-            }
-            var handle4 = e[symbolRscHandle];
-            if (!handle4) {
-              const rep = e[symbolRscRep] || ++captureCnt1;
-              captureTable1.set(rep, e);
-              handle4 = rscTableCreateOwn(handleTable1, rep);
-            }
-            dataView(memory0).setInt32(arg2 + 8, handle4, true);
-            break;
-          }
-          case 'closed': {
-            dataView(memory0).setInt8(arg2 + 4, 1, true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant5.tag)}\` (received \`${variant5}\`) specified for \`StreamError\``);
-          }
-        }
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline25(arg0, arg1, arg2, arg3) {
-    var handle1 = arg0;
-    var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable3.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(OutputStream.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    var ptr3 = arg1;
-    var len3 = arg2;
-    var result3 = new Uint8Array(memory0.buffer.slice(ptr3, ptr3 + len3 * 1));
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.blockingWriteAndFlush(result3)};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant6 = ret;
-    switch (variant6.tag) {
-      case 'ok': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg3 + 0, 0, true);
-        break;
-      }
-      case 'err': {
-        const e = variant6.val;
-        dataView(memory0).setInt8(arg3 + 0, 1, true);
-        var variant5 = e;
-        switch (variant5.tag) {
-          case 'last-operation-failed': {
-            const e = variant5.val;
-            dataView(memory0).setInt8(arg3 + 4, 0, true);
-            if (!(e instanceof Error$1)) {
-              throw new TypeError('Resource error: Not a valid "Error" resource.');
-            }
-            var handle4 = e[symbolRscHandle];
-            if (!handle4) {
-              const rep = e[symbolRscRep] || ++captureCnt1;
-              captureTable1.set(rep, e);
-              handle4 = rscTableCreateOwn(handleTable1, rep);
-            }
-            dataView(memory0).setInt32(arg3 + 8, handle4, true);
-            break;
-          }
-          case 'closed': {
-            dataView(memory0).setInt8(arg3 + 4, 1, true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant5.tag)}\` (received \`${variant5}\`) specified for \`StreamError\``);
-          }
-        }
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
   const handleTable5 = [T_FLAG, 0];
   const captureTable5= new Map();
   let captureCnt5 = 0;
   handleTables[5] = handleTable5;
   
-  function trampoline26(arg0, arg1) {
+  function trampoline20(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable5[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable5.get(rep2);
@@ -1300,7 +508,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline27(arg0, arg1, arg2, arg3) {
+  function trampoline21(arg0, arg1, arg2, arg3) {
     var handle1 = arg0;
     var rep2 = handleTable4[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable4.get(rep2);
@@ -1446,8 +654,885 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
       }
     }
   }
+  const handleTable6 = [T_FLAG, 0];
+  const captureTable6= new Map();
+  let captureCnt6 = 0;
+  handleTables[6] = handleTable6;
+  
+  function trampoline22(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+    var handle1 = arg0;
+    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable6.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(TcpSocket.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    var handle4 = arg1;
+    var rep5 = handleTable4[(handle4 << 1) + 1] & ~T_FLAG;
+    var rsc3 = captureTable4.get(rep5);
+    if (!rsc3) {
+      rsc3 = Object.create(Network.prototype);
+      Object.defineProperty(rsc3, symbolRscHandle, { writable: true, value: handle4});
+      Object.defineProperty(rsc3, symbolRscRep, { writable: true, value: rep5});
+    }
+    curResourceBorrows.push(rsc3);
+    let variant6;
+    switch (arg2) {
+      case 0: {
+        variant6= {
+          tag: 'ipv4',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            address: [clampGuest(arg4, 0, 255), clampGuest(arg5, 0, 255), clampGuest(arg6, 0, 255), clampGuest(arg7, 0, 255)],
+          }
+        };
+        break;
+      }
+      case 1: {
+        variant6= {
+          tag: 'ipv6',
+          val: {
+            port: clampGuest(arg3, 0, 65535),
+            flowInfo: arg4 >>> 0,
+            address: [clampGuest(arg5, 0, 65535), clampGuest(arg6, 0, 65535), clampGuest(arg7, 0, 65535), clampGuest(arg8, 0, 65535), clampGuest(arg9, 0, 65535), clampGuest(arg10, 0, 65535), clampGuest(arg11, 0, 65535), clampGuest(arg12, 0, 65535)],
+            scopeId: arg13 >>> 0,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for IpSocketAddress');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.startConnect(rsc3, variant6)};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant8 = ret;
+    switch (variant8.tag) {
+      case 'ok': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg14 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant8.val;
+        dataView(memory0).setInt8(arg14 + 0, 1, true);
+        var val7 = e;
+        let enum7;
+        switch (val7) {
+          case 'unknown': {
+            enum7 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum7 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum7 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum7 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum7 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum7 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum7 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum7 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum7 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum7 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum7 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum7 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum7 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum7 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum7 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum7 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum7 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum7 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum7 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum7 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum7 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val7}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg14 + 1, enum7, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline23(arg0, arg1) {
+    var handle1 = arg0;
+    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable6.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(TcpSocket.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.finishConnect()};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant7 = ret;
+    switch (variant7.tag) {
+      case 'ok': {
+        const e = variant7.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        var [tuple3_0, tuple3_1] = e;
+        if (!(tuple3_0 instanceof InputStream)) {
+          throw new TypeError('Resource error: Not a valid "InputStream" resource.');
+        }
+        var handle4 = tuple3_0[symbolRscHandle];
+        if (!handle4) {
+          const rep = tuple3_0[symbolRscRep] || ++captureCnt2;
+          captureTable2.set(rep, tuple3_0);
+          handle4 = rscTableCreateOwn(handleTable2, rep);
+        }
+        dataView(memory0).setInt32(arg1 + 4, handle4, true);
+        if (!(tuple3_1 instanceof OutputStream)) {
+          throw new TypeError('Resource error: Not a valid "OutputStream" resource.');
+        }
+        var handle5 = tuple3_1[symbolRscHandle];
+        if (!handle5) {
+          const rep = tuple3_1[symbolRscRep] || ++captureCnt3;
+          captureTable3.set(rep, tuple3_1);
+          handle5 = rscTableCreateOwn(handleTable3, rep);
+        }
+        dataView(memory0).setInt32(arg1 + 8, handle5, true);
+        break;
+      }
+      case 'err': {
+        const e = variant7.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        var val6 = e;
+        let enum6;
+        switch (val6) {
+          case 'unknown': {
+            enum6 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum6 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum6 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum6 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum6 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum6 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum6 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum6 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum6 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum6 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum6 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum6 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum6 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum6 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum6 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum6 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum6 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum6 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum6 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum6 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum6 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val6}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum6, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline24(arg0, arg1) {
+    var handle1 = arg0;
+    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable6.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(TcpSocket.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.remoteAddress()};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant9 = ret;
+    switch (variant9.tag) {
+      case 'ok': {
+        const e = variant9.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        var variant7 = e;
+        switch (variant7.tag) {
+          case 'ipv4': {
+            const e = variant7.val;
+            dataView(memory0).setInt8(arg1 + 4, 0, true);
+            var {port: v3_0, address: v3_1 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v3_0), true);
+            var [tuple4_0, tuple4_1, tuple4_2, tuple4_3] = v3_1;
+            dataView(memory0).setInt8(arg1 + 10, toUint8(tuple4_0), true);
+            dataView(memory0).setInt8(arg1 + 11, toUint8(tuple4_1), true);
+            dataView(memory0).setInt8(arg1 + 12, toUint8(tuple4_2), true);
+            dataView(memory0).setInt8(arg1 + 13, toUint8(tuple4_3), true);
+            break;
+          }
+          case 'ipv6': {
+            const e = variant7.val;
+            dataView(memory0).setInt8(arg1 + 4, 1, true);
+            var {port: v5_0, flowInfo: v5_1, address: v5_2, scopeId: v5_3 } = e;
+            dataView(memory0).setInt16(arg1 + 8, toUint16(v5_0), true);
+            dataView(memory0).setInt32(arg1 + 12, toUint32(v5_1), true);
+            var [tuple6_0, tuple6_1, tuple6_2, tuple6_3, tuple6_4, tuple6_5, tuple6_6, tuple6_7] = v5_2;
+            dataView(memory0).setInt16(arg1 + 16, toUint16(tuple6_0), true);
+            dataView(memory0).setInt16(arg1 + 18, toUint16(tuple6_1), true);
+            dataView(memory0).setInt16(arg1 + 20, toUint16(tuple6_2), true);
+            dataView(memory0).setInt16(arg1 + 22, toUint16(tuple6_3), true);
+            dataView(memory0).setInt16(arg1 + 24, toUint16(tuple6_4), true);
+            dataView(memory0).setInt16(arg1 + 26, toUint16(tuple6_5), true);
+            dataView(memory0).setInt16(arg1 + 28, toUint16(tuple6_6), true);
+            dataView(memory0).setInt16(arg1 + 30, toUint16(tuple6_7), true);
+            dataView(memory0).setInt32(arg1 + 32, toUint32(v5_3), true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant7.tag)}\` (received \`${variant7}\`) specified for \`IpSocketAddress\``);
+          }
+        }
+        break;
+      }
+      case 'err': {
+        const e = variant9.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        var val8 = e;
+        let enum8;
+        switch (val8) {
+          case 'unknown': {
+            enum8 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum8 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum8 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum8 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum8 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum8 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum8 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum8 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum8 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum8 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum8 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum8 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum8 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum8 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum8 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum8 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum8 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum8 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum8 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum8 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum8 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val8}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg1 + 4, enum8, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline25(arg0, arg1, arg2) {
+    var handle1 = arg0;
+    var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable6.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(TcpSocket.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    let enum3;
+    switch (arg1) {
+      case 0: {
+        enum3 = 'receive';
+        break;
+      }
+      case 1: {
+        enum3 = 'send';
+        break;
+      }
+      case 2: {
+        enum3 = 'both';
+        break;
+      }
+      default: {
+        throw new TypeError('invalid discriminant specified for ShutdownType');
+      }
+    }
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.shutdown(enum3)};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        var val4 = e;
+        let enum4;
+        switch (val4) {
+          case 'unknown': {
+            enum4 = 0;
+            break;
+          }
+          case 'access-denied': {
+            enum4 = 1;
+            break;
+          }
+          case 'not-supported': {
+            enum4 = 2;
+            break;
+          }
+          case 'invalid-argument': {
+            enum4 = 3;
+            break;
+          }
+          case 'out-of-memory': {
+            enum4 = 4;
+            break;
+          }
+          case 'timeout': {
+            enum4 = 5;
+            break;
+          }
+          case 'concurrency-conflict': {
+            enum4 = 6;
+            break;
+          }
+          case 'not-in-progress': {
+            enum4 = 7;
+            break;
+          }
+          case 'would-block': {
+            enum4 = 8;
+            break;
+          }
+          case 'invalid-state': {
+            enum4 = 9;
+            break;
+          }
+          case 'new-socket-limit': {
+            enum4 = 10;
+            break;
+          }
+          case 'address-not-bindable': {
+            enum4 = 11;
+            break;
+          }
+          case 'address-in-use': {
+            enum4 = 12;
+            break;
+          }
+          case 'remote-unreachable': {
+            enum4 = 13;
+            break;
+          }
+          case 'connection-refused': {
+            enum4 = 14;
+            break;
+          }
+          case 'connection-reset': {
+            enum4 = 15;
+            break;
+          }
+          case 'connection-aborted': {
+            enum4 = 16;
+            break;
+          }
+          case 'datagram-too-large': {
+            enum4 = 17;
+            break;
+          }
+          case 'name-unresolvable': {
+            enum4 = 18;
+            break;
+          }
+          case 'temporary-resolver-failure': {
+            enum4 = 19;
+            break;
+          }
+          case 'permanent-resolver-failure': {
+            enum4 = 20;
+            break;
+          }
+          default: {
+            if ((e) instanceof Error) {
+              console.error(e);
+            }
+            
+            throw new TypeError(`"${val4}" is not one of the cases of error-code`);
+          }
+        }
+        dataView(memory0).setInt8(arg2 + 1, enum4, true);
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  const handleTable1 = [T_FLAG, 0];
+  const captureTable1= new Map();
+  let captureCnt1 = 0;
+  handleTables[1] = handleTable1;
+  
+  function trampoline26(arg0, arg1) {
+    var handle1 = arg0;
+    var rep2 = handleTable1[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable1.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(Error$1.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    const ret = rsc0.toDebugString();
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var ptr3 = utf8Encode(ret, realloc0, memory0);
+    var len3 = utf8EncodedLen;
+    dataView(memory0).setInt32(arg1 + 4, len3, true);
+    dataView(memory0).setInt32(arg1 + 0, ptr3, true);
+  }
+  
+  function trampoline27(arg0, arg1, arg2) {
+    var handle1 = arg0;
+    var rep2 = handleTable2[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable2.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(InputStream.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.blockingRead(BigInt.asUintN(64, arg1))};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant6 = ret;
+    switch (variant6.tag) {
+      case 'ok': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg2 + 0, 0, true);
+        var val3 = e;
+        var len3 = val3.byteLength;
+        var ptr3 = realloc0(0, 0, 1, len3 * 1);
+        var src3 = new Uint8Array(val3.buffer || val3, val3.byteOffset, len3 * 1);
+        (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
+        dataView(memory0).setInt32(arg2 + 8, len3, true);
+        dataView(memory0).setInt32(arg2 + 4, ptr3, true);
+        break;
+      }
+      case 'err': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg2 + 0, 1, true);
+        var variant5 = e;
+        switch (variant5.tag) {
+          case 'last-operation-failed': {
+            const e = variant5.val;
+            dataView(memory0).setInt8(arg2 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new TypeError('Resource error: Not a valid "Error" resource.');
+            }
+            var handle4 = e[symbolRscHandle];
+            if (!handle4) {
+              const rep = e[symbolRscRep] || ++captureCnt1;
+              captureTable1.set(rep, e);
+              handle4 = rscTableCreateOwn(handleTable1, rep);
+            }
+            dataView(memory0).setInt32(arg2 + 8, handle4, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg2 + 4, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant5.tag)}\` (received \`${variant5}\`) specified for \`StreamError\``);
+          }
+        }
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
   
   function trampoline28(arg0, arg1) {
+    var handle1 = arg0;
+    var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable3.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(OutputStream.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.checkWrite()};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant5 = ret;
+    switch (variant5.tag) {
+      case 'ok': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg1 + 0, 0, true);
+        dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
+        break;
+      }
+      case 'err': {
+        const e = variant5.val;
+        dataView(memory0).setInt8(arg1 + 0, 1, true);
+        var variant4 = e;
+        switch (variant4.tag) {
+          case 'last-operation-failed': {
+            const e = variant4.val;
+            dataView(memory0).setInt8(arg1 + 8, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new TypeError('Resource error: Not a valid "Error" resource.');
+            }
+            var handle3 = e[symbolRscHandle];
+            if (!handle3) {
+              const rep = e[symbolRscRep] || ++captureCnt1;
+              captureTable1.set(rep, e);
+              handle3 = rscTableCreateOwn(handleTable1, rep);
+            }
+            dataView(memory0).setInt32(arg1 + 12, handle3, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg1 + 8, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant4.tag)}\` (received \`${variant4}\`) specified for \`StreamError\``);
+          }
+        }
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline29(arg0, arg1, arg2, arg3) {
+    var handle1 = arg0;
+    var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
+    var rsc0 = captureTable3.get(rep2);
+    if (!rsc0) {
+      rsc0 = Object.create(OutputStream.prototype);
+      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+    }
+    curResourceBorrows.push(rsc0);
+    var ptr3 = arg1;
+    var len3 = arg2;
+    var result3 = new Uint8Array(memory0.buffer.slice(ptr3, ptr3 + len3 * 1));
+    let ret;
+    try {
+      ret = { tag: 'ok', val: rsc0.blockingWriteAndFlush(result3)};
+    } catch (e) {
+      ret = { tag: 'err', val: getErrorPayload(e) };
+    }
+    for (const rsc of curResourceBorrows) {
+      rsc[symbolRscHandle] = null;
+    }
+    curResourceBorrows = [];
+    var variant6 = ret;
+    switch (variant6.tag) {
+      case 'ok': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg3 + 0, 0, true);
+        break;
+      }
+      case 'err': {
+        const e = variant6.val;
+        dataView(memory0).setInt8(arg3 + 0, 1, true);
+        var variant5 = e;
+        switch (variant5.tag) {
+          case 'last-operation-failed': {
+            const e = variant5.val;
+            dataView(memory0).setInt8(arg3 + 4, 0, true);
+            if (!(e instanceof Error$1)) {
+              throw new TypeError('Resource error: Not a valid "Error" resource.');
+            }
+            var handle4 = e[symbolRscHandle];
+            if (!handle4) {
+              const rep = e[symbolRscRep] || ++captureCnt1;
+              captureTable1.set(rep, e);
+              handle4 = rscTableCreateOwn(handleTable1, rep);
+            }
+            dataView(memory0).setInt32(arg3 + 8, handle4, true);
+            break;
+          }
+          case 'closed': {
+            dataView(memory0).setInt8(arg3 + 4, 1, true);
+            break;
+          }
+          default: {
+            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant5.tag)}\` (received \`${variant5}\`) specified for \`StreamError\``);
+          }
+        }
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant specified for result');
+      }
+    }
+  }
+  
+  function trampoline30(arg0, arg1) {
     let enum0;
     switch (arg0) {
       case 0: {
@@ -1596,7 +1681,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   let captureCnt7 = 0;
   handleTables[7] = handleTable7;
   
-  function trampoline29(arg0) {
+  function trampoline31(arg0) {
     const ret = getDirectories();
     var vec3 = ret;
     var len3 = vec3.length;
@@ -1623,14 +1708,14 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     dataView(memory0).setInt32(arg0 + 0, result3, true);
   }
   
-  function trampoline30(arg0) {
+  function trampoline32(arg0) {
     const ret = now$1();
     var {seconds: v0_0, nanoseconds: v0_1 } = ret;
     dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
     dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
   }
   
-  function trampoline31(arg0, arg1, arg2) {
+  function trampoline33(arg0, arg1, arg2) {
     var handle1 = arg0;
     var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable7.get(rep2);
@@ -1838,7 +1923,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline32(arg0, arg1, arg2) {
+  function trampoline34(arg0, arg1, arg2) {
     var handle1 = arg0;
     var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable7.get(rep2);
@@ -2046,7 +2131,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline33(arg0, arg1) {
+  function trampoline35(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable7.get(rep2);
@@ -2254,7 +2339,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline34(arg0, arg1) {
+  function trampoline36(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable7.get(rep2);
@@ -2496,7 +2581,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline35(arg0, arg1) {
+  function trampoline37(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable7.get(rep2);
@@ -2771,7 +2856,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline36(arg0, arg1) {
+  function trampoline38(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable1[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable1.get(rep2);
@@ -2955,71 +3040,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline37(arg0, arg1) {
-    var handle1 = arg0;
-    var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
-    var rsc0 = captureTable3.get(rep2);
-    if (!rsc0) {
-      rsc0 = Object.create(OutputStream.prototype);
-      Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
-      Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
-    }
-    curResourceBorrows.push(rsc0);
-    let ret;
-    try {
-      ret = { tag: 'ok', val: rsc0.checkWrite()};
-    } catch (e) {
-      ret = { tag: 'err', val: getErrorPayload(e) };
-    }
-    for (const rsc of curResourceBorrows) {
-      rsc[symbolRscHandle] = null;
-    }
-    curResourceBorrows = [];
-    var variant5 = ret;
-    switch (variant5.tag) {
-      case 'ok': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg1 + 0, 0, true);
-        dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
-        break;
-      }
-      case 'err': {
-        const e = variant5.val;
-        dataView(memory0).setInt8(arg1 + 0, 1, true);
-        var variant4 = e;
-        switch (variant4.tag) {
-          case 'last-operation-failed': {
-            const e = variant4.val;
-            dataView(memory0).setInt8(arg1 + 8, 0, true);
-            if (!(e instanceof Error$1)) {
-              throw new TypeError('Resource error: Not a valid "Error" resource.');
-            }
-            var handle3 = e[symbolRscHandle];
-            if (!handle3) {
-              const rep = e[symbolRscRep] || ++captureCnt1;
-              captureTable1.set(rep, e);
-              handle3 = rscTableCreateOwn(handleTable1, rep);
-            }
-            dataView(memory0).setInt32(arg1 + 12, handle3, true);
-            break;
-          }
-          case 'closed': {
-            dataView(memory0).setInt8(arg1 + 8, 1, true);
-            break;
-          }
-          default: {
-            throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant4.tag)}\` (received \`${variant4}\`) specified for \`StreamError\``);
-          }
-        }
-        break;
-      }
-      default: {
-        throw new TypeError('invalid variant specified for result');
-      }
-    }
-  }
-  
-  function trampoline38(arg0, arg1, arg2, arg3) {
+  function trampoline39(arg0, arg1, arg2, arg3) {
     var handle1 = arg0;
     var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable3.get(rep2);
@@ -3085,7 +3106,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline39(arg0, arg1) {
+  function trampoline40(arg0, arg1) {
     var handle1 = arg0;
     var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
     var rsc0 = captureTable3.get(rep2);
@@ -3148,7 +3169,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     }
   }
   
-  function trampoline40(arg0, arg1, arg2) {
+  function trampoline41(arg0, arg1, arg2) {
     var len3 = arg1;
     var base3 = arg0;
     var result3 = [];
@@ -3179,7 +3200,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     dataView(memory0).setInt32(arg2 + 0, ptr4, true);
   }
   
-  function trampoline41(arg0, arg1) {
+  function trampoline42(arg0, arg1) {
     const ret = getRandomBytes(BigInt.asUintN(64, arg0));
     var val0 = ret;
     var len0 = val0.byteLength;
@@ -3190,7 +3211,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     dataView(memory0).setInt32(arg1 + 0, ptr0, true);
   }
   
-  function trampoline42(arg0) {
+  function trampoline43(arg0) {
     const ret = getEnvironment();
     var vec3 = ret;
     var len3 = vec3.length;
@@ -3218,74 +3239,22 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   let postReturn4;
   let postReturn5;
   let postReturn6;
-  function trampoline0(handle) {
-    const handleEntry = rscTableRemove(handleTable6, handle);
-    if (handleEntry.own) {
-      
-      const rsc = captureTable6.get(handleEntry.rep);
-      if (rsc) {
-        if (rsc[symbolDispose]) rsc[symbolDispose]();
-        captureTable6.delete(handleEntry.rep);
-      } else if (TcpSocket[symbolCabiDispose]) {
-        TcpSocket[symbolCabiDispose](handleEntry.rep);
-      }
-    }
-  }
-  function trampoline1(handle) {
-    const handleEntry = rscTableRemove(handleTable2, handle);
-    if (handleEntry.own) {
-      
-      const rsc = captureTable2.get(handleEntry.rep);
-      if (rsc) {
-        if (rsc[symbolDispose]) rsc[symbolDispose]();
-        captureTable2.delete(handleEntry.rep);
-      } else if (InputStream[symbolCabiDispose]) {
-        InputStream[symbolCabiDispose](handleEntry.rep);
-      }
-    }
-  }
-  function trampoline2(handle) {
-    const handleEntry = rscTableRemove(handleTable3, handle);
-    if (handleEntry.own) {
-      
-      const rsc = captureTable3.get(handleEntry.rep);
-      if (rsc) {
-        if (rsc[symbolDispose]) rsc[symbolDispose]();
-        captureTable3.delete(handleEntry.rep);
-      } else if (OutputStream[symbolCabiDispose]) {
-        OutputStream[symbolCabiDispose](handleEntry.rep);
-      }
-    }
-  }
   const handleTable8 = [T_FLAG, 0];
   const finalizationRegistry8 = finalizationRegistryCreate((handle) => {
     const { rep } = rscTableRemove(handleTable8, handle);
-    exports0['31'](rep);
+    exports0['33'](rep);
   });
   
   handleTables[8] = handleTable8;
-  const trampoline3 = rscTableCreateOwn.bind(null, handleTable8);
-  function trampoline4(handle) {
+  const trampoline0 = rscTableCreateOwn.bind(null, handleTable8);
+  function trampoline1(handle) {
     const handleEntry = rscTableRemove(handleTable8, handle);
     if (handleEntry.own) {
       
-      exports0['31'](handleEntry.rep);
+      exports0['33'](handleEntry.rep);
     }
   }
-  function trampoline5(handle) {
-    const handleEntry = rscTableRemove(handleTable1, handle);
-    if (handleEntry.own) {
-      
-      const rsc = captureTable1.get(handleEntry.rep);
-      if (rsc) {
-        if (rsc[symbolDispose]) rsc[symbolDispose]();
-        captureTable1.delete(handleEntry.rep);
-      } else if (Error$1[symbolCabiDispose]) {
-        Error$1[symbolCabiDispose](handleEntry.rep);
-      }
-    }
-  }
-  function trampoline6(handle) {
+  function trampoline2(handle) {
     const handleEntry = rscTableRemove(handleTable5, handle);
     if (handleEntry.own) {
       
@@ -3298,7 +3267,20 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
       }
     }
   }
-  function trampoline8(handle) {
+  function trampoline3(handle) {
+    const handleEntry = rscTableRemove(handleTable1, handle);
+    if (handleEntry.own) {
+      
+      const rsc = captureTable1.get(handleEntry.rep);
+      if (rsc) {
+        if (rsc[symbolDispose]) rsc[symbolDispose]();
+        captureTable1.delete(handleEntry.rep);
+      } else if (Error$1[symbolCabiDispose]) {
+        Error$1[symbolCabiDispose](handleEntry.rep);
+      }
+    }
+  }
+  function trampoline4(handle) {
     const handleEntry = rscTableRemove(handleTable4, handle);
     if (handleEntry.own) {
       
@@ -3308,6 +3290,45 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
         captureTable4.delete(handleEntry.rep);
       } else if (Network[symbolCabiDispose]) {
         Network[symbolCabiDispose](handleEntry.rep);
+      }
+    }
+  }
+  function trampoline5(handle) {
+    const handleEntry = rscTableRemove(handleTable3, handle);
+    if (handleEntry.own) {
+      
+      const rsc = captureTable3.get(handleEntry.rep);
+      if (rsc) {
+        if (rsc[symbolDispose]) rsc[symbolDispose]();
+        captureTable3.delete(handleEntry.rep);
+      } else if (OutputStream[symbolCabiDispose]) {
+        OutputStream[symbolCabiDispose](handleEntry.rep);
+      }
+    }
+  }
+  function trampoline6(handle) {
+    const handleEntry = rscTableRemove(handleTable2, handle);
+    if (handleEntry.own) {
+      
+      const rsc = captureTable2.get(handleEntry.rep);
+      if (rsc) {
+        if (rsc[symbolDispose]) rsc[symbolDispose]();
+        captureTable2.delete(handleEntry.rep);
+      } else if (InputStream[symbolCabiDispose]) {
+        InputStream[symbolCabiDispose](handleEntry.rep);
+      }
+    }
+  }
+  function trampoline7(handle) {
+    const handleEntry = rscTableRemove(handleTable6, handle);
+    if (handleEntry.own) {
+      
+      const rsc = captureTable6.get(handleEntry.rep);
+      if (rsc) {
+        if (rsc[symbolDispose]) rsc[symbolDispose]();
+        captureTable6.delete(handleEntry.rep);
+      } else if (TcpSocket[symbolCabiDispose]) {
+        TcpSocket[symbolCabiDispose](handleEntry.rep);
       }
     }
   }
@@ -3341,47 +3362,49 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
   ({ exports: exports0 } = await instantiateCore(await module2));
   ({ exports: exports1 } = await instantiateCore(await module0, {
     '[export]component:nfs-rs/nfs': {
-      '[resource-drop]nfs-mount': trampoline4,
-      '[resource-new]nfs-mount': trampoline3,
+      '[resource-drop]nfs-mount': trampoline1,
+      '[resource-new]nfs-mount': trampoline0,
     },
     'wasi:io/error@0.2.0': {
-      '[resource-drop]error': trampoline5,
+      '[method]error.to-debug-string': exports0['6'],
+      '[resource-drop]error': trampoline3,
     },
     'wasi:io/streams@0.2.0': {
-      '[method]input-stream.blocking-read': exports0['4'],
-      '[method]output-stream.blocking-write-and-flush': exports0['5'],
-      '[resource-drop]input-stream': trampoline1,
-      '[resource-drop]output-stream': trampoline2,
+      '[method]input-stream.blocking-read': exports0['7'],
+      '[method]output-stream.blocking-write-and-flush': exports0['9'],
+      '[method]output-stream.check-write': exports0['8'],
+      '[resource-drop]input-stream': trampoline6,
+      '[resource-drop]output-stream': trampoline5,
     },
     'wasi:sockets/instance-network@0.2.0': {
-      'instance-network': trampoline7,
+      'instance-network': trampoline8,
     },
     'wasi:sockets/ip-name-lookup@0.2.0': {
-      '[method]resolve-address-stream.resolve-next-address': exports0['6'],
-      '[resource-drop]resolve-address-stream': trampoline6,
-      'resolve-addresses': exports0['7'],
+      '[method]resolve-address-stream.resolve-next-address': exports0['0'],
+      '[resource-drop]resolve-address-stream': trampoline2,
+      'resolve-addresses': exports0['1'],
     },
     'wasi:sockets/network@0.2.0': {
-      '[resource-drop]network': trampoline8,
+      '[resource-drop]network': trampoline4,
     },
     'wasi:sockets/tcp-create-socket@0.2.0': {
-      'create-tcp-socket': exports0['8'],
+      'create-tcp-socket': exports0['10'],
     },
     'wasi:sockets/tcp@0.2.0': {
-      '[method]tcp-socket.finish-connect': exports0['1'],
-      '[method]tcp-socket.remote-address': exports0['2'],
-      '[method]tcp-socket.shutdown': exports0['3'],
-      '[method]tcp-socket.start-connect': exports0['0'],
-      '[resource-drop]tcp-socket': trampoline0,
+      '[method]tcp-socket.finish-connect': exports0['3'],
+      '[method]tcp-socket.remote-address': exports0['4'],
+      '[method]tcp-socket.shutdown': exports0['5'],
+      '[method]tcp-socket.start-connect': exports0['2'],
+      '[resource-drop]tcp-socket': trampoline7,
     },
     wasi_snapshot_preview1: {
-      clock_time_get: exports0['25'],
-      environ_get: exports0['28'],
-      environ_sizes_get: exports0['29'],
-      fd_write: exports0['26'],
-      poll_oneoff: exports0['27'],
-      proc_exit: exports0['30'],
-      random_get: exports0['24'],
+      clock_time_get: exports0['27'],
+      environ_get: exports0['30'],
+      environ_sizes_get: exports0['31'],
+      fd_write: exports0['28'],
+      poll_oneoff: exports0['29'],
+      proc_exit: exports0['32'],
+      random_get: exports0['26'],
     },
   }));
   ({ exports: exports2 } = await instantiateCore(await module1, {
@@ -3392,7 +3415,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
       memory: exports1.memory,
     },
     'wasi:cli/environment@0.2.0': {
-      'get-environment': exports0['23'],
+      'get-environment': exports0['25'],
     },
     'wasi:cli/exit@0.2.0': {
       exit: trampoline17,
@@ -3412,39 +3435,39 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
       'subscribe-instant': trampoline12,
     },
     'wasi:clocks/wall-clock@0.2.0': {
-      now: exports0['10'],
+      now: exports0['12'],
     },
     'wasi:filesystem/preopens@0.2.0': {
-      'get-directories': exports0['9'],
+      'get-directories': exports0['11'],
     },
     'wasi:filesystem/types@0.2.0': {
-      '[method]descriptor.append-via-stream': exports0['13'],
-      '[method]descriptor.get-type': exports0['14'],
-      '[method]descriptor.read-via-stream': exports0['11'],
-      '[method]descriptor.stat': exports0['15'],
-      '[method]descriptor.write-via-stream': exports0['12'],
+      '[method]descriptor.append-via-stream': exports0['15'],
+      '[method]descriptor.get-type': exports0['16'],
+      '[method]descriptor.read-via-stream': exports0['13'],
+      '[method]descriptor.stat': exports0['17'],
+      '[method]descriptor.write-via-stream': exports0['14'],
       '[resource-drop]descriptor': trampoline10,
-      'filesystem-error-code': exports0['16'],
+      'filesystem-error-code': exports0['18'],
     },
     'wasi:io/error@0.2.0': {
-      '[resource-drop]error': trampoline5,
+      '[resource-drop]error': trampoline3,
     },
     'wasi:io/poll@0.2.0': {
       '[resource-drop]pollable': trampoline15,
-      poll: exports0['21'],
+      poll: exports0['23'],
     },
     'wasi:io/streams@0.2.0': {
       '[method]input-stream.subscribe': trampoline14,
-      '[method]output-stream.blocking-flush': exports0['20'],
-      '[method]output-stream.blocking-write-and-flush': exports0['19'],
-      '[method]output-stream.check-write': exports0['17'],
+      '[method]output-stream.blocking-flush': exports0['22'],
+      '[method]output-stream.blocking-write-and-flush': exports0['21'],
+      '[method]output-stream.check-write': exports0['19'],
       '[method]output-stream.subscribe': trampoline13,
-      '[method]output-stream.write': exports0['18'],
-      '[resource-drop]input-stream': trampoline1,
-      '[resource-drop]output-stream': trampoline2,
+      '[method]output-stream.write': exports0['20'],
+      '[resource-drop]input-stream': trampoline6,
+      '[resource-drop]output-stream': trampoline5,
     },
     'wasi:random/random@0.2.0': {
-      'get-random-bytes': exports0['22'],
+      'get-random-bytes': exports0['24'],
     },
   }));
   memory0 = exports1.memory;
@@ -3464,21 +3487,23 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
       '16': trampoline36,
       '17': trampoline37,
       '18': trampoline38,
-      '19': trampoline25,
+      '19': trampoline28,
       '2': trampoline22,
       '20': trampoline39,
-      '21': trampoline40,
-      '22': trampoline41,
-      '23': trampoline42,
-      '24': exports2.random_get,
-      '25': exports2.clock_time_get,
-      '26': exports2.fd_write,
-      '27': exports2.poll_oneoff,
-      '28': exports2.environ_get,
-      '29': exports2.environ_sizes_get,
+      '21': trampoline29,
+      '22': trampoline40,
+      '23': trampoline41,
+      '24': trampoline42,
+      '25': trampoline43,
+      '26': exports2.random_get,
+      '27': exports2.clock_time_get,
+      '28': exports2.fd_write,
+      '29': exports2.poll_oneoff,
       '3': trampoline23,
-      '30': exports2.proc_exit,
-      '31': exports1['component:nfs-rs/nfs#[dtor]nfs-mount'],
+      '30': exports2.environ_get,
+      '31': exports2.environ_sizes_get,
+      '32': exports2.proc_exit,
+      '33': exports1['component:nfs-rs/nfs#[dtor]nfs-mount'],
       '4': trampoline24,
       '5': trampoline25,
       '6': trampoline26,
@@ -5782,14 +5807,13 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
         var base4 = dataView(memory0).getInt32(ret + 4, true);
         var result4 = [];
         for (let i = 0; i < len4; i++) {
-          const base = base4 + i * 24;
+          const base = base4 + i * 16;
           var ptr3 = dataView(memory0).getInt32(base + 8, true);
           var len3 = dataView(memory0).getInt32(base + 12, true);
           var result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
           result4.push({
             fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 0, true)),
             fileName: result3,
-            cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
           });
         }
         variant7= {
@@ -5852,14 +5876,13 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
         var base4 = dataView(memory0).getInt32(ret + 4, true);
         var result4 = [];
         for (let i = 0; i < len4; i++) {
-          const base = base4 + i * 24;
+          const base = base4 + i * 16;
           var ptr3 = dataView(memory0).getInt32(base + 8, true);
           var len3 = dataView(memory0).getInt32(base + 12, true);
           var result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
           result4.push({
             fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 0, true)),
             fileName: result3,
-            cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
           });
         }
         variant7= {
@@ -5925,39 +5948,39 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
         var base6 = dataView(memory0).getInt32(ret + 4, true);
         var result6 = [];
         for (let i = 0; i < len6; i++) {
-          const base = base6 + i * 128;
+          const base = base6 + i * 120;
           var ptr3 = dataView(memory0).getInt32(base + 8, true);
           var len3 = dataView(memory0).getInt32(base + 12, true);
           var result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
           let variant4;
-          switch (dataView(memory0).getUint8(base + 24, true)) {
+          switch (dataView(memory0).getUint8(base + 16, true)) {
             case 0: {
               variant4 = undefined;
               break;
             }
             case 1: {
               variant4 = {
-                attrType: dataView(memory0).getInt32(base + 32, true) >>> 0,
-                fileMode: dataView(memory0).getInt32(base + 36, true) >>> 0,
-                nlink: dataView(memory0).getInt32(base + 40, true) >>> 0,
-                uid: dataView(memory0).getInt32(base + 44, true) >>> 0,
-                gid: dataView(memory0).getInt32(base + 48, true) >>> 0,
-                filesize: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 56, true)),
-                used: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 64, true)),
-                specData: [dataView(memory0).getInt32(base + 72, true) >>> 0, dataView(memory0).getInt32(base + 76, true) >>> 0],
-                fsid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 80, true)),
-                fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 88, true)),
+                attrType: dataView(memory0).getInt32(base + 24, true) >>> 0,
+                fileMode: dataView(memory0).getInt32(base + 28, true) >>> 0,
+                nlink: dataView(memory0).getInt32(base + 32, true) >>> 0,
+                uid: dataView(memory0).getInt32(base + 36, true) >>> 0,
+                gid: dataView(memory0).getInt32(base + 40, true) >>> 0,
+                filesize: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 48, true)),
+                used: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 56, true)),
+                specData: [dataView(memory0).getInt32(base + 64, true) >>> 0, dataView(memory0).getInt32(base + 68, true) >>> 0],
+                fsid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 72, true)),
+                fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 80, true)),
                 atime: {
+                  seconds: dataView(memory0).getInt32(base + 88, true) >>> 0,
+                  nseconds: dataView(memory0).getInt32(base + 92, true) >>> 0,
+                },
+                mtime: {
                   seconds: dataView(memory0).getInt32(base + 96, true) >>> 0,
                   nseconds: dataView(memory0).getInt32(base + 100, true) >>> 0,
                 },
-                mtime: {
+                ctime: {
                   seconds: dataView(memory0).getInt32(base + 104, true) >>> 0,
                   nseconds: dataView(memory0).getInt32(base + 108, true) >>> 0,
-                },
-                ctime: {
-                  seconds: dataView(memory0).getInt32(base + 112, true) >>> 0,
-                  nseconds: dataView(memory0).getInt32(base + 116, true) >>> 0,
                 },
               };
               break;
@@ -5966,13 +5989,12 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
               throw new TypeError('invalid variant discriminant for option');
             }
           }
-          var ptr5 = dataView(memory0).getInt32(base + 120, true);
-          var len5 = dataView(memory0).getInt32(base + 124, true);
+          var ptr5 = dataView(memory0).getInt32(base + 112, true);
+          var len5 = dataView(memory0).getInt32(base + 116, true);
           var result5 = new Uint8Array(memory0.buffer.slice(ptr5, ptr5 + len5 * 1));
           result6.push({
             fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 0, true)),
             fileName: result3,
-            cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
             attr: variant4,
             handle: result5,
           });
@@ -6037,39 +6059,39 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
         var base6 = dataView(memory0).getInt32(ret + 4, true);
         var result6 = [];
         for (let i = 0; i < len6; i++) {
-          const base = base6 + i * 128;
+          const base = base6 + i * 120;
           var ptr3 = dataView(memory0).getInt32(base + 8, true);
           var len3 = dataView(memory0).getInt32(base + 12, true);
           var result3 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr3, len3));
           let variant4;
-          switch (dataView(memory0).getUint8(base + 24, true)) {
+          switch (dataView(memory0).getUint8(base + 16, true)) {
             case 0: {
               variant4 = undefined;
               break;
             }
             case 1: {
               variant4 = {
-                attrType: dataView(memory0).getInt32(base + 32, true) >>> 0,
-                fileMode: dataView(memory0).getInt32(base + 36, true) >>> 0,
-                nlink: dataView(memory0).getInt32(base + 40, true) >>> 0,
-                uid: dataView(memory0).getInt32(base + 44, true) >>> 0,
-                gid: dataView(memory0).getInt32(base + 48, true) >>> 0,
-                filesize: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 56, true)),
-                used: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 64, true)),
-                specData: [dataView(memory0).getInt32(base + 72, true) >>> 0, dataView(memory0).getInt32(base + 76, true) >>> 0],
-                fsid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 80, true)),
-                fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 88, true)),
+                attrType: dataView(memory0).getInt32(base + 24, true) >>> 0,
+                fileMode: dataView(memory0).getInt32(base + 28, true) >>> 0,
+                nlink: dataView(memory0).getInt32(base + 32, true) >>> 0,
+                uid: dataView(memory0).getInt32(base + 36, true) >>> 0,
+                gid: dataView(memory0).getInt32(base + 40, true) >>> 0,
+                filesize: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 48, true)),
+                used: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 56, true)),
+                specData: [dataView(memory0).getInt32(base + 64, true) >>> 0, dataView(memory0).getInt32(base + 68, true) >>> 0],
+                fsid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 72, true)),
+                fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 80, true)),
                 atime: {
+                  seconds: dataView(memory0).getInt32(base + 88, true) >>> 0,
+                  nseconds: dataView(memory0).getInt32(base + 92, true) >>> 0,
+                },
+                mtime: {
                   seconds: dataView(memory0).getInt32(base + 96, true) >>> 0,
                   nseconds: dataView(memory0).getInt32(base + 100, true) >>> 0,
                 },
-                mtime: {
+                ctime: {
                   seconds: dataView(memory0).getInt32(base + 104, true) >>> 0,
                   nseconds: dataView(memory0).getInt32(base + 108, true) >>> 0,
-                },
-                ctime: {
-                  seconds: dataView(memory0).getInt32(base + 112, true) >>> 0,
-                  nseconds: dataView(memory0).getInt32(base + 116, true) >>> 0,
                 },
               };
               break;
@@ -6078,13 +6100,12 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
               throw new TypeError('invalid variant discriminant for option');
             }
           }
-          var ptr5 = dataView(memory0).getInt32(base + 120, true);
-          var len5 = dataView(memory0).getInt32(base + 124, true);
+          var ptr5 = dataView(memory0).getInt32(base + 112, true);
+          var len5 = dataView(memory0).getInt32(base + 116, true);
           var result5 = new Uint8Array(memory0.buffer.slice(ptr5, ptr5 + len5 * 1));
           result6.push({
             fileid: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 0, true)),
             fileName: result3,
-            cookie: BigInt.asUintN(64, dataView(memory0).getBigInt64(base + 16, true)),
             attr: variant4,
             handle: result5,
           });
@@ -6750,6 +6771,78 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
     return variant4.val;
   };
   
+  NfsMount.prototype.version = function version() {
+    var handle1 = this[symbolRscHandle];
+    if (!handle1 || (handleTable8[(handle1 << 1) + 1] & T_FLAG) === 0) {
+      throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
+    }
+    var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
+    const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.version'](handle0);
+    let variant5;
+    switch (dataView(memory0).getUint8(ret + 0, true)) {
+      case 0: {
+        let enum2;
+        switch (dataView(memory0).getUint8(ret + 4, true)) {
+          case 0: {
+            enum2 = 'nfs-v3';
+            break;
+          }
+          case 1: {
+            enum2 = 'nfs-v4';
+            break;
+          }
+          case 2: {
+            enum2 = 'nfs-v4p1';
+            break;
+          }
+          default: {
+            throw new TypeError('invalid discriminant specified for NfsVersion');
+          }
+        }
+        variant5= {
+          tag: 'ok',
+          val: enum2
+        };
+        break;
+      }
+      case 1: {
+        let variant3;
+        switch (dataView(memory0).getUint8(ret + 4, true)) {
+          case 0: {
+            variant3 = undefined;
+            break;
+          }
+          case 1: {
+            variant3 = dataView(memory0).getInt32(ret + 8, true);
+            break;
+          }
+          default: {
+            throw new TypeError('invalid variant discriminant for option');
+          }
+        }
+        var ptr4 = dataView(memory0).getInt32(ret + 12, true);
+        var len4 = dataView(memory0).getInt32(ret + 16, true);
+        var result4 = utf8Decoder.decode(new Uint8Array(memory0.buffer, ptr4, len4));
+        variant5= {
+          tag: 'err',
+          val: {
+            nfsErrorCode: variant3,
+            message: result4,
+          }
+        };
+        break;
+      }
+      default: {
+        throw new TypeError('invalid variant discriminant for expected');
+      }
+    }
+    postReturn0(ret);
+    if (variant5.tag === 'err') {
+      throw new ComponentError(variant5.val);
+    }
+    return variant5.val;
+  };
+  
   function parseUrlAndMount(arg0) {
     var ptr0 = utf8Encode(arg0, realloc0, memory0);
     var len0 = utf8EncodedLen;
@@ -6766,7 +6859,7 @@ export async function instantiate(getCoreModule, imports, instantiateCore = WebA
           rscTableRemove(handleTable8, handle2);
           rsc1[symbolDispose] = emptyFunc;
           rsc1[symbolRscHandle] = null;
-          exports0['31'](handleTable8[(handle2 << 1) + 1] & ~T_FLAG);
+          exports0['33'](handleTable8[(handle2 << 1) + 1] & ~T_FLAG);
         }});
         variant5= {
           tag: 'ok',

@@ -39,15 +39,23 @@ export interface PathConf {
 export interface ReaddirEntry {
   fileid: bigint,
   fileName: string,
-  cookie: bigint,
 }
 export interface ReaddirplusEntry {
   fileid: bigint,
   fileName: string,
-  cookie: bigint,
   attr?: Attr,
   handle: Fh,
 }
+/**
+ * # Variants
+ * 
+ * ## `"nfs-v3"`
+ * 
+ * ## `"nfs-v4"`
+ * 
+ * ## `"nfs-v4p1"`
+ */
+export type NfsVersion = 'nfs-v3' | 'nfs-v4' | 'nfs-v4p1';
 export interface Error {
   nfsErrorCode?: number,
   message: string,
@@ -96,4 +104,5 @@ export class NfsMount {
   rename(fromDirFh: Fh, fromFilename: string, toDirFh: Fh, toFilename: string): void;
   renamePath(fromPath: string, toPath: string): void;
   umount(): void;
+  version(): NfsVersion;
 }

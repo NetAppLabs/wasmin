@@ -33,15 +33,26 @@ export function isBadFileDescriptor(err: any): boolean{
 }
 
 export function isIoSocketsError(err: any): boolean {
-    const errCodeNo = translateErrorToErrorno(err);
-    if (errCodeNo == ErrnoN.BADF) {
-        return true;
-    } else if (errCodeNo == ErrnoN.CONNABORTED) {
-        return true;
-    } else if (errCodeNo == ErrnoN.CONNRESET) {
-        return true;
-    } else if (errCodeNo == ErrnoN.CONNREFUSED) {
-        return true;
+    if (err.tag) {
+        let errorTag = err.tag;
+        if (errorTag == "closed") {
+            return true;
+        } else if (errorTag == "last-operation-failed") {
+            return true;
+        }
+    } else {
+        const errCodeNo = translateErrorToErrorno(err);
+        if (errCodeNo == ErrnoN.BADF) {
+            return true;
+        } else if (errCodeNo == ErrnoN.CONNABORTED) {
+            return true;
+        } else if (errCodeNo == ErrnoN.CONNRESET) {
+            return true;
+        } else if (errCodeNo == ErrnoN.CONNREFUSED) {
+            return true;
+        } else if (errCodeNo == ErrnoN.PIPE) {
+            return true;
+        }
     }
     return false;
 }
