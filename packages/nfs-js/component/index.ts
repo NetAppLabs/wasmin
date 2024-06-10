@@ -1,4 +1,4 @@
-import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs";
+import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs.js";
 import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@wasmin/wasi-js";
 import {
@@ -53,13 +53,15 @@ const AttrTypeDirectory = 2;
 const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
 
+const READDIRPLUS_CACHE_LIFETIME_MS = 1000;
+
 // XXX: elsewhere reads are getting sliced into 4k chunks but 32k chunks seem to work fine (and faster)
 //      have tried larger chunks (e.g. 64k) which seem to still work but are only marginally faster so...
 let MAX_READ_SIZE = 32768;
 if (process !== undefined) {
     if (process.env !== undefined) {
         let max_read = process.env.WASMIN_MAX_NFS_READ_SIZE
-        if (max_read){
+        if (max_read) {
             MAX_READ_SIZE = Number(max_read);
         }
     }
@@ -75,7 +77,7 @@ let _fs: any;
 async function fetchCompile(url: URL) {
     if (url.protocol === "compiled:" || url.pathname.startsWith("/$bunfs/root/")) {
         const filePaths = url.pathname.split("/");
-        const fileName = filePaths[filePaths.length-1];
+        const fileName = filePaths[filePaths.length - 1];
         url = new URL(fileName, "file:///tmp/wasmin-tmp/");
     }
     if (isNode) {
@@ -212,6 +214,14 @@ export class NfsHandle implements FileSystemHandle {
     }
 }
 
+class ReaddirplusEntryCache {
+    timestamp: number;
+    entries?: Promise<ReaddirplusEntry[]>;
+    constructor(timestamp?: number) {
+        this.timestamp = timestamp ?? 0;
+    }
+}
+
 export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
     [Symbol.asyncIterator]: NfsDirectoryHandle["entries"] = this.entries;
     readonly kind: "directory";
@@ -223,6 +233,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: true;
+    private _readdirplusEntryCache: ReaddirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
     constructor(param: string | NfsHandle) {
@@ -259,33 +270,49 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         this.isFile = false;
         this.isDirectory = true;
         this.getEntries = this.values;
+        this._readdirplusEntryCache = new ReaddirplusEntryCache();
+    }
+    private invalidateReaddirplusCache() {
+        this._readdirplusEntryCache.timestamp = 0;
+        this._readdirplusEntryCache.entries = undefined;
+    }
+    private async readdirplus(): Promise<ReaddirplusEntry[]> {
+        const now = Date.now();
+        if (!this._readdirplusEntryCache.entries || now - this._readdirplusEntryCache.timestamp >= READDIRPLUS_CACHE_LIFETIME_MS) {
+            this._readdirplusEntryCache.entries = new Promise((resolve, reject) => {
+                try {
+                    const entries = this._mount.readdirplus(this._fh);
+                    return resolve(entries);
+                } catch (e: any) {
+                    if (
+                        e.payload?.nfsErrorCode === NFS3ERR_NOENT ||
+                        e.payload?.nfsErrorCode === NFS3ERR_NOTDIR ||
+                        e.payload?.nfsErrorCode === NFS3ERR_STALE
+                    ) {
+                        return reject(new NotFoundError());
+                    }
+                    return reject(e);
+                }
+            });
+            this._readdirplusEntryCache.timestamp = now;
+        }
+        return this._readdirplusEntryCache.entries;
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
-        try {
-            const entries = this._mount.readdirplus(this._fh);
-            for (const entry of entries) {
-                if (entry.fileName !== "." && entry.fileName !== "..") {
-                    const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
-                    if (fullName.endsWith("/")) {
-                        yield new NfsDirectoryHandle(
-                            new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName)
-                        );
-                    } else {
-                        yield new NfsFileHandle(
-                            new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName)
-                        );
-                    }
+        const entries = await this.readdirplus();
+        for (const entry of entries) {
+            if (entry.fileName !== "." && entry.fileName !== "..") {
+                const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
+                if (fullName.endsWith("/")) {
+                    yield new NfsDirectoryHandle(
+                        new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName)
+                    );
+                } else {
+                    yield new NfsFileHandle(
+                        new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName)
+                    );
                 }
             }
-        } catch (e: any) {
-            if (
-                e.payload?.nfsErrorCode === NFS3ERR_NOENT ||
-                e.payload?.nfsErrorCode === NFS3ERR_NOTDIR ||
-                e.payload?.nfsErrorCode === NFS3ERR_STALE
-            ) {
-                throw new NotFoundError();
-            }
-            throw e;
         }
     }
     async *entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]> {
@@ -302,6 +329,12 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         for await (const entry of this.entryHandles()) {
             yield entry;
         }
+    }
+    async requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState> {
+        return super.requestPermission(perm).then((state) => {
+            this.invalidateReaddirplusCache();
+            return state;
+        });
     }
     async getDirectoryHandle(
         name: string,
@@ -335,6 +368,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             try {
                 const mode = 0o775;
                 const res = this._mount.mkdir(this._fh, name, mode);
+                this.invalidateReaddirplusCache();
                 const fh = res.obj;
                 const attr = res.attr || this._mount.getattr(fh);
                 return resolve(
@@ -376,6 +410,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             try {
                 const mode = 0o664;
                 this._mount.create(this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
+                this.invalidateReaddirplusCache();
                 const res = this._mount.lookup(this._fh, name);
                 const fh = res.obj;
                 const attr = res.attr || this._mount.getattr(fh);
@@ -400,6 +435,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                     this.removeDirectory(fh, this._fh, name, !!options?.recursive);
                 } else {
                     this._mount.remove(this._fh, name);
+                    this.invalidateReaddirplusCache();
                 }
                 return resolve();
             } catch (e: any) {
@@ -421,11 +457,13 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                         this.removeDirectory(entry.handle, fh, entry.fileName, recursive);
                     } else {
                         this._mount.remove(fh, entry.fileName);
+                        this.invalidateReaddirplusCache();
                     }
                 }
             }
         }
         this._mount.rmdir(parent, name);
+        this.invalidateReaddirplusCache();
     }
     async resolve(possibleDescendant: FileSystemHandle): Promise<Array<string> | null> {
         return new Promise(async (resolve, reject) => {
