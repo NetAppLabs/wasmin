@@ -40,6 +40,7 @@ const NFS3ERR_JUKEBOX = 10008;
 const AttrTypeDirectory = 2;
 const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
+const READDIRPLUS_CACHE_LIFETIME_MS = 1000;
 // XXX: elsewhere reads are getting sliced into 4k chunks but 32k chunks seem to work fine (and faster)
 //      have tried larger chunks (e.g. 64k) which seem to still work but are only marginally faster so...
 let MAX_READ_SIZE = 32768;
@@ -192,6 +193,13 @@ export class NfsHandle {
         return stats;
     }
 }
+class ReaddirplusEntryCache {
+    timestamp;
+    entries;
+    constructor(timestamp) {
+        this.timestamp = timestamp ?? 0;
+    }
+}
 export class NfsDirectoryHandle extends NfsHandle {
     [Symbol.asyncIterator] = this.entries;
     kind;
@@ -203,6 +211,7 @@ export class NfsDirectoryHandle extends NfsHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     isDirectory;
+    _readdirplusEntryCache;
     constructor(param) {
         let mount;
         let fhDir;
@@ -238,29 +247,45 @@ export class NfsDirectoryHandle extends NfsHandle {
         this.isFile = false;
         this.isDirectory = true;
         this.getEntries = this.values;
+        this._readdirplusEntryCache = new ReaddirplusEntryCache();
+    }
+    invalidateReaddirplusCache() {
+        this._readdirplusEntryCache.timestamp = 0;
+        this._readdirplusEntryCache.entries = undefined;
+    }
+    async readdirplus() {
+        const now = Date.now();
+        if (!this._readdirplusEntryCache.entries || now - this._readdirplusEntryCache.timestamp >= READDIRPLUS_CACHE_LIFETIME_MS) {
+            this._readdirplusEntryCache.entries = new Promise((resolve, reject) => {
+                try {
+                    const entries = this._mount.readdirplus(this._fh);
+                    return resolve(entries);
+                }
+                catch (e) {
+                    if (e.payload?.nfsErrorCode === NFS3ERR_NOENT ||
+                        e.payload?.nfsErrorCode === NFS3ERR_NOTDIR ||
+                        e.payload?.nfsErrorCode === NFS3ERR_STALE) {
+                        return reject(new NotFoundError());
+                    }
+                    return reject(e);
+                }
+            });
+            this._readdirplusEntryCache.timestamp = now;
+        }
+        return this._readdirplusEntryCache.entries;
     }
     async *entryHandles() {
-        try {
-            const entries = this._mount.readdirplus(this._fh);
-            for (const entry of entries) {
-                if (entry.fileName !== "." && entry.fileName !== "..") {
-                    const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
-                    if (fullName.endsWith("/")) {
-                        yield new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName));
-                    }
-                    else {
-                        yield new NfsFileHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName));
-                    }
+        const entries = await this.readdirplus();
+        for (const entry of entries) {
+            if (entry.fileName !== "." && entry.fileName !== "..") {
+                const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
+                if (fullName.endsWith("/")) {
+                    yield new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName));
+                }
+                else {
+                    yield new NfsFileHandle(new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName));
                 }
             }
-        }
-        catch (e) {
-            if (e.payload?.nfsErrorCode === NFS3ERR_NOENT ||
-                e.payload?.nfsErrorCode === NFS3ERR_NOTDIR ||
-                e.payload?.nfsErrorCode === NFS3ERR_STALE) {
-                throw new NotFoundError();
-            }
-            throw e;
         }
     }
     async *entries() {
@@ -277,6 +302,12 @@ export class NfsDirectoryHandle extends NfsHandle {
         for await (const entry of this.entryHandles()) {
             yield entry;
         }
+    }
+    async requestPermission(perm) {
+        return super.requestPermission(perm).then((state) => {
+            this.invalidateReaddirplusCache();
+            return state;
+        });
     }
     async getDirectoryHandle(name, options) {
         return new Promise(async (resolve, reject) => {
@@ -302,6 +333,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o775;
                 const res = this._mount.mkdir(this._fh, name, mode);
+                this.invalidateReaddirplusCache();
                 const fh = res.obj;
                 const attr = res.attr || this._mount.getattr(fh);
                 return resolve(new NfsDirectoryHandle(new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)));
@@ -335,6 +367,7 @@ export class NfsDirectoryHandle extends NfsHandle {
             try {
                 const mode = 0o664;
                 this._mount.create(this._fh, name, mode); // XXX: ignore returned file handle and obtain one via lookup instead - workaround for go-nfs bug
+                this.invalidateReaddirplusCache();
                 const res = this._mount.lookup(this._fh, name);
                 const fh = res.obj;
                 const attr = res.attr || this._mount.getattr(fh);
@@ -357,6 +390,7 @@ export class NfsDirectoryHandle extends NfsHandle {
                 }
                 else {
                     this._mount.remove(this._fh, name);
+                    this.invalidateReaddirplusCache();
                 }
                 return resolve();
             }
@@ -381,11 +415,13 @@ export class NfsDirectoryHandle extends NfsHandle {
                     }
                     else {
                         this._mount.remove(fh, entry.fileName);
+                        this.invalidateReaddirplusCache();
                     }
                 }
             }
         }
         this._mount.rmdir(parent, name);
+        this.invalidateReaddirplusCache();
     }
     async resolve(possibleDescendant) {
         return new Promise(async (resolve, reject) => {

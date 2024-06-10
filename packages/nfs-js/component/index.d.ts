@@ -1,4 +1,4 @@
-import { NfsMount } from "./interfaces/component-nfs-rs-nfs";
+import { NfsMount } from "./interfaces/component-nfs-rs-nfs.js";
 import { Stat } from "@wasmin/fs-js";
 export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
@@ -36,12 +36,16 @@ export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemD
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: true;
+    private _readdirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
+    private invalidateReaddirplusCache;
+    private readdirplus;
     private entryHandles;
     entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]>;
     keys(): AsyncIterableIterator<string>;
     values(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle>;
+    requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState>;
     getDirectoryHandle(name: string, options?: FileSystemGetDirectoryOptions): Promise<FileSystemDirectoryHandle>;
     getFileHandle(name: string, options?: FileSystemGetFileOptions): Promise<FileSystemFileHandle>;
     removeEntry(name: string, options?: FileSystemRemoveOptions): Promise<void>;
