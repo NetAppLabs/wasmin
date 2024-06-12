@@ -1,4 +1,4 @@
-import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry } from "./interfaces/component-nfs-rs-nfs.js";
+import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs.js";
 import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@wasmin/wasi-js";
 import {
@@ -53,7 +53,18 @@ const AttrTypeDirectory = 2;
 const AccessRead = ACCESS3_READ | ACCESS3_LOOKUP | ACCESS3_EXECUTE;
 const AccessReadWrite = AccessRead | ACCESS3_MODIFY | ACCESS3_EXTEND | ACCESS3_DELETE;
 
-const READDIRPLUS_CACHE_LIFETIME_MS = 1000;
+let READDIRPLUS_CACHE_LIFETIME_MS = 1000;
+
+declare global {
+    var NFS_JS_DEBUG: boolean;
+}
+globalThis.NFS_JS_DEBUG = false;
+
+export function nfsDebug(msg?: any, ...optionalParams: any[]): void {
+    if (globalThis.NFS_JS_DEBUG) {
+        console.log(msg, ...optionalParams);
+    }
+}
 
 // XXX: elsewhere reads are getting sliced into 4k chunks but 32k chunks seem to work fine (and faster)
 //      have tried larger chunks (e.g. 64k) which seem to still work but are only marginally faster so...
@@ -66,6 +77,48 @@ if (process !== undefined) {
         }
     }
 }
+
+function isNumber(numVal: any) {
+    return !isNaN(parseFloat(numVal)) && isFinite(numVal);
+}
+
+/**
+ * 
+ * preparse url so that params on url string are read, params supported are:
+ * 
+ * rwsize [block size for max read/write in bytes]
+ * cachems [cache time-to-live for readdirplus in ms]
+ * 
+ * @param url URL string like 'nfs://127.0.0.1/volume-1?nfsport=2049&mountport=6635&rwsize=1048576'
+ */
+function preParseUrlString(url: string) {
+    const indexOfQuestion = url.indexOf("?");
+    if (indexOfQuestion > 0 ) {
+        let queryString = url.substring(indexOfQuestion+1);
+        const urlSearchParams = new URLSearchParams(queryString);
+        for (const p of urlSearchParams) {
+            let paramName = p[0];
+            let paramVal = p[1];
+            if (paramName == "rwsize") {
+                if (isNumber(paramVal)) {
+                    MAX_READ_SIZE = parseInt(paramVal);
+                    nfsDebug(`Setting MAX_READ_SIZE: ${MAX_READ_SIZE}`);
+                }
+            } else if (paramName == "cache-ms") {
+                if (isNumber(paramVal)) {
+                    READDIRPLUS_CACHE_LIFETIME_MS = parseInt(paramVal);
+                    nfsDebug(`Setting READDIRPLUS_CACHE_LIFETIME_MS: ${READDIRPLUS_CACHE_LIFETIME_MS}`);
+                }
+            }
+        }
+    }
+}
+
+// Extended to hold NfsDirectoryHandle cached entry for reference
+export interface ReaddirplusEntryCached extends ReaddirplusEntry {
+    directoryHandle?: NfsDirectoryHandle,
+}
+
 
 function fullNameFromReaddirplusEntry(parentName: string, entry: ReaddirplusEntry): string {
     const suffix = entry.attr?.attrType === AttrTypeDirectory ? "/" : "";
@@ -128,7 +181,14 @@ export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
 }
 
+export interface NfsDirectoryHandleParent {
+    parentDir?: NfsDirectoryHandle,
+    mount?: NfsMount,
+    fhDir?: Uint8Array,
+}
+
 export class NfsHandle implements FileSystemHandle {
+    protected _parent?: NfsDirectoryHandle;
     protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
@@ -144,9 +204,18 @@ export class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string) {
-        this._mount = mount;
-        this._fhDir = fhDir;
+    constructor(parent: NfsDirectoryHandleParent, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string) {
+        if (parent.parentDir) {
+            const parentDir = parent.parentDir
+            this._parent = parentDir;
+            this._mount = parentDir._mount;
+            this._fhDir = parentDir._fh;
+        } else if (parent.mount && parent.fhDir) {
+            this._mount = parent.mount;
+            this._fhDir = parent.fhDir;
+        } else {
+            throw new Error("Invalid Parent Directory File Descriptor");
+        }
         this._fh = fh;
         this._fileid = fileid;
         this._fullName = fullName;
@@ -200,6 +269,28 @@ export class NfsHandle implements FileSystemHandle {
         });
     }
     async stat(): Promise<Stat> {
+        if (this._parent) {
+            // Using cache from readdirplus
+            try {
+                const objRet = await this._parent.getEntryCachedByFileHandle(this._fh);
+                if (objRet !== undefined && objRet.attr !== undefined) {
+                    const attr = objRet.attr;
+                    const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
+                    const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);        
+                    const stats: Stat = {
+                        inode: attr.fileid,
+                        size: attr.filesize,
+                        creationTime: mtime,
+                        modifiedTime: mtime,
+                        accessedTime: atime,
+                    };
+                    return stats;
+                }
+            } catch (err: any) {
+                const name = this._fullName;
+                nfsDebug(`stat() err for ${name}: `, err);
+            }
+        }
         const attr = this._mount.getattr(this._fh);
         const mtime = BigInt(attr.mtime.seconds) * 1_000_000_000n + BigInt(attr.mtime.nseconds);
         const atime = BigInt(attr.atime.seconds) * 1_000_000_000n + BigInt(attr.atime.nseconds);
@@ -216,7 +307,7 @@ export class NfsHandle implements FileSystemHandle {
 
 class ReaddirplusEntryCache {
     timestamp: number;
-    entries?: Promise<ReaddirplusEntry[]>;
+    entries?: Promise<ReaddirplusEntryCached[]>;
     constructor(timestamp?: number) {
         this.timestamp = timestamp ?? 0;
     }
@@ -233,10 +324,11 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: true;
-    private _readdirplusEntryCache: ReaddirplusEntryCache;
+    protected _readdirplusEntryCache: ReaddirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
     constructor(param: string | NfsHandle) {
+        let parent: NfsDirectoryHandleParent;
         let mount: NfsMount;
         let fhDir: Uint8Array;
         let fh: Uint8Array;
@@ -246,6 +338,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         let name: string;
         if (typeof param === "string") {
             const url = param;
+            preParseUrlString(url);
             mount = nfsComponent.parseUrlAndMount(url);
             const res = mount.lookupPath("/");
             fh = res.obj;
@@ -254,17 +347,25 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             kind = "directory";
             fullName = "/";
             name = "";
+            parent = {
+                mount: mount,
+                fhDir: fhDir,
+            };
         } else {
-            const toWrap = param as NfsDirectoryHandle;
-            mount = toWrap._mount;
-            fhDir = toWrap._fhDir;
-            fh = toWrap._fh;
-            fileid = toWrap._fileid;
-            kind = toWrap.kind;
-            fullName = toWrap._fullName;
-            name = toWrap.name;
+            const dirHandleParam = param as NfsDirectoryHandle;
+            const parentToWrap = dirHandleParam._parent!;
+            mount = dirHandleParam._mount;
+            fhDir = dirHandleParam._fhDir;
+            fh = dirHandleParam._fh;
+            fileid = dirHandleParam._fileid;
+            kind = dirHandleParam.kind;
+            fullName = dirHandleParam._fullName;
+            name = dirHandleParam.name;
+            parent = {
+                parentDir: parentToWrap,
+            };
         }
-        super(mount, fhDir, fh, fileid, kind, fullName, name);
+        super(parent, fh, fileid, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
         this.kind = "directory";
         this.isFile = false;
@@ -272,15 +373,116 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         this.getEntries = this.values;
         this._readdirplusEntryCache = new ReaddirplusEntryCache();
     }
+
     private invalidateReaddirplusCache() {
         this._readdirplusEntryCache.timestamp = 0;
         this._readdirplusEntryCache.entries = undefined;
     }
-    private async readdirplus(): Promise<ReaddirplusEntry[]> {
+    public async getEntryCachedByFileHandle(fh: Uint8Array): Promise<ObjRes|undefined> {
+        const entries = await this.readdirplus();
+        for (const entry of entries) {
+            if (entry.handle == fh) {
+                const objRet: ObjRes = {
+                    obj: entry.handle,
+                    attr: entry.attr,
+                }
+                return objRet;
+            }
+        }
+        return undefined;
+    }
+
+    getNameNormalized(name: string) {
+        let retName = name;
+        if (name == "/") {
+            retName = name;
+        } else if (name.startsWith("/")) {
+            retName = name.substring(1);
+        }
+        return retName;
+    }
+
+    isSameNameNormalized(name1: string, name2: string) {
+        const name1Normalized = this.getNameNormalized(name1);
+        const name2Normalized = this.getNameNormalized(name2);
+        if (name1Normalized == name2Normalized) {
+            return true;
+        }
+        return false;
+    }
+
+    populateReaddirCache(entries: ReaddirplusEntry[], name: string): ObjRes {
+        // attempth to add it to the cache
+        const fh = this._fh;
+        const res = this._mount.lookup(fh, name);
+        let attr = res.attr;
+        if (attr == undefined) {
+            attr = this._mount.getattr(fh);
+        }
+        const fileid = attr.fileid;
+        const cachedEntry: ReaddirplusEntry = {
+            fileid: fileid,
+            fileName: name,
+            attr: attr,
+            handle: fh,
+        };
+        let foundInCache = false;
+        for (const entry of entries) {
+            if (this.isSameNameNormalized(entry.fileName, name)) {
+                entry.fileid = cachedEntry.fileid;
+                entry.attr = cachedEntry.attr;
+                entry.handle = cachedEntry.handle;
+                foundInCache = true;
+            }
+        }
+        if (!foundInCache) {
+            entries.push(cachedEntry);
+        }
+        return res;
+    }
+
+    isReadDirCacheAlive() {
+        const name = this._fullName;
         const now = Date.now();
-        if (!this._readdirplusEntryCache.entries || now - this._readdirplusEntryCache.timestamp >= READDIRPLUS_CACHE_LIFETIME_MS) {
+        if (this._readdirplusEntryCache.entries) {
+            const cacheTimeAlive = now - this._readdirplusEntryCache.timestamp;
+            if (cacheTimeAlive <= READDIRPLUS_CACHE_LIFETIME_MS) {
+                nfsDebug(`isReadDirCacheAlive true for ${name}`);
+                return true;
+            }
+        }
+        nfsDebug(`isReadDirCacheAlive false for ${name}`);
+        return false;
+    }
+
+    async getEntryByNameTryLookupFromCache(name: string): Promise<{obj: ObjRes, entry?: ReaddirplusEntryCached}> {
+        const entries = await this.readdirplus();
+        for (const entry of entries) {
+            if (this.isSameNameNormalized(entry.fileName, name)) {
+                const entryHandle = entry.handle;
+                if (entryHandle !== undefined && entryHandle.length > 0) {
+                    const cachedRes: ObjRes = {
+                        obj: entry.handle,
+                        attr: entry.attr,
+                    }
+                    return {obj: cachedRes, entry: entry};
+                } else {
+                    nfsDebug(`getEntryByNameTryLookupFromCache entryHandleLength 0 for ${name}`);
+                }
+            }
+        }
+        const res = this.populateReaddirCache(entries, name);
+        return {obj: res};
+    }
+
+    private async readdirplus(): Promise<ReaddirplusEntryCached[]> {
+        if (!this.isReadDirCacheAlive()) {
+            const now = Date.now();
+            this._readdirplusEntryCache.timestamp = now;
             this._readdirplusEntryCache.entries = new Promise((resolve, reject) => {
                 try {
+                    let name = this._fullName;
+                    nfsDebug(`calling actual nfs readdirplus for dir ${name}`);
                     const entries = this._mount.readdirplus(this._fh);
                     return resolve(entries);
                 } catch (e: any) {
@@ -294,9 +496,8 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                     return reject(e);
                 }
             });
-            this._readdirplusEntryCache.timestamp = now;
         }
-        return this._readdirplusEntryCache.entries;
+        return this._readdirplusEntryCache.entries!;
     }
     private async *entryHandles(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle> {
         const entries = await this.readdirplus();
@@ -305,11 +506,11 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                 const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
                 if (fullName.endsWith("/")) {
                     yield new NfsDirectoryHandle(
-                        new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "directory", fullName, entry.fileName)
+                        new NfsHandle({parentDir: this}, entry.handle, entry.fileid, "directory", fullName, entry.fileName)
                     );
                 } else {
                     yield new NfsFileHandle(
-                        new NfsHandle(this._mount, this._fh, entry.handle, entry.fileid, "file", fullName, entry.fileName)
+                        new NfsHandle({parentDir: this}, entry.handle, entry.fileid, "file", fullName, entry.fileName)
                     );
                 }
             }
@@ -336,28 +537,58 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             return state;
         });
     }
+
+    async getDirectoryHandleTryCached(name: string): Promise<FileSystemDirectoryHandle> {
+        const thisHandle = this;
+        return new Promise(async (resolve, reject) => {
+            try {
+                const res = await this.getEntryByNameTryLookupFromCache(name);
+                const obj = res.obj;
+                const fh = obj.obj;
+                const attr = obj.attr || this._mount.getattr(fh);
+                if (attr.attrType !== AttrTypeDirectory) {
+                    return reject(new TypeMismatchError());
+                }
+                let dHandle: NfsDirectoryHandle | undefined;
+                let readDirEntry = res.entry;
+                if (readDirEntry !== undefined) {
+                    dHandle = readDirEntry.directoryHandle;
+                }
+                if (dHandle == undefined) {
+                    dHandle = new NfsDirectoryHandle(
+                        new NfsHandle({parentDir: thisHandle}, fh, attr.fileid, "directory", this._fullName + name + "/", name)
+                    );
+                    if (readDirEntry) {
+                        // store the directoryHandle in the cache
+                        readDirEntry.directoryHandle = dHandle;
+                    }
+                }
+                return resolve(
+                    dHandle as FileSystemDirectoryHandle
+                );
+            } catch (err: any) {
+                return reject(new NotFoundError());
+            }
+        });
+    }
+
     async getDirectoryHandle(
         name: string,
         options?: FileSystemGetDirectoryOptions
     ): Promise<FileSystemDirectoryHandle> {
+        const thisHandle = this;
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const res = this._mount.lookup(this._fh, name);
-                const fh = res.obj;
-                const attr = res.attr || this._mount.getattr(fh);
-                if (attr.attrType !== AttrTypeDirectory) {
-                    return reject(new TypeMismatchError());
-                }
-                return resolve(
-                    new NfsDirectoryHandle(
-                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)
-                    ) as FileSystemDirectoryHandle
-                );
+                let handle = await this.getDirectoryHandleTryCached(name);
+                resolve(handle);
             } catch (e: any) {
                 if (e instanceof TypeError) {
                     return reject(e);
+                } else if (e instanceof TypeMismatchError) {
+                    return reject(e);
                 }
+                nfsDebug(`getDirectoryHandle name='${name}' error: `, e);
                 // XXX: ignore error
             }
 
@@ -373,7 +604,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                 const attr = res.attr || this._mount.getattr(fh);
                 return resolve(
                     new NfsDirectoryHandle(
-                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "directory", this._fullName + name + "/", name)
+                        new NfsHandle({parentDir: thisHandle}, fh, attr.fileid, "directory", this._fullName + name + "/", name)
                     ) as FileSystemDirectoryHandle
                 );
             } catch (e: any) {
@@ -381,19 +612,21 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
             }
         });
     }
+    
     async getFileHandle(name: string, options?: FileSystemGetFileOptions): Promise<FileSystemFileHandle> {
         return new Promise(async (resolve, reject) => {
             try {
                 PreNameCheck(name);
-                const res = this._mount.lookup(this._fh, name);
-                const fh = res.obj;
-                const attr = res.attr || this._mount.getattr(fh);
+                const res = await this.getEntryByNameTryLookupFromCache(name);
+                const obj = res.obj;
+                const fh = obj.obj;
+                const attr = obj.attr || this._mount.getattr(fh);
                 if (attr.attrType === AttrTypeDirectory) {
                     return reject(new TypeMismatchError());
                 }
                 return resolve(
                     new NfsFileHandle(
-                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)
+                        new NfsHandle({parentDir: this}, fh, attr.fileid, "file", this._fullName + name, name)
                     ) as FileSystemFileHandle
                 );
             } catch (e: any) {
@@ -416,7 +649,7 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
                 const attr = res.attr || this._mount.getattr(fh);
                 return resolve(
                     new NfsFileHandle(
-                        new NfsHandle(this._mount, this._fh, fh, attr.fileid, "file", this._fullName + name, name)
+                        new NfsHandle({parentDir: this}, fh, attr.fileid, "file", this._fullName + name, name)
                     ) as FileSystemFileHandle
                 );
             } catch (e: any) {
@@ -519,7 +752,7 @@ export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
     readonly isDirectory: false;
     constructor(param: NfsHandle) {
         const toWrap = param as NfsFileHandle;
-        super(toWrap._mount, toWrap._fhDir, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
+        super({parentDir: toWrap._parent}, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
         this.kind = "file";
         this.isFile = true;
         this.isDirectory = false;

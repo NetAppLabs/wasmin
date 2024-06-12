@@ -259,7 +259,11 @@ export class FileSystemFileDescriptor implements fs.Descriptor, Resource {
     async createDirectoryAt(path: string): Promise<void> {
         try {
             const openDir = this.openFiles.getAsDir(this.fd);
-            await openDir.openWithCreate(path, true, FileOrDir.Dir, openDir.handle);
+            let oflags: Oflags = 0x0;
+            oflags |= OflagsN.CREAT;
+            oflags |= OflagsN.DIRECTORY;
+            let fdflags: Fdflags = 0x0;
+            const _resultFd = await this.openFiles.open(openDir, path, oflags, fdflags);
         } catch (err: any) {
             throw translateToFsError(err);
         }
@@ -453,12 +457,6 @@ async function populateDescriptorStat(fd: number, fHandle: FileSystemHandle): Pr
     let timeMilliseconds = 0;
     let ftype = "directory" as DescriptorType;
     if (fHandle.kind == "file") {
-        const ffHandle = fHandle as FileSystemFileHandle;
-        const file = await ffHandle.getFile();
-        if (file) {
-            size = BigInt(file.size);
-            timeMilliseconds = file.lastModified;
-        }
         ftype = "regular-file";
     }
     const time = toDateTimeFromMs(timeMilliseconds);
@@ -469,6 +467,7 @@ async function populateDescriptorStat(fd: number, fHandle: FileSystemHandle): Pr
     if ("stat" in fHandle) {
         const statable = fHandle as unknown as Statable;
         const s = await statable.stat();
+        size = s.size;
         const got_inode = s.inode;
         if (got_inode) {
             inode = got_inode;
@@ -484,6 +483,19 @@ async function populateDescriptorStat(fd: number, fHandle: FileSystemHandle): Pr
         const got_mtime = s.modifiedTime;
         if (got_mtime) {
             mtime = toDateTimeFromNs(got_mtime);
+        }
+    } else {
+        if (fHandle.kind == "file") {
+            const ffHandle = fHandle as FileSystemFileHandle;
+            const file = await ffHandle.getFile();
+            if (file) {
+                size = BigInt(file.size);
+                timeMilliseconds = file.lastModified;
+            }
+            const fTime = toDateTimeFromMs(timeMilliseconds);
+            ctime = fTime;
+            atime = fTime;
+            mtime = fTime;
         }
     }
     const newStat: DescriptorStat = {
