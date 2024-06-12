@@ -1,9 +1,22 @@
-import { NfsMount } from "./interfaces/component-nfs-rs-nfs.js";
+import { NfsMount, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs.js";
 import { Stat } from "@wasmin/fs-js";
+declare global {
+    var NFS_JS_DEBUG: boolean;
+}
+export declare function nfsDebug(msg?: any, ...optionalParams: any[]): void;
+export interface ReaddirplusEntryCached extends ReaddirplusEntry {
+    directoryHandle?: NfsDirectoryHandle;
+}
 export interface NfsHandlePermissionDescriptor {
     mode: "read" | "readwrite";
 }
+export interface NfsDirectoryHandleParent {
+    parentDir?: NfsDirectoryHandle;
+    mount?: NfsMount;
+    fhDir?: Uint8Array;
+}
 export declare class NfsHandle implements FileSystemHandle {
+    protected _parent?: NfsDirectoryHandle;
     protected _mount: NfsMount;
     protected _fhDir: Uint8Array;
     protected _fh: Uint8Array;
@@ -19,11 +32,16 @@ export declare class NfsHandle implements FileSystemHandle {
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: boolean;
-    constructor(mount: NfsMount, fhDir: Uint8Array, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string);
+    constructor(parent: NfsDirectoryHandleParent, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string);
     isSameEntry(other: FileSystemHandle): Promise<boolean>;
     queryPermission(perm?: NfsHandlePermissionDescriptor): Promise<PermissionState>;
     requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState>;
     stat(): Promise<Stat>;
+}
+declare class ReaddirplusEntryCache {
+    timestamp: number;
+    entries?: Promise<ReaddirplusEntryCached[]>;
+    constructor(timestamp?: number);
 }
 export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
     [Symbol.asyncIterator]: NfsDirectoryHandle["entries"];
@@ -36,16 +54,26 @@ export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemD
      * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
      */
     readonly isDirectory: true;
-    private _readdirplusEntryCache;
+    protected _readdirplusEntryCache: ReaddirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
     private invalidateReaddirplusCache;
+    getEntryCachedByFileHandle(fh: Uint8Array): Promise<ObjRes | undefined>;
+    getNameNormalized(name: string): string;
+    isSameNameNormalized(name1: string, name2: string): boolean;
+    populateReaddirCache(entries: ReaddirplusEntry[], name: string): ObjRes;
+    isReadDirCacheAlive(): boolean;
+    getEntryByNameTryLookupFromCache(name: string): Promise<{
+        obj: ObjRes;
+        entry?: ReaddirplusEntryCached;
+    }>;
     private readdirplus;
     private entryHandles;
     entries(): AsyncIterableIterator<[string, FileSystemDirectoryHandle | FileSystemFileHandle]>;
     keys(): AsyncIterableIterator<string>;
     values(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle>;
     requestPermission(perm: NfsHandlePermissionDescriptor): Promise<PermissionState>;
+    getDirectoryHandleTryCached(name: string): Promise<FileSystemDirectoryHandle>;
     getDirectoryHandle(name: string, options?: FileSystemGetDirectoryOptions): Promise<FileSystemDirectoryHandle>;
     getFileHandle(name: string, options?: FileSystemGetFileOptions): Promise<FileSystemFileHandle>;
     removeEntry(name: string, options?: FileSystemRemoveOptions): Promise<void>;
