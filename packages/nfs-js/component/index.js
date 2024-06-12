@@ -61,6 +61,15 @@ if (process !== undefined) {
 function isNumber(numVal) {
     return !isNaN(parseFloat(numVal)) && isFinite(numVal);
 }
+/**
+ *
+ * preparse url so that params on url string are read, params supported are:
+ *
+ * rwsize [block size for max read/write in bytes]
+ * cachems [cache time-to-live for readdirplus in ms]
+ *
+ * @param url URL string like 'nfs://127.0.0.1/volume-1?nfsport=2049&mountport=6635&rwsize=1048576'
+ */
 function preParseUrlString(url) {
     const indexOfQuestion = url.indexOf("?");
     if (indexOfQuestion > 0) {
@@ -140,7 +149,6 @@ async function ensureInstantiation() {
     }
     await instantiation;
 }
-//export type ROOT = "ROOT";
 export class NfsHandle {
     _parent;
     _mount;
@@ -364,8 +372,9 @@ export class NfsDirectoryHandle extends NfsHandle {
     }
     populateReaddirCache(entries, name) {
         // attempth to add it to the cache
-        const fh = this._fh;
-        const res = this._mount.lookup(fh, name);
+        const parentFh = this._fh;
+        const res = this._mount.lookup(parentFh, name);
+        const fh = res.obj;
         let attr = res.attr;
         if (attr == undefined) {
             attr = this._mount.getattr(fh);
@@ -453,7 +462,11 @@ export class NfsDirectoryHandle extends NfsHandle {
             if (entry.fileName !== "." && entry.fileName !== "..") {
                 const fullName = fullNameFromReaddirplusEntry(this._fullName, entry);
                 if (fullName.endsWith("/")) {
-                    yield new NfsDirectoryHandle(new NfsHandle({ parentDir: this }, entry.handle, entry.fileid, "directory", fullName, entry.fileName));
+                    let dirHandle = entry.directoryHandle;
+                    if (dirHandle == undefined) {
+                        dirHandle = new NfsDirectoryHandle(new NfsHandle({ parentDir: this }, entry.handle, entry.fileid, "directory", fullName, entry.fileName));
+                    }
+                    yield dirHandle;
                 }
                 else {
                     yield new NfsFileHandle(new NfsHandle({ parentDir: this }, entry.handle, entry.fileid, "file", fullName, entry.fileName));
