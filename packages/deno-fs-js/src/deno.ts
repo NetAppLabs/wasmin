@@ -135,6 +135,7 @@ export class DenoFileHandle
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
+        // @ts-ignore
         return await fileFrom(this.path);
     }
 

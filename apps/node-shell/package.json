@@ -16,7 +16,7 @@
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
     "@types/node": "^18.14.5",
     "@wasmin/tsconfig": "*",
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.23.0",
     "vite": "^5.1.6"
   },
   "dependencies": {

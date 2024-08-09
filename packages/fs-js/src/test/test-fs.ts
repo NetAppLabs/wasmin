@@ -42,20 +42,25 @@ export const TestsFileSystemHandle = (
     )
 }
 
+// commented out because of issues with deno types
+//type It = jest.It;
+//type Describe = jest.Describe;
+//type Expect = jest.Expect;
+//type Lifecycle = jest.Lifecycle;
+
+type It = any;
+type Describe = any;
+type Expect = any;
+type Lifecycle = any;
+
 export const TestsFileSystemHandleImportTestDefinitions = (
     name: string,
-    // @ts-ignore
-    test: jest.It,
-    // @ts-ignore
-    describe: jest.Describe,
-    // @ts-ignore
-    expect: jest.Expect,
-    // @ts-ignore
-    beforeEach: jest.Lifecycle,
-    // @ts-ignore
-    beforeAll: jest.Lifecycle,
-    // @ts-ignore
-    afterAll: jest.Lifecycle,
+    test: It,
+    describe: Describe,
+    expect: Expect,
+    beforeEach: Lifecycle,
+    beforeAll: Lifecycle,
+    afterAll: Lifecycle,
     getRootFunc: () => Promise<FileSystemDirectoryHandle>,
     beforeAllFunc?: (this: unknown) => void | Promise<void>,
     afterAllFunc?: (this: unknown) => void | Promise<void>,

@@ -16,8 +16,13 @@ import {
 import { NodeNetTcpServer, NodeNetTcpSocket, AddressFamily } from "./common.js";
 import { wasiSocketsDebug } from "../wasiDebug.js";
 
-export const USE_ACCEPTED_SOCKET_PROMISE = false;
-export const USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 1;
+declare global {
+    var USE_ACCEPTED_SOCKET_PROMISE: boolean;
+    var USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT: number;
+}
+globalThis.USE_ACCEPTED_SOCKET_PROMISE = false;
+globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 1;
+
 export type AcceptedSocketPromiseType = ReturnType<typeof deferredPromise<NetTcpSocket|undefined>>;
 
 function deferredPromise<T>() {
@@ -113,7 +118,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     }
 
     rejectAllAcceptPromises(): void {
-        if (USE_ACCEPTED_SOCKET_PROMISE) {
+        if (globalThis.USE_ACCEPTED_SOCKET_PROMISE) {
             let acceptPromise = this._acceptedSocketPromises.shift();
             while (acceptPromise !== undefined) {
                 try {
@@ -142,7 +147,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
             let rejWithReason = () => {
                 reject("fromTimeout");
             }
-            setTimeout(rejWithReason, USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT);
+            setTimeout(rejWithReason, globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT);
         });
         const timeoutPromiseRace = Promise.race([promise, timeoutPromise]);
         try {
@@ -167,7 +172,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     }
 
     notifyAcceptedSocket(acceptedSock: NetTcpSocket) {
-        if (USE_ACCEPTED_SOCKET_PROMISE) {
+        if (globalThis.USE_ACCEPTED_SOCKET_PROMISE) {
             const acceptPromise = this.getAcceptedPromise();
             if (acceptPromise !== undefined) {
                 wasiSocketsDebug("notifyAcceptedSocket() acceptPromise.resolve");
@@ -188,7 +193,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     async hasConnectedClient(): Promise<boolean> {
         let hasConnectedClient = false;
         if (this.isListening()) {
-            if (USE_ACCEPTED_SOCKET_PROMISE) {
+            if (globalThis.USE_ACCEPTED_SOCKET_PROMISE) {
                 try {
                     wasiSocketsDebug("hasConnectedClient() before getAccptedSocketByPromise()");
                     const acceptedSock = await this.getAcceptedSocketByPromise();
@@ -517,7 +522,7 @@ export class NetTcpSocket extends Socket implements WasiSocket, Peekable {
     
     async getAcceptedSocket(): Promise<NetTcpSocket> {
         wasiSocketsDebug("getAcceptedSocket()");
-        if (USE_ACCEPTED_SOCKET_PROMISE) {
+        if (globalThis.USE_ACCEPTED_SOCKET_PROMISE) {
             try {
                 return await this.getAcceptedSocketByPromise();
             } catch (err: any) {

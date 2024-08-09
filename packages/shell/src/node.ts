@@ -329,6 +329,12 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             },
             nomount: {
                 type: 'boolean'
+            },
+            "sockets-promise": {
+                type: 'boolean'
+            },
+            "sockets-promise-timeout": {
+                type: 'string'
             }
         };
 
@@ -340,6 +346,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
         let mount = true;
+        let sockets_promise = false;
+        let sockets_promise_timeout = 1;
 
         //let args: string[] = [];
         let runCount = 1;
@@ -402,6 +410,25 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         if (values.nomount) {
             mount = false;
         }
+        if (values["sockets-promise"] !== undefined) {
+            const sPromise = values["sockets-promise"] as string;
+            const bPromise = new Boolean(sPromise);
+            sockets_promise = bPromise.valueOf();
+            // @ts-ignore
+            globalThis.USE_ACCEPTED_SOCKET_PROMISE = sockets_promise;
+        }
+        if (values["sockets-promise-timeout"] !== undefined) {
+            const sPromiseTimeout = values["sockets-promise-timeout"] as string;
+            const nPromiseTimeout = new Number(sPromiseTimeout);
+            sockets_promise_timeout = nPromiseTimeout.valueOf();
+            // @ts-ignore
+            globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = sockets_promise_timeout;
+        }
+        // @ts-ignore
+        shellDebug(`globalThis.USE_ACCEPTED_SOCKET_PROMISE: ${globalThis.USE_ACCEPTED_SOCKET_PROMISE}`);
+        // @ts-ignore
+        shellDebug(`globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT: ${globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT}`);
+
         let runtimeName = "undefined";
         if (isBun() ){
             runtimeName = chalk.yellow.bold("Bun");
@@ -434,8 +461,10 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
     ${fl('-m, --mount')}   ${flv('[path|url]')}      Mount Path or URL and use as root
     ${fl('-w')}                            Run in worker
     ${fl('--nomount')}                     No default mount
-    ${fl('--count')}                       Number of identical runs`);
-    
+    ${fl('--count')}                       Number of identical runs
+    ${fl('--sockets-promise')}             Enable sockets promise implementation
+    ${fl('--sockets-promise-timeout')}     Timeout in ms for sockets promise implementation`);
+
             process.exit(0);
         }
 

@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@jest/types": "npm:@jest/types@^29.5.12"
+  }
+}

@@ -6,6 +6,7 @@
     "run": "deno run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net --no-npm ./dist/index.js",
     "build-embeds": "deno run -A src/embedder.ts build",
     "compile-sandboxed": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --unstable-net -o ./wasmin-deno --no-npm ./src/index.ts",
-    "compile": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-all --allow-env --unstable-net -o ./wasmin-deno --no-npm ./src/index.ts"
+    "compile": "deno compile --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-all --allow-env --unstable-net -o ./wasmin-deno --node-modules-dir=false ./src/index.ts",
+    "compile-linux-x86_64": "deno compile --target x86_64-unknown-linux-gnu --include ./dist/wasiWorkerThread.js --include ./dist/wasmComponentWorkerThread.js --include ./dist/wasmCoreWorkerThread.js --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-all --allow-env --unstable-net -o ./wasmin-deno --node-modules-dir=false ./src/index.ts"
   }
 }

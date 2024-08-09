@@ -4,8 +4,5 @@
     "@wasmin/node-fs-js": "../../packages/node-fs-js/src/index.ts",
     "parse-url": "npm:parse-url@^8.1.0",
     "js-yaml": "npm:js-yaml@^4.1.0"
-  },
-  "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
   }
 }

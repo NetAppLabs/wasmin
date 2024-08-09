@@ -17,8 +17,8 @@
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
     "@wasmin/tsconfig": "*",
-    "bun-types": "^1.0.30",
-    "esbuild": "^0.20.1"
+    "bun-types": "^1.1.22",
+    "esbuild": "^0.23.0"
   },
   "dependencies": {
     "@wasmin/bun-fs-js": "*",
