@@ -2,6 +2,7 @@ node_modules
 src/embed/static
 .DS_Store
 dist
+dist-dev
 dist-ssr
 *.local
 *.wasm

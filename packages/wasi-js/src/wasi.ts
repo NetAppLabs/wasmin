@@ -12,6 +12,7 @@ import {
     instantiateWithAsyncDetection,
     isStackSwitchingEnabled,
 } from "./desyncify.js";
+import { isJspiEnabled } from "@wasmin/wasm-promisify"; 
 import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
 
@@ -322,14 +323,21 @@ export class WASI {
     public async instantiateComponent(
         wasmModOrBufSource: WebAssembly.Module | BufferSource
     ): Promise<{runMode: WasmRunMode, instance: WebAssembly.Instance}> {
-        const useJspi = isStackSwitchingEnabled();
-        //const useJspi = false;
+        const useJspi = isJspiEnabled();
+        const useStackSwitching = isStackSwitchingEnabled();
         if (useJspi) {
             let inst =  await this.instantiateComponentOnJSPI(wasmModOrBufSource);
             return {
                 instance: inst,
                 runMode: "jspi-component"
             }
+        } else if (useStackSwitching) {
+                let inst =  await this.instantiateComponentOnStackSwitching(wasmModOrBufSource);
+                return {
+                    instance: inst,
+                    runMode: "stack-switching-component"
+                }
+    
         } else {
             let inst = await this.instantiateComponentOnWorker(wasmModOrBufSource);
             return {
@@ -339,8 +347,18 @@ export class WASI {
         }
     }
 
-        // Instantiation for a WebAssembly Component Model Component
+    // Instantiation for a WebAssembly Component Model Component
     public async instantiateComponentOnJSPI(
+        wasmModOrBufSource: WebAssembly.Module | BufferSource
+    ): Promise<WebAssembly.Instance | any> {
+        await this.initializeComponentImports();
+        let impObject = this.componentImportObject;
+        this._commandRunner = new CommandRunner(impObject);
+        await this._commandRunner.instantiate(wasmModOrBufSource);
+    }
+
+    // Instantiation for a WebAssembly Component Model Component
+    public async instantiateComponentOnStackSwitching(
         wasmModOrBufSource: WebAssembly.Module | BufferSource
     ): Promise<WebAssembly.Instance | any> {
         await this.initializeComponentImports();

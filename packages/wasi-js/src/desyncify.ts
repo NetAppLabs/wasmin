@@ -1,10 +1,10 @@
-import { Asyncify } from "./vendored/asyncify/asyncify.js";
+import { Asyncify, proxyGet } from "./vendored/asyncify/asyncify.js";
 import { Channel, makeChannel, readMessage, syncSleep, uuidv4 } from "./vendored/sync-message/index.js";
 import { isFunction } from "./workerUtils.js";
 import * as comlink from "comlink";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
-import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify } from "@wasmin/wasm-promisify"; 
+import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify, isJspiEnabled, instantiateJSPIwrapped } from "@wasmin/wasm-promisify"; 
 import { wasmWorkerClientDebug } from "./wasiDebug.js";
 
 //
@@ -51,7 +51,7 @@ import { wasmWorkerClientDebug } from "./wasiDebug.js";
  *    and handleImportFunc must be set.
  *    This is the fallback method if none of the above work.
  */
-export type WasmCoreRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" | "worker-core-memory-copy";
+export type WasmCoreRunMode = "asyncify" | "jspi" | "stack-switching" | "worker-core-memory-shared" | "worker-core-memory-copy";
 
 /**
  * Run modes for core WebAssembly Components
@@ -66,7 +66,7 @@ export type WasmCoreRunMode = "asyncify" | "jspi" | "worker-core-memory-shared" 
  *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
  *   in runtime using @wasmin/wasm-promisify library.
  */
-export type WasmComponentRunMode = "worker-component" | "jspi-component" ;
+export type WasmComponentRunMode = "worker-component" | "jspi-component" | "stack-switching-component";
 
 export type WasmRunMode = WasmCoreRunMode | WasmComponentRunMode;
 
@@ -174,7 +174,8 @@ export async function instantiateWithAsyncDetection(
     let isAsyncified = false;
     let wasmMod: WebAssembly.Module;
     let sourceBuffer: BufferSource | null = null;
-    let promisifyEnabled = isStackSwitchingEnabled();
+    let jspiEnabled = isJspiEnabled();
+    let stackSwitchingEnabled = isStackSwitchingEnabled();
     if (wasmModOrBufSource instanceof ArrayBuffer || ArrayBuffer.isView(wasmModOrBufSource)) {
         sourceBuffer = wasmModOrBufSource as BufferSource;
         wasmMod = await WebAssembly.compile(sourceBuffer);
@@ -200,10 +201,15 @@ export async function instantiateWithAsyncDetection(
         const asyncifiedInstance = await WebAssembly.instantiate(wasmMod, state.wrapImports(imports));
         state.init(asyncifiedInstance, imports);
         return { instance: asyncifiedInstance, runMode: "asyncify" };
-    } else if (promisifyEnabled) {
+    } else if (jspiEnabled) {
+        wasmWorkerClientDebug("jspi available - attempting instantiatePromisified");
+        const promInstance = await instantiateJSPIwrapped(wasmMod, imports);
+        return { instance: promInstance, runMode: "jspi" };
+
+    } else if (stackSwitchingEnabled) {
         wasmWorkerClientDebug("jspi available - attempting instantiatePromisified");
         const promInstance = await instantiatePromisified(wasmMod, imports);
-        return { instance: promInstance, runMode: "jspi" };
+        return { instance: promInstance, runMode: "stack-switching" };
     }
     wasmWorkerClientDebug("fallback on instantiating instance on WasmWorker");
     return instantiateOnWasmWorker(sourceBuffer, imports, handleImportFunc);

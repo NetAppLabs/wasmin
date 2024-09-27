@@ -23,6 +23,8 @@ if [ -z "${WASMIN_RUNTIME}" ]; then
 fi
 
 if [ -z "${NODE_ARGS}" ]; then
+	# enable when node updates v8
+	#NODE_ARGS="--experimental-wasm-jspi --wasm-stack-switching-stack-size=100 --async-stack-traces --wasm-staging --no-warnings --trace-warnings --enable-source-maps"
 	NODE_ARGS="--experimental-wasm-stack-switching --experimental-wasm-type-reflection --wasm-staging --no-warnings --trace-warnings --enable-source-maps"
 fi
 

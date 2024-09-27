@@ -13,9 +13,10 @@ WASMIN_DENO_USE_JSPI="true"
 
 if [ "${WASMIN_RUNTIME}" == "deno" ]; then
 	if [ -z "${WASMIN_DENO_USE_JSPI}" ]; then
-		deno  run --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/entry.js $*
+		deno  run --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist-dev/entry.js $*
 	else
-		deno  run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist/entry.js $*
+		#deno  run --v8-flags=--experimental-wasm-jspi --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist-dev/entry.js $*
+		deno  run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net ${WASMIN_ROOT}/apps/deno-shell/dist-dev/entry.js $*
 	fi
 elif [ "${WASMIN_RUNTIME}" == "bun" ]; then
 	bun ${WASMIN_ROOT}/apps/bun-shell/src/index.ts $* 

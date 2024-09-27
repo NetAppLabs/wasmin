@@ -1,8 +1,130 @@
-import { isNode, jspiDebug, promisifyImportFunction } from "./util.js";
+import { isNode, jspiDebug } from "./util.js";
 import { PromisifiedWasmGenerator } from "./wasmgen.js";
 
+
 /**
- * Detects if JavaScript Promise Integration is enabed in runtime
+ * Detects if Newer JavaScript Promise Integration is enabed in runtime
+ * @returns true if jspi/experimental-wasm-stack-switching is enabled in runtime node/deno
+ */
+export function isJspiEnabled() {
+    const WebAssemblySuspending = (WebAssembly as any).Suspending
+    if (typeof WebAssemblySuspending === 'function') {
+        return true;
+    }
+    return false;
+}
+
+export function proxyGet(obj: any, transformFunc: any) {
+    return new Proxy(obj, {
+        get: (obj, name) => transformFunc(obj[name]),
+    });
+}
+
+/**
+ * 
+ * @param mainModule Module to wrap
+ * @param importObject WebAssembly.Import for instance
+ * @returns Wrapped WebAssembly.Instance with async imports and exports
+ * 
+ *  Note: this works currently only if experimental-wasm-jspi is enabled 
+ *      e.g. with 
+ *      node --experimental-wasm-jspi
+ *      or
+ *      deno -v8-flags=--experimental-wasm-jspi
+ * 
+ */
+export async function instantiateJSPIwrapped(mainModule: WebAssembly.Module, importObject: WebAssembly.Imports): Promise<WebAssembly.Instance>{
+    jspiDebug(`Running module through instantiateJSPIwrapped`);
+    const jspiH = new JspiInstanceHolder();
+    const jspiifiedInstance = await WebAssembly.instantiate(mainModule, jspiH.wrapImports(importObject));
+    jspiH.init(jspiifiedInstance, importObject);
+    return jspiifiedInstance;
+}
+
+const WRAPPED_EXPORTS = new WeakMap();
+export class JspiInstanceHolder {
+    exports: any;
+    init(instance: any, imports: any) {
+        const { exports } = instance;
+        let memory = exports.memory;
+        if (memory == undefined) {
+            if (imports !== undefined) {
+                if (imports.env !== undefined) {
+                    if (imports.env.memory !== undefined) {
+                        memory = imports.env.memory;
+                    }
+                }
+            }
+        }
+        this.exports = this.wrapExports(exports);
+        Object.setPrototypeOf(instance, WebAssemblyJspiInstance.prototype);
+    }
+    wrapImportFn(fn: any) {
+        jspiDebug("instantiateJSPIwrapped.wrapImportFn: ", fn);
+        // @ts-ignore
+        return new WebAssembly.Suspending(fn);
+    }
+    wrapModuleImports(module: any) {
+        return proxyGet(module, (value: any) => {
+            if (typeof value === "function") {
+                return this.wrapImportFn(value);
+            }
+            return value;
+        });
+    }
+    wrapImports(imports: WebAssembly.Imports) {
+        if (imports === undefined) return;
+        return proxyGet(imports, (moduleImports = Object.create(null)) => this.wrapModuleImports(moduleImports));
+    }
+    wrapExports(exports: any) {
+        const newExports = Object.create(null);
+        for (const exportName in exports) {
+            let value = exports[exportName];
+            if (isFunction(value)) {
+                value = this.wrapExportFn(value);
+            }
+            Object.defineProperty(newExports, exportName, {
+                enumerable: true,
+                value,
+            });
+        }
+        WRAPPED_EXPORTS.set(exports, newExports);
+        return newExports;
+    }
+    wrapExportFn(fn: any) {
+        jspiDebug("instantiateJSPIwrapped.wrapExportFn: ", fn);
+        // @ts-ignore
+        return WebAssembly.promising(fn);
+    }
+}
+export class WebAssemblyJspiInstance extends WebAssembly.Instance {
+
+    jspi: JspiInstanceHolder
+    constructor(module: WebAssembly.Module, imports: WebAssembly.Imports) {
+        const jspiH = new JspiInstanceHolder();
+        super(module, jspiH.wrapImports(imports));
+        this.jspi = jspiH;
+        jspiH.init(this, imports);
+    }
+
+    get exports() {
+        return WRAPPED_EXPORTS.get(super.exports);
+    }
+
+    get originalExports() {
+        return super.exports;
+    }
+}
+
+
+
+export function isFunction(value: any) {
+    // @ts-ignore
+    return typeof value === "function" || value instanceof Function || value instanceof WebAssembly.Function;
+}
+
+/**
+ * Detects if Older JavaScript Promise Integration / Stack-switching is enabed in runtime
  * @returns true if jspi/experimental-wasm-stack-switching is enabled in runtime node/deno
  */
 export function isStackSwitchingEnabled(): boolean {
@@ -29,7 +151,7 @@ function hasFlags(...flags: string[]) {
 /**
  * 
  *  Takes in a WebAssembly.Module with desired importObject and re-wires all imports and exports to be async capable
- *  with JSPI (JavaScript Promise Integration) - https://v8.dev/blog/jspi
+ *  with JSPI (JavaScript Promise Integration) older Stack Switching variant - https://v8.dev/blog/jspi
  * 
  *  Note: this works currently only if experimental-wasm-stack-switching is enabled 
  *      e.g. with --experimental-wasm-stack-switching on node

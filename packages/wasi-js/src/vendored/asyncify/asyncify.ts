@@ -56,7 +56,7 @@ export function isPromise(obj: any) {
     return !!obj && (typeof obj === "object" || typeof obj === "function") && typeof obj.then === "function";
 }
 
-function proxyGet(obj: any, transform: any) {
+export function proxyGet(obj: any, transform: any) {
     return new Proxy(obj, {
         get: (obj, name) => transform(obj[name]),
     });
