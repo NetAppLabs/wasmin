@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+
+AZURE_FUNCTION_NAME=`basename $(pwd)`
+
+if [ -z "$AZURE_RESOURCE_GROUP" ] || [ -z "$AZURE_STORAGE_ACCOUNT_NAME" ] || [ -z "$AZURE_LOCATION" ]; then
+    echo "ERROR: AZURE_RESOURCE_GROUP or AZURE_STORAGE_ACCOUNT_NAME or AZURE_LOCATION not set" 1>&2
+    exit 1
+else
+    echo "---"
+    echo "using AZURE_RESOURCE_GROUP=$AZURE_RESOURCE_GROUP"
+    echo "using AZURE_STORAGE_ACCOUNT_NAME=$AZURE_STORAGE_ACCOUNT_NAME"
+    echo "using AZURE_LOCATION=$AZURE_LOCATION"
+    echo "using AZURE_FUNCTION_NAME=$AZURE_FUNCTION_NAME"
+    echo "---"
+fi
+
+
+az functionapp delete --resource-group ${AZURE_RESOURCE_GROUP} --name ${AZURE_FUNCTION_NAME} 

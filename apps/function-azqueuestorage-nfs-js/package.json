@@ -1,0 +1,31 @@
+{
+  "name": "function-azqueuestorage-nfs-js",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/functions/*.js",
+  "scripts": {
+    "build": "tsc && npm run copy-files",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "copy-files": "copyfiles -u 1 src/**/*.wasm dist/",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/storage-queue": "^12.23.0",
+    "@wasmin/fs-js": "",
+    "@wasmin/nfs-js": "",
+    "@wasmin/wasi-js": "",
+    "wat-compiler": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "azure-functions-core-tools": "^4.x",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^6.0.0",
+    "typescript": "^5.5.0"
+  }
+}
