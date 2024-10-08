@@ -1,6 +1,7 @@
 {
   "imports": {
-    "@wasmin/shell": "../../packages/shell/src/index.ts"
+    "@wasmin/shell": "../../packages/shell/src/index.ts",
+	"crypto": "node:crypto"
   },
   "tasks": {
     "run": "deno run --v8-flags=--experimental-wasm-stack-switching,--experimental-wasm-type-reflection --allow-env --allow-all --unstable-net --no-npm ./dist/index.js",

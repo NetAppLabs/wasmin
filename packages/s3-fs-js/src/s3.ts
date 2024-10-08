@@ -5,7 +5,7 @@ import {
     NotFoundError,
     TypeMismatchError,
 } from "@wasmin/fs-js";
-import { join, streamToBuffer, streamToBufferNode, substituteSecretValue } from "@wasmin/fs-js";
+import { join, substituteSecretValue } from "@wasmin/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
 import {
     FileSystemWritableFileStream,
@@ -28,8 +28,14 @@ import {
 
 const S3_DEBUG = false;
 
+declare global {
+    var S3_DEBUG: boolean;
+}
+globalThis.S3_DEBUG = false;
+
+
 function s3Debug(message?: any, ...optionalParams: any[]) {
-    if (S3_DEBUG) {
+    if (globalThis.S3_DEBUG) {
         console.debug(message, optionalParams);
     }
 }
@@ -151,10 +157,15 @@ export class S3File {
 
         s3Debug(`S3File: arrayBuffer: start: ${start}" end: ${end} contentType: ${contentType}`);
         const path = this.path;
+        let rangeEnd = 0;
         if (end >= this.size) {
-            end = this.size - 1;
+            // bytes rangeEnd needs to be reduced by 1 because it is including last range end
+            rangeEnd = this.size - 1;
+        } else {
+            // bytes rangeEnd needs to be reduced by 1 because it is including last range end
+            rangeEnd = end - 1;
         }
-        const range = `bytes=${start}-${end}`;
+        const range = `bytes=${start}-${rangeEnd}`;
         s3Debug(`s3client.getObject Range: ${range}`);
         try {
             const params = {
@@ -168,22 +179,8 @@ export class S3File {
             //const s3obj = await s3client.getObject();
             s3Debug(`s3obj.Body ${s3obj.Body}`);
             if (s3obj.Body) {
-                if (s3obj.Body instanceof ReadableStream) {
-                    const body: ReadableStream = s3obj.Body as ReadableStream;
-                    s3Debug("before streamToBuffer");
-                    const buf = await streamToBuffer(body);
-                    s3Debug("returning buf");
-                    return buf;
-                } else if (s3obj.Body instanceof Blob) {
-                    const body: Blob = s3obj.Body as Blob;
-                    return body.arrayBuffer();
-                } else {
-                    const body = s3obj.Body as any;
-                    s3Debug("before streamToBuffer");
-                    const buf = await streamToBufferNode(body);
-                    s3Debug("returning buf");
-                    return buf;
-                }
+                let uArray = await s3obj.Body.transformToByteArray();
+                return uArray.buffer;
             } else {
                 return new ArrayBuffer(0);
             }
@@ -192,6 +189,7 @@ export class S3File {
                 const s3err = err as AWS.S3ServiceException;
                 const statusCode = s3err.$response?.statusCode || 0;
                 if (statusCode == 416) {
+                    s3Debug("arrayBuffer() catch error 416");
                     // StatusCode: 416 Range Not Satisfiable (RFC 7233)
                     // Special case because in this case we have reached end of file
                     return new ArrayBuffer(0);

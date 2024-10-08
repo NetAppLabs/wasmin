@@ -12,8 +12,7 @@ import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirecto
 import { node } from "@wasmin/node-fs-js";
 import process from "node:process";
 
-// TODO: look into issue with esj/cjs interoperability
-//import { s3 } from "@wasmin/s3-fs-js";
+import { s3 } from "@wasmin/s3-fs-js";
 import { nfs } from "@wasmin/nfs-js";
 import { github } from "@wasmin/github-fs-js";
 import { parseArgs } from "node:util";
@@ -474,11 +473,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
         shellDebug("wasmBinaryFromArgs: ", wasmBinaryFromArgs);
 
-
-        // @ts-ignore
-        //if (!isBun()) {
-        //    RegisterProvider("s3", s3);
-        //}
+        RegisterProvider("s3", s3);
         // @ts-ignore
         RegisterProvider("github", github);
         // @ts-ignore
@@ -680,6 +675,9 @@ function processMultipleArgValues(vals: any, keyValue?: boolean){
 function activateTraceDebugComponents(components: string[]) {
     shellDebug("activateTraceDebugComponents components: ", components);
     for (const comp of components) {
+        if (comp.toUpperCase() == "S3") {
+            (globalThis as any).S3_DEBUG = true;
+        }
         let componentUpperCase = comp.toUpperCase();
         let var1 = `WASI_${componentUpperCase}_DEBUG`;
         let var2 = `${componentUpperCase}_DEBUG`;

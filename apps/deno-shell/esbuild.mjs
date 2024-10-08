@@ -9,7 +9,7 @@ let tmpDirUrl = `"file://${tmpDir}"`;
 
 let replacePlugin = textReplace(
   {
-    include: /\.*$/ ,
+    include: /\.js*$/ ,
     pattern:[
           ['import.meta.url', tmpDirUrl],
     ]
@@ -55,7 +55,16 @@ await esbuild.build({
     "node:util",
     "node:fs/promises",
     "bun",
-  ]
+  ],
+  banner:{
+    js: `
+    import { fileURLToPath } from 'node:url';
+    import { createRequire as topLevelCreateRequire } from 'node:module';
+    const require = topLevelCreateRequire(import.meta.url);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    `
+  }
 })
 
 await esbuild.build({
@@ -89,5 +98,14 @@ await esbuild.build({
     "node:util",
     "node:fs/promises",
     "bun",
-  ]
+  ],
+  banner:{
+    js: `
+    import { fileURLToPath } from 'node:url';
+    import { createRequire as topLevelCreateRequire } from 'node:module';
+    const require = topLevelCreateRequire(import.meta.url);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    `
+  }
 })
