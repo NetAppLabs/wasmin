@@ -1,6 +1,7 @@
 {
   "extends": "@wasmin/tsconfig",
   "compilerOptions": {
+    "noImplicitOverride": false,
     "lib": [
       "dom",
       "webworker",

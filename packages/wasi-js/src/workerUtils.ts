@@ -15,16 +15,18 @@ export function getWorkerOverrideUrls(): Record<string,string> {
 
 
 export function getWorkerUrl(workerUrlString: string): URL | string {
-    let workerUrl = new URL(workerUrlString, import.meta.url);
     const workerOverrideUrls = getWorkerOverrideUrls();
     wasmWorkerClientDebug(`getWorkerUrl workerOverrideUrls: `, workerOverrideUrls);
     const overrideUrl = workerOverrideUrls[workerUrlString];
     if (overrideUrl !== undefined) {
+        let workerUrl = new URL(overrideUrl);
         wasmWorkerClientDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);
-        workerUrl = new URL(overrideUrl);
+        return workerUrl;
+    } else {
+        let workerUrl = new URL(workerUrlString, import.meta.url);
+        wasmWorkerClientDebug(`getWorkerUrl workerUrlString: ${workerUrlString} url:`, workerUrl);
+        return workerUrl;
     }
-    wasmWorkerClientDebug(`getWorkerUrl workerUrlString: ${workerUrlString} url:`, workerUrl);
-    return workerUrl;
 }
 
 export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlString: string) {

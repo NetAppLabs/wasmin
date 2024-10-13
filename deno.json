@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
-  }
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "noImplicitOverride": false
+  },
+  "nodeModulesDir": "none"
 }

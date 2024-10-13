@@ -12,8 +12,8 @@
         "bun-test": "./test-bun.sh"
     },
     "devDependencies": {
-        "@bytecodealliance/jco": "^1.2.4",
-        "vitest": "^1.5.0"
+        "@bytecodealliance/jco": "^1.7.0",
+        "vitest": "^2.1.2"
     },
     "dependencies": {
         "@wasmin/fs-js": "*",

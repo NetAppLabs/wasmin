@@ -91,10 +91,10 @@ export class NfsMount {
   readPath(path: string, offset: bigint, count: number): Bytes;
   write(fh: Fh, offset: bigint, data: Bytes): number;
   writePath(path: string, offset: bigint, data: Bytes): number;
-  readdir(dirFh: Fh): ReaddirEntry[];
-  readdirPath(dirPath: string): ReaddirEntry[];
-  readdirplus(dirFh: Fh): ReaddirplusEntry[];
-  readdirplusPath(dirPath: string): ReaddirplusEntry[];
+  readdir(dirFh: Fh): Array<ReaddirEntry>;
+  readdirPath(dirPath: string): Array<ReaddirEntry>;
+  readdirplus(dirFh: Fh): Array<ReaddirplusEntry>;
+  readdirplusPath(dirPath: string): Array<ReaddirplusEntry>;
   mkdir(dirFh: Fh, dirname: string, mode: number): ObjRes;
   mkdirPath(path: string, mode: number): ObjRes;
   remove(dirFh: Fh, filename: string): void;

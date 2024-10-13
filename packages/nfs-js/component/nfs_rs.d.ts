@@ -62,8 +62,13 @@ export interface Root {
 * on the web, for example.
 */
 export function instantiate(
-getCoreModule: (path: string) => Promise<WebAssembly.Module>,
+getCoreModule: (path: string) => WebAssembly.Module,
 imports: ImportObject,
-instantiateCore?: (module: WebAssembly.Module, imports: Record<string, any>) => Promise<WebAssembly.Instance>
-): Promise<Root>;
+instantiateCore?: (module: WebAssembly.Module, imports: Record<string, any>) => WebAssembly.Instance
+): Root;
+export function instantiate(
+getCoreModule: (path: string) => WebAssembly.Module | Promise<WebAssembly.Module>,
+imports: ImportObject,
+instantiateCore?: (module: WebAssembly.Module, imports: Record<string, any>) => WebAssembly.Instance | Promise<WebAssembly.Instance>
+): Root | Promise<Root>;
 

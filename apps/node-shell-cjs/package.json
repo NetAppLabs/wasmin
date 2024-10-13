@@ -2,25 +2,30 @@
   "name": "@wasmin/node-shell-cjs",
   "version": "0.0.0",
   "source": "src/index.ts",
+  "main": "dist/app.js",
   "scripts": {
-    "build-sea": "npm-run-all build-sea:*",
-    "build-sea:copy-assets": "./copy-assets.sh",
-    "build-sea:js": "tsc -p .",
-    "build-sea:sea": "node -r @pipobscure/sea dist/app.js",
+    "build-seapip": "npm-run-all build-seapip:*",
+    "build-seapip:aesbuild": "node esbuild.mjs",
+    "build-seapip:copy-assets": "./sea-copy-assets.sh",
+    "build-seapip:js": "tsc -p .",
+    "build-seapip:pip-prep": "node -r @pipobscure/sea ./dist/app.js build-sea",
+    "build-seapip:sea": "npm exec @pipobscure/sea",
     "build": "node esbuild.mjs",
-    "build-bun": "bun build ./src/index.ts --outdir ./dist --target node",
-    "build-vite": "vite build --sourcemap && yarn tsc",
+    "build-sea": "npm-run-all build-sea:*",
+    "build-sea:build": "node esbuild.mjs",
+    "build-sea:postassets": "node sea-config.mjs",
     "start": "node --enable-source-maps dist/index.js",
     "clean": "rm -rf dist && rm -rf node_modules",
     "run": "node dist/index.js"
   },
   "devDependencies": {
-    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
-    "@pipobscure/sea": "^1.0.2",
-    "@types/node": "^18.14.5",
+    "@chialab/esbuild-plugin-meta-url": "^0.18.2",
+    "@pipobscure/sea": "1.0.5",
+    "@types/node": "^22.7.5",
     "@wasmin/tsconfig": "*",
-    "esbuild": "^0.23.0",
-    "npm-run-all": "^4.1.5"
+    "esbuild": "^0.24.0",
+    "npm-run-all": "^4.1.5",
+    "postject": "^1.0.0-alpha.6"
   },
   "sea": {
     "executable": "wasmin-node",
@@ -33,6 +38,8 @@
     "@wasmin/fs-js": "*",
     "@wasmin/node-fs-js": "*",
     "@wasmin/shell": "*",
-    "@wasmin/wasi-js": "*"
+    "@wasmin/wasi-js": "*",
+    "esbuild-plugin-text-replace": "^1.3.0",
+    "esbuild-plugin-transform": "^0.5.0"
   }
 }

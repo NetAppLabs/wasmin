@@ -1,12 +1,27 @@
+
+// TODO better solve this via
+// https://github.com/oven-sh/bun/discussions/7846
+// https://github.com/oven-sh/bun/pull/13421
+// https://github.com/oven-sh/bun/pull/13421
+//import "./icon.png" with { type: "file" };
+//import { embeddedFiles } from "bun";
+//
+//console.log(embeddedFiles[0].name); // `icon-${hash}.png`
+
+// see https://github.com/oven-sh/bun/issues/13552
+// https://github.com/sfcompute/cli/tree/bephrem/sf-buy-ink
+
+import { embeddedFiles } from "bun";
+
 import { main } from "./entry.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { setWorkerOverrideUrl } from '@wasmin/wasi-js';
 
 // @ts-ignore
-import worker1 from "./wasmComponentWorkerThread.wjs";
-import worker2 from "./wasmCoreWorkerThread.wjs";
-import worker3 from "./wasiWorkerThread.wjs";
+import worker1 from "./wasmComponentWorkerThread.js" with { type: "file" };
+import worker2 from "./wasmCoreWorkerThread.js" with { type: "file" };
+import worker3 from "./wasiWorkerThread.js" with { type: "file" };
 
 // @ts-ignore
 import wasm2 from "./component.core2-00000000.wasm";

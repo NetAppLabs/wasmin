@@ -75,11 +75,13 @@ export function isNodeorBun() {
 }
 
 export function isNode() {
-  // only node.js or bun has global process class
-  if (!isBun()) {
-      return globalThis.process != null;
-  } else {
+  if (isBun()) {
       return false;
+  } else if (isDeno()) {
+      return false;
+  } else {
+      // node.js/bun/deno have global process class
+      return globalThis.process != null;
   }
 }
 

@@ -201,16 +201,27 @@ async function getWasmModuleBufer(wasmBinary: string): Promise<{
     buffer: BufferSource;
     path: string;
 }> {
-    const defaultUrl = new URL("./nu.async.wasm", import.meta.url);
+    let defaultUrl: URL|undefined = undefined;
+    let defaultUrl2: URL|undefined = undefined;
+    try {
+        defaultUrl = new URL("./nu.async.wasm", import.meta.url);
+        // try alternative search:
+        let defaultUrlHref = defaultUrl.href;
+        let pathParts = defaultUrlHref.split(".wasm");
+        let newHref = `${pathParts[0]}-0000000000000000.wasm${pathParts[1]}`
+        defaultUrl2 = new URL(newHref);
+    } catch (e: any) {
+        shellDebug("Fail loading default url");
+    }
 
-    // try alternative search:
-    let defaultUrlHref = defaultUrl.href;
-    let pathParts = defaultUrlHref.split(".wasm");
-    let newHref = `${pathParts[0]}-0000000000000000.wasm${pathParts[1]}`
-    const defaultUrl2 = new URL(newHref);
 
     const defaultUrlLocalTmp = new URL("./nu.async.wasm", "file:///tmp/wasmin-tmp/");
-    const defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrl, defaultUrl2, defaultUrlLocalTmp];
+    let defaultModuleSearchPaths = [];
+    if (defaultUrl !== undefined && defaultUrl2 !== undefined) {
+        defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrl, defaultUrl2, defaultUrlLocalTmp];
+    } else {
+        defaultModuleSearchPaths = ["/snapshot/server/assets/nu.async.wasm", "./nu.async.wasm", defaultUrlLocalTmp];
+    }
 
     //let wasmBinary = "";
     let wasmBuf: BufferSource | undefined;

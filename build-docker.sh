@@ -9,4 +9,4 @@ if [ -n "$PLATFORM" ]; then
     .
 else
   docker build -t wasmin:latest .
-fi
+fica

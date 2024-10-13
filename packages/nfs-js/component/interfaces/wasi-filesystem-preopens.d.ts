@@ -1,5 +1,5 @@
 export namespace WasiFilesystemPreopens {
-  export function getDirectories(): [Descriptor, string][];
+  export function getDirectories(): Array<[Descriptor, string]>;
 }
 import type { Descriptor } from './wasi-filesystem-types.js';
 export { Descriptor };

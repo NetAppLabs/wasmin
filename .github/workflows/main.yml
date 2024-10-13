@@ -25,13 +25,17 @@ jobs:
             wasmin_bun_asset: wasmin-bun-linux-amd64
             wasmin_deno_artifact: wasmin-deno
             wasmin_deno_asset: wasmin-deno-linux-amd64
-            node-version: 20.x
+            wasmin_node_artifact: wasmin-node
+            wasmin_node_asset: wasmin-node-linux-amd64
+            node-version: 22.x
           - os: macos-latest
             wasmin_bun_artifact: wasmin-bun
             wasmin_bun_asset: wasmin-bun-macos-arm64
             wasmin_deno_artifact: wasmin-deno
             wasmin_deno_asset: wasmin-deno-macos-arm64
-            node-version: 20.x
+            wasmin_node_artifact: wasmin-node
+            wasmin_node_asset: wasmin-node-macos-arm64
+            node-version: 22.x
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -49,6 +53,8 @@ jobs:
       uses: oven-sh/setup-bun@v1
     - name: deno
       uses: denoland/setup-deno@v1
+      with:
+        deno-version: v2.x    
     - name: install
       run: yarn install
     - name: Build
@@ -59,6 +65,8 @@ jobs:
       run: ./build-exe-bun.sh
     - name: build-exe-deno
       run: ./build-exe-deno.sh
+    - name: build-exe-node
+      run: ./build-exe-node.sh
     # Upload binary
     - name: Upload wasmin-bun binary to release
       uses: svenstaro/upload-release-action@v2
@@ -76,6 +84,14 @@ jobs:
         asset_name: ${{ matrix.wasmin_deno_asset }}
         tag: ${{ github.ref }}
         overwrite: true  
+    - name: Upload wasmin-node binary to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_node_artifact }}
+        asset_name: ${{ matrix.wasmin_node_asset }}
+        tag: ${{ github.ref }}
+        overwrite: true    
     - name: Log in to the Container registry
       if: ${{matrix.os == 'ubuntu-latest'}}
       uses: docker/login-action@v3

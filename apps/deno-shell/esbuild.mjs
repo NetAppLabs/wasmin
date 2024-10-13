@@ -58,6 +58,7 @@ await esbuild.build({
   ],
   banner:{
     js: `
+    import { Buffer } from 'node:buffer';
     import { fileURLToPath } from 'node:url';
     import { createRequire as topLevelCreateRequire } from 'node:module';
     const require = topLevelCreateRequire(import.meta.url);
@@ -101,6 +102,7 @@ await esbuild.build({
   ],
   banner:{
     js: `
+    import { Buffer } from 'node:buffer';
     import { fileURLToPath } from 'node:url';
     import { createRequire as topLevelCreateRequire } from 'node:module';
     const require = topLevelCreateRequire(import.meta.url);

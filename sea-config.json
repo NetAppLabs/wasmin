@@ -1,7 +1,0 @@
-{
-  "main": "apps/node-shell-cjs/dist/index.js",
-  "output": "sea-prep.blob",
-  "disableExperimentalSEAWarning": true, 
-  "useSnapshot": false, 
-  "useCodeCache": false
-}
