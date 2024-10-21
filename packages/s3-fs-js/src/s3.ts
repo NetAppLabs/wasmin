@@ -24,9 +24,12 @@ import {
     ListBucketsCommand,
     ListObjectsV2Command,
     PutObjectCommand,
+    ListObjectsV2Request,
 } from "@aws-sdk/client-s3";
 
 const S3_DEBUG = false;
+const DefaultMaxKeys = 1000;
+const DefaultCacheTTL = 1000;
 
 declare global {
     var S3_DEBUG: boolean;
@@ -300,9 +303,13 @@ export class S3Config {
     constructor(clientConfig: AWS.S3ClientConfig, bucketName: string) {
         this.config = clientConfig;
         this.bucketName = bucketName;
+        this.maxKeys = DefaultMaxKeys;
+        this.cacheTTL = DefaultCacheTTL;
     }
     bucketName: string;
     config: AWS.S3ClientConfig;
+    maxKeys: number;
+    cacheTTL: number;
 
     getS3Client(): AWS.S3Client {
         const cl = new AWS.S3Client(this.config);
@@ -340,7 +347,22 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
         newUrl = newUrl + "&secretAccessKey=${aws.secretAccessKey}";
     }
     const region = sUrl.query["region"] || defaultRegion;
-
+    const paramMaxKeys  = sUrl.query["maxKeys"];
+    let maxKeys = DefaultMaxKeys;
+    if (paramMaxKeys != undefined) {
+        const parsedMaxKeys = parseInt(paramMaxKeys);
+        if (!Number.isNaN(parsedMaxKeys)) {
+            maxKeys = parsedMaxKeys;
+        }
+    }
+    const paramCacheTTL  = sUrl.query["cachettl"];
+    let cacheTTL = DefaultCacheTTL;
+    if (paramCacheTTL != undefined) {
+        const parsedCacheTTL = parseInt(paramCacheTTL);
+        if (!Number.isNaN(parsedCacheTTL)) {
+            cacheTTL = parsedCacheTTL;
+        }
+    }
     let pathName = sUrl.pathname;
     if (pathName == "/") {
         pathName = "";
@@ -355,13 +377,14 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
     // TODO look into why NodeHttpHandler is not working correctly in node.js
     //const requestHandler = new NodeHttpHandler();
     //const requestHandler = new FetchHttpHandler();
-
+    let bucketName: string;
+    let s3clientConfig: AWS.S3ClientConfig;
     if (pathName == "") {
         s3Debug("config using aws");
         // Assuming an AWS bucket:
-        const bucketName = hostname;
+        bucketName = hostname;
         s3Debug(`config bucketName: ${bucketName}`);
-        const s3clientConfig: AWS.S3ClientConfig = {
+        s3clientConfig = {
             region: region,
             //forcePathStyle: forcePathStyle,
             credentials: {
@@ -371,10 +394,8 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
             tls: !insecure,
             //requestHandler: requestHandler,
         };
-        const sConfig = new S3Config(s3clientConfig, bucketName);
-        return { s3config: sConfig, newUrl: newUrl };
     } else {
-        let bucketName = pathName;
+        bucketName = pathName;
         if (bucketName.startsWith("/")) {
             bucketName = bucketName.replace("/", "");
         }
@@ -397,7 +418,7 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
       query: undefined,
     };*/
         const endpoint = `${protocol}://${hostname}`;
-        const s3clientConfig: AWS.S3ClientConfig = {
+        s3clientConfig = {
             region: region,
             // Issue with @aws-sdk not including port in host header
             // See: https://github.com/christophgysin/aws-sdk-js-v3/issues/24
@@ -412,9 +433,12 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
             },
             //requestHandler: requestHandler,
         };
-        const sConfig = new S3Config(s3clientConfig, bucketName);
-        return { s3config: sConfig, newUrl: newUrl };
     }
+    const sConfig = new S3Config(s3clientConfig, bucketName);
+    sConfig.maxKeys = maxKeys;
+    sConfig.cacheTTL = cacheTTL;
+    return { s3config: sConfig, newUrl: newUrl };
+
 }
 
 export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHandle>, FileSystemDirectoryHandle {
@@ -429,7 +453,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
     }
     config: S3Config;
     _entries: Record<string, S3FolderHandle | S3FileHandle>;
-    _entriesCached = false;
+    _entriesCacheTime: number|undefined = undefined;
     name: string;
     deleted: boolean;
     readable: boolean;
@@ -445,23 +469,42 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         return "FileSystemDirectoryHandle";
     }
 
+    timeMillis(){
+        var date = Date.now();
+        return date;
+    }
+
+    isCached(){
+        if (this._entriesCacheTime !== undefined){
+            let ttl = this.config.cacheTTL;
+            let expiry = this._entriesCacheTime + ttl;
+            let currMs = this.timeMillis();
+            if (currMs <= expiry) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // List the entries in the bucket
     async populateEntries() {
-        if (!this._entriesCached) {
+        if (!this.isCached()) {
             const bucketName = this.config.bucketName;
             const s3client = this.config.getS3Client();
             try {
                 const delimeter = "/";
+                const maxKeys = this.config.maxKeys;
                 const prefix = this.path;
                 s3Debug(`before s3.listObjectsV2: bucketName: ${bucketName} Prefix: ${prefix} delimeter: ${delimeter}`);
-                const params = {
+                const params: ListObjectsV2Request = {
                     Bucket: bucketName,
                     Prefix: prefix,
                     Delimiter: delimeter,
+                    MaxKeys: maxKeys,
                 };
                 const command = new ListObjectsV2Command(params);
-                // TODO support more than 1000 entries
-                //const objectsresponse = await s3client.listObjectsV2({
+                // TODO support walking over objects if it contains more than MaxKeys (default 1000 entries)
+                // check objectsresponse.IsTruncated and objectsresponse.ContinuationToken
                 const objectsresponse = await s3client.send(command);
                 const contents = objectsresponse.Contents;
                 if (contents != undefined) {
@@ -500,7 +543,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                         }
                     }
                 }
-                this._entriesCached = true;
+                this._entriesCacheTime = this.timeMillis();
             } catch (error) {
                 s3Debug("populateEntries catched error: ", error);
             }
