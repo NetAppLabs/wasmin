@@ -128,12 +128,11 @@ export function isFunction(value: any) {
  * @returns true if jspi/experimental-wasm-stack-switching is enabled in runtime node/deno
  */
 export function isStackSwitchingEnabled(): boolean {
+    // type reflection
     const WebAssemblyFunction = (WebAssembly as any).Function
-    if (typeof WebAssemblyFunction === 'function') {
-        if (isNode()) {
-            let hasStackSwitchingFlags = hasFlags('experimental-wasm-stack-switching');
-            return hasStackSwitchingFlags;
-        }
+    // older form of jspi/stack-switching
+    const WebAssemblySuspender = (WebAssembly as any).Suspender
+    if (WebAssemblyFunction !== undefined && WebAssemblySuspender !== undefined) {
         return true;
     }
     return false;

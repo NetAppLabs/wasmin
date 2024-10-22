@@ -108,7 +108,7 @@ export function isDeno() {
 
 export async function writeFile(path: string, buf: Uint8Array) {
   if (isNode()) {
-    let _fs = await import("fs/promises");
+    let _fs = await import("node:fs/promises");
     return await _fs.writeFile(path, buf);
   }
 }

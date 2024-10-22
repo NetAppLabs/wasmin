@@ -72,7 +72,7 @@ const isNode = typeof process !== "undefined" && process.versions && process.ver
 
 export async function fetchCompile(url: URL) {
     if (isNode) {
-        let _fs = await import("fs/promises");
+        let _fs = await import("node:fs/promises");
         return WebAssembly.compile(await _fs.readFile(url));
     }
     return fetch(url).then(WebAssembly.compileStreaming);
