@@ -25,6 +25,7 @@ import {
     ListObjectsV2Command,
     PutObjectCommand,
     ListObjectsV2Request,
+    HeadBucketCommand,
 } from "@aws-sdk/client-s3";
 
 const S3_DEBUG = false;
@@ -300,16 +301,18 @@ export class S3FileHandle implements ImpleFileHandle<File, S3Sink>, FileSystemFi
 }
 
 export class S3Config {
-    constructor(clientConfig: AWS.S3ClientConfig, bucketName: string) {
+    constructor(clientConfig: AWS.S3ClientConfig, bucketName: string, isAws: boolean) {
         this.config = clientConfig;
         this.bucketName = bucketName;
         this.maxKeys = DefaultMaxKeys;
         this.cacheTTL = DefaultCacheTTL;
+        this.isAws = isAws;
     }
     bucketName: string;
     config: AWS.S3ClientConfig;
     maxKeys: number;
     cacheTTL: number;
+    isAws: boolean;
 
     getS3Client(): AWS.S3Client {
         const cl = new AWS.S3Client(this.config);
@@ -326,9 +329,8 @@ export class S3Config {
     }
 }
 
-function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; newUrl: string } {
+function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1"): { s3config: S3Config; newUrl: string } {
     let newUrl = s3Url;
-    const defaultRegion = "us-east-1";
     const forcePathStyle = true;
     const sUrl = urlparse(s3Url, true);
     const sInsecure = sUrl.query["insecure"] || "false";
@@ -368,9 +370,21 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
         pathName = "";
     }
     s3Debug(`config pathName: ${pathName}`);
+    let isAws = true;
+    let hostnameOrBucket = sUrl.hostname;
+    const port = sUrl.port;
+    if (pathName == "") {
+        isAws = true;
+    } else {
+        isAws = false;
+    }
+    if (port != "") {
+        hostnameOrBucket = `${hostnameOrBucket}:${port}`;
+        isAws = false;
+    }
 
-    let hostname = sUrl.hostname;
-    s3Debug(`config hostname: ${hostname}`);
+    s3Debug(`config isAws: ${isAws}`);
+    s3Debug(`config hostnameOrBucket: ${hostnameOrBucket}`);
     s3Debug(`config region: ${region}`);
     s3Debug(`config awsAccessKeyId: ${awsAccessKeyId}`);
     s3Debug(`config awsSecretAccessKey: ${awsSecretAccessKey}`);
@@ -379,10 +393,10 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
     //const requestHandler = new FetchHttpHandler();
     let bucketName: string;
     let s3clientConfig: AWS.S3ClientConfig;
-    if (pathName == "") {
+    if (isAws) {
         s3Debug("config using aws");
         // Assuming an AWS bucket:
-        bucketName = hostname;
+        bucketName = hostnameOrBucket;
         s3Debug(`config bucketName: ${bucketName}`);
         s3clientConfig = {
             region: region,
@@ -405,18 +419,15 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
         if (insecure) {
             protocol = "http";
         }
-        const port = sUrl.port;
-        if (port != "") {
-            hostname = `${hostname}:${port}`;
-        }
+        let hostname = hostnameOrBucket;
         s3Debug(`config hostname: ${hostname}`);
         /*const endpoint: Endpoint = {
-      protocol: protocol,
-      hostname: hostname,
-      path: "",
-      port: undefined,
-      query: undefined,
-    };*/
+            protocol: protocol,
+            hostname: hostname,
+            path: "",
+            port: undefined,
+            query: undefined,
+        };*/
         const endpoint = `${protocol}://${hostname}`;
         s3clientConfig = {
             region: region,
@@ -434,7 +445,7 @@ function parseS3Url(s3Url: string, secretStore?: any): { s3config: S3Config; new
             //requestHandler: requestHandler,
         };
     }
-    const sConfig = new S3Config(s3clientConfig, bucketName);
+    const sConfig = new S3Config(s3clientConfig, bucketName, isAws);
     sConfig.maxKeys = maxKeys;
     sConfig.cacheTTL = cacheTTL;
     return { s3config: sConfig, newUrl: newUrl };
@@ -451,7 +462,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         this.writable = writable;
         this.readable = true;
     }
-    config: S3Config;
+    protected config: S3Config;
     _entries: Record<string, S3FolderHandle | S3FileHandle>;
     _entriesCacheTime: number|undefined = undefined;
     name: string;
@@ -733,11 +744,54 @@ export class S3BucketHandle extends S3FolderHandle {
         const { s3config: config, newUrl: newUrl } = parseS3Url(s3Url, secretStore);
         const name = config.bucketName;
         super(config, "", name);
-        this.url = newUrl;
-        this.config = config;
+        this.origS3Url = s3Url;
+        this.origSecretStore = secretStore;
     }
-    url: string;
-    config: S3Config;
+    origS3Url: string;
+    origSecretStore: any;
+    cachedRegion: string|undefined;
+
+    /**
+     * Populates object list cache for the bucket
+     * @returns region name
+     */
+    async populateEntries() {
+        if (this.cachedRegion == undefined) {
+            this.cachedRegion = await this.findBucketRegion();
+            const { s3config: config, newUrl: newUrl } = parseS3Url(this.origS3Url, this.origSecretStore, this.cachedRegion);
+            this.config = config;
+        }
+        return await super.populateEntries();
+    }
+
+    /**
+     * Find the region the bucket is in
+     * @returns region name
+     */
+    async findBucketRegion() {
+        let foundRegion = "us-east-1";
+        try {
+            let bucketName = this.name;
+            if (this.config.isAws) {
+                // perform a getbucketlocation head request
+                const getBucketUrl = `https://${bucketName}.s3.amazonaws.com`;
+                let resp = await fetch(getBucketUrl, {method: 'HEAD'})
+                let region = resp.headers.get('x-amz-bucket-region');
+                if (region == "EU") {
+                    region = "eu-west-1";
+                }
+                if (region) {
+                    if (region != "") {
+                        s3Debug(`findBucketRegion bucketName: '${bucketName}' region: ${region}`);
+                        foundRegion = region;
+                    }
+                }
+            }
+        } catch (err: any) {
+            s3Debug(`findBucketRegion err:`, err);
+        }
+        return foundRegion;
+    }
 }
 
 export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3BucketHandle>, FileSystemDirectoryHandle {
@@ -776,19 +830,28 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
             const command = new ListBucketsCommand(params);
             const bucketsresponse = await s3client.send(command);
             //const bucketsresponse = await s3client.listBuckets({});
-            const contents = bucketsresponse.Buckets;
-            if (contents != undefined) {
-                for (const cont of contents) {
-                    const entryName = cont != undefined ? cont.Name : "";
+            const buckets = bucketsresponse.Buckets;
+            if (buckets != undefined) {
+                for (const buck of buckets) {
+                    const entryName = buck != undefined ? buck.Name : "";
                     if (entryName) {
-                        const creationDate = cont.CreationDate;
+                        let region: string|undefined = undefined;
+                        let s3Url = this.url;
+                        const creationDate = buck.CreationDate;
                         s3Debug(`populateEntries entryName: '${entryName}'`);
                         s3Debug(`populateEntries after parsing entryName: '${entryName}'`);
-                        const urlParsed = urlparse(this.url, false);
-                        //urlParsed.set("pathname", entryName);
-                        urlParsed.set("hostname", entryName);
-                        const s3BucketUrl = urlParsed.toString();
-                        s3Debug(`entryName: ${s3BucketUrl}`);
+                        let s3BucketUrl = "";
+                        if (this.config.isAws) {
+                            const urlParsed = urlparse(s3Url, false);
+                            urlParsed.set("hostname", entryName);
+                            s3BucketUrl = urlParsed.toString();
+                            s3Debug(`entryName: ${s3BucketUrl}`);
+                        } else {
+                            const urlParsed = urlparse(s3Url, false);
+                            urlParsed.set("pathname", entryName);
+                            s3BucketUrl = urlParsed.toString();
+                            s3Debug(`entryName: ${s3BucketUrl}`);
+                        }
                         this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore);
                     }
                 }
