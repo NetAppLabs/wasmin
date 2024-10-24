@@ -3,6 +3,8 @@ import {
     NFileSystemWritableFileStream,
     NotAllowedError,
     NotFoundError,
+    Stat,
+    Statable,
     TypeMismatchError,
 } from "@wasmin/fs-js";
 import { join, substituteSecretValue } from "@wasmin/fs-js";
@@ -749,17 +751,20 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
     }
 }
 
-export class S3BucketHandle extends S3FolderHandle {
-    constructor(s3Url: string, secretStore?: any) {
+export class S3BucketHandle extends S3FolderHandle implements Statable {
+    constructor(s3Url: string, secretStore?: any, creationDate?: Date) {
         const { s3config: config, newUrl: newUrl } = parseS3Url(s3Url, secretStore);
         const name = config.bucketName;
         super(config, "", name);
         this.origS3Url = s3Url;
         this.origSecretStore = secretStore;
+        this.creationDate = creationDate;
     }
+
     origS3Url: string;
     origSecretStore: any;
     cachedRegion: string|undefined;
+    creationDate?: Date;
 
     /**
      * Populates object list cache for the bucket
@@ -802,6 +807,24 @@ export class S3BucketHandle extends S3FolderHandle {
         }
         return foundRegion;
     }
+
+    async stat(): Promise<Stat> {
+        let creationTimeUnixNs = 0n;
+        if (this.creationDate !== undefined) {
+            let creationTimeUnixMs = BigInt(this.creationDate.valueOf());
+            creationTimeUnixNs = creationTimeUnixMs * 1000_000n;
+        }
+        let st: Stat = {
+            size: 0n,
+            creationTime: creationTimeUnixNs,
+            modifiedTime: creationTimeUnixNs,
+            accessedTime: creationTimeUnixNs
+        }
+        return st
+    }
+    updateTimes(accessedTime: bigint | null, modifiedTime: bigint | null): Promise<void> {
+        throw new Error("Update Stat not supported");
+    }
 }
 
 export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3BucketHandle>, FileSystemDirectoryHandle {
@@ -843,13 +866,11 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
                 for (const buck of buckets) {
                     const entryName = buck != undefined ? buck.Name : "";
                     if (entryName) {
-                        let region: string|undefined = undefined;
-                        let s3Url = this.url;
                         const creationDate = buck.CreationDate;
-                        s3Debug(`populateEntries entryName: '${entryName}'`);
-                        s3Debug(`populateEntries after parsing entryName: '${entryName}'`);
+                        s3Debug(`populateEntries entryName: '${entryName}', creationDate: `, creationDate);
                         let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, entryName);
-                        this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore);
+                        s3Debug(`populateEntries s3BucketUrl: '${s3BucketUrl}'`);
+                        this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore, creationDate);
                     }
                 }
             }
@@ -918,7 +939,7 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         const s3client = this.config.getS3Client();
         const dirPath = join(this.path, name, true);
         let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, name);
-        const f = new S3BucketHandle(s3BucketUrl, this.secretStore);
+        const f = new S3BucketHandle(s3BucketUrl, this.secretStore, new Date());
         const params = {
             Bucket: bucketName,
         };
@@ -943,11 +964,9 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         delete this._entries[name];
     }
 
-    async deleteS3Bucket(name: string): Promise<S3BucketHandle> {
+    async deleteS3Bucket(name: string): Promise<void> {
         let bucketName = name;
         const s3client = this.config.getS3Client();
-        let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, name);
-        const f = new S3BucketHandle(s3BucketUrl, this.secretStore);
         const params = {
             Bucket: bucketName,
         };
@@ -955,7 +974,6 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _s3obj = await s3client.send(command);
         //const _s3obj = await s3client.putObject();
-        return f;
     }
 
 
