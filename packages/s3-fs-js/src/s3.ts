@@ -25,7 +25,8 @@ import {
     ListObjectsV2Command,
     PutObjectCommand,
     ListObjectsV2Request,
-    HeadBucketCommand,
+    CreateBucketCommand,
+    DeleteBucketCommand,
 } from "@aws-sdk/client-s3";
 
 const S3_DEBUG = false;
@@ -357,6 +358,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
             maxKeys = parsedMaxKeys;
         }
     }
+
     const paramCacheTTL  = sUrl.query["cachettl"];
     let cacheTTL = DefaultCacheTTL;
     if (paramCacheTTL != undefined) {
@@ -381,6 +383,14 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
     if (port != "") {
         hostnameOrBucket = `${hostnameOrBucket}:${port}`;
         isAws = false;
+    }
+    const isAwsParam = sUrl.query["aws"];
+    if (isAwsParam !== undefined) {
+        if (isAwsParam == "true") {
+            isAws=true;
+        } else if (isAwsParam == "false") {
+            isAws=false;
+        }
     }
 
     s3Debug(`config isAws: ${isAws}`);
@@ -801,7 +811,6 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         this.name = name;
         this.url = newUrl;
         this.config = config;
-        this.deleted = false;
         this.writable = false;
         this.readable = true;
         this._entries = {};
@@ -811,7 +820,6 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     config: S3Config;
     _entries: Record<string, S3BucketHandle | S3FileHandle>;
     name: string;
-    deleted: boolean;
     readable: boolean;
     writable: boolean;
     public kind = "directory" as const;
@@ -840,18 +848,7 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
                         const creationDate = buck.CreationDate;
                         s3Debug(`populateEntries entryName: '${entryName}'`);
                         s3Debug(`populateEntries after parsing entryName: '${entryName}'`);
-                        let s3BucketUrl = "";
-                        if (this.config.isAws) {
-                            const urlParsed = urlparse(s3Url, false);
-                            urlParsed.set("hostname", entryName);
-                            s3BucketUrl = urlParsed.toString();
-                            s3Debug(`entryName: ${s3BucketUrl}`);
-                        } else {
-                            const urlParsed = urlparse(s3Url, false);
-                            urlParsed.set("pathname", entryName);
-                            s3BucketUrl = urlParsed.toString();
-                            s3Debug(`entryName: ${s3BucketUrl}`);
-                        }
+                        let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, entryName);
                         this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore);
                     }
                 }
@@ -861,21 +858,34 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         }
     }
 
+    getS3UrlForBucketFromBaseUrl(s3Url: string, bucketName: string): string {
+        let s3BucketUrl = "";
+        if (this.config.isAws) {
+            const urlParsed = urlparse(s3Url, false);
+            urlParsed.set("hostname", bucketName);
+            s3BucketUrl = urlParsed.toString();
+            s3Debug(`entryName: ${s3BucketUrl}`);
+        } else {
+            const urlParsed = urlparse(s3Url, false);
+            urlParsed.set("pathname", bucketName);
+            s3BucketUrl = urlParsed.toString();
+            s3Debug(`entryName: ${s3BucketUrl}`);
+        }
+        return s3BucketUrl;
+    }
+
     async *entries() {
         await this.populateEntries();
-        if (this.deleted) throw new NotFoundError();
         yield* Object.entries(this._entries);
     }
 
     async *values() {
         await this.populateEntries();
-        if (this.deleted) throw new NotFoundError();
         yield* Object.values(this._entries);
     }
 
     async *keys() {
         await this.populateEntries();
-        if (this.deleted) throw new NotFoundError();
         yield* Object.keys(this._entries);
     }
 
@@ -884,7 +894,6 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     }
 
     async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
-        if (this.deleted) throw new NotFoundError();
         const entry = this._entries[name];
         if (entry) {
             // entry exist
@@ -895,7 +904,8 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
             }
         } else {
             if (options.create) {
-                throw new Error("create not supported");
+                const bucket = await this.createS3Bucket(name);
+                return bucket;
             } else {
                 s3Debug(`NotFoundError for name: ${name} options: ${options}`);
                 throw new NotFoundError();
@@ -903,13 +913,51 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
         }
     }
 
+    async createS3Bucket(name: string): Promise<S3BucketHandle> {
+        let bucketName = name;
+        const s3client = this.config.getS3Client();
+        const dirPath = join(this.path, name, true);
+        let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, name);
+        const f = new S3BucketHandle(s3BucketUrl, this.secretStore);
+        const params = {
+            Bucket: bucketName,
+        };
+        const command = new CreateBucketCommand(params);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _s3obj = await s3client.send(command);
+        //const _s3obj = await s3client.putObject();
+        return f;
+    }
+
     async getFileHandle(_name: string, _opts?: { create?: boolean }): Promise<S3FileHandle> {
         throw new TypeMismatchError();
     }
 
     async removeEntry(name: string, opts: { recursive?: boolean }): Promise<void> {
-        throw new Error("remove not supported");
+        if (opts) {
+            if (opts.recursive) {
+                throw new Error("Recursive remove not supported");
+            }
+        }
+        await this.deleteS3Bucket(name);
+        delete this._entries[name];
     }
+
+    async deleteS3Bucket(name: string): Promise<S3BucketHandle> {
+        let bucketName = name;
+        const s3client = this.config.getS3Client();
+        let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, name);
+        const f = new S3BucketHandle(s3BucketUrl, this.secretStore);
+        const params = {
+            Bucket: bucketName,
+        };
+        const command = new DeleteBucketCommand(params);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _s3obj = await s3client.send(command);
+        //const _s3obj = await s3client.putObject();
+        return f;
+    }
+
 
     async destroy(recursive?: boolean) {
         throw new Error("destroy not supported");
