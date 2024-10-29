@@ -31,7 +31,6 @@ import {
     DeleteBucketCommand,
 } from "@aws-sdk/client-s3";
 
-const S3_DEBUG = false;
 const DefaultMaxKeys = 1000;
 const DefaultCacheTTL = 1000;
 
@@ -332,6 +331,16 @@ export class S3Config {
     }
 }
 
+function addParamKeyValueToUrl(baseUrl: string, addParamKeyValue: string): string {
+    let newUrl = baseUrl;
+    if (newUrl.includes("?")) {
+        newUrl = newUrl + "&" + addParamKeyValue;
+    } else {
+        newUrl = newUrl + "?" + addParamKeyValue;
+    }
+    return newUrl;
+}
+
 function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1"): { s3config: S3Config; newUrl: string } {
     let newUrl = s3Url;
     const forcePathStyle = true;
@@ -343,13 +352,13 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
     }
     let awsAccessKeyId = sUrl.query["accessKeyId"] || "";
     if (awsAccessKeyId == "") {
-        newUrl = newUrl + "?accessKeyId=${aws.accessKeyId}";
+        newUrl = addParamKeyValueToUrl(newUrl, "accessKeyId=${aws.accessKeyId}");
     }
     awsAccessKeyId = substituteSecretValue(awsAccessKeyId, secretStore);
     let awsSecretAccessKey = sUrl.query["secretAccessKey"] || "";
     awsSecretAccessKey = substituteSecretValue(awsSecretAccessKey, secretStore);
     if (awsSecretAccessKey == "") {
-        newUrl = newUrl + "&secretAccessKey=${aws.secretAccessKey}";
+        newUrl = addParamKeyValueToUrl(newUrl, "secretAccessKey=${aws.secretAccessKey}");
     }
     const region = sUrl.query["region"] || defaultRegion;
     const paramMaxKeys  = sUrl.query["maxKeys"];
@@ -492,16 +501,11 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         return "FileSystemDirectoryHandle";
     }
 
-    timeMillis(){
-        var date = Date.now();
-        return date;
-    }
-
     isCached(){
         if (this._entriesCacheTime !== undefined){
             let ttl = this.config.cacheTTL;
             let expiry = this._entriesCacheTime + ttl;
-            let currMs = this.timeMillis();
+            let currMs = getTimeMillis();
             if (currMs <= expiry) {
                 return true;
             }
@@ -566,7 +570,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                         }
                     }
                 }
-                this._entriesCacheTime = this.timeMillis();
+                this._entriesCacheTime = getTimeMillis();
             } catch (error) {
                 s3Debug("populateEntries catched error: ", error);
             }
@@ -633,6 +637,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         const params = {
             Bucket: bucketName,
             Key: hiddenFile,
+            Body: new Uint8Array(),
         };
         const command = new PutObjectCommand(params);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -788,10 +793,22 @@ export class S3BucketHandle extends S3FolderHandle implements Statable {
         try {
             let bucketName = this.name;
             if (this.config.isAws) {
+                let bucketHostName =`${bucketName}.s3.amazonaws.com`;
+                let getBucketUrl = `https://${bucketHostName}`;
+                if (bucketName.includes(".")) {
+                    // Special case where we fall back to unsecure http for buckets containing '.'
+                    // because otherwise the S3 server TLS certificate validation does not work.
+                    getBucketUrl = `http://${bucketHostName}`;
+                }
                 // perform a getbucketlocation head request
-                const getBucketUrl = `https://${bucketName}.s3.amazonaws.com`;
-                let resp = await fetch(getBucketUrl, {method: 'HEAD'})
-                let region = resp.headers.get('x-amz-bucket-region');
+                let resp = await fetch(getBucketUrl,
+                    {
+                        method: 'HEAD',
+                        redirect: 'manual'
+                    }
+                );
+                let respHeaders = resp.headers;
+                let region = respHeaders.get('x-amz-bucket-region');
                 if (region == "EU") {
                     region = "eu-west-1";
                 }
@@ -848,34 +865,51 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     public kind = "directory" as const;
     public path = "";
     secretStore: any;
+    _entriesCacheTime: number|undefined = undefined;
 
     [Symbol.asyncIterator]() {
         return this.entries();
     }
 
+    isCached(){
+        if (this._entriesCacheTime !== undefined){
+            let ttl = this.config.cacheTTL;
+            let expiry = this._entriesCacheTime + ttl;
+            let currMs = getTimeMillis();
+            if (currMs <= expiry) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // List the entries in the bucket
     async populateEntries() {
-        try {
-            const s3client = this.config.getS3Client();
-            const params = {};
-            const command = new ListBucketsCommand(params);
-            const bucketsresponse = await s3client.send(command);
-            //const bucketsresponse = await s3client.listBuckets({});
-            const buckets = bucketsresponse.Buckets;
-            if (buckets != undefined) {
-                for (const buck of buckets) {
-                    const entryName = buck != undefined ? buck.Name : "";
-                    if (entryName) {
-                        const creationDate = buck.CreationDate;
-                        s3Debug(`populateEntries entryName: '${entryName}', creationDate: `, creationDate);
-                        let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, entryName);
-                        s3Debug(`populateEntries s3BucketUrl: '${s3BucketUrl}'`);
-                        this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore, creationDate);
+        if (!this.isCached()) {
+            try {
+                const s3client = this.config.getS3Client();
+                const params = {};
+                const command = new ListBucketsCommand(params);
+                const bucketsresponse = await s3client.send(command);
+                //const bucketsresponse = await s3client.listBuckets({});
+                const buckets = bucketsresponse.Buckets;
+                if (buckets != undefined) {
+                    for (const buck of buckets) {
+                        const entryName = buck != undefined ? buck.Name : "";
+                        if (entryName) {
+                            const creationDate = buck.CreationDate;
+                            s3Debug(`populateEntries entryName: '${entryName}', creationDate: `, creationDate);
+                            let s3BucketUrl = this.getS3UrlForBucketFromBaseUrl(this.url, entryName);
+                            s3Debug(`populateEntries s3BucketUrl: '${s3BucketUrl}'`);
+                            this._entries[entryName] = new S3BucketHandle(s3BucketUrl, this.secretStore, creationDate);
+                        }
                     }
                 }
+                this._entriesCacheTime = getTimeMillis();
+            } catch (error) {
+                s3Debug("populateEntries catched error: ", error);
             }
-        } catch (error) {
-            s3Debug("populateEntries catched error: ", error);
         }
     }
 
@@ -915,6 +949,7 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     }
 
     async getDirectoryHandle(name: string, options: { create?: boolean; capture?: boolean } = {}) {
+        await this.populateEntries();
         const entry = this._entries[name];
         if (entry) {
             // entry exist
@@ -992,6 +1027,11 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     resolve(_possibleDescendant: S3FileHandle | S3FolderHandle): Promise<string[] | null> {
         throw new Error("Method not implemented.");
     }
+}
+
+function getTimeMillis(){
+    var date = Date.now();
+    return date;
 }
 
 function GetBucketHandle(s3Url: string, secretStore?: any): S3BucketHandle | S3BucketListHandle {
