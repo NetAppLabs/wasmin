@@ -7,11 +7,16 @@ import compile from 'wat-compiler'
 
 import { WASI, OpenFiles } from "@wasmin/wasi-js";
 import { nfs } from "@wasmin/nfs-js";
+import { s3 } from "@wasmin/s3-fs-js";
+
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import * as fs from 'node:fs';
 
 // @ts-ignore
 RegisterProvider("nfs", nfs);
+
+// @ts-ignore
+RegisterProvider("s3", s3);
 
 const wasmWat = `
 (module
@@ -37,6 +42,8 @@ const wasmWat = `
     (export "_start" (func $main))
 )`
 
+let wasmModulePath = "./handler-copier.wasm";
+
 type FileOperationMessage = {
     filePath: string,
     operation: string,
@@ -58,63 +65,69 @@ app.storageQueue('storageQueueTrigger', {
     queueName: 'queue1',
     connection: 'AzureWebJobsStorage',
     handler: async (queueItem, context) => {
-
-        //const buffer = compile('(func (export "answer") (result i32) (i32.const 42))')
-        //const wasmBuf = compile(wasmWat);
-        const wasmUrl = new URL("./handler-copier.wasm", import.meta.url);
-        const wasmBuf = fs.readFileSync(wasmUrl);
-        //const wasmBuf = WebAssembly.compile(new Uint8Array(fs.readFileSync('./handler-copier.wasm')))
-        //const wasmBuf = await fetchCompile(wasmUrl);
-        //const mod = new WebAssembly.Module(buffer)
-        //const instance = new WebAssembly.Instance(mod)
-        //console.log(instance.exports.answer()) // => 42
         const foper = queueItem as FileOperationMessage;
 
         const filePath = foper.filePath;
         const volumeUrl = foper.volumeUrl;
+        const oper = foper.operation;
+        context.log('Storage queue function processed work foper:', foper);
 
-        const rootDir = "/"
-        const preOpens: Record<string, FileSystemDirectoryHandle> = {};
+        if (oper == 'close-write') {
+            //const buffer = compile('(func (export "answer") (result i32) (i32.const 42))')
+            //const wasmBuf = compile(wasmWat);
+            const wasmUrl = new URL(wasmModulePath, import.meta.url);
+            const wasmBuf = fs.readFileSync(wasmUrl);
+            //const wasmBuf = WebAssembly.compile(new Uint8Array(fs.readFileSync('./handler-copier.wasm')))
+            //const wasmBuf = await fetchCompile(wasmUrl);
+            //const mod = new WebAssembly.Module(buffer)
+            //const instance = new WebAssembly.Instance(mod)
+            //console.log(instance.exports.answer()) // => 42
 
-        context.log('Storage queue function processed work item:', queueItem);
-        context.log('Storage queue function filePath:', filePath);
-        context.log('Storage queue function volumeUrl:', volumeUrl);
 
-        let functionArgs = [filePath];
-        try {
-            const rootfs = await getDirectoryHandleByURL(volumeUrl);
-            preOpens[rootDir] = rootfs;
-            const openFiles = new OpenFiles(preOpens);
-    
-            const wasi = new WASI({
-                //abortSignal: abortController.signal,
-                openFiles: openFiles,
-                //stdin: stdin,
-                //stdout: stdout,
-                //stderr: stderr,
-                args: functionArgs,
-                //env: newEnv,
-                //tty: tty,
-                //name: wasmBinaryFromArgs,
-                //componentMode: componentMode,
-            });
-            const statusCode = await wasi.run(wasmBuf);
-            //if (statusCode !== 0) {
-                console.log(`wasm Exit code: ${statusCode}`);
-            //}
-        } catch (err: any) {
-            console.log(err);
+            const rootDir = "/"
+            const preOpens: Record<string, FileSystemDirectoryHandle> = {};
+
+            context.log('Storage queue function processed work item:', queueItem);
+            context.log('Storage queue function filePath:', filePath);
+            context.log('Storage queue function volumeUrl:', volumeUrl);
+
+            let functionArgs = [filePath];
+            try {
+                const rootfs = await getDirectoryHandleByURL(volumeUrl);
+                preOpens[rootDir] = rootfs;
+                const openFiles = new OpenFiles(preOpens);
+        
+                const wasi = new WASI({
+                    //abortSignal: abortController.signal,
+                    openFiles: openFiles,
+                    //stdin: stdin,
+                    //stdout: stdout,
+                    //stderr: stderr,
+                    args: functionArgs,
+                    //env: newEnv,
+                    //tty: tty,
+                    //name: wasmBinaryFromArgs,
+                    //componentMode: componentMode,
+                });
+                const statusCode = await wasi.run(wasmBuf);
+                //if (statusCode !== 0) {
+                    console.log(`wasm Exit code: ${statusCode}`);
+                //}
+            } catch (err: any) {
+                console.log(err);
+            }
+
+            /*
+            context.log('Storage queue function processed work item:', queueItem);
+            context.log('expirationTime =', context.triggerMetadata.expirationTime);
+            context.log('insertionTime =', context.triggerMetadata.insertionTime);
+            context.log('nextVisibleTime =', context.triggerMetadata.nextVisibleTime);
+            context.log('id =', context.triggerMetadata.id);
+            context.log('popReceipt =', context.triggerMetadata.popReceipt);
+            context.log('dequeueCount =', context.triggerMetadata.dequeueCount);
+            */
+
         }
-
-        /*
-        context.log('Storage queue function processed work item:', queueItem);
-        context.log('expirationTime =', context.triggerMetadata.expirationTime);
-        context.log('insertionTime =', context.triggerMetadata.insertionTime);
-        context.log('nextVisibleTime =', context.triggerMetadata.nextVisibleTime);
-        context.log('id =', context.triggerMetadata.id);
-        context.log('popReceipt =', context.triggerMetadata.popReceipt);
-        context.log('dequeueCount =', context.triggerMetadata.dequeueCount);
-        */
     },
 });
 
