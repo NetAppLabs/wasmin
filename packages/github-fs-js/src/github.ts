@@ -16,7 +16,7 @@ import {
     FileSystemFileHandle,
 } from "@wasmin/fs-js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
-import { default as urlparse } from "url-parse";
+import { parseUrl } from "@wasmin/fs-js";
 
 const GITHUB_DEBUG = false;
 
@@ -306,23 +306,33 @@ export class GithubConfig {
     }
 }
 
+function addParamKeyValueToUrl(baseUrl: string, addParamKeyValue: string): string {
+    let newUrl = baseUrl;
+    if (newUrl.includes("?")) {
+        newUrl = newUrl + "&" + addParamKeyValue;
+    } else {
+        newUrl = newUrl + "?" + addParamKeyValue;
+    }
+    return newUrl;
+}
+
 function parseGithubUrl(githubUrl: string, secretStore?: any): { gitHubConfig: GithubConfig; newUrl: string } {
     // We need urlparse because URL with special urls is broken in Chrome/Firefox
     let newurl = githubUrl;
-    const urlParsed = urlparse(githubUrl, true);
-    let githubUser = urlParsed.query["username"] || "";
+    const urlParsed = parseUrl(githubUrl);
+    let githubUser = urlParsed.searchParams.get("username") || "";
     if (githubUser == "") {
-        newurl = newurl + "?username=${github.username}";
+        newurl = addParamKeyValueToUrl(newurl, "username=${github.username}");
     }
     githubUser = substituteSecretValue(githubUser, secretStore);
 
-    let githubToken = urlParsed.query["token"] || "";
+    let githubToken = urlParsed.searchParams.get("token") || "";
     if (githubUser == "") {
-        newurl = newurl + "&token=${github.token}";
+        newurl = addParamKeyValueToUrl(newurl, "token=${github.token}");
     }
     githubToken = substituteSecretValue(githubToken, secretStore);
 
-    const ref = urlParsed.query["ref"] || undefined;
+    const ref = urlParsed.searchParams.get("ref") || undefined;
 
     const pathName = urlParsed.pathname;
     const hostname = urlParsed.hostname;
@@ -586,8 +596,8 @@ export class GithubRepoListHandle implements ImplFolderHandle<GithubFileHandle, 
             for (const item of data || []) {
                 const itemName = item.name;
                 const itemFullName = item.fullName;
-                const urlParsed = urlparse(this.url, true);
-                urlParsed.set("pathname", `/${itemName}`);
+                const urlParsed = parseUrl(this.url);
+                urlParsed.pathname = `/${itemName}`;
                 const repoGithubUrl = urlParsed.toString();
                 githubDebug(`repoGithubUrl: ${repoGithubUrl}`);
                 this._entries[itemName] = new GithubRepoHandle(repoGithubUrl, this.secretStore);

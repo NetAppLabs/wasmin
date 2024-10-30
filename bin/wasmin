@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+NODE="node"
+
 BIN_SRC=$(
     self=${0}
     while [ -L "${self}" ]
@@ -35,7 +37,7 @@ fi
 
 if [ "${WASMIN_RUNTIME}" == "node" ]; then
 	#export V8_COMPILE_CACHE_CACHE_DIR=/tmp/v8-cache
-	node ${NODE_ARGS} ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
+	${NODE} ${NODE_ARGS} ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --wasm-staging --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --liftoff-only --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*
 	#node --no-liftoff --no-warnings --trace-warnings --enable-source-maps ${WASMIN_ROOT}/apps/node-shell/dist/index.js $*

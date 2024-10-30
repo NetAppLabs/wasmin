@@ -1,5 +1,5 @@
 import { NFileSystemDirectoryHandle } from "./NFileSystemDirectoryHandle.js";
-import parseUrl from "parse-url";
+import { parseUrl } from "./util.js";
 import indexeddb from "./adapters/indexeddb.js";
 import memory from "./adapters/memory.js";
 import { FileSystemDirectoryHandle } from "./index.js";
@@ -24,8 +24,9 @@ export async function getDirectoryHandleByURL(
     //@ts-ignore
     RegisterProvider("indexeddb", indexeddb);
 
-    const pUrl = parseUrl(url, false);
-    const protocol = pUrl.protocol;
+    const pUrl = parseUrl(url);
+    const protocolWithColon = pUrl.protocol;
+    const protocol = protocolWithColon.replaceAll(':', '');
     const provFunc = providersRegistry[protocol];
 
     if (provFunc) {

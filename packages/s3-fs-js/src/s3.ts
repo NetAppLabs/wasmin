@@ -16,7 +16,9 @@ import {
     FileSystemFileHandle,
 } from "@wasmin/fs-js";
 
-import { default as urlparse } from "url-parse";
+
+import { parseUrl, urlToString } from "@wasmin/fs-js";
+
 
 import * as AWS from "@aws-sdk/client-s3";
 
@@ -344,24 +346,24 @@ function addParamKeyValueToUrl(baseUrl: string, addParamKeyValue: string): strin
 function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1"): { s3config: S3Config; newUrl: string } {
     let newUrl = s3Url;
     const forcePathStyle = true;
-    const sUrl = urlparse(s3Url, true);
-    const sInsecure = sUrl.query["insecure"] || "false";
+    const sUrl = parseUrl(s3Url);
+    const sInsecure = sUrl.searchParams.get("insecure") || "false";
     let insecure = false;
     if (sInsecure == "true") {
         insecure = true;
     }
-    let awsAccessKeyId = sUrl.query["accessKeyId"] || "";
+    let awsAccessKeyId = sUrl.searchParams.get("accessKeyId") || "";
     if (awsAccessKeyId == "") {
         newUrl = addParamKeyValueToUrl(newUrl, "accessKeyId=${aws.accessKeyId}");
     }
     awsAccessKeyId = substituteSecretValue(awsAccessKeyId, secretStore);
-    let awsSecretAccessKey = sUrl.query["secretAccessKey"] || "";
+    let awsSecretAccessKey = sUrl.searchParams.get("secretAccessKey") || "";
     awsSecretAccessKey = substituteSecretValue(awsSecretAccessKey, secretStore);
     if (awsSecretAccessKey == "") {
         newUrl = addParamKeyValueToUrl(newUrl, "secretAccessKey=${aws.secretAccessKey}");
     }
-    const region = sUrl.query["region"] || defaultRegion;
-    const paramMaxKeys  = sUrl.query["maxKeys"];
+    const region = sUrl.searchParams.get("region") || defaultRegion;
+    const paramMaxKeys  = sUrl.searchParams.get("maxKeys");
     let maxKeys = DefaultMaxKeys;
     if (paramMaxKeys != undefined) {
         const parsedMaxKeys = parseInt(paramMaxKeys);
@@ -370,7 +372,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
         }
     }
 
-    const paramCacheTTL  = sUrl.query["cachettl"];
+    const paramCacheTTL  = sUrl.searchParams.get("cachettl");
     let cacheTTL = DefaultCacheTTL;
     if (paramCacheTTL != undefined) {
         const parsedCacheTTL = parseInt(paramCacheTTL);
@@ -385,6 +387,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
     s3Debug(`config pathName: ${pathName}`);
     let isAws = true;
     let hostnameOrBucket = sUrl.hostname;
+
     const port = sUrl.port;
     if (pathName == "") {
         isAws = true;
@@ -395,7 +398,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
         hostnameOrBucket = `${hostnameOrBucket}:${port}`;
         isAws = false;
     }
-    const isAwsParam = sUrl.query["aws"];
+    const isAwsParam = sUrl.searchParams.get("aws");
     if (isAwsParam !== undefined) {
         if (isAwsParam == "true") {
             isAws=true;
@@ -916,14 +919,14 @@ export class S3BucketListHandle implements ImplFolderHandle<S3FileHandle, S3Buck
     getS3UrlForBucketFromBaseUrl(s3Url: string, bucketName: string): string {
         let s3BucketUrl = "";
         if (this.config.isAws) {
-            const urlParsed = urlparse(s3Url, false);
-            urlParsed.set("hostname", bucketName);
-            s3BucketUrl = urlParsed.toString();
+            const urlParsed = parseUrl(s3Url);
+            urlParsed.hostname = bucketName;
+            s3BucketUrl = urlToString(urlParsed);
             s3Debug(`entryName: ${s3BucketUrl}`);
         } else {
-            const urlParsed = urlparse(s3Url, false);
-            urlParsed.set("pathname", bucketName);
-            s3BucketUrl = urlParsed.toString();
+            const urlParsed = parseUrl(s3Url);
+            urlParsed.pathname = bucketName;
+            s3BucketUrl = urlToString(urlParsed);
             s3Debug(`entryName: ${s3BucketUrl}`);
         }
         return s3BucketUrl;

@@ -118,7 +118,7 @@ export class IndexeddbFileHandle implements ImpleFileHandle<File, IndexeddbSink>
     }
 
     async createWritable(opts?: any) {
-        const sink = this.createWritableSink(opts);
+        const sink = await this.createWritableSink(opts);
         const fstream = new NFileSystemWritableFileStream(sink);
         return fstream;
     }

@@ -28,3 +28,31 @@ export function PreNameCheck(name: string) {
     if (name === "") throw new TypeError(`Name can't be an empty string.`);
     if (name === "." || name === ".." || name.includes("/")) throw new TypeError(`Name contains invalid characters.`);
 }
+
+export interface FsURL {
+    hash: string;
+    host: string;
+    hostname: string;
+    href: string;
+    readonly origin: string;
+    password: string;
+    pathname: string;
+    port: string;
+    protocol: string;
+    search: string;
+    readonly searchParams: URLSearchParams;
+    username: string;
+    toString(): string;
+    toJSON(): string;
+}
+
+
+export function parseUrl(urlString: string): FsURL {
+    let u = new URL(urlString);
+    return u;
+}
+
+export function urlToString(url: FsURL) {
+    let stringUrl = url.toString();
+    return stringUrl;
+}

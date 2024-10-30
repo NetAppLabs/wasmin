@@ -19,7 +19,7 @@ export {
     join,
 } from "./adapters/util.js";
 
-export { PreNameCheck } from "./util.js";
+export { PreNameCheck, parseUrl, urlToString } from "./util.js";
 
 export type { Statable, Stat, Mountable, MountedEntry, Linkable, FileSystemLinkHandle } from "./ExtHandles.js";
 
