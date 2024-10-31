@@ -38,14 +38,24 @@ export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlS
 export async function getWasmModuleSource(urlOrPath: string) {
     let url;
     try {
-        url = new URL(urlOrPath);
-        wasiWorkerDebug("trying url: failed to get url: ", url);
+        url = urlOrPath;
+        try {
+            url = new URL(urlOrPath);
+        } catch (err: any) {
+            wasiWorkerDebug("trying url: failed to parse url: ", urlOrPath);
+        }
+        wasiWorkerDebug("trying fetch: on url: ", url);
         const res = await fetch(url);
         const data = await res.arrayBuffer();
         return data;
     } catch (err: any) {
         wasiWorkerDebug("getWasmModuleSource failed to get url: ", err);
         const promises = await import("node:fs/promises");
+        // cut off querystring if any
+        if (urlOrPath.includes("?")) {
+            let splits = urlOrPath.split("?");
+            urlOrPath = splits[0];
+        }
         const wasmBuf = await promises.readFile(urlOrPath);
         return wasmBuf;
     }

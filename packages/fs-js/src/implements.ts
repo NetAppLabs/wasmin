@@ -37,37 +37,39 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
         return this.write({ type: "truncate", size });
     }
 
-    async genericWrite(chunk: any) {
+    async genericWrite(chunk: FileSystemWriteChunkType) {
         let file = this.file;
+        let chunkData: BufferSource | Blob | string | null | undefined = chunk as (BufferSource | Blob | string);
         if (file) {
             if (typeof chunk === "object") {
-                if (chunk.type === "write") {
-                    if (Number.isInteger(chunk.position) && chunk.position >= 0) {
-                        this.position = chunk.position;
-                        if (this.size < chunk.position) {
-                            file = new File([file, new ArrayBuffer(chunk.position - this.size)], file.name, file);
+                let wChunk = chunk as WriteParams;
+                if (wChunk.type === "write") {
+                    if (wChunk.position !== undefined && wChunk.position !== null && Number.isInteger(wChunk.position) && wChunk.position >= 0) {
+                        this.position = wChunk.position;
+                        if (this.size < wChunk.position) {
+                            file = new File([file, new ArrayBuffer(wChunk.position - this.size)], file.name, file);
                         }
                     }
                     if (!("data" in chunk)) {
                         throw new SyntaxError("write requires a data argument");
                     }
-                    chunk = chunk.data;
-                } else if (chunk.type === "seek") {
-                    if (Number.isInteger(chunk.position) && chunk.position >= 0) {
-                        if (this.size < chunk.position) {
+                    chunkData = wChunk.data;
+                } else if (wChunk.type === "seek") {
+                    if (wChunk.position !== undefined && wChunk.position !== null && Number.isInteger(wChunk.position) && wChunk.position >= 0) {
+                        if (this.size < wChunk.position) {
                             throw new InvalidStateError();
                         }
-                        this.position = chunk.position;
+                        this.position = wChunk.position;
                         return;
                     } else {
                         throw new SyntaxError("seek requires a position argument");
                     }
-                } else if (chunk.type === "truncate") {
-                    if (Number.isInteger(chunk.size) && chunk.size >= 0) {
+                } else if (wChunk.type === "truncate") {
+                    if (wChunk.size !== undefined && wChunk.size !== null && Number.isInteger(wChunk.size) && wChunk.size >= 0) {
                         file =
-                            chunk.size < this.size
-                                ? new File([file.slice(0, chunk.size)], file.name, file)
-                                : new File([file, new Uint8Array(chunk.size - this.size)], file.name);
+                            wChunk.size < this.size
+                                ? new File([file.slice(0, wChunk.size)], file.name, file)
+                                : new File([file, new Uint8Array(wChunk.size - this.size)], file.name);
 
                         this.size = file.size;
                         if (this.position > file.size) {
@@ -81,24 +83,23 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
                 }
             }
 
-            chunk = new Blob([chunk]);
+            let blobChunk = (chunkData !== undefined && chunkData !== null ) ? new Blob([chunkData]) : new Blob([]);
+            let blobFile = file;
 
-            let blob = file;
-            // Calc the head and tail fragments
-            const head = blob.slice(0, this.position);
-            const tail = blob.slice(this.position + chunk.size);
-
-            // Calc the padding
+            // Calculate the head and tail fragments
+            const head = blobFile.slice(0, this.position);
+            const tail = blobFile.slice(this.position + blobChunk.size);
+            // Calculate the padding
             let padding = this.position - head.size;
             if (padding < 0) {
                 padding = 0;
             }
-            blob = new File([head, new Uint8Array(padding), chunk, tail], blob.name);
+            blobFile = new File([head, new Uint8Array(padding), blobChunk, tail], blobFile.name);
 
-            this.size = blob.size;
-            this.position += chunk.size;
+            this.size = blobFile.size;
+            this.position += blobChunk.size;
 
-            this.file = blob;
+            this.file = blobFile;
         }
     }
 

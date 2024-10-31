@@ -1,13 +1,12 @@
-import "xterm/css/xterm.css";
+import "@xterm/xterm/css/xterm.css";
 
-import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "xterm";
-import { ImageAddon, IImageAddonOptions } from 'xterm-addon-image';
-import { FitAddon } from "xterm-addon-fit";
-import { WebglAddon } from "xterm-addon-webgl";
-import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize } from "@wasmin/wasi-js";
+import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "@xterm/xterm";
+import { ImageAddon, IImageAddonOptions } from '@xterm/addon-image';
+import { FitAddon } from "@xterm/addon-fit";
+import { WebglAddon } from "@xterm/addon-webgl";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize, WASIWorker, BufferedPipe } from "@wasmin/wasi-js";
 import { s3 } from "@wasmin/s3-fs-js";
 import { github } from "@wasmin/github-fs-js";
-//import { nfs } from "@wasmin/nfs-js";
 import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
 
 // @ts-ignore
@@ -15,10 +14,32 @@ import LocalEchoController from "local-echo";
 
 import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@wasmin/fs-js";
 
-const DEBUG_MODE = false;
-const REGISTER_GITHUB = true;
-const REGISTER_S3 = true;
-const REGISTER_NFS = true;
+declare global {
+    var WEB_SHELL_DEBUG_MODE: boolean;
+}
+globalThis.WEB_SHELL_DEBUG_MODE = false;
+
+function shellDebug(...args: any) {
+    if (globalThis.WEB_SHELL_DEBUG_MODE) {
+        console.debug(...args);
+    }
+}
+
+const WEB_SHELL_REGISTER_GITHUB = true;
+const WEB_SHELL_REGISTER_S3 = true;
+const WEB_SHELL_REGISTER_NFS = false;
+const TERM_REQUEST_CURSOR_POS = "\x1b[6n";
+
+let globalOpfs = (globalThis as any).WEB_SHELL_USE_OPFS;
+const searchParams = new URLSearchParams(window.location.search);
+let sParamOpfs = searchParams.get("opfs");
+let paramOpfs = (sParamOpfs == "true") ? true : false;
+let useOPFS =  globalOpfs || paramOpfs || false;
+
+let globalWorker = (globalThis as any).WEB_SHELL_USE_WORKER;
+let sParamWorker = searchParams.get("worker");
+let paramWorker = (sParamWorker == "true") ? true : false;
+let useWorker = globalWorker || paramWorker || false;
 
 let isSafari = navigator.userAgent.indexOf("Safari") > -1;
 const isChrome = navigator.userAgent.indexOf("Chrome") > -1;
@@ -35,24 +56,27 @@ console.log(navigator.userAgent);
 console.log(`isSafari: ${isSafari}`);
 console.log(`isChrome: ${isChrome}`);
 
-if (REGISTER_S3) {
+if (WEB_SHELL_REGISTER_S3) {
     // @ts-ignore
     RegisterProvider("s3", s3);
 }
-if (REGISTER_GITHUB) {
+if (WEB_SHELL_REGISTER_GITHUB) {
     // @ts-ignore
     RegisterProvider("github", github);
 }
-//if (REGISTER_NFS) {
+if (WEB_SHELL_REGISTER_NFS) {
+    let nfs_mod = await import('@wasmin/nfs-js');
+    let nfs = nfs_mod.nfs;
     // @ts-ignore
-//    RegisterProvider("nfs", nfs);
-//}
+    RegisterProvider("nfs", nfs);
+}
 
 
 (async () => {
     const options: ITerminalOptions = {
         cursorBlink: true,
         cursorStyle: "block",
+        allowProposedApi: true,
     };
     const windowOptions: IWindowOptions = {};
     windowOptions.getCellSizePixels = true;
@@ -72,6 +96,43 @@ if (REGISTER_GITHUB) {
 
     const localEcho = new LocalEchoController();
     term.loadAddon(localEcho);
+
+    class SimpleLocalEcho {
+        read(str: string) {
+            return new Promise<string>(async (resolve, reject) => {
+                let charOrLine = ""
+                let onData: IDisposable | undefined;
+                const readPromise = new Promise<string>((resolve, _reject) => {
+                    onData = term.onData((s) => {
+                        shellDebug("rawMode: stdin::read: ", s);
+                        //return resolve(s);
+                        let cb = () => {
+                            resolve(charOrLine);
+                        }
+                        term.write(charOrLine, cb);        
+                    });
+                });
+                charOrLine = await readPromise;
+            });
+        }
+        print(str: string) {
+            return new Promise<string>((resolve, reject) => {
+                const normalizedInput = str.replace(/[\r\n]+/g, "\n");
+                let termOutput = normalizedInput.replace(/\n/g, "\r\n");
+                let cb = () => {
+                    resolve(str);
+                }
+                term.write(termOutput, cb);
+            });
+        }
+        activate(term: Terminal) {
+
+        }
+        detach(){
+
+        }
+    };
+    //let localEcho = new SimpleLocalEcho();
 
     // initialization
     const imageCustomSettings = {};
@@ -108,9 +169,8 @@ if (REGISTER_GITHUB) {
     //term.write("helo");
     //term.write("\x9B?47h"); //CSI ? 47 h
 
-    if (DEBUG_MODE) {
-        console.debug("unicode.activeVersion: ", term.unicode.activeVersion);
-    }
+    shellDebug("unicode.activeVersion: ", term.unicode.activeVersion);
+
     /*
   const cupHook = term.parser.registerCsiHandler({ final: "H" }, (params) => {
     //console.log('cursor got repositioned absolutely by CUP', params);
@@ -122,10 +182,8 @@ if (REGISTER_GITHUB) {
     // ignore excessive params
     params = params.slice(0, 2);
     // do some work
-    if (DEBUG_MODE) {
-      console.debug("cursor got repositioned absolutely by CUP");
-      console.debug({ row: params[0], col: params[1] });
-    }
+    shellDebug("cursor got repositioned absolutely by CUP");
+    shellDebug({ row: params[0], col: params[1] });
     return false; // also probe for other handlers
   });
   */
@@ -134,9 +192,7 @@ if (REGISTER_GITHUB) {
   const csiHideCursorHook = term.parser.registerCsiHandler(
     { final: "l" },
     (params) => {
-      if (DEBUG_MODE) {
-        console.debug("got csiHideCursorHook");
-      }
+      shellDebug("got csiHideCursorHook");
 
       params = params.map((p) => p || 1);
       // fill up to 2 params with default value
@@ -144,9 +200,7 @@ if (REGISTER_GITHUB) {
       // ignore excessive params
       params = params.slice(0, 2);
       // do some work
-      if (DEBUG_MODE) {
-        console.debug({ row: params[0], col: params[1] });
-      }
+      shellDebug({ row: params[0], col: params[1] });
       return false; // also probe for other handlers
     }
   );
@@ -156,18 +210,14 @@ if (REGISTER_GITHUB) {
   const csiShowCursorHook = term.parser.registerCsiHandler(
     { final: "h" },
     (params) => {
-      if (DEBUG_MODE) {
-        console.debug("got csiShowCursorHook");
-      }
+      shellDebug("got csiShowCursorHook");
       params = params.map((p) => p || 1);
       // fill up to 2 params with default value
       while (params.length < 2) params.push(1);
       // ignore excessive params
       params = params.slice(0, 2);
       // do some work
-      if (DEBUG_MODE) {
-        console.debug({ row: params[0], col: params[1] });
-      }
+      shellDebug({ row: params[0], col: params[1] });
       return false; // also probe for other handlers
     }
   );
@@ -201,7 +251,8 @@ if (REGISTER_GITHUB) {
 
   `);
 
-    const module = WebAssembly.compileStreaming(fetch("./nu.async.wasm"));
+    let moduleUrl = "./nu.async.wasm";
+    const module = WebAssembly.compileStreaming(fetch(moduleUrl));
 
     writeIndented(`
     # Right now you have / mounted to a persisted per browser (indexeddb) filesystem:
@@ -227,47 +278,76 @@ if (REGISTER_GITHUB) {
     const textEncoder = new TextEncoder();
     const textDecoder = new TextDecoderWrapper();
 
-    const stdin = {
-        async read(num: number) {
-            if (DEBUG_MODE) {
-                console.log(`read: num: ${num}`);
-            }
-            let charOrLine = "";
-            const isRawMode = await tty.getRawMode();
-            let onData: IDisposable | undefined;
-            if (isRawMode) {
-                // in rawmode we read each character directly from term
-                const readPromise = new Promise<void>((resolve, _reject) => {
-                    onData = term.onData((s) => {
-                        if (DEBUG_MODE) {
-                            console.debug("rawMode: stdin::read: ", s);
+    function getStdIn() {
+        if (useWorker) {
+            // work in progress for worker support
+            let bufferedStdin = new BufferedPipe();
+            const onDataFunc = bufferedStdin.ondata.bind(bufferedStdin);
+            term.onData(onDataFunc);
+            return bufferedStdin;
+        } else {
+            let stdinRegular = {
+                async read(num: number) {
+                    const isRawMode = await tty.getRawMode();
+                    shellDebug(`read: num: ${num} isRawMode: ${isRawMode}`);
+                    let charOrLine = "";
+                    let onData: IDisposable | undefined;
+                    let onBinary: IDisposable | undefined;
+                    if (isRawMode) {
+                        // in rawmode we read each character directly from term
+                        const readPromise = new Promise<string>((resolve, _reject) => {
+                            onData = term.onData((s) => {
+                                shellDebug("rawMode: onData stdin::read: ", s);
+                                return resolve(s);
+                            });
+                            onBinary = term.onBinary((s) => {
+                                shellDebug("rawMode: onBinary stdin::read: ", s);
+                                return resolve(s);
+                            });
+                        });
+                        charOrLine = await readPromise;
+                    } else {
+                        // in normal/canonical mode we read each line from localecho
+                        let input = await localEcho.read("");
+                        input = input + "\r\n";
+                        charOrLine = input;
+                    }
+                    if (onData) {
+                        onData.dispose();
+                    }
+                    if (onBinary) {
+                        onBinary.dispose();
+                    }
+                    shellDebug("stdin read: ", charOrLine);
+                    if (charOrLine.includes('\x1b[')) {
+                        shellDebug("stdin including control");
+                        if (charOrLine.endsWith("R")) {
+                            shellDebug("stdin returning cursor position");
                         }
-                        charOrLine = s;
-                        return resolve();
-                    });
-                });
-                await readPromise;
-            } else {
-                // in normal/canonical mode we read each line from localecho
-                let input = await localEcho.read("");
-                input = input + "\r\n";
-                charOrLine = input;
-            }
-            if (onData) {
-                onData.dispose();
-            }
-            return textEncoder.encode(charOrLine);
-        },
-    };
+                    }
+                    return textEncoder.encode(charOrLine);
+                },
+            };
+            return stdinRegular;
+        }
+    }
+
+    let stdin = getStdIn();
 
     const stdoutWriteFunc = async function (data: Uint8Array) {
         const isRawMode = await tty.getRawMode();
+        const str = textDecoder.decode(data);
+        if (str.includes(TERM_REQUEST_CURSOR_POS)){
+            shellDebug(`stdout isRawMode:${isRawMode} requesting cursor pos`);
+        }
         if (isRawMode) {
-            const str = textDecoder.decode(data);
-            localEcho.print(str);
+            let writePromise = new Promise<void>(function (resolve) {
+                term.write(str);
+                resolve()
+            });
+            return writePromise;
         } else {
-            const str = textDecoder.decode(data);
-            localEcho.print(str);
+            await localEcho.print(str);
         }
     };
 
@@ -279,7 +359,7 @@ if (REGISTER_GITHUB) {
         write: stdoutWriteFunc,
     };
 
-    if (DEBUG_MODE) {
+    if (globalThis.WEB_SHELL_DEBUG_MODE) {
         stderr = {
             async write(data: Uint8Array) {
                 console.error(textDecoder.decode(data, { stream: true }));
@@ -288,23 +368,25 @@ if (REGISTER_GITHUB) {
     }
 
     const modeListener = async function (rawMode: boolean): Promise<void> {
-        if (DEBUG_MODE) {
-            console.debug(`debug: setting rawMode: ${rawMode}`);
+        shellDebug(`modeListener: setting rawMode: ${rawMode}`);
+        if (rawMode) {
+            localEcho.detach();
+        } else {
+            localEcho.activate(term);
         }
     };
-
-    let useOPFS = false;
-    if (isSafari) {
-        // Safari has not support for FileSystemFileHandle.createWritable , so disabling it for now
-        useOPFS = false;
-    } else {
-        if (isHttps()) {
-            //OPFS getDirectory is only available in secure contexts
-            if (navigator.storage.getDirectory !== undefined) {
-                useOPFS = true;
-            }
+ 
+    //if (isSafari) {
+    //    // Safari has not support for FileSystemFileHandle.createWritable , so disabling it for now
+    //    useOPFS = false;
+    //} else {
+    if (isHttps()) {
+        //OPFS getDirectory is only available in secure contexts
+        if (navigator.storage.getDirectory !== undefined) {
+            useOPFS = true;
         }
     }
+    //}
 
     // Request persistent storage
     if (navigator.storage && navigator.storage.persist) {
@@ -372,29 +454,62 @@ if (REGISTER_GITHUB) {
         await tty.setSize(newSize);
     };
     try {
-        const statusCode = await new WASI({
-            abortSignal: abortController.signal,
-            openFiles: openFiles,
-            stdin: stdin,
-            stdout: stdout,
-            stderr: stderr,
-            args: args,
-            env: {
-                //RUST_BACKTRACE: "1",
-                //RUST_LOG: "wasi=trace",
-                PWD: init_pwd,
-                TERM: "xterm-256color",
-                COLORTERM: "truecolor",
-                LC_CTYPE: "UTF-8",
-                COMMAND_MODE: "unix2003",
-                //FORCE_HYPERLINK: "true",
-                FORCE_COLOR: "true",
-                PROMPT_INDICATOR: " > ",
-            },
-            tty: tty,
-        }).run(await module);
-        if (statusCode !== 0) {
-            term.writeln(`Exit code: ${statusCode}`);
+        if (useWorker) {
+            moduleUrl = "/nu.async.wasm";
+            let rootUrl = "indexeddb://";
+            if (useOPFS) {
+                rootUrl = "opfs://";
+            }
+            let openFilesMap = {"/": rootUrl};
+            const statusCode = await new WASIWorker({
+                abortSignal: abortController.signal,
+                openFiles: openFilesMap,
+                stdin: stdin,
+                stdout: stdout,
+                stderr: stderr,
+                args: args,
+                env: {
+                    //RUST_BACKTRACE: "1",
+                    //RUST_LOG: "wasi=trace",
+                    PWD: init_pwd,
+                    TERM: "xterm-256color",
+                    COLORTERM: "truecolor",
+                    LC_CTYPE: "UTF-8",
+                    COMMAND_MODE: "unix2003",
+                    //FORCE_HYPERLINK: "true",
+                    FORCE_COLOR: "true",
+                    PROMPT_INDICATOR: " > ",
+                },
+                tty: tty,
+            }).run(moduleUrl);
+            if (statusCode !== 0) {
+                term.writeln(`Exit code: ${statusCode}`);
+            }
+        } else {
+            const statusCode = await new WASI({
+                abortSignal: abortController.signal,
+                openFiles: openFiles,
+                stdin: stdin,
+                stdout: stdout,
+                stderr: stderr,
+                args: args,
+                env: {
+                    //RUST_BACKTRACE: "1",
+                    //RUST_LOG: "wasi=trace",
+                    PWD: init_pwd,
+                    TERM: "xterm-256color",
+                    COLORTERM: "truecolor",
+                    LC_CTYPE: "UTF-8",
+                    COMMAND_MODE: "unix2003",
+                    //FORCE_HYPERLINK: "true",
+                    FORCE_COLOR: "true",
+                    PROMPT_INDICATOR: " > ",
+                },
+                tty: tty,
+            }).run(await module);
+            if (statusCode !== 0) {
+                term.writeln(`Exit code: ${statusCode}`);
+            }
         }
     } catch (err: any) {
         term.writeln(err.message);

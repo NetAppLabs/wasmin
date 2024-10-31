@@ -49,7 +49,7 @@ export class GithubFileSink extends DefaultSink<GithubFileHandle> implements Fil
         return w;
     }
 
-    async write(chunk: any) {
+    async write(chunk: FileSystemWriteChunkType) {
         return await this.genericWrite(chunk);
     }
 

@@ -26,7 +26,7 @@ export class MemorySink extends DefaultSink<MemoryFileHandle> implements FileSys
         await this.close();
     }
 
-    async write(chunk: any) {
+    async write(chunk: FileSystemWriteChunkType) {
         return await this.genericWrite(chunk);
     }
 

@@ -120,9 +120,8 @@ class WasiExperimentalFilesystemsHost implements WasiExperimentalFilesystems {
             // @ts-ignore
             let fileSystemHandle: Handle = {};
             if (sourceMountURL.startsWith("local")) {
-                // @ts-ignore
-                if (globalThis.showDirectoryPicker) {
-                    fileSystemHandle = await showDirectoryPicker();
+                if ((globalThis as any).showDirectoryPicker) {
+                    fileSystemHandle = await (globalThis as any).showDirectoryPicker();
                 } else {
                     return new Promise((_resolve, reject) => {
                         reject(ErrnoN.NOSYS);

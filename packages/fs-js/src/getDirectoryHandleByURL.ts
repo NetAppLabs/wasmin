@@ -14,6 +14,11 @@ export function RegisterProvider(prefix: string, provFunc: providerFunc) {
     providersRegistry[prefix] = provFunc;
 }
 
+async function opfsProviderFunction(){
+    let opfsDirHandle = await navigator.storage.getDirectory();
+    return opfsDirHandle as unknown as FileSystemDirectoryHandle;
+}
+
 export async function getDirectoryHandleByURL(
     url: string,
     secretStore?: any,
@@ -23,6 +28,9 @@ export async function getDirectoryHandleByURL(
     RegisterProvider("memory", memory);
     //@ts-ignore
     RegisterProvider("indexeddb", indexeddb);
+
+    RegisterProvider("opfs", opfsProviderFunction);
+
 
     const pUrl = parseUrl(url);
     const protocolWithColon = pUrl.protocol;

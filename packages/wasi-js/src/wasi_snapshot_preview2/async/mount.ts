@@ -59,9 +59,8 @@ export class WasiExtFilesystemsMountAsyncHost implements WasiExtFilesystemsMount
             // @ts-ignore
             let fileSystemHandle: Handle = {};
             if (sourceMountURL.startsWith("local")) {
-                // @ts-ignore
-                if (globalThis.showDirectoryPicker) {
-                    fileSystemHandle = await showDirectoryPicker();
+                if ((globalThis as any).showDirectoryPicker) {
+                    fileSystemHandle = await (globalThis as any).showDirectoryPicker();
                 } else {
                     errorToThrow = "invalid";
                 }

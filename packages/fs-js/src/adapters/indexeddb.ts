@@ -51,7 +51,7 @@ export class IndexeddbSink extends DefaultSink<IndexeddbFileHandle> implements F
         return w;
     }
 
-    async write(chunk: any) {
+    async write(chunk: FileSystemWriteChunkType) {
         return await this.genericWrite(chunk);
     }
 
@@ -185,6 +185,7 @@ export class IndexeddbFolderHandle
     writable: boolean;
     _cachedEntries: Record<string, IndexeddbFolderHandle | IndexeddbFileHandle>;
     _rootFolderHandle?: IndexeddbFolderHandle;
+    _securityStore?: any;
 
     [Symbol.asyncIterator]() {
         return this.entries();
@@ -540,7 +541,7 @@ export class IndexeddbFolderHandle
     }
 
     async loadSecurityStore(): Promise<any> {
-        let ret: any = {};
+        let secStore: any = {};
         try {
             indexedDBDebug("loadSecurityStore: begin ");
             const rootHandle = await this.getRootFolderHandle();
@@ -551,16 +552,18 @@ export class IndexeddbFolderHandle
             const dec = new TextDecoder();
             const yamlString = dec.decode(await f.arrayBuffer());
             indexedDBDebug(`loadSecurityStore: yamlString: ${yamlString}`);
-            ret = yaml.load(yamlString);
+            secStore = yaml.load(yamlString);
+            this._securityStore = secStore;
         } catch (error: any) {
             console.warn("loadSecurityStore: error:", error);
         }
-        return ret;
+        return secStore;
     }
 
     async openFile(subPath: string): Promise<File> {
         const thisAsFHandle = this as unknown as FileSystemDirectoryHandle;
-        const fh = await openFileHandle(new NFileSystemDirectoryHandle(thisAsFHandle), subPath);
+        const secStore = this._securityStore;
+        const fh = await openFileHandle(new NFileSystemDirectoryHandle(thisAsFHandle, secStore), subPath);
         const f = await fh.getFile();
         return f;
     }

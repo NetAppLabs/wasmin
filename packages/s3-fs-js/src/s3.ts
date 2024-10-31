@@ -68,7 +68,7 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
         await this.close();
     }
 
-    async write(chunk: any) {
+    async write(chunk: FileSystemWriteChunkType) {
         s3Debug("write chunk:", chunk);
         const bucketName = this.fileHandle.config.bucketName;
         const s3client = this.fileHandle.config.getS3Client();

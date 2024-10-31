@@ -2,8 +2,11 @@ const FileSystemHandlePermissionRead = "read";
 const FileSystemHandlePermissionReadWrite = "readwrite";
 
 import { FileSystemHandle, FileSystemHandlePermissionDescriptor, FileSystemHandleKind } from "./index.js";
+declare global {
+    var FILESYSTEM_HANDLE_DEBUG: boolean;
+}
+globalThis.FILESYSTEM_HANDLE_DEBUG = false;
 
-const FS_DEBUG = false;
 export class NFileSystemHandle implements FileSystemHandle {
     constructor(public adapter: FileSystemHandle) {
         this.kind = adapter.kind;
@@ -22,7 +25,7 @@ export class NFileSystemHandle implements FileSystemHandle {
 
 
     fsDebug(message?: any, ...optionalParams: any[]) {
-        if (FS_DEBUG) {
+        if (globalThis.FILESYSTEM_HANDLE_DEBUG) {
             console.debug(message, optionalParams);
         }
     }

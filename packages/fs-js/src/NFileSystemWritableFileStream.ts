@@ -3,10 +3,13 @@
 
 import { FileSystemWritableFileStream } from "./index.js";
 
-const FILESYSTEM_WRITABLE_DEBUG = false;
+declare global {
+    var FILESYSTEM_WRITABLE_DEBUG: boolean;
+}
+globalThis.FILESYSTEM_WRITABLE_DEBUG = false;
 
 export function fileSystemWritableDebug(msg?: any, ...optionalParams: any[]): void {
-    if (FILESYSTEM_WRITABLE_DEBUG) {
+    if (globalThis.FILESYSTEM_WRITABLE_DEBUG) {
         console.debug(msg, ...optionalParams);
     }
 }
@@ -152,3 +155,5 @@ class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
         await p;
     }
 }
+
+

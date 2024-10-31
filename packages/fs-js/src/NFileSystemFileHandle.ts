@@ -1,5 +1,6 @@
 import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
+import { NFileSystemWritableSyncStream } from "./NFileSystemWritableSyncStream.js";
 import { FileSystemFileHandle, FileSystemSyncAccessHandle } from "./index.js";
 
 export function isBun() {
@@ -38,28 +39,16 @@ export class NFileSystemFileHandle extends NFileSystemHandle implements FileSyst
 
     public kind = "file" as const;
 
-    async createWritable(options: { keepExistingData?: boolean } = {}): Promise<NFileSystemWritableFileStream> {
+    async createWritable(options: { keepExistingData?: boolean } = {}): Promise<FileSystemWritableFileStream> {
         const thisAdapter = this.getAdapterFileSystemFileHandle();
         if (thisAdapter.createWritable) {
-            const isThisBun = isBun();
-            if (isThisBun) {
-                // Temporary hack for Bun as NFileSystemWritableFileStream does not work
-                // TODO: remove this once NFileSystemWritableFileStream becomes usable in bun
-                //const wr = await thisAdapter.createWritable(options);
-                const wr = new NFileSystemWritableFileStream(await thisAdapter.createWritable(options));
-                return wr;
-            } else {
-                return new NFileSystemWritableFileStream(await thisAdapter.createWritable(options));
-            }
-
-            // @ts-ignore
-        } else if (thisAdapter.createAccessHandle) {
+            const wr = new NFileSystemWritableFileStream(await thisAdapter.createWritable(options));
+            return wr;
+        } else if (thisAdapter.createSyncAccessHandle) {
             // Specifically for Safari
-            // See https://github.com/WICG/file-system-access/blob/main/AccessHandle.md
-            // and https://webkit.org/blog/12257/the-file-system-access-api-with-origin-private-file-system/
-            // @ts-ignore
-            const accessHandle = await thisAdapter.createAccessHandle();
-            const writer = accessHandle.writable.getWriter();
+            // See https://webkit.org/blog/12257/the-file-system-access-api-with-origin-private-file-system/
+            const accessHandle = await thisAdapter.createSyncAccessHandle();
+            const writer = new NFileSystemWritableSyncStream(accessHandle);
             return writer;
         }
         throw new Error("createWritable not supported");

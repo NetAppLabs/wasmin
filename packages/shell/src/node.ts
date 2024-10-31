@@ -23,6 +23,7 @@ import { initializeLogging } from "@wasmin/wasi-js";
 
 let DEBUG_MODE = true;
 const USE_MEMORY = false;
+const TERM_REQUEST_CURSOR_POS = "\x1b[6n";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -110,7 +111,7 @@ let onDataFuncProxy = (sbdata: Uint8Array|string) => {
     }
     return onDataFunc(sbdata);
 }
-if (SHELL_DEBUG) {
+if (globalThis.SHELL_DEBUG) {
     process.stdin.on("data", onDataFuncProxy);
 } else {
     process.stdin.on("data", onDataFunc);
@@ -142,7 +143,6 @@ async function asyncWrite(stream: Socket, buf: Uint8Array | string) {
 
 let stdout = {
     async write(data: Uint8Array) {
-        let TERM_REQUEST_CURSOR_POS = "\x1b[6n";
         let str = textDecoder.decode(data);
         if (str.includes(TERM_REQUEST_CURSOR_POS)){
             shellDebug("stdout requesting cursor pos");
