@@ -1,4 +1,4 @@
-import { PromisifiedExports, initializeWebAssemblyFunction } from "./index.js";
+import { PromisifiedExports, initializeWebAssemblyFunction, isJspiEnabled, isStackSwitchingEnabled } from "./index.js";
 
 // TODO: look into inconsistency in funcref <-> anyfunc
 //type WasmRefType = "funcref" | "externref";
@@ -391,13 +391,13 @@ export function getWebAssemblyFunctionTypeForFunction(func: Function) {
   //if (isNode()) { // old behaviour for node 21
   //  const wffunc = WebAssemblyFunction.type(func);
   //  return wffunc;
-  if (isDeno() || isNode()) {
+  if (isJspiEnabled()) {
     let anyFunc = func as any;
     jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFunc: ", anyFunc);
     let anyFuncType = anyFunc.type()
     jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFuncType: ", anyFuncType);
     return anyFuncType as WebAssemblyFunction;
-  } else {
+  } else if (isStackSwitchingEnabled()) {
     const wffunc = WebAssemblyFunction.type(func);
     return wffunc;
   }
