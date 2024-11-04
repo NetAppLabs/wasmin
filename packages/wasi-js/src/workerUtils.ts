@@ -6,7 +6,7 @@ declare global {
     var WASMIN_WORKER_OVERRIDE_URLS: any;
 }
 
-export function getWorkerOverrideUrls(): Record<string,string> {
+export function getWorkerOverrideUrls(): Record<string,string|URL> {
     if (!globalThis.WASMIN_WORKER_OVERRIDE_URLS) {
         globalThis.WASMIN_WORKER_OVERRIDE_URLS = {};
     }
@@ -18,8 +18,13 @@ export function getWorkerUrl(workerUrlString: string): URL | string {
     const workerOverrideUrls = getWorkerOverrideUrls();
     wasmWorkerClientDebug(`getWorkerUrl workerOverrideUrls: `, workerOverrideUrls);
     const overrideUrl = workerOverrideUrls[workerUrlString];
+    let workerUrl: URL;
     if (overrideUrl !== undefined) {
-        let workerUrl = new URL(overrideUrl);
+        if (overrideUrl instanceof URL) {
+            workerUrl = overrideUrl;
+        } else {
+            workerUrl = new URL(overrideUrl);
+        }
         wasmWorkerClientDebug(`getWorkerUrl got overrided url ${overrideUrl} for ${workerUrl}`);
         return workerUrl;
     } else {
@@ -29,7 +34,7 @@ export function getWorkerUrl(workerUrlString: string): URL | string {
     }
 }
 
-export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlString: string) {
+export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlString: string|URL) {
     wasmWorkerClientDebug(`setWorkerOverrideUrl set overrided url ${workerOverrideUrlString} for ${workerUrlString}`);
     const workerOverrideUrls = getWorkerOverrideUrls();
     workerOverrideUrls[workerUrlString] = workerOverrideUrlString;
