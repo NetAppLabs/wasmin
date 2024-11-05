@@ -1,8 +1,15 @@
 #!/bin/bash
 
-set -x
+set -e
 
+if ! command -v jq 2>&1 ; then
+    echo "please install jq"
+    exit 1
+fi
 
-export PATH="/opt/homebrew/opt/node@22/bin:${PATH}"
+NODE_VERSION=$(cat local.settings.json | jq -r .Values.WEBSITE_NODE_DEFAULT_VERSION)
+echo "Starting with node version: $NODE_VERSION"
 
-func start
+export PATH="/opt/homebrew/opt/node@${NODE_VERSION}/bin:${PATH}"
+
+func start --verbose

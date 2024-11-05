@@ -1,16 +1,19 @@
 //import { app, trigger, InvocationContext } from "@azure/functions";
 
 //import { app, trigger } from "@azure/functions";
-import { app } from "@azure/functions";
+//import { app } from "@azure/functions";
+let af = await import('@azure/functions');
+let app = af.app;
 // @ts-ignore
 import compile from 'wat-compiler'
 
-import { WASI, OpenFiles } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, setWorkerOverrideUrl } from "@wasmin/wasi-js";
 import { nfs } from "@wasmin/nfs-js";
 import { s3 } from "@wasmin/s3-fs-js";
 
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@wasmin/fs-js";
 import * as fs from 'node:fs';
+import { InvocationContext, LogHookContext, PreInvocationContext } from '@azure/functions';
 
 // @ts-ignore
 RegisterProvider("nfs", nfs);
@@ -42,7 +45,8 @@ const wasmWat = `
     (export "_start" (func $main))
 )`
 
-let wasmModulePath = "./handler-copier.wasm";
+//let wasmModulePath = "./handler-copier.wasm";
+let wasmModulePath = "./imageresize.wasm";
 
 type FileOperationMessage = {
     filePath: string,
@@ -65,6 +69,19 @@ app.storageQueue('storageQueueTrigger', {
     queueName: 'queue1',
     connection: 'AzureWebJobsStorage',
     handler: async (queueItem, context) => {
+
+
+        function registerWorkers() {
+            //globalThis.WASM_WORKER_CLIENT_DEBUG = true;
+            //globalThis.WASM_WORKER_THREAD_DEBUG = true;
+            //globalThis.WASI_DEBUG = true;
+            setWorkerOverrideUrl('./wasmComponentWorkerThreadNode.js', new URL("./wasmComponentWorkerThreadNode.js", import.meta.url));
+            setWorkerOverrideUrl('./wasmCoreWorkerThreadNode.js', new URL("./wasmCoreWorkerThreadNode.js", import.meta.url));
+            setWorkerOverrideUrl('./wasiWorkerThreadNode.js', new URL("./wasiWorkerThreadNode.js", import.meta.url));
+        }
+        
+        registerWorkers();
+
         const foper = queueItem as FileOperationMessage;
 
         const filePath = foper.filePath;
@@ -76,13 +93,15 @@ app.storageQueue('storageQueueTrigger', {
             //const buffer = compile('(func (export "answer") (result i32) (i32.const 42))')
             //const wasmBuf = compile(wasmWat);
             const wasmUrl = new URL(wasmModulePath, import.meta.url);
-            const wasmBuf = fs.readFileSync(wasmUrl);
+            const wasmBufFs = fs.readFileSync(wasmUrl);
+            const wasmBufArr = new Uint8Array(wasmBufFs);
+            const wasmBuf = wasmBufArr.buffer;
+
             //const wasmBuf = WebAssembly.compile(new Uint8Array(fs.readFileSync('./handler-copier.wasm')))
             //const wasmBuf = await fetchCompile(wasmUrl);
             //const mod = new WebAssembly.Module(buffer)
             //const instance = new WebAssembly.Instance(mod)
             //console.log(instance.exports.answer()) // => 42
-
 
             const rootDir = "/"
             const preOpens: Record<string, FileSystemDirectoryHandle> = {};
@@ -96,7 +115,6 @@ app.storageQueue('storageQueueTrigger', {
                 const rootfs = await getDirectoryHandleByURL(volumeUrl);
                 preOpens[rootDir] = rootfs;
                 const openFiles = new OpenFiles(preOpens);
-        
                 const wasi = new WASI({
                     //abortSignal: abortController.signal,
                     openFiles: openFiles,
@@ -132,6 +150,30 @@ app.storageQueue('storageQueueTrigger', {
 });
 
 /*
+app.generic('generic', 
+    {
+        trigger: {
+            type: 'httpTrigger',
+            name: 'genericHttpTrigger'
+        },
+        //retry: {strategy: "exponentialBackoff", maxRetryCount: 2, minimumInterval: 10, maximumInterval: 100},
+        handler : async (triggerInput: any, context: InvocationContext) => 
+        {
+            console.log("generic triggerInput: ", triggerInput);
+        }
+    }
+);
+
+app.hook.preInvocation( (prectx: PreInvocationContext) => {
+    console.log("preInvocation: context.functionHandler: ", prectx.functionHandler);
+    console.log("preInvocation: context.inputs: ", prectx.inputs);
+});
+
+app.hook.log( (logctx: LogHookContext) => {
+    console.log("app.hook.log: logctx: ", logctx);
+});
+
+
 app.timer('timerTrigger1', {
     schedule: '0-59 * * * * *',
     handler: (myTimer, context) => {
