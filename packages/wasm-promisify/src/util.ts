@@ -386,18 +386,40 @@ export function promisifyImportFunction<T extends (...args: any[]) => any>(
   }
 }
 
+function useNewerWebAssemblyFunctionType() {
+  if (isJspiEnabled()) {
+    return true;
+  } else if (isStackSwitchingEnabled()) {
+    if (process) {
+      if (process.versions) {
+        if (process.versions.node) {
+          let nodeVersion = process.versions.node;
+          let sNodeVersionMajor = nodeVersion.split('.')[0];
+          let nodeVersionMajor = Number(sNodeVersionMajor);
+          if (nodeVersionMajor < 22){
+            return false;
+          } else {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 export function getWebAssemblyFunctionTypeForFunction(func: Function) {
   const WebAssemblyFunction = initializeWebAssemblyFunction()
   //if (isNode()) { // old behaviour for node 21
   //  const wffunc = WebAssemblyFunction.type(func);
   //  return wffunc;
-  if (isJspiEnabled()) {
+  if (useNewerWebAssemblyFunctionType()) {
     let anyFunc = func as any;
     jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFunc: ", anyFunc);
     let anyFuncType = anyFunc.type()
     jspiDebug("getWebAssemblyFunctionTypeForFunction: anyFuncType: ", anyFuncType);
     return anyFuncType as WebAssemblyFunction;
-  } else if (isStackSwitchingEnabled()) {
+  } else {
     const wffunc = WebAssemblyFunction.type(func);
     return wffunc;
   }

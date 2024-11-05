@@ -245,7 +245,7 @@ export function initializeWebAssemblyFunction(): any {
     if (typeof WebAssemblyFunction !== 'function') {
         throw new Error(
             'WebAssembly.Function is not available in this runtime.' +
-            ' If using a recent version of Node add the flags --wasm-staging --experimental-wasm-stack-switching'
+            ' If using a recent version of Node or Deno add the flags --experimental-wasm-jspi or --experimental-wasm-stack-switching'
         )
     }
     return WebAssemblyFunction
