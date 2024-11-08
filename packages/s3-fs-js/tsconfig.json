@@ -9,6 +9,7 @@
     "outDir": "./dist"
   },
   "include": [
-    "./src"
+    "./src",
+	"__test__"
   ]
 }

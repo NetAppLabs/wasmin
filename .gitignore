@@ -41,6 +41,6 @@ packages/nfs-js
 
 nu.async.wasm
 sea-prep.blob
-/wasmin-node
-/wasmin-bun
-/wasmin-deno
+/wasmin-node*
+/wasmin-bun*
+/wasmin-deno*

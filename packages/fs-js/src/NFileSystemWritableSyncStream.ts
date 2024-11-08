@@ -57,7 +57,8 @@ export class NFileSystemSyncSink extends DefaultSink<FileSystemSyncAccessHandle>
     async close() {
         this.fileHandle.close();
         this.file = undefined;
-        this.position = this.size = 0;
+        this.position = 0;
+        this.size = 0;
     }
 }
 

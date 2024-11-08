@@ -109,3 +109,4 @@ types
 testfolder
 .yalc
 .DS_Store
+s3fakeserver/s3fakeserver

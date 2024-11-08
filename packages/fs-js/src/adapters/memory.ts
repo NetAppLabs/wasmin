@@ -41,7 +41,8 @@ export class MemorySink extends DefaultSink<MemoryFileHandle> implements FileSys
             this.fileHandle.file = this.file;
         }
         this.file = undefined;
-        this.position = this.size = 0;
+        this.position = 0;
+        this.size = 0;
     }
 }
 

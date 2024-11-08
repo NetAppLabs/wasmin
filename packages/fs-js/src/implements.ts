@@ -1,6 +1,7 @@
 import { FileSystemHandlePermissionDescriptor, InvalidStateError } from "./index.js";
 import { FileSystemFileHandle, FileSystemDirectoryHandle } from "./FileSystemAccess.js";
 
+const TypedArrayType = Object.getPrototypeOf(Uint8Array);
 export interface ImpleSink<T> extends UnderlyingSink<any> {
     fileHandle: T;
     size: number;
@@ -30,11 +31,11 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
     abstract close(): Promise<void>;
 
     async seek(position: number): Promise<void> {
-        return this.write({ type: "seek", position });
+        return this.write({ type: "seek", position: position });
     }
 
     async truncate(size: number): Promise<void> {
-        return this.write({ type: "truncate", size });
+        return this.write({ type: "truncate", size: size });
     }
 
     async genericWrite(chunk: FileSystemWriteChunkType) {
@@ -50,14 +51,28 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
                             file = new File([file, new ArrayBuffer(wChunk.position - this.size)], file.name, file);
                         }
                     }
-                    if (!("data" in chunk)) {
+                    if (wChunk.data) {
+                        let writeChunkData = wChunk.data;
+                        if (
+                            (typeof writeChunkData !== "string") 
+                            && !(writeChunkData as any instanceof Blob)
+                            && !(writeChunkData as any instanceof ArrayBuffer)
+                            && !(writeChunkData as any instanceof TypedArrayType)
+                            && !(writeChunkData as any instanceof DataView)
+                        ) {
+                            throw new SyntaxError("Unsupported data object for write");
+                        }
+                    } else {
                         throw new SyntaxError("write requires a data argument");
                     }
                     chunkData = wChunk.data;
                 } else if (wChunk.type === "seek") {
                     if (wChunk.position !== undefined && wChunk.position !== null && Number.isInteger(wChunk.position) && wChunk.position >= 0) {
                         if (this.size < wChunk.position) {
-                            throw new InvalidStateError();
+                            // append to the file if seek is past file size
+                            let extraSize = wChunk.position - this.size;
+                            let emptyArray = new Uint8Array(extraSize);
+                            chunkData = emptyArray.buffer;
                         }
                         this.position = wChunk.position;
                         return;
@@ -66,22 +81,43 @@ export abstract class DefaultSink<T> implements ImpleSink<T> {
                     }
                 } else if (wChunk.type === "truncate") {
                     if (wChunk.size !== undefined && wChunk.size !== null && Number.isInteger(wChunk.size) && wChunk.size >= 0) {
-                        file =
-                            wChunk.size < this.size
-                                ? new File([file.slice(0, wChunk.size)], file.name, file)
-                                : new File([file, new Uint8Array(wChunk.size - this.size)], file.name);
+                        try {
+                            file =
+                                wChunk.size < this.size
+                                    ? new File([file.slice(0, wChunk.size)], file.name, file)
+                                    : new File([file, new Uint8Array(wChunk.size - this.size)], file.name);
 
-                        this.size = file.size;
-                        if (this.position > file.size) {
-                            this.position = file.size;
+                            this.size = file.size;
+                            if (this.position != 0) {
+                                // assuming we are not at start position we update the position
+                                this.position = file.size;
+                            }
+                            this.file = file;
+                        } catch (err: any) {
+                            console.log("error in genericWrite truncate", err);
                         }
-                        this.file = file;
                         return;
                     } else {
                         throw new SyntaxError("truncate requires a size argument");
                     }
+                } else if (
+                    (typeof chunk !== "string") 
+                    && !(chunk as any instanceof Blob)
+                    && !(chunk as any instanceof ArrayBuffer)
+                    && !(chunk as any instanceof TypedArrayType)
+                    && !(chunk as any instanceof DataView)
+                ){
+                    throw new SyntaxError("Unsupported object for write");
                 }
-            }
+            } else if (
+                (typeof chunk !== "string") 
+                && !(chunk as any instanceof Blob)
+                && !(chunk as any instanceof ArrayBuffer)
+                && !(chunk as any instanceof TypedArrayType)
+                && !(chunk as any instanceof DataView)
+            ){
+                throw new SyntaxError("Unsupported type for write");
+            }  
 
             let blobChunk = (chunkData !== undefined && chunkData !== null ) ? new Blob([chunkData]) : new Blob([]);
             let blobFile = file;

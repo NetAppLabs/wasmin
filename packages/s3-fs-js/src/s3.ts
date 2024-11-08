@@ -31,6 +31,7 @@ import {
     ListObjectsV2Request,
     CreateBucketCommand,
     DeleteBucketCommand,
+    GetObjectRequest,
 } from "@aws-sdk/client-s3";
 
 const DefaultMaxKeys = 1000;
@@ -49,12 +50,19 @@ function s3Debug(message?: any, ...optionalParams: any[]) {
 }
 
 export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWritableFileStream {
-    constructor(fileHandle: S3FileHandle) {
+    constructor(fileHandle: S3FileHandle, options?: FileSystemCreateWritableOptions) {
         super(fileHandle);
         this.fileHandle = fileHandle;
         this.file = fileHandle.file;
         this.size = fileHandle.file.size;
         this.position = 0;
+        if (options) {
+            if (options.keepExistingData) {
+                if (this.file) {
+                    this.position = this.file.size;
+                }
+            }
+        }
     }
 
     fileHandle: S3FileHandle;
@@ -66,6 +74,13 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
 
     async abort() {
         await this.close();
+    }
+
+    async truncate(size: number): Promise<void> {
+        if (size == 11) {
+            console.log("truncating 11");
+        }
+        return this.write({ type: "truncate", size: size });
     }
 
     async write(chunk: FileSystemWriteChunkType) {
@@ -88,6 +103,12 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
                 };
                 const command = new PutObjectCommand(params);
                 const _s3obj = await s3client.send(command);
+                //let newSize = file.size;
+                //let lastModified = file.lastModified
+                //const s3file = new S3FileImpl(this.fileHandle.config, this.fileHandle.path, this.fileHandle.name, [], newSize, lastModified);
+                //this.file = s3file;
+                this.file = file;
+                this.fileHandle.file = file;
             } else {
                 throw new Error("Unexpected error, file is not set");
             }
@@ -103,7 +124,8 @@ export class S3Sink extends DefaultSink<S3FileHandle> implements FileSystemWrita
             this.fileHandle.file = this.file;
         }
         this.file = undefined;
-        this.position = this.size = 0;
+        this.position = 0;
+        this.size = 0;
     }
 }
 
@@ -116,11 +138,10 @@ export interface S3File extends File {
     size: number;
     start: number | undefined;
     end: number | undefined;
-    contentType: string | undefined;
 }
 
 //export class S3File extends File {
-export class S3File {
+export class S3FileImpl implements S3File {
     constructor(
         config: S3Config,
         path: string,
@@ -149,7 +170,6 @@ export class S3File {
 
     start: number | undefined;
     end: number | undefined;
-    contentType: string | undefined;
 
     async arrayBuffer(): Promise<ArrayBuffer>;
     async arrayBuffer(): Promise<ArrayBuffer> {
@@ -157,7 +177,7 @@ export class S3File {
         const s3client = this.config.getS3Client();
         const start = this.start || 0;
         let end = this.end || this.size;
-        const contentType = this.contentType;
+        const contentType = this.type;
         if (start >= this.size) {
             // handle EOF
             return new ArrayBuffer(0);
@@ -165,18 +185,22 @@ export class S3File {
 
         s3Debug(`S3File: arrayBuffer: start: ${start}" end: ${end} contentType: ${contentType}`);
         const path = this.path;
-        let rangeEnd = 0;
-        if (end >= this.size) {
-            // bytes rangeEnd needs to be reduced by 1 because it is including last range end
-            rangeEnd = this.size - 1;
-        } else {
-            // bytes rangeEnd needs to be reduced by 1 because it is including last range end
-            rangeEnd = end - 1;
+        let range: string | undefined = undefined;
+        let supportsRangeRequest = false;
+        if (supportsRangeRequest) {
+            let rangeEnd = 0;
+            if (end >= this.size) {
+                // bytes rangeEnd needs to be reduced by 1 because it is including last range end
+                rangeEnd = this.size - 1;
+            } else {
+                // bytes rangeEnd needs to be reduced by 1 because it is including last range end
+                rangeEnd = end - 1;
+            }
+            range = `bytes=${start}-${rangeEnd}`;
         }
-        const range = `bytes=${start}-${rangeEnd}`;
         s3Debug(`s3client.getObject Range: ${range}`);
         try {
-            const params = {
+            const params: GetObjectRequest = {
                 Bucket: bucketName,
                 Key: path,
                 Range: range,
@@ -188,7 +212,11 @@ export class S3File {
             s3Debug(`s3obj.Body ${s3obj.Body}`);
             if (s3obj.Body) {
                 let uArray = await s3obj.Body.transformToByteArray();
-                return uArray.buffer;
+                let arrBuffer = uArray.buffer;
+                if (!supportsRangeRequest) {
+                    arrBuffer = arrBuffer.slice(start, end);
+                }
+                return arrBuffer;
             } else {
                 return new ArrayBuffer(0);
             }
@@ -197,7 +225,7 @@ export class S3File {
                 const s3err = err as AWS.S3ServiceException;
                 const statusCode = s3err.$response?.statusCode || 0;
                 if (statusCode == 416) {
-                    s3Debug("arrayBuffer() catch error 416");
+                    console.log("arrayBuffer() catch error 416");
                     // StatusCode: 416 Range Not Satisfiable (RFC 7233)
                     // Special case because in this case we have reached end of file
                     return new ArrayBuffer(0);
@@ -207,23 +235,54 @@ export class S3File {
                     throw err;
                 }
             }
-            s3Debug("catched error on s3client.getObject: ", err);
+            console.log("catched error on s3client.getObject: ", err);
             // Assuming it is out of range and returning an empty array
             return new ArrayBuffer(0);
         }
     }
     slice(start?: number, end?: number, contentType?: string): Blob;
     slice(start?: number, end?: number, contentType?: string): Blob {
-        const file = new S3File(this.config, this.path, this.name, [], this.size, this.lastModified);
+        let newSize = this.size;
+        if (start) {
+            if (start < 0) {
+                start = this.size + start;
+                if (start < 0 ) {
+                    start = 0;
+                }
+            }
+            if (end) {
+                if (end < 0) {
+                    end = this.size + end;
+                    if (end < 0 ) {
+                        end = 0;
+                    }
+                }    
+                newSize = end - start;
+            } else {
+                newSize = newSize - start;
+            }
+        }
+        const file = new S3FileImpl(this.config, this.path, this.name, [], newSize, this.lastModified);
         file.start = start;
         file.end = end;
-        file.contentType = contentType;
+        if (contentType) {
+            file.type = contentType;
+        }
         return file;
     }
     stream(): ReadableStream<any>;
     stream(): NodeJS.ReadableStream;
     stream(): ReadableStream<any> | NodeJS.ReadableStream {
-        throw new Error("Method not implemented.");
+        /*const stream = new ReadableStream({
+            start(controller) {
+                let buf = undefined;
+                controller.enqueue(buf);
+                controller.close();
+            },
+        });
+        return stream;
+        */
+       throw new Error("stream not supported");
     }
     async text(): Promise<string>;
     async text(): Promise<string> {
@@ -259,15 +318,15 @@ export class S3FileHandle implements ImpleFileHandle<File, S3Sink>, FileSystemFi
         return this.file;
     }
 
-    async createWritableSink(opts?: any) {
+    async createWritableSink(options?: FileSystemCreateWritableOptions) {
         s3Debug("createWritable: ");
         if (!this.writable) throw new NotAllowedError();
         if (this.deleted) throw new NotFoundError();
-        return new S3Sink(this);
+        return new S3Sink(this, options);
     }
 
-    async createWritable(opts?: any) {
-        const sink = this.createWritableSink(opts);
+    async createWritable(options?: FileSystemCreateWritableOptions) {
+        const sink = this.createWritableSink(options);
         const fstream = new NFileSystemWritableFileStream(sink);
         return sink;
     }
@@ -553,7 +612,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                             const writeable = true;
                             s3Debug(`populateEntries lastModifiedMillis: ${lastModifiedMillis}`);
                             const path = join(this.path, entryName);
-                            const file = new S3File(this.config, path, entryName, [], size, lastModifiedMillis);
+                            const file = new S3FileImpl(this.config, path, entryName, [], size, lastModifiedMillis);
                             this._entries[entryName] = new S3FileHandle(this.config, path, entryName, file, writeable);
                         }
                     }

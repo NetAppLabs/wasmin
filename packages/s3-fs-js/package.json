@@ -19,7 +19,10 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "echo test"
+    "test-vitest": "vitest run --globals",
+    "test-ava": "ava",
+    "test": "./scripts/test.sh test-ava",
+    "vitest": "./scripts/test.sh test-vitest"
   },
   "author": "tryggvil",
   "dependencies": {
@@ -28,6 +31,8 @@
   },
   "devDependencies": {
     "@wasmin/tsconfig": "*",
-    "eslint-config-custom": "*"
+    "ava": "^6.2.0",
+    "eslint-config-custom": "*",
+    "vitest": "^2.1.4"
   }
 }
