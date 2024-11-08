@@ -36,6 +36,7 @@ import {
 
 const DefaultMaxKeys = 1000;
 const DefaultCacheTTL = 1000;
+const DefaultSupportsRangeRequests = true;
 
 declare global {
     var S3_DEBUG: boolean;
@@ -186,8 +187,8 @@ export class S3FileImpl implements S3File {
         s3Debug(`S3File: arrayBuffer: start: ${start}" end: ${end} contentType: ${contentType}`);
         const path = this.path;
         let range: string | undefined = undefined;
-        let supportsRangeRequest = false;
-        if (supportsRangeRequest) {
+        let supportsRangeRequests = this.config.supportsRangeRequests;;
+        if (supportsRangeRequests) {
             let rangeEnd = 0;
             if (end >= this.size) {
                 // bytes rangeEnd needs to be reduced by 1 because it is including last range end
@@ -213,7 +214,7 @@ export class S3FileImpl implements S3File {
             if (s3obj.Body) {
                 let uArray = await s3obj.Body.transformToByteArray();
                 let arrBuffer = uArray.buffer;
-                if (!supportsRangeRequest) {
+                if (!supportsRangeRequests) {
                     arrBuffer = arrBuffer.slice(start, end);
                 }
                 return arrBuffer;
@@ -370,12 +371,14 @@ export class S3Config {
         this.maxKeys = DefaultMaxKeys;
         this.cacheTTL = DefaultCacheTTL;
         this.isAws = isAws;
+        this.supportsRangeRequests = true;
     }
     bucketName: string;
     config: AWS.S3ClientConfig;
     maxKeys: number;
     cacheTTL: number;
     isAws: boolean;
+    supportsRangeRequests: boolean;
 
     getS3Client(): AWS.S3Client {
         const cl = new AWS.S3Client(this.config);
@@ -437,6 +440,15 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
         const parsedCacheTTL = parseInt(paramCacheTTL);
         if (!Number.isNaN(parsedCacheTTL)) {
             cacheTTL = parsedCacheTTL;
+        }
+    }
+    const paramSupportsRangeRequests  = sUrl.searchParams.get("byterange");
+    let supportsRangeRequests = DefaultSupportsRangeRequests;
+    if (paramSupportsRangeRequests != undefined) {
+        if (paramSupportsRangeRequests.toLowerCase() == "true" ) {
+            supportsRangeRequests = true;
+        } else if (paramSupportsRangeRequests.toLowerCase() == "false" ) {
+            supportsRangeRequests = false;
         }
     }
     let pathName = sUrl.pathname;
@@ -531,6 +543,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
     const sConfig = new S3Config(s3clientConfig, bucketName, isAws);
     sConfig.maxKeys = maxKeys;
     sConfig.cacheTTL = cacheTTL;
+    sConfig.supportsRangeRequests = supportsRangeRequests;
     return { s3config: sConfig, newUrl: newUrl };
 
 }

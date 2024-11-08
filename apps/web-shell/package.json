@@ -15,8 +15,11 @@
     "vite": "^5.4.10"
   },
   "dependencies": {
-    "@wasmin/fs-js": "*",
     "@wasmin/wasi-js": "*",
+    "@wasmin/fs-js": "*",
+    "@wasmin/s3-fs-js": "*",
+    "@wasmin/github-fs-js": "*",
+    "@wasmin/nfs-js": "*",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-image": "^0.8.0",
     "@xterm/addon-webgl": "^0.18.0",

@@ -3,12 +3,11 @@ import test from 'ava'
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, FileSystemFileHandle } from '@wasmin/fs-js';
 import { s3 } from "../src/index.js";
 
-const nfsURL = process.env.NFS_URL || 'nfs://127.0.0.1/Users/Shared/nfs/';
+const s3Url = process.env.S3_URL || 's3://127.0.0.1/invalid/';
 
 RegisterProvider("s3", s3);
 
 let root: FileSystemDirectoryHandle;
-const s3Url = "s3://localhost:9000/bucket?accessKeyId=test&secretAccessKey=test&insecure=true";
 
 async function getRootHandle(): Promise<FileSystemDirectoryHandle> {
   root = await getDirectoryHandleByURL(s3Url, false);
