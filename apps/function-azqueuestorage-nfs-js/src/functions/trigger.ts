@@ -91,11 +91,11 @@ app.storageQueue('storageQueueTrigger', {
 
         if (oper == 'close-write') {
             //const buffer = compile('(func (export "answer") (result i32) (i32.const 42))')
-            //const wasmBuf = compile(wasmWat);
-            const wasmUrl = new URL(wasmModulePath, import.meta.url);
-            const wasmBufFs = fs.readFileSync(wasmUrl);
-            const wasmBufArr = new Uint8Array(wasmBufFs);
-            const wasmBuf = wasmBufArr.buffer;
+            const wasmBuf = compile(wasmWat);
+            //const wasmUrl = new URL(wasmModulePath, import.meta.url);
+            //const wasmBufFs = fs.readFileSync(wasmUrl);
+            //const wasmBufArr = new Uint8Array(wasmBufFs);
+            //const wasmBuf = wasmBufArr.buffer;
 
             //const wasmBuf = WebAssembly.compile(new Uint8Array(fs.readFileSync('./handler-copier.wasm')))
             //const wasmBuf = await fetchCompile(wasmUrl);

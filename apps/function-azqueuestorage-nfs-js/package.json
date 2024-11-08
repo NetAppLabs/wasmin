@@ -20,6 +20,7 @@
     "@azure/storage-queue": "^12.24.0",
     "@wasmin/fs-js": "",
     "@wasmin/nfs-js": "",
+    "@wasmin/s3-fs-js": "",
     "@wasmin/wasi-js": "",
     "wat-compiler": "^1.1.1"
   },
