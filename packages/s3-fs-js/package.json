@@ -4,10 +4,10 @@
   "description": "S3 implementation of FileSystem Standard",
   "type": "module",
   "source": "src/index.ts",
-  "exports": "./dist/index.js",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "exports": "./dist/src/index.js",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "files": [
     "dist",
     "src"
