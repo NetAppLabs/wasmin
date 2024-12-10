@@ -17,7 +17,7 @@ await build({
   minify: false,
   bundle: true,
   platform: 'node',
-  target: 'node22',
+  target: 'node20',
   sourcemap: false,
   //watch: false,
   outdir: 'dist/functions',

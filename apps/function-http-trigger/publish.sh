@@ -48,14 +48,14 @@ az functionapp create --resource-group ${AZURE_RESOURCE_GROUP} --name ${AZURE_FU
 
 az functionapp update -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME} --set dailyMemoryTimeQuota=50000
 
-az functionapp config appsettings set -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME} --settings FUNCTIONS_WORKER_RUNTIME=node FUNCTIONS_WORKER_PROCESS_COUNT=5 WEBSITE_NODE_DEFAULT_VERSION=22 languageWorkers__node__arguments="--experimental-wasm-jspi --experimental-wasm-type-reflection"
+az functionapp config appsettings set -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME} --settings FUNCTIONS_WORKER_RUNTIME=node FUNCTIONS_WORKER_PROCESS_COUNT=5 WEBSITE_NODE_DEFAULT_VERSION=20 languageWorkers__node__arguments="--experimental-wasm-jspi --experimental-wasm-type-reflection"
 
 # For Linux we need to specifically set node version
 az functionapp config set -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME} --linux-fx-version "NODE|${NODE_VERSION}"
 
 func azure functionapp publish ${AZURE_FUNCTION_NAME} --publish-local-settings  --overwrite-settings
 
-#az functionapp config appsettings list -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME}
+az functionapp config appsettings list -g ${AZURE_RESOURCE_GROUP} -n ${AZURE_FUNCTION_NAME}
 
 # move back settings
 mv -f ${LOCAL_SETTINGS_BAK} local.settings.json
