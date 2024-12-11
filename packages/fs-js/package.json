@@ -63,7 +63,7 @@
     "@types/js-yaml": "^4.0.5",
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/ui": "^2.1.8",
-    "@netapplabs/tsconfig": "*",
+    "@netapplabs/tsconfig": "^0.0.2",
     "eslint-config-custom": "*",
     "vitest": "^2.1.8"
   },

@@ -48,10 +48,6 @@ jobs:
         run: npx standard-version
         working-directory: packages/fs-js
 
-      - name: Commit and push version bump
-        run: |
-          git push
-
       - name: Build package
         run: npm run build --prefix .
         working-directory: packages/fs-js
@@ -61,3 +57,8 @@ jobs:
         working-directory: packages/fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git push
+
