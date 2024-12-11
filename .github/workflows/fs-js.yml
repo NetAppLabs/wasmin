@@ -1,4 +1,4 @@
-name: Publish tsconfig Package
+name: Publish fs-js Package
 
 on:
   workflow_dispatch:
@@ -6,10 +6,10 @@ on:
     branches:
       - gh_actions
     paths:
-      - 'packages/tsconfig/**'
+      - 'packages/fs-js/**'
 
 concurrency:
-  group: tsconfig-publish
+  group: fsjs-publish
   cancel-in-progress: true
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/tsconfig
+        working-directory: packages/fs-js
 
       - name: Setup git
         run: |
@@ -46,7 +46,7 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/tsconfig
+        working-directory: packages/fs-js
 
       - name: Commit and push version bump
         run: |
@@ -54,10 +54,10 @@ jobs:
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/tsconfig
+        working-directory: packages/fs-js
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/tsconfig
+        working-directory: packages/fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
