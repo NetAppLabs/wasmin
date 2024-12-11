@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - gh_actions
+    paths:
+      - 'packages/fs-js/**'
 
 concurrency:
   group: fsjs-publish
@@ -60,4 +62,3 @@ jobs:
       - name: Commit and push version bump
         run: |
           git push
-
