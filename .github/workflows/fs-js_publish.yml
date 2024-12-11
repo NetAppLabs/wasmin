@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up GH Package Registry Auth
-        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/netapplabs:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -35,6 +35,8 @@ jobs:
       - name: Install dependencies
         run: npm install --prefix .
         working-directory: packages/fs-js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup git
         run: |
