@@ -1,8 +1,12 @@
 {
-  "name": "@wasmin/wasm-promisify",
+  "name": "@netapplabs/wasm-promisify",
   "version": "0.10.0",
   "description": "Promisify Wasm for JSPI",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -24,9 +28,11 @@
     "dist",
     "src"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  },
   "dependencies": {
-    "wasmati": "^0.2.0",
-    "@netapplabs/tsconfig": "^0.0.2"
+    "@netapplabs/tsconfig": "^0.0.2",
+    "wasmati": "^0.2.0"
   }
 }
