@@ -1,9 +1,39 @@
-import { i32, func, table, local, ValueTypeObject, ToTypeTuple, ValueType, StackVar, return_ } from "wasmati";
-import { ImportFunc, externref, global, Module, FunctionTypeInput } from "wasmati";
-import { call, call_indirect, elem, Const, Dependency } from "wasmati";
-import { TableMax, TableMin, WebAssemblyExports, WebAssemblyFunction, WebAssemblyImports, WebAssemblyTableType } from "./util.js";
-import { constructWebAssemblyExportMap, constructWebAssemblyImportMap, isExportValueFunction } from "./util.js";
-import { jspiDebug, promisifyImportObject, promisifyWebAssemblyExports, readCustomSections, writeFile } from "./util.js";
+import {
+  call,
+  call_indirect,
+  Const,
+  Dependency,
+  elem,
+  externref,
+  func,
+  FunctionTypeInput,
+  global,
+  i32,
+  ImportFunc,
+  local,
+  Module,
+  return_,
+  StackVar,
+  table,
+  ToTypeTuple,
+  ValueType,
+  ValueTypeObject,
+} from "wasmati";
+import {
+  constructWebAssemblyExportMap,
+  constructWebAssemblyImportMap,
+  isExportValueFunction,
+  jspiDebug,
+  promisifyImportObject,
+  promisifyWebAssemblyExports,
+  readCustomSections,
+  TableMin,
+  WebAssemblyExports,
+  WebAssemblyFunction,
+  WebAssemblyImports,
+  WebAssemblyTableType,
+  writeFile,
+} from "./util";
 
 
 // Defined here because it is not exported from "wasmati"
@@ -93,7 +123,7 @@ export class PromisifiedWasmGenerator {
                     }
                 }
             }
-    
+
         }
         return this.importFunctionInfos;
     }
@@ -106,7 +136,7 @@ export class PromisifiedWasmGenerator {
         if (globalThis.JSPI_DEBUG) {
             await writeFile(`./${modName}_rewritten_exports.wasm`, proxyModuleBytesArray);
         }
-        let proxyModule = await WebAssembly.compile(proxyModuleBytes);
+        const proxyModule = await WebAssembly.compile(proxyModuleBytes as ArrayBuffer);
         // Modify imports if any:
         let importsPromisified = importObject;
         if (importObject !== undefined) {
@@ -147,7 +177,7 @@ export class PromisifiedWasmGenerator {
                 let funcType = exportsValue.type as WebAssemblyFunction;
                 const funcInValueObjects = valueTypeArrayToValueObjectTypeArray(funcType.parameters);
                 const funcOutValueObjects = valueTypeArrayToValueObjectTypeArray(funcType.results);
-                
+
                 const funcInValueObjectsRewritten = [externref ,...funcInValueObjects];
 
                 let funcName = exportsKey;
@@ -181,7 +211,7 @@ export class PromisifiedWasmGenerator {
         if (globalThis.JSPI_DEBUG) {
             await writeFile(`./${modName}_rewritten_imports.wasm`, proxyModuleBytesArray);
         }
-        let proxyModule = await WebAssembly.compile(proxyModuleBytes);
+        const proxyModule = await WebAssembly.compile(proxyModuleBytes as ArrayBuffer);
         // Modify imports if any:
         let importsPromisified = importObject;
         if (importObject !== undefined) {
@@ -231,7 +261,7 @@ export class PromisifiedWasmGenerator {
 
             let module = funcInfo.module;
             let funcName = funcInfo.name;
-            
+
             let funcArgs = funcInfo.in as ValueType[];
             let funcArgsRewritten = ["externref", ...funcArgs]  as ValueType[];
             let funcResults = funcInfo.out as ValueType[];
@@ -264,13 +294,13 @@ export class PromisifiedWasmGenerator {
                 exports: exports,
             });
             const moduleBytes = module.toBytes();
-            return moduleBytes;    
+            return moduleBytes;
         } else {
             let module = Module({
                 exports: exports,
             });
             const moduleBytes = module.toBytes();
-            return moduleBytes;    
+            return moduleBytes;
         }
 
 
@@ -278,10 +308,10 @@ export class PromisifiedWasmGenerator {
     }
 
     /**
-     * 
+     *
      * Returns an instance of the generated promisified adapter as result, wired with the original module and proxy on the back-end.
      * The importObject with async imports is rewritten to the original Module as sync and exports are rewritten as async.
-     * 
+     *
      * @param mainModule original WebAssembly.Module
      * @param importObject imports to original WebAssembly.Module
      * @returns instance of the Adapter WebAssembly.Module
@@ -291,21 +321,21 @@ export class PromisifiedWasmGenerator {
         const proxyRes = await this.generateImportsProxyAndWrappedImports(importObject);
         const wrappedImportsToImportsProxy = proxyRes.imports;
         const table = proxyRes.table;
-    
+
         const instanceMain = await WebAssembly.instantiate(mainModule, wrappedImportsToImportsProxy)
         const memory = instanceMain.exports.memory;
-    
+
         const bytesAdapterArr = this.generateAdapter();
         const bytesAdapter = bytesAdapterArr.buffer;
         if (globalThis.JSPI_DEBUG) {
             await writeFile(`./${modName}_adapter_gen.wasm`, bytesAdapterArr);
         }
-        const modAdapter = await WebAssembly.compile(bytesAdapter);
-    
+        const modAdapter = await WebAssembly.compile(bytesAdapter as ArrayBuffer);
+
         let importsForAdapter = undefined;
         if (importObject !== undefined) {
             importsForAdapter = promisifyImportObject(importObject, modAdapter);
-    
+
             let emptyNsImportsForAdapter = importsForAdapter[""];
             if (emptyNsImportsForAdapter === undefined) {
                 emptyNsImportsForAdapter = {};
@@ -325,7 +355,7 @@ export class PromisifiedWasmGenerator {
                 jspiDebug("Adding $imports table to imports");
                 emptyNsImportsForAdapter["$imports"] = table;
             }
-    
+
             let envImportsForAdapter = importsForAdapter["env"];
             if (envImportsForAdapter === undefined) {
                 envImportsForAdapter = {};
@@ -340,7 +370,7 @@ export class PromisifiedWasmGenerator {
             importsForAdapter = {};
         }
         const instanceAdapter = await WebAssembly.instantiate(modAdapter, importsForAdapter)
-    
+
         const promisifiedInstance = Object.create(WebAssembly.Instance.prototype)
         const promisifiedExports = promisifyWebAssemblyExports(instanceAdapter.exports);
         Object.defineProperty(promisifiedInstance, 'exports', { value: promisifiedExports })
@@ -359,9 +389,8 @@ export class PromisifiedWasmGenerator {
         }
 
         const importsForImportsProxy = {};
-        const instanceImportsProxySource = await WebAssembly.instantiate(bytesImportsProxy, importsForImportsProxy)
-        const instanceImportsProxy = instanceImportsProxySource.instance;
-    
+        const instanceImportsProxy = await WebAssembly.instantiate(bytesImportsProxy, importsForImportsProxy);
+
         const funcInfos = this.getImportFunctionInfos();
         let wrappedImportsToImportsProxy: Record<string,Record<string,any>> = {};
 
@@ -450,7 +479,7 @@ export class PromisifiedWasmGenerator {
             const funcOutValueObjects = valueTypeArrayToValueObjectTypeArray(funcInfo.out);
 
             const type0: FunctionTypeInput = { in: funcInValueObjects,  out: funcOutValueObjects };
-            
+
             const inParams: ToTypeTuple<Tuple<ValueType>> = funcInValueObjects as ToTypeTuple<Tuple<ValueType>>
             const outParams: ToTypeTuple<Tuple<ValueType>> = funcOutValueObjects as ToTypeTuple<Tuple<ValueType>>
 
@@ -475,7 +504,7 @@ export class PromisifiedWasmGenerator {
             exports: exports,
         });
         const moduleBytes = module.toBytes();
-        return moduleBytes;    
+        return moduleBytes;
     }
 
     generateAdapter() {
@@ -505,10 +534,10 @@ export class PromisifiedWasmGenerator {
                 let funcArgsWithExternRef: ValueType[] = ["externref", ...funcArgs];
                 const funcInValueObjects = valueTypeArrayToValueObjectTypeArray(funcArgsWithExternRef);
                 const funcOutValueObjects = valueTypeArrayToValueObjectTypeArray(funcResults);
-    
+
                 const inParams: ToTypeTuple<Tuple<ValueType>> = funcInValueObjects as ToTypeTuple<Tuple<ValueType>>;
                 const outParams: ToTypeTuple<Tuple<ValueType>> = funcOutValueObjects as ToTypeTuple<Tuple<ValueType>>;
-    
+
                 // Define an exported func with added "externref" as async
                 const funcForAsyncExport = func({ in: inParams, out: outParams }, (params) => {
                     var arrayLength = params.length;
@@ -529,7 +558,7 @@ export class PromisifiedWasmGenerator {
                     // Call the imported sync func
                     call(importedExportFunc);
                 });
-    
+
                 exports[funcName] = funcForAsyncExport;
             } else if (exported_value.kind == "memory") {
                 hasMemory = true;
@@ -556,7 +585,7 @@ export class PromisifiedWasmGenerator {
             value: mem,
             deps: [],
         };
-        
+
         let elem_init: Const.refFunc[] = [];
 
         // Redefine imported functions and redefine as async
@@ -575,7 +604,7 @@ export class PromisifiedWasmGenerator {
             const funcInValueTypes: ValueType[] = ["externref", ...funcInVals];
             const funcOutValueTypes: ValueType[] = funcOut;
 
-            const importedAsyncFunc: ImportFunc<typeof funcInValueTypes, typeof funcOutValueTypes> = { 
+            const importedAsyncFunc: ImportFunc<typeof funcInValueTypes, typeof funcOutValueTypes> = {
                 kind: "importFunction",
                 module: module,
                 string: funcName,
@@ -586,7 +615,7 @@ export class PromisifiedWasmGenerator {
                 value: nullfunc,
                 deps: []
             };
-        
+
             const inParams: ToTypeTuple<Tuple<ValueType>> = funcInValueObjects as ToTypeTuple<Tuple<ValueType>>;
             const outParams: ToTypeTuple<Tuple<ValueType>> = funcOutValueObjects as ToTypeTuple<Tuple<ValueType>>;
 
@@ -615,7 +644,7 @@ export class PromisifiedWasmGenerator {
             // Push the function to the table
             elem_init.push(Const.refFunc(funcForExport));
         }
-    
+
         const elem0 = elem(
             {
                 type: {
@@ -634,15 +663,15 @@ export class PromisifiedWasmGenerator {
             i32.const(0);
             call_indirect(imported_table, { in: [], out: [] });
         });
-    
+
         exports["_dummy_elem_init"] = dummy_elem_init;
 
         let module = Module({
             exports: exports,
             memory: imported_memory,
         });
-    
+
         const moduleBytes = module.toBytes();
-        return moduleBytes;    
+        return moduleBytes;
     }
 }
