@@ -2,6 +2,9 @@ name: Publish tsconfig Package
 
 on:
   workflow_dispatch:
+  push:
+      branches:
+      - gh_actions
 
 jobs:
   publish:
@@ -27,15 +30,15 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --prefix .
         working-directory: packages/tsconfig
 
       - name: Build package
-        run: npm run build
+        run: npm run build --prefix .
         working-directory: packages/tsconfig
 
       - name: Publish package
-        run: npm publish
+        run: npm publish --prefix .
         working-directory: packages/tsconfig
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
