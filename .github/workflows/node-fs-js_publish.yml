@@ -1,15 +1,13 @@
-name: Publish wasm-promisify Package
+name: Publish node-fs-js Package
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh_actions
-    paths:
-      - "packages/wasm-promisify/**"
 
 concurrency:
-  group: wasmpromisify-publish
+  group: nodefsjs-publish
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/wasm-promisify
+        working-directory: packages/node-fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,15 +45,15 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/wasm-promisify
+        working-directory: packages/node-fs-js
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/wasm-promisify
+        working-directory: packages/node-fs-js
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/wasm-promisify
+        working-directory: packages/node-fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
