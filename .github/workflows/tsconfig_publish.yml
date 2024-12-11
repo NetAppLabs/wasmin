@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - gh_actions
+    paths:
+      - 'packages/tsconfig/**'
 
 concurrency:
   group: tsconfig-publish
@@ -48,7 +50,7 @@ jobs:
 
       - name: Commit and push version bump
         run: |
-          git push --follow-tags
+          git push
 
       - name: Build package
         run: npm run build --prefix .
