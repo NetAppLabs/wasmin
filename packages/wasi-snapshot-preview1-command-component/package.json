@@ -29,9 +29,10 @@
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^1.2.4",
-        "@netapplabs/tsconfig": "^0.0.2"
+        "@netapplabs/tsconfig": "^0.0.2",
+        "@types/node": "^22.10.2"
     },
     "dependencies": {
-		"@netapplabs/wasm-promisify": "^0.10.1"
-	}
+        "@netapplabs/wasm-promisify": "^0.10.1"
+    }
 }
