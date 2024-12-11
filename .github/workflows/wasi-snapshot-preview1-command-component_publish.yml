@@ -1,15 +1,13 @@
-name: Publish node-fs-js Package
+name: Publish wasi-snapshot-preview1-command-component Package
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh_actions
-    paths:
-      - "packages/node-fs-js/**"
 
 concurrency:
-  group: nodefsjs-publish
+  group: wasispcc-publish
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/node-fs-js
+        working-directory: packages/wasi-snapshot-preview1-command-component
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,15 +45,15 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/node-fs-js
+        working-directory: packages/wasi-snapshot-preview1-command-component
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/node-fs-js
+        working-directory: packages/wasi-snapshot-preview1-command-component
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/node-fs-js
+        working-directory: packages/wasi-snapshot-preview1-command-component
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
