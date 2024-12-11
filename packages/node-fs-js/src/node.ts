@@ -1,5 +1,4 @@
 import { promises as fs } from "node:fs";
-import { utimesSync, statSync } from "node:fs";
 
 import { join, basename } from "node:path";
 
@@ -15,10 +14,10 @@ import {
     FileSystemHandlePermissionDescriptor,
     Statable,
     FileSystemSyncAccessHandle,
-} from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
 import { fileFrom } from "./fetch-blob/form.js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
-import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@netapplabs/fs-js";
+import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@netapplabs/fs-js";
 import type { MyFile } from "./fetch-blob/file.js";
 
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
