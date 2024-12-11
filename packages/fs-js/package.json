@@ -22,7 +22,10 @@
     "test": "vitest run --globals",
     "test:ui": "vitest run --globals --ui"
   },
-  "repository": "ssh://git@github.com/NetAppLabs/wasmin.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "keywords": [
     "filesystem",
     "file",
