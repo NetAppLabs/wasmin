@@ -3,8 +3,12 @@ name: Publish tsconfig Package
 on:
   workflow_dispatch:
   push:
-      branches:
+    branches:
       - gh_actions
+
+concurrency:
+  group: tsconfig-publish
+  cancel-in-progress: true
 
 jobs:
   publish:
