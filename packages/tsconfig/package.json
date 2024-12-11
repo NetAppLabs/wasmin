@@ -30,5 +30,8 @@
   "dependencies": {
     "typescript": "^5.4.2"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  }
 }

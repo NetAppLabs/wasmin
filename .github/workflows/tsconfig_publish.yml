@@ -37,6 +37,18 @@ jobs:
         run: npm install --prefix .
         working-directory: packages/tsconfig
 
+      - name: Bump version
+        run: npx standard-version
+        working-directory: packages/tsconfig
+
+      - name: Commit and push version bump
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add packages/tsconfig/package.json packages/tsconfig/CHANGELOG.md
+          git commit -m "chore(release): bump version"
+          git push origin gh_actions
+
       - name: Build package
         run: npm run build --prefix .
         working-directory: packages/tsconfig
