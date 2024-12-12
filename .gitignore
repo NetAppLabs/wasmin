@@ -35,7 +35,7 @@ yarn-error.log*
 # submodules
 #packages/wasi-js
 #packages/fs-js
-packages/nfs-js
+#packages/nfs-js
 
 *.log
 
