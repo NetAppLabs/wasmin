@@ -12,7 +12,7 @@ import {
     instantiateWithAsyncDetection,
     isStackSwitchingEnabled,
 } from "./desyncify.js";
-import { isJspiEnabled } from "@wasmin/wasm-promisify"; 
+import { isJspiEnabled } from "@netapplabs/wasm-promisify";
 import { WasmWorker } from "./wasmWorker.js";
 import * as comlink from "comlink";
 
@@ -790,7 +790,7 @@ export class WASI {
                 wasiDebug("wasi.handleIimport is not SharedArrayBuffer: ", buf);
                 wasmBuf = buf;
                 const mem: WebAssembly.Memory = {
-                    buffer: wasmBuf,
+                    buffer: wasmBuf as ArrayBuffer,
                     grow: function (delta: number): number {
                         throw new Error("grow function not implemented.");
                     },

@@ -1,12 +1,12 @@
-import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
+import { IoStreamsNamespace as io } from "@netapplabs/wasi-snapshot-preview2/async";
 type IoStreamsAsync = io.WasiIoStreams;
-import { IoErrorNamespace as errorns } from "@wasmin/wasi-snapshot-preview2/async";
+import { IoErrorNamespace as errorns } from "@netapplabs/wasi-snapshot-preview2/async";
 type IoErrorAsync = errorns.WasiIoError;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { isBadFileDescriptor, isErrorAgain, isIoSocketsError, translateToFsOrSocketsError } from "./preview2Utils.js";
 import { OpenFiles, Peekable } from "../../wasiFileSystem.js";
 import { sleep } from "../../utils.js";
-import { IOPollNamespace as pollns } from "@wasmin/wasi-snapshot-preview2/async";
+import { IOPollNamespace as pollns } from "@netapplabs/wasi-snapshot-preview2/async";
 import { Resource } from "../../wasiResources.js";
 import { wasiPreview2Debug } from "../../wasiDebug.js";
 

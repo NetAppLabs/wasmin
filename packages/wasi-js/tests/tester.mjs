@@ -5,11 +5,11 @@ import { spawn } from "node:child_process";
 import { resolve, join, dirname } from "node:path";
 import fs from "node:fs/promises";
 import { readFile } from "fs/promises";
-import { WASI, OpenFiles, stringOut, bufferIn } from "@wasmin/wasi-js";
-import { getOriginPrivateDirectory } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
+import { WASI, OpenFiles, stringOut, bufferIn } from "../src";
+import { getOriginPrivateDirectory } from "@netapplabs/fs-js";
+import { node } from "@netapplabs/node-fs-js";
 import { fileURLToPath } from "node:url";
-import { isBun } from "@wasmin/wasi-js/index.js";
+import { isBun } from "../src";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 

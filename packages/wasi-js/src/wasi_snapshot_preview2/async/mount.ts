@@ -1,10 +1,10 @@
-import { FilesystemsMountNamespace as fsm } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemsMountNamespace as fsm } from "@netapplabs/wasi-snapshot-preview2/async";
 type WasiExtFilesystemsMount = fsm.WasiExtFilesystemsMount;
 type FsMountErrCode = fsm.ErrorCode;
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { wasiPreview2Debug } from "../../wasiDebug.js";
-import { getDirectoryHandleByURL, showDirectoryPicker } from "@wasmin/fs-js";
+import { getDirectoryHandleByURL, showDirectoryPicker } from "@netapplabs/fs-js";
 import { FileSystemFileDescriptor } from "./filesystem.js";
 
 export class WasiExtFilesystemsMountAsyncHost implements WasiExtFilesystemsMount {

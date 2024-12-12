@@ -1,10 +1,10 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import os from "node:os";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
-import { memory } from "@wasmin/fs-js";
-import { constructWasiForTest, Test } from "@wasmin/wasi-js/testutil";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@netapplabs/fs-js";
+import { node } from "@netapplabs/node-fs-js";
+import { memory } from "@netapplabs/fs-js";
+import { constructWasiForTest, Test } from "../src/testutil";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let backend: backendType = "memory";

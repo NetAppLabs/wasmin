@@ -1,6 +1,6 @@
-import { HttpOutgoingHandlerNamespace as httpo } from "@wasmin/wasi-snapshot-preview2/async";
-import { HttpTypesNamespace as httpt } from "@wasmin/wasi-snapshot-preview2/async";
-import { IoStreamsNamespace as ion } from "@wasmin/wasi-snapshot-preview2/async";
+import { HttpOutgoingHandlerNamespace as httpo } from "@netapplabs/wasi-snapshot-preview2/async";
+import { HttpTypesNamespace as httpt } from "@netapplabs/wasi-snapshot-preview2/async";
+import { IoStreamsNamespace as ion } from "@netapplabs/wasi-snapshot-preview2/async";
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { wasiPreview2Debug } from "../../wasiDebug.js";

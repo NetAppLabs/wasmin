@@ -5,18 +5,18 @@ import path from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-//import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js";
-//import { Test, constructTestsForTestSuites, constructWasiForTest } from "@wasmin/wasi-js/testutil";
-import { constructOneTestForTestSuite, constructWasiForTest } from "@wasmin/wasi-js/testutil";
-import { getOriginPrivateDirectory } from "@wasmin/fs-js";
-import { isBun } from "@wasmin/wasi-js/index.js";
+//import { constructOneTestForTestSuite, constructWasiForTest } from "@netapplabs/wasi-js";
+//import { Test, constructTestsForTestSuites, constructWasiForTest } from "@netapplabs/wasi-js/testutil";
+import { constructOneTestForTestSuite, constructWasiForTest } from "@netapplabs/wasi-js/testutil";
+import { getOriginPrivateDirectory } from "@netapplabs/fs-js";
+import { isBun } from "@netapplabs/wasi-js/index.js";
 import { default as process } from "node:process";
-import { node } from "@wasmin/node-fs-js";
+import { node } from "@netapplabs/node-fs-js";
 //import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
 export async function constructWasiForTestRuntimeDetection(testCase) {
     if (isBun()) {
-        const bunmod = await import("@wasmin/bun-fs-js");
+        const bunmod = await import("@netapplabs/bun-fs-js");
         const bun = bunmod.bun;
         return constructWasiForTest(testCase, bun);
     } else {
