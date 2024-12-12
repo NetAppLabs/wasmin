@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/wasi-snapshot-preview2",
+  "name": "@netapplabs/wasi-snapshot-preview2",
   "version": "0.0.9",
   "description": "WASI Snapshot Preview2 Interface Definitions",
   "type": "module",
@@ -34,17 +34,18 @@
   "module": "./dist/index.js",
   "scripts": {
     "build": "tsc -p .",
-	"generate-types": "./generate-types.sh"
+    "generate-types": "./generate-types.sh"
   },
   "files": [
     "dist",
     "src"
   ],
   "devDependencies": {
+    "@netapplabs/tsconfig": "^0.0.2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytecodealliance/jco.git"
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
   },
   "license": "(Apache-2.0 WITH LLVM-exception)",
   "bugs": {

@@ -1,15 +1,13 @@
-name: Publish wasi-snapshot-preview1-command-component Package
+name: Publish wasi-snapshot-preview2 Package
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh_actions
-    paths:
-      - "packages/wasi-snapshot-preview1-command-component/**"
 
 concurrency:
-  group: wasispcc-publish
+  group: wsp2-publish
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/wasi-snapshot-preview1-command-component
+        working-directory: packages/wasi-snapshot-preview2
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,15 +45,15 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/wasi-snapshot-preview1-command-component
+        working-directory: packages/wasi-snapshot-preview2
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/wasi-snapshot-preview1-command-component
+        working-directory: packages/wasi-snapshot-preview2
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/wasi-snapshot-preview1-command-component
+        working-directory: packages/wasi-snapshot-preview2
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
