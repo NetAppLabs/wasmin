@@ -1,7 +1,11 @@
 {
     "version": "0.1.0",
-    "name": "@wasmin/nfs-js",
+    "name": "@netapplabs/nfs-js",
     "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/NetAppLabs/wasmin.git"
+    },
     "main": "component/index.js",
     "files": [
         "component/index.ts"
@@ -16,7 +20,7 @@
         "vitest": "^2.1.2"
     },
     "dependencies": {
-        "@wasmin/fs-js": "*",
-        "@wasmin/wasi-js": "*"
+        "@netapplabs/fs-js": "^0.0.7",
+        "@netapplabs/wasi-js": "^0.1.1"
     }
 }

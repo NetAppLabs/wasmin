@@ -1,6 +1,6 @@
-import { instantiate } from "./nfs_rs.js";
-import { WASIWorker } from "@wasmin/wasi-js";
-import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@wasmin/fs-js";
+import { instantiate } from "./nfs_rs";
+import { WASIWorker } from "@netapplabs/wasi-js";
+import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@netapplabs/fs-js";
 import process from "node:process";
 const ACCESS3_READ = 0x0001;
 const ACCESS3_LOOKUP = 0x0002;
@@ -825,7 +825,7 @@ export class NfsBlob {
         this.type = contentType || "unknown";
     }
     arrayBuffer() {
-        return new Promise(async (resolve) => resolve(this._data));
+        return new Promise(async (resolve) => resolve(this._data.buffer));
     }
     slice(start, end, contentType) {
         const blob = new NfsBlob(this._mount, this._fh, this._data.slice(start, end), contentType);
@@ -950,11 +950,11 @@ export class NfsSink {
             }
             else if (data instanceof String) {
                 const encoder = new TextEncoder();
-                buffer = encoder.encode(data.toString());
+                buffer = encoder.encode(data.toString()).buffer;
             }
             else {
                 const encoder = new TextEncoder();
-                buffer = encoder.encode(data);
+                buffer = encoder.encode(data).buffer;
             }
             try {
                 this.ensureExistingIfToBeKept();

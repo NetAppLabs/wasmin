@@ -1,15 +1,13 @@
-name: Publish wasi-js Package
+name: Publish nfs-js Package
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh_actions
-    paths:
-      - 'packages/wasi-js/**'
 
 concurrency:
-  group: wasijs-publish
+  group: nfsjs-publish
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/wasi-js
+        working-directory: packages/nfs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,15 +45,15 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/wasi-js
+        working-directory: packages/nfs-js
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/wasi-js
+        working-directory: packages/nfs-js
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/wasi-js
+        working-directory: packages/nfs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
