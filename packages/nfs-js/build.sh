@@ -43,4 +43,4 @@ if `git status | grep -q "modified:   component/interfaces/wasi-io-streams.d.ts"
     rm wasi-io-streams.diff silly.diff
 fi
 
-npx tsc -p .
+npm run ts --prefix .

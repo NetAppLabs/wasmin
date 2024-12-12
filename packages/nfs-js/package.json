@@ -11,6 +11,7 @@
         "component/index.ts"
     ],
     "scripts": {
+        "ts": "tsc -p .",
         "build": "./build.sh",
         "test": "./test.sh",
         "bun-test": "./test-bun.sh"
