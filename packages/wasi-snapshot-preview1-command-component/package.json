@@ -8,6 +8,8 @@
     },
     "main": "./index.js",
     "files": [
+        "index.js",
+        "index.d.ts",
         "component-jspi/index.d.ts",
         "component-jspi/index.js",
         "component-jspi/component.js",
