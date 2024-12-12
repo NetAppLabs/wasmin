@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/wasi-snapshot-preview2",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "WASI Snapshot Preview2 Interface Definitions",
   "type": "module",
   "types": "./dist/index.d.ts",
