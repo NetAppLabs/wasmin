@@ -24,10 +24,10 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasmin/fs-js": "*"
+    "@netapplabs/fs-js": "*"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
+    "@netapplabs/tsconfig": "*",
     "bun-types": "^1.1.22",
     "eslint-config-custom": "*"
   }

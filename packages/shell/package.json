@@ -31,16 +31,16 @@
     }
   ],
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
+    "@netapplabs/tsconfig": "*",
     "eslint-config-custom": "*"
   },
   "dependencies": {
-    "@wasmin/fs-js": "*",
+    "@netapplabs/fs-js": "*",
     "@wasmin/github-fs-js": "*",
-    "@wasmin/nfs-js": "*",
-    "@wasmin/node-fs-js": "*",
+    "@netapplabs/nfs-js": "*",
+    "@netapplabs/node-fs-js": "*",
     "@wasmin/s3-fs-js": "*",
-    "@wasmin/wasi-js": "*",
+    "@netapplabs/wasi-js": "*",
     "chalk": "^5.3.0"
   }
 }

@@ -5,21 +5,23 @@ import {
     SyntaxError,
     TypeMismatchError,
 } from "../errors.js";
-import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";
-import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
-import { openFileHandle } from "./util.js";
+import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements";
+import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle";
+import { openFileHandle } from "./util";
 import { default as yaml } from "js-yaml";
 import {
+    FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemHandlePermissionDescriptor,
-    Mountable,
-    NFileSystemWritableFileStream,
-    PreNameCheck,
     FileSystemSyncAccessHandle,
-} from "../index.js";
-import { FileSystemHandle } from "../index.js";
+    FileSystemWriteChunkType,
+    FileSystemWritableFileStream
+} from "../FileSystemAccess";
+import { NFileSystemWritableFileStream } from "../NFileSystemWritableFileStream";
+import { Mountable } from "../ExtHandles";
+import { PreNameCheck } from "../util";
 import { MountedEntry } from "../ExtHandles.js";
 
 const INDEXEDDB_DEBUG = false;
@@ -187,7 +189,7 @@ export class IndexeddbFolderHandle
     _rootFolderHandle?: IndexeddbFolderHandle;
     _securityStore?: any;
 
-    [Symbol.asyncIterator]() {
+    [Symbol.asyncIterator](): AsyncIterableIterator<[string, FileSystemFileHandle | FileSystemDirectoryHandle]> {
         return this.entries();
     }
 

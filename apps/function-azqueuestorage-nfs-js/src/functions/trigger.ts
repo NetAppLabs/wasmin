@@ -7,11 +7,11 @@ let app = af.app;
 // @ts-ignore
 import compile from 'wat-compiler'
 
-import { WASI, OpenFiles, setWorkerOverrideUrl } from "@wasmin/wasi-js";
-import { nfs } from "@wasmin/nfs-js";
+import { WASI, OpenFiles, setWorkerOverrideUrl } from "@netapplabs/wasi-js";
+import { nfs } from "@netapplabs/nfs-js";
 import { s3 } from "@wasmin/s3-fs-js";
 
-import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import * as fs from 'node:fs';
 import { InvocationContext, LogHookContext, PreInvocationContext } from '@azure/functions';
 

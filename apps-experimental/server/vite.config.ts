@@ -55,8 +55,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
-      name: "@wasmin/fs-js",
-      fileName: (format) => `dist/@wasmin/fs-js.${format}.js`,
+      name: "@netapplabs/fs-js",
+      fileName: (format) => `dist/@netapplabs/fs-js.${format}.js`,
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
@@ -83,7 +83,7 @@ export default defineConfig({
     target: "esnext",
     lib: {
       entry: "src/index.ts",
-      name: "@wasmin/fs-js",
+      name: "@netapplabs/fs-js",
     },
     rollupOptions: {
       external: ["fs", "path", "node"],

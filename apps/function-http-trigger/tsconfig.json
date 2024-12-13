@@ -1,5 +1,5 @@
 {
-  "extends": "@wasmin/tsconfig",
+  "extends": "@netapplabs/tsconfig",
   "compilerOptions": {
     "lib": [
       "dom",

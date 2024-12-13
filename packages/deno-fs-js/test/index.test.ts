@@ -28,10 +28,10 @@ globalThis.expect = expect;
 // @ts-ignore
 globalThis.test = test;
 
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import { deno } from "../src/index.js";
 
-import { TestsFileSystemHandleImportTestDefinitions } from "@wasmin/fs-js";
+import { TestsFileSystemHandleImportTestDefinitions } from "@netapplabs/fs-js";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";

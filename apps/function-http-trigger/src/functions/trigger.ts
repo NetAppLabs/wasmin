@@ -3,10 +3,10 @@ import sharp from 'sharp';
 
 let af = await import('@azure/functions');
 
-import { nfs } from "@wasmin/nfs-js";
+import { nfs } from "@netapplabs/nfs-js";
 import { s3 } from "@wasmin/s3-fs-js";
 
-import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 // import * as fs from 'node:fs';
 import { InvocationContext, HttpRequest, HttpResponseInit } from '@azure/functions';
 

@@ -6,12 +6,9 @@
     "apps/*",
     "packages/*"
   ],
-  "license": {
-    "type" : "Apache-2.0",
-    "url" : "https://opensource.org/license/apache-2-0"
-  },
+  "license": "UNLICENSED",
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "test": "turbo run test",
@@ -26,6 +23,7 @@
     "stream-browserify": "^3.0.0",
     "string_decoder": "^1.3.0",
     "turbo": "2.2.3",
+    "typescript": "^5.7.2",
     "vm-browserify": "^1.1.2"
   },
   "engines": {

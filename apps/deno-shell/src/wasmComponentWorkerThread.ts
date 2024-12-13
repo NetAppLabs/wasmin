@@ -1,4 +1,4 @@
 import * as comlink from "comlink";
-import { WasmComponentWorkerThreadRunner } from "@wasmin/wasi-js";
+import { WasmComponentWorkerThreadRunner } from "@netapplabs/wasi-js";
 
 comlink.expose(new WasmComponentWorkerThreadRunner());

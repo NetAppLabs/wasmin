@@ -15,14 +15,14 @@
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.17.7",
     "@types/node": "^22.7.5",
-    "@wasmin/tsconfig": "*",
+    "@netapplabs/tsconfig": "*",
     "esbuild": "^0.24.0",
     "vite": "^5.1.6"
   },
   "dependencies": {
-    "@wasmin/fs-js": "*",
-    "@wasmin/node-fs-js": "*",
+    "@netapplabs/fs-js": "*",
+    "@netapplabs/node-fs-js": "*",
     "@wasmin/shell": "*",
-    "@wasmin/wasi-js": "*"
+    "@netapplabs/wasi-js": "*"
   }
 }

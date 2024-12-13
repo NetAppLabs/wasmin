@@ -14,7 +14,7 @@
     "forceConsistentCasingInFileNames": true,
     "inlineSources": true,
     "isolatedModules": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "preserveWatchOutput": true,

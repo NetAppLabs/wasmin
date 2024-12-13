@@ -16,8 +16,8 @@ import {
     Statable,
     SyntaxError,
     TypeMismatchError,
-} from "@wasmin/fs-js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@netapplabs/fs-js";
 
 // @ts-ignore because of issues with including @types/bun
 import { FileBlob, file as bunFile, version } from "bun";

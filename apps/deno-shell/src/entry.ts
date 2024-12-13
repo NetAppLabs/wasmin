@@ -1,6 +1,6 @@
 import { startShell } from "@wasmin/shell";
 import { deno as denofs } from "@wasmin/deno-fs-js";
-import { setWorkerOverrideUrl } from '@wasmin/wasi-js';
+import { setWorkerOverrideUrl } from '@netapplabs/wasi-js';
 
 export async function main() {
 

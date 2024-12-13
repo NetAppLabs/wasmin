@@ -3,7 +3,7 @@ import { HostManagerInstance } from "./host.js";
 import { getLogger } from "./log.js";
 import { Host, Process } from "./types.js";
 
-import { TypeMismatchError } from "@wasmin/fs-js";
+import { TypeMismatchError } from "@netapplabs/fs-js";
 import {
     PermissionState,
     FileSystemHandle,
@@ -12,7 +12,7 @@ import {
     FileSystemSyncAccessHandle,
     FileSystemHandlePermissionDescriptor,
     FileSystemWritableFileStream,
-} from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
 
 /*
 declare var File: {

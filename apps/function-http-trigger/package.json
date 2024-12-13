@@ -18,10 +18,10 @@
   "dependencies": {
     "@azure/functions": "^4.6.0",
     "@azure/storage-queue": "^12.24.0",
-    "@wasmin/fs-js": "*",
-    "@wasmin/nfs-js": "*",
+    "@netapplabs/fs-js": "*",
+    "@netapplabs/nfs-js": "*",
     "@wasmin/s3-fs-js": "*",
-    "@wasmin/wasi-js": "*",
+    "@netapplabs/wasi-js": "*",
     "sharp": "^0.33.5",
     "wat-compiler": "^1.1.1"
   },

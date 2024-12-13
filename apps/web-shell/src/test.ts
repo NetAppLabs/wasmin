@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, stringOut, bufferIn } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, stringOut, bufferIn } from "@netapplabs/wasi-js";
 
 const EOL = "\n";
 

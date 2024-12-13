@@ -1,19 +1,18 @@
 // types already exported from typescript lib.dom.d.ts
-/*
-export type WriteCommandType = "seek" | "truncate" | "write";
 
+export type WriteCommandType = "seek" | "truncate" | "write";
 export interface WriteParams {
     data?: BufferSource | Blob | string | null;
     position?: number | null;
     size?: number | null;
     type: WriteCommandType;
-};
+}
 export interface FileSystemGetFileOptions {
     create?: boolean;
-};
+}
 export interface FileSystemRemoveOptions {
     recursive?: boolean;
-};*/
+}
 export interface FileSystemReadWriteOptions {
     at?: number;
 }

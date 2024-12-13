@@ -41,7 +41,8 @@
     "src"
   ],
   "devDependencies": {
-    "@netapplabs/tsconfig": "^0.0.2"
+    "@netapplabs/tsconfig": "^0.0.2",
+    "typescript": "^5.7.2"
   },
   "repository": {
     "type": "git",

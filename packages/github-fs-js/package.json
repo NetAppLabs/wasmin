@@ -24,10 +24,11 @@
   "author": "tryggvil",
   "license": "MIT",
   "dependencies": {
-    "@wasmin/fs-js": "*"
+    "@netapplabs/fs-js": "*"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
-    "eslint-config-custom": "*"
+    "@netapplabs/tsconfig": "*",
+    "eslint-config-custom": "*",
+    "typescript": "^5.7.2"
   }
 }

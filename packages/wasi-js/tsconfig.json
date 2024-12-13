@@ -6,7 +6,8 @@
       "webworker",
       "esnext"
     ],
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "moduleResolution": "bundler",
   },
   "include": [
     "./src"

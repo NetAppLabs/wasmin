@@ -23,11 +23,11 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasmin/fs-js": "*",
-    "@wasmin/node-fs-js": "*"
+    "@netapplabs/fs-js": "*",
+    "@netapplabs/node-fs-js": "*"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
+    "@netapplabs/tsconfig": "*",
     "eslint-config-custom": "*",
     "vitest": "^2.1.2"
   }

@@ -1,4 +1,4 @@
-import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray } from "@netapplabs/wasi-js";
 import { promises } from "node:fs";
 import { Socket } from "node:net";
 
@@ -7,19 +7,19 @@ import { Socket } from "node:net";
 // @ts-ignore
 //import { File, Blob } from 'node:buffer';
 
-import { FileSystemDirectoryHandle, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js";
-import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
+import { FileSystemDirectoryHandle, getDirectoryHandleByURL, isBun } from "@netapplabs/fs-js";
+import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirectoryHandle } from "@netapplabs/fs-js";
+import { node } from "@netapplabs/node-fs-js";
 import process from "node:process";
 
 import { s3 } from "@wasmin/s3-fs-js";
-import { nfs } from "@wasmin/nfs-js";
+import { nfs } from "@netapplabs/nfs-js";
 import { github } from "@wasmin/github-fs-js";
 import { parseArgs } from "node:util";
 
 import chalk from 'chalk';
-import { BufferedPipe } from "@wasmin/wasi-js";
-import { initializeLogging } from "@wasmin/wasi-js";
+import { BufferedPipe } from "@netapplabs/wasi-js";
+import { initializeLogging } from "@netapplabs/wasi-js";
 
 let DEBUG_MODE = true;
 const USE_MEMORY = false;

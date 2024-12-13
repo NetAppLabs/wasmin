@@ -2,7 +2,7 @@ import { Process } from "./types.js";
 import { getLogger } from "./log.js";
 import { CreateProcessId } from "./util.js";
 
-import { Readable, WASI, Writable } from "@wasmin/wasi-js";
+import { Readable, WASI, Writable } from "@netapplabs/wasi-js";
 
 
 class BufferedInOut implements Writable, Readable {

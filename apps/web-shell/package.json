@@ -9,21 +9,21 @@
     "serve": "vite preview"
   },
   "devDependencies": {
+    "@netapplabs/tsconfig": "*",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
-    "@wasmin/tsconfig": "*",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
     "vite": "^5.4.10"
   },
   "dependencies": {
-    "@wasmin/wasi-js": "*",
-    "@wasmin/fs-js": "*",
-    "@wasmin/s3-fs-js": "*",
+    "@netapplabs/fs-js": "*",
+    "@netapplabs/nfs-js": "*",
+    "@netapplabs/wasi-js": "*",
     "@wasmin/github-fs-js": "*",
-    "@wasmin/nfs-js": "*",
+    "@wasmin/s3-fs-js": "*",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-image": "^0.8.0",
     "@xterm/addon-webgl": "^0.18.0",
     "@xterm/xterm": "^5.5.0",
-    "local-echo": "wavesoft/local-echo"
+    "local-echo": "^0.2.0"
   }
 }

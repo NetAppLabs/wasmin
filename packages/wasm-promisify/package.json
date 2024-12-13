@@ -29,7 +29,8 @@
     "src"
   ],
   "devDependencies": {
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "@netapplabs/tsconfig": "^0.0.2",

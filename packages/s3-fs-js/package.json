@@ -12,6 +12,10 @@
     "dist",
     "src"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "scripts": {
     "build": "tsc -p .",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
@@ -27,12 +31,13 @@
   "author": "tryggvil",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.665.0",
-    "@wasmin/fs-js": "*"
+    "@netapplabs/fs-js": "^0.0.7"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
+    "@netapplabs/tsconfig": "*",
     "ava": "^6.2.0",
     "eslint-config-custom": "*",
+    "typescript": "^5.7.2",
     "vitest": "^2.1.4"
   }
 }

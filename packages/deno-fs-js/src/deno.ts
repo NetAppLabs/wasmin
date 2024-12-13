@@ -16,10 +16,10 @@ import {
     FileSystemHandlePermissionDescriptor,
     Statable,
     FileSystemSyncAccessHandle,
-} from "@wasmin/fs-js";
-import { fileFrom } from "@wasmin/node-fs-js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
-import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
+import { fileFrom } from "@netapplabs/node-fs-js";
+import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@netapplabs/fs-js";
+import { FileSystemWritableFileStream, FileSystemDirectoryHandle, FileSystemFileHandle } from "@netapplabs/fs-js";
 
 
 async function fileFromDeno(filePath: string) {
