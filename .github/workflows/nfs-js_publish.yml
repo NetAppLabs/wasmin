@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - gh_actions
+    paths:
+      - 'packages/nfs-js/**'
 
 concurrency:
   group: nfsjs-publish
