@@ -8,7 +8,7 @@
     },
     "main": "component/index.js",
     "files": [
-        "component/index.ts"
+        "component"
     ],
     "scripts": {
         "ts": "tsc -p .",
