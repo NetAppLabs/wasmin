@@ -1,8 +1,12 @@
 {
-  "name": "@wasmin/github-fs-js",
+  "name": "@netapplabs/github-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "source": "src/index.ts",
   "exports": "./dist/index.js",
   "main": "./dist/index.js",

@@ -1,12 +1,10 @@
-name: Publish s3-fs-js Package
+name: Publish github-fs-js Package
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh_actions
-    paths:
-      - 'packages/s3-fs-js/**'
 
 concurrency:
   group: s3fsjs-publish
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix .
-        working-directory: packages/s3-fs-js
+        working-directory: packages/github-fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,15 +45,15 @@ jobs:
 
       - name: Bump version
         run: npx standard-version
-        working-directory: packages/s3-fs-js
+        working-directory: packages/github-fs-js
 
       - name: Build package
         run: npm run build --prefix .
-        working-directory: packages/s3-fs-js
+        working-directory: packages/github-fs-js
 
       - name: Publish package
         run: npm publish --prefix .
-        working-directory: packages/s3-fs-js
+        working-directory: packages/github-fs-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
