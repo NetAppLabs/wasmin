@@ -9,6 +9,7 @@
         "outDir": "./component"
     },
     "include": [
-        "./component/index.ts"
+        "./component/index.ts",
+        "./component/**/*.ts",
     ]
 }
