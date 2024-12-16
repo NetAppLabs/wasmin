@@ -1,4 +1,4 @@
-name: Publish github-fs-js Package
+name: Publish bun-fs-js Package
 
 on:
   workflow_dispatch:

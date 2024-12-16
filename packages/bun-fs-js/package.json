@@ -28,10 +28,10 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@netapplabs/fs-js": "*"
+    "@netapplabs/fs-js": "^0.0.8"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "*",
+    "@netapplabs/tsconfig": "^0.0.3",
     "bun-types": "^1.1.22",
     "eslint-config-custom": "*",
     "typescript": "^5.7.2"
