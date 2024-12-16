@@ -135,7 +135,7 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
             // @ts-ignore
             for await (const data of chunk.stream()) {
                 //const res = await this.fileHandle.writev(
-                const written = fsSync.writevSync(this.fileHandleNumber, [data as Buffer], this.position);
+                const written = fsSync.writevSync(this.fileHandleNumber, [data], this.position);
                 this.position += written;
                 this.size += written;
             }
@@ -211,10 +211,6 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
         return fstream;
     }
 
-    private getPath() {
-        return this.path;
-    }
-
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
         throw new Error("createSyncAccessHandle not implemented");
     }
@@ -249,6 +245,10 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
         const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
         //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
         await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
+
+    private getPath() {
+        return this.path;
     }
 }
 

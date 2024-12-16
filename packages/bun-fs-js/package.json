@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/bun-fs-js",
+  "name": "@netapplabs/bun-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -7,6 +7,10 @@
   "exports": "./dist/index.js",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -29,6 +33,7 @@
   "devDependencies": {
     "@netapplabs/tsconfig": "*",
     "bun-types": "^1.1.22",
-    "eslint-config-custom": "*"
+    "eslint-config-custom": "*",
+    "typescript": "^5.7.2"
   }
 }

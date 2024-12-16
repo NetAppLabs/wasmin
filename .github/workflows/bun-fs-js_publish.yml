@@ -1,0 +1,64 @@
+name: Publish github-fs-js Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - gh_actions
+    paths:
+      - 'packages/github-fs-js/**'
+
+concurrency:
+  group: s3fsjs-publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up GH Package Registry Auth
+        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@netapplabs'
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --prefix .
+        working-directory: packages/bun-fs-js
+        env:
+          BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Bump version
+        run: bunx standard-version
+        working-directory: packages/bun-fs-js
+
+      - name: Build package
+        run: bun build --prefix .
+        working-directory: packages/bun-fs-js
+
+      - name: Publish package
+        run: bun publish --prefix .
+        working-directory: packages/bun-fs-js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git push

@@ -1,1 +1,1 @@
-export { default as bun } from "./bun.js";
+export { default as bun } from "./bun";

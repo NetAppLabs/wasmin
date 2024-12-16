@@ -18,7 +18,10 @@
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start"
   },
-  "repository": "ssh://git@github.com/tryggvil/shell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "author": "tryggvil",
   "license": "MIT",
   "homepage": "https://github.com/tryggvil/shell#readme",
