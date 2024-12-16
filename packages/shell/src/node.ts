@@ -12,9 +12,9 @@ import { memory, getOriginPrivateDirectory, RegisterProvider, NFileSystemDirecto
 import { node } from "@netapplabs/node-fs-js";
 import process from "node:process";
 
-import { s3 } from "@wasmin/s3-fs-js";
+import { s3 } from "@netapplabs/s3-fs-js";
 import { nfs } from "@netapplabs/nfs-js";
-import { github } from "@wasmin/github-fs-js";
+import { github } from "@netapplabs/github-fs-js";
 import { parseArgs } from "node:util";
 
 import chalk from 'chalk';
