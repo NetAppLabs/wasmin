@@ -32,7 +32,8 @@
   ],
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
-    "eslint-config-custom": "*"
+    "eslint-config-custom": "*",
+    "npm-run-all": "^4.1.5"
   },
   "dependencies": {
     "@netapplabs/fs-js": "^0.0.8",
