@@ -5,11 +5,9 @@ on:
   push:
     branches:
       - gh_actions
-    paths:
-      - 'packages/github-fs-js/**'
 
 concurrency:
-  group: s3fsjs-publish
+  group: bunfsjs-publish
   cancel-in-progress: true
 
 jobs:
