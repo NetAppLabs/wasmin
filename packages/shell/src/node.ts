@@ -493,7 +493,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         if (!isBun()) {
             RegisterProvider("node", node);
         //} else if (isBun()) {
-        //    const bunimport = await import("@wasmin/bun-fs-js");
+        //    const bunimport = await import("@netapplabs/bun-fs-js");
         //    const bunfs = bunimport.bun;
         //    RegisterProvider("bun", bunfs);
         }

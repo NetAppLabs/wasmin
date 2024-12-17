@@ -37,7 +37,7 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
                 fixturesTestDir = dstTemp;
             }
             if (isBun()) {
-                const bunmod = await import("@wasmin/bun-fs-js");
+                const bunmod = await import("@netapplabs/bun-fs-js");
                 const bun = bunmod.bun;
                 return getOriginPrivateDirectory(bun, fixturesTestDir);
             } else {
@@ -49,7 +49,7 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
 
 export async function constructWasiForTestRuntimeDetection(testCase: Test) {
     if (isBun()) {
-        const bunmod = await import("@wasmin/bun-fs-js");
+        const bunmod = await import("@netapplabs/bun-fs-js");
         const bun = bunmod.bun;
         return constructWasiForTest(testCase, bun);
     } else {

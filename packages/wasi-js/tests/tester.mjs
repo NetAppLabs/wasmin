@@ -24,7 +24,7 @@ async function getRootHandle(backend) {
             return getOriginPrivateDirectory(memory);
         default: {
             if (isBun()) {
-                const bunmod = await import("@wasmin/bun-fs-js");
+                const bunmod = await import("@netapplabs/bun-fs-js");
                 const bun = bunmod.bun;
                 return getOriginPrivateDirectory(bun, resolve(join(baseDir, "fixtures")));
             } else {

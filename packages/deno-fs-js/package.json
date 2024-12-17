@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/deno-fs-js",
+  "name": "@netapplabs/deno-fs-js",
   "version": "0.1.0",
   "description": "",
   "type": "module",

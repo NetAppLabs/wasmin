@@ -55,7 +55,7 @@ jobs:
         run: bun publish --prefix .
         working-directory: packages/bun-fs-js
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push version bump
         run: |
