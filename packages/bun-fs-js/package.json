@@ -3,19 +3,11 @@
   "version": "0.1.0",
   "description": "",
   "type": "module",
-  "source": "src/index.ts",
-  "exports": "./dist/index.js",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "module": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NetAppLabs/wasmin.git"
   },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
   "scripts": {
     "build": "tsc -p .",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
@@ -32,8 +24,10 @@
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
-    "bun-types": "^1.1.22",
-    "eslint-config-custom": "*",
-    "typescript": "^5.7.2"
+    "@types/bun": "latest",
+    "eslint-config-custom": "*"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }
