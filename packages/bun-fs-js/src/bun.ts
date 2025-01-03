@@ -3,7 +3,7 @@ import * as fs from "node:fs/promises";
 import {join} from "node:path";
 
 import {
-    type FileSystemHandlePermissionDescriptor, type FileSystemSyncAccessHandle, type ImpleFileHandle,
+    type FileSystemHandlePermissionDescriptor, type FileSystemSyncAccessHandle, type ImpleFileHandle, type ImpleSink,
     type ImplFolderHandle, InvalidModificationError, NFileSystemWritableFileStream, NotFoundError, PreNameCheck,
     type Stat, type Statable, TypeMismatchError,
 } from "@netapplabs/fs-js";
@@ -37,13 +37,15 @@ const bunVersionMinor = Number(bunVersionMajorMinorPatch[1]);
 const bunVersionPatch = Number(bunVersionMajorMinorPatch[2]);
 const isSinkFileHandleNumber = (bunVersionMajor < 1) || (bunVersionMajor == 1 && bunVersionMinor == 0 && bunVersionPatch <= 15);
 
-class BunSink extends WritableStream implements FileSystemWritableFileStream {
-    private position = 0;
-    private size: number;
+class BunSink extends WritableStream implements FileSystemWritableFileStream, ImpleSink<SinkFileHandle> {
+    public position = 0;
+    public size: number;
+    // public fileHandle: SinkFileHandle;
 
-    constructor(private fileHandleNumber: SinkFileHandle, size: number) {
+    constructor(public fileHandle: SinkFileHandle, size: number) {
         super();
         this.size = size;
+        this.fileHandle = fileHandle;
     }
 
     async write(chunk: any) {
@@ -53,13 +55,13 @@ class BunSink extends WritableStream implements FileSystemWritableFileStream {
             chunk = new Uint8Array(chunk);
         }
 
-        const written = fsSync.writeSync(this.fileHandleNumber.fd, chunk, 0, chunk.byteLength, this.position);
+        const written = fsSync.writeSync(this.fileHandle.fd, chunk, 0, chunk.byteLength, this.position);
         this.position += written;
         this.size += written;
     }
 
     async close() {
-        fsSync.closeSync(this.fileHandleNumber.fd);
+        fsSync.closeSync(this.fileHandle.fd);
     }
 
     async seek(position: number): Promise<void> {
@@ -70,7 +72,7 @@ class BunSink extends WritableStream implements FileSystemWritableFileStream {
     }
 
     async truncate(size: number): Promise<void> {
-        fsSync.ftruncateSync(this.fileHandleNumber.fd, size);
+        fsSync.ftruncateSync(this.fileHandle.fd, size);
         this.size = size;
         if (this.position > size) {
             this.position = size;
@@ -78,8 +80,7 @@ class BunSink extends WritableStream implements FileSystemWritableFileStream {
     }
 }
 
-// @ts-ignore because of typescript .prototype bug regarding File/Blob
-export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSystemFileHandle, Statable {
+export class BunFileHandle implements ImpleFileHandle<File, BunSink>, FileSystemFileHandle, Statable {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;

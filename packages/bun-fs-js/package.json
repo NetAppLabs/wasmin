@@ -8,8 +8,14 @@
     "type": "git",
     "url": "git+https://github.com/NetAppLabs/wasmin.git"
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts"
+  ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "bun build --target=bun ./src/index.ts --outfile=dist/index.js && dts-bundle-generator -o dist/index.d.ts ./src/index.ts",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsc -p . --watch",
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
@@ -25,7 +31,8 @@
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
     "@types/bun": "latest",
-    "eslint-config-custom": "*"
+    "eslint-config-custom": "*",
+    "dts-bundle-generator": "^9.5.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
