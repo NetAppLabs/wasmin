@@ -22,10 +22,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@netapplabs'
 
-      - name: Debug .npmrc
+      - name: Set up GH Package Registry Auth
+        run: echo "[install.scopes]\n\"@netapplabs\" = { token = \"$BUN_AUTH_TOKEN\", url = \"https://npm.pkg.github.com/\" }" > ./bunfig.toml
+
+      - name: Debug .bunfig
         run: cat ./bunfig.toml
 
       - name: Install dependencies
