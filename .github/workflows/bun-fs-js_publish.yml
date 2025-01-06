@@ -29,7 +29,7 @@ jobs:
           scope: '@netapplabs'
 
       - name: Debug .npmrc
-        run: cat ~/.npmrc && cat ./bunfig.toml
+        run: cat ./bunfig.toml
 
       - name: Install dependencies
         run: bun install
