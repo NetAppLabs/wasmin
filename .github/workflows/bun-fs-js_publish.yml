@@ -22,15 +22,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up GH Package Registry Auth
-        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@netapplabs'
-          bun-version: latest
+
+      - name: Set up GH Package Registry Auth
+        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
 
       - name: Install dependencies
         run: bun install
