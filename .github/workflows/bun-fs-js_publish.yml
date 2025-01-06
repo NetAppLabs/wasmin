@@ -29,11 +29,10 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@netapplabs'
+          bun-version: 'latest'
 
       - name: Debug config files
-        run: cat ./bunfig.toml && cat ~/.npmrc
+        run: cat ./bunfig.toml && cat ~/.npmrc && rm ./bunfig.toml
 
       - name: Install dependencies
         run: bun install
@@ -55,10 +54,11 @@ jobs:
         working-directory: packages/bun-fs-js
 
       - name: Publish package
-        run: bun publish
+        run: bun publish --registry=https://npm.pkg.github.com
         working-directory: packages/bun-fs-js
         env:
           BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push version bump
         run: |
