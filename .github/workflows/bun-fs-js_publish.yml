@@ -30,10 +30,10 @@ jobs:
           scope: '@netapplabs'
 
       - name: Set up GH Package Registry Auth
-        run: echo "[install.scopes]\n\"@netapplabs\" = { token = \"$BUN_AUTH_TOKEN\", url = \"https://npm.pkg.github.com/\" }" > ./bunfig.toml
+        run: echo -e "[install.scopes]\n\"@netapplabs\" = { token = \"$BUN_AUTH_TOKEN\", url = \"https://npm.pkg.github.com/\" }" > ./bunfig.toml
 
       - name: Try npmrc setup
-        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+        run: echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
 
       - name: Debug config files
         run: cat ./bunfig.toml && cat ~/.npmrc
