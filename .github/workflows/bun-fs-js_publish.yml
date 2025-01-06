@@ -31,14 +31,15 @@ jobs:
         with:
           bun-version: 'latest'
 
+      - name: Overwrite bunfig
+        run: echo -e "[install.scopes]\n\"@netapplabs\" = { token = \"${{ secrets.GITHUB_TOKEN }}\", url = \"https://npm.pkg.github.com/\" }" > ./bunfig.toml
+
       - name: Debug config files
         run: cat ./bunfig.toml && cat ~/.npmrc && rm ./bunfig.toml
 
       - name: Install dependencies
         run: bun install
         working-directory: packages/bun-fs-js
-        env:
-          BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup git
         run: |
