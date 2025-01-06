@@ -22,24 +22,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-
-      - name: Try npmrc setup
-        run: echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@main
         with:
           bun-version: 'latest'
-
-      - name: Overwrite bunfig
-        run: echo -e "[install.scopes]\n\"@netapplabs\" = { token = \"${{ secrets.GITHUB_TOKEN }}\", url = \"https://npm.pkg.github.com/\" }" > ./bunfig.toml
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@netapplabs'
 
       - name: Debug config files
-        run: cat ./bunfig.toml && cat ~/.npmrc && rm ./bunfig.toml
+        run: cp bunfig.toml packages/bun-fs-js/bunfig.toml
 
       - name: Install dependencies
         run: bun install
         working-directory: packages/bun-fs-js
+        env:
+          BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup git
         run: |
