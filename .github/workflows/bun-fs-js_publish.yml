@@ -30,7 +30,7 @@ jobs:
           scope: '@netapplabs'
 
       - name: Debug config files
-        run: cp bunfig.toml packages/bun-fs-js/bunfig.toml && cat packages/bun-fs-js/bunfig.toml
+        run: cat bunfig.toml && echo "---" && cat packages/bun-fs-js/bunfig.toml
 
       - name: Install dependencies
         run: bun install
