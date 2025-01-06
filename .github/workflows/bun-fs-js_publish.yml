@@ -24,9 +24,6 @@ jobs:
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
-        with:
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@netapplabs'
 
       - name: Debug .npmrc
         run: cat ./bunfig.toml
