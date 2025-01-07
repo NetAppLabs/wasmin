@@ -26,7 +26,7 @@
     "start": "echo start",
     "test": "bun test",
     "bun-test": "bun test",
-    "push": "npm publish --dry-run --prefix ."
+    "push": "npm publish --prefix ."
   },
   "author": "tryggvil",
   "dependencies": {
