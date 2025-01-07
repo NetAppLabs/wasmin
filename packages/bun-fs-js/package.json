@@ -25,7 +25,8 @@
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
     "test": "bun test",
-    "bun-test": "bun test"
+    "bun-test": "bun test",
+    "push": "npm publish --dry-run --prefix ."
   },
   "author": "tryggvil",
   "dependencies": {
