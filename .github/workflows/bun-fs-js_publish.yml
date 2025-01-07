@@ -52,7 +52,7 @@ jobs:
         working-directory: packages/bun-fs-js
 
       - name: Publish package
-        run: bun publish --registry=https://npm.pkg.github.com
+        run: bun run push
         working-directory: packages/bun-fs-js
         env:
           BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
