@@ -15,7 +15,7 @@
     "dist/*.d.ts"
   ],
   "scripts": {
-    "build": "bun build --target=bun ./src/index.ts --outfile=dist/index.js && dts-bundle-generator -o dist/index.d.ts ./src/index.ts",
+    "build": "bun build.ts",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsc -p . --watch",
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
@@ -30,9 +30,9 @@
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
-    "@types/bun": "latest",
-    "eslint-config-custom": "*",
-    "dts-bundle-generator": "^9.5.1"
+    "@types/bun": "^1.1.15",
+    "bun-plugin-dts": "^0.3.0",
+    "eslint-config-custom": "*"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

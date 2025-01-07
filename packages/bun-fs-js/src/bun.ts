@@ -8,7 +8,7 @@ import {
     type Stat, type Statable, TypeMismatchError,
 } from "@netapplabs/fs-js";
 
-import {file as bunFile, type FileBlob, version} from "bun";
+import {file as bunFile} from "bun";
 
 const BUN_FS_DEBUG = false;
 
@@ -30,12 +30,6 @@ interface BunStats {
 type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : never;
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
-
-const bunVersionMajorMinorPatch = version.split('.');
-const bunVersionMajor = Number(bunVersionMajorMinorPatch[0]);
-const bunVersionMinor = Number(bunVersionMajorMinorPatch[1]);
-const bunVersionPatch = Number(bunVersionMajorMinorPatch[2]);
-const isSinkFileHandleNumber = (bunVersionMajor < 1) || (bunVersionMajor == 1 && bunVersionMinor == 0 && bunVersionPatch <= 15);
 
 class BunSink extends WritableStream implements FileSystemWritableFileStream, ImpleSink<SinkFileHandle> {
     public position = 0;
