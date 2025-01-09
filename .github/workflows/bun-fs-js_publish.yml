@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - gh_actions
+    paths:
+      - 'packages/bun-fs-js/**'
 
 concurrency:
   group: bunfsjs-publish
