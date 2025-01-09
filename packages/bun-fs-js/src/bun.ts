@@ -4,7 +4,8 @@ import {join} from "node:path";
 
 import {
     type FileSystemHandlePermissionDescriptor, type FileSystemSyncAccessHandle, type ImpleFileHandle, type ImpleSink,
-    type ImplFolderHandle, InvalidModificationError, NFileSystemWritableFileStream, NotFoundError, PreNameCheck,
+    type ImplFolderHandle, InvalidModificationError, InvalidStateError, NFileSystemWritableFileStream, NotFoundError,
+    PreNameCheck,
     type Stat, type Statable, TypeMismatchError,
 } from "@netapplabs/fs-js";
 
@@ -43,15 +44,86 @@ class BunSink extends WritableStream implements FileSystemWritableFileStream, Im
     }
 
     async write(chunk: any) {
-        if (typeof chunk === "string") {
-            chunk = Buffer.from(chunk);
-        } else if (chunk instanceof ArrayBuffer) {
-            chunk = new Uint8Array(chunk);
+        if (typeof chunk === "object") {
+            if (chunk.type === "write") {
+                if (Number.isInteger(chunk.position) && chunk.position >= 0) {
+                    this.position = chunk.position;
+                }
+                if (!("data" in chunk)) {
+                    //await this.fileHandle.close();
+                    fsSync.closeSync(this.fileHandle.fd);
+                    throw new SyntaxError("write requires a data argument");
+                }
+                chunk = chunk.data;
+            } else if (chunk.type === "seek") {
+                if (Number.isInteger(chunk.position) && chunk.position >= 0) {
+                    if (this.size < chunk.position) {
+                        throw new InvalidStateError();
+                    }
+                    this.position = chunk.position;
+                    return;
+                } else {
+                    fsSync.closeSync(this.fileHandle.fd);
+                    //await this.fileHandle.close();
+                    throw new SyntaxError("seek requires a position argument");
+                }
+            } else if (chunk.type === "truncate") {
+                if (Number.isInteger(chunk.size) && chunk.size >= 0) {
+                    fsSync.ftruncateSync(this.fileHandle.fd, chunk.size);
+                    //await this.fileHandle.truncate(chunk.size);
+                    this.size = chunk.size;
+                    if (this.position > this.size) {
+                        this.position = this.size;
+                    }
+                    return;
+                } else {
+                    //await this.fileHandle.close();
+                    fsSync.closeSync(this.fileHandle.fd);
+                    throw new SyntaxError("truncate requires a size argument");
+                }
+            }
         }
 
-        const written = fsSync.writeSync(this.fileHandle.fd, chunk, 0, chunk.byteLength, this.position);
-        this.position += written;
-        this.size += written;
+        if (chunk instanceof ArrayBuffer) {
+            chunk = new Uint8Array(chunk);
+        } else if (typeof chunk === "string") {
+            chunk = Buffer.from(chunk);
+        } else if (chunk instanceof Blob) {
+            bunFsDebug("write is Blob");
+            for await (const data of this.readableStreamToAsyncIterable(chunk.stream())) {
+                //const res = await this.fileHandle.writev(
+                const written = fsSync.writevSync(this.fileHandle.fd, [data], this.position);
+                this.position += written;
+                this.size += written;
+            }
+            return;
+        }
+        bunFsDebug("write else");
+        bunFsDebug(`write else chunk: ${chunk}`);
+
+        try {
+            const chunkLength = chunk.byteLength;
+            bunFsDebug(`write else chunkLength: ${chunkLength}`);
+            const written = fsSync.writeSync(this.fileHandle.fd, chunk, 0, chunkLength, this.position);
+            this.position += written;
+            this.size += written;
+            bunFsDebug(`write else written: ${written}`);
+        } catch (err: any) {
+            bunFsDebug(`Error: ${err}`);
+        }
+    }
+
+    async *readableStreamToAsyncIterable(stream: ReadableStream<Uint8Array>): AsyncIterable<Uint8Array> {
+        const reader = stream.getReader();
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                yield value;
+            }
+        } finally {
+            reader.releaseLock();
+        }
     }
 
     async close() {
