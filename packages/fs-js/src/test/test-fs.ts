@@ -13,6 +13,7 @@ import {
 
 import { FileSystemDirectoryHandle, isBun } from "../index.js";
 import { isDeno } from "../NFileSystemFileHandle.js";
+import {vitest} from "vitest";
 
 export const TestsFileSystemHandle = (
     name: string,
@@ -292,6 +293,8 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 errMsg = "No such file or directory";
                 errName = "ENOENT";
             }
+            console.log(`errName: ${errName}`);
+            console.log(`errMsg: ${errMsg}`);
             expect(err.message).toBe(errMsg);
             expect(err.name).toBe(errName);
         });
