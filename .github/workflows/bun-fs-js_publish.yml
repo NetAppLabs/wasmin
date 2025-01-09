@@ -41,6 +41,10 @@ jobs:
         env:
           BUN_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run Bun Tests
+        run: bun test
+        working-directory: packages/bun-fs-js
+
       - name: Setup git
         run: |
           git config --global user.name 'github-actions[bot]'
