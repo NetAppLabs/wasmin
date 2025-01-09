@@ -91,7 +91,6 @@ class BunSink extends WritableStream implements FileSystemWritableFileStream, Im
         } else if (chunk instanceof Blob) {
             bunFsDebug("write is Blob");
             for await (const data of this.readableStreamToAsyncIterable(chunk.stream())) {
-                //const res = await this.fileHandle.writev(
                 const written = fsSync.writevSync(this.fileHandle.fd, [data], this.position);
                 this.position += written;
                 this.size += written;
