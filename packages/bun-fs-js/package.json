@@ -30,7 +30,7 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@netapplabs/fs-js": "^0.0.9"
+    "@netapplabs/fs-js": "^0.0.10"
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
