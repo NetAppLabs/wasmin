@@ -16,6 +16,7 @@ on:
     branches:
       - gh_actions
 
+
 concurrency:
   group: denofsjs-publish
   cancel-in-progress: true
@@ -54,7 +55,7 @@ jobs:
 
       - name: Set default semver bump to patch for push events
         if: github.event_name == 'push'
-        run: echo "VERSION_TYPE=patchqqqqqjqjq" >> $GITHUB_ENV
+        run: echo "VERSION_TYPE=patch" >> $GITHUB_ENV
 
       - name: Bump deno.json version
         run: |
