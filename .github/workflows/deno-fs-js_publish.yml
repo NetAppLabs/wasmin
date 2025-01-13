@@ -59,10 +59,11 @@ jobs:
       - name: Bump deno.json version
         run: |
           if [ -z "${{ env.VERSION_TYPE }}" ]; then
-            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{github.event.inputs.version}})" >> $GITHUB_ENV
+            BUMP_TYPE=${{github.event.inputs.version}}
           else
-            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{env.VERSION_TYPE}})" >> $GITHUB_ENV
+            BUMP_TYPE=${{env.VERSION_TYPE}}
           fi
+          echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json jsr:@cotyhamilton/deno-tools/bump --out newVersion --type $BUMP_TYPE)" >> $GITHUB_ENV
         working-directory: packages/deno-fs-js
 
       - name: Commit and push version bump tag
