@@ -1,7 +1,16 @@
 {
   "imports": {
-    "@netapplabs/fs-js": "../../packages/fs-js/src/index.ts",
-    "@netapplabs/node-fs-js": "../../packages/node-fs-js/src/index.ts",
-    "js-yaml": "npm:js-yaml@^4.1.0"
-  }
+    "js-yaml": "npm:js-yaml@^4.1.0",
+    "@netapplabs/fs-js": "npm:@netapplabs/fs-js@^0.0.11",
+    "@netapplabs/node-fs-js": "npm:@netapplabs/node-fs-js@^0.1.2"
+  },
+  "tasks": {
+    "test": "deno test --allow-read --allow-write",
+    "format": "deno fmt **/*.ts"
+  },
+  "exports": {
+    "./src/mod.ts" : "./src/mod.ts"
+  },
+  "version": "0.1.0",
+  "name": "@netapplabs/deno-fs-js"
 }

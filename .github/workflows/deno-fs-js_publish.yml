@@ -1,0 +1,76 @@
+name: Publish deno-fs-js Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Kind of version bump'
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        required: true
+  push:
+    branches:
+      - gh_actions
+    paths:
+      - 'packages/deno-fs-js/**'
+
+concurrency:
+  group: denofsjs-publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: vx.x.x
+
+      - name: Set up GH Package Registry Auth
+        run: |
+          echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ./npmrc
+        working-directory: packages/deno-fs-js
+
+      - name: Run Deno Tests
+        run: deno task test
+        working-directory: packages/deno-fs-js
+
+      - name: Setup git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Set default semver bump to minor for push events
+        if: github.event_name == 'push'
+        run: echo "VERSION_TYPE=minor" >> $GITHUB_ENV
+
+      - name: Bump deno.json version
+        run: |
+          if [ -z "${{ env.VERSION_TYPE }}" ]; then
+            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{github.event.inputs.version}})" >> $GITHUB_ENV
+          else
+            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{VERSION_TYPE}})" >> $GITHUB_ENV
+          fi
+        working-directory: packages/deno-fs-js
+
+      - name: Commit and push version bump tag
+        run: |
+          git add deno.json
+          git commit -m "Bump package: $NEXT_VERSION"
+          NEW_TAG="packages/deno-fs-js/$NEXT_VERSION"
+          git tag $NEW_TAG
+          git push origin --follow-tags
