@@ -15,7 +15,8 @@ on:
   push:
     branches:
       - gh_actions
-
+    paths:
+      - 'packages/deno-fs-js/**'
 
 concurrency:
   group: denofsjs-publish
