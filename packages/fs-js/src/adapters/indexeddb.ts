@@ -5,10 +5,11 @@ import {
     SyntaxError,
     TypeMismatchError,
 } from "../errors.js";
-import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements";
-import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle";
-import { openFileHandle } from "./util";
+import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";
+import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
+import { openFileHandle } from "./util.js";
+import { PreNameCheck } from "../util.js";
 import { default as yaml } from "js-yaml";
 import {
     FileSystemHandle,
@@ -18,11 +19,9 @@ import {
     FileSystemSyncAccessHandle,
     FileSystemWriteChunkType,
     FileSystemWritableFileStream
-} from "../FileSystemAccess";
-import { NFileSystemWritableFileStream } from "../NFileSystemWritableFileStream";
-import { Mountable } from "../ExtHandles";
-import { PreNameCheck } from "../util";
-import { MountedEntry } from "../ExtHandles.js";
+} from "../FileSystemAccess.js";
+import { NFileSystemWritableFileStream } from "../NFileSystemWritableFileStream.js";
+import { Mountable, MountedEntry } from "../ExtHandles.js";
 
 const INDEXEDDB_DEBUG = false;
 
