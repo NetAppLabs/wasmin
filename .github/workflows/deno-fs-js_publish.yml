@@ -63,7 +63,7 @@ jobs:
           if [ -z "${{ env.VERSION_TYPE }}" ]; then
             echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{github.event.inputs.version}})" >> $GITHUB_ENV
           else
-            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{VERSION_TYPE}})" >> $GITHUB_ENV
+            echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json bump.ts --out newVersion --type ${{env.VERSION_TYPE}})" >> $GITHUB_ENV
           fi
         working-directory: packages/deno-fs-js
 
