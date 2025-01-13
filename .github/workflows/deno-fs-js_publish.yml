@@ -68,8 +68,9 @@ jobs:
 
       - name: Commit and push version bump tag
         run: |
-          git add deno.json
+          git add deno.json deno.lock
           git commit -m "Bump package: ${{env.NEXT_VERSION}}"
           NEW_TAG="packages/deno-fs-js/${{env.NEXT_VERSION}}"
           git tag $NEW_TAG
           git push origin --follow-tags
+        working-directory: packages/deno-fs-js
