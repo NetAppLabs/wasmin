@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         description: 'Kind of version bump'
-        default: 'minor'
+        default: 'patch'
         type: choice
         options:
           - patch
@@ -52,9 +52,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Set default semver bump to minor for push events
+      - name: Set default semver bump to patch for push events
         if: github.event_name == 'push'
-        run: echo "VERSION_TYPE=minor" >> $GITHUB_ENV
+        run: echo "VERSION_TYPE=patchqqqqqjqjq" >> $GITHUB_ENV
 
       - name: Bump deno.json version
         run: |
@@ -72,5 +72,5 @@ jobs:
           git commit -m "Bump package: ${{env.NEXT_VERSION}}"
           NEW_TAG="packages/deno-fs-js/${{env.NEXT_VERSION}}"
           git tag $NEW_TAG
-          git push origin --follow-tags
+          git push origin --tags
         working-directory: packages/deno-fs-js
