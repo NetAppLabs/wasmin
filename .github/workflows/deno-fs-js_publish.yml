@@ -72,6 +72,7 @@ jobs:
         run: |
           git add deno.json deno.lock
           git commit -m "Bump package: ${{env.NEXT_VERSION}}"
+          git push origin
           NEW_TAG="packages/deno-fs-js/${{env.NEXT_VERSION}}"
           git tag $NEW_TAG
           git push origin --tags
