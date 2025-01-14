@@ -6,6 +6,6 @@
   "exports": {
     "./src/mod.ts" : "./src/mod.ts"
   },
-  "version": "0.2.2",
+  "version": "0.2.3",
   "name": "@netapplabs/deno-fs-js"
 }
