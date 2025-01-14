@@ -23,8 +23,8 @@ import {
   Statable,
   SyntaxError,
   TypeMismatchError,
-} from "@netapplabs/fs-js";
-import { fileFrom } from "@netapplabs/node-fs-js";
+} from "npm:@netapplabs/fs-js@^0.0.11";
+import { fileFrom } from "npm:@netapplabs/node-fs-js@^0.1.2";
 
 async function fileFromDeno(filePath: string) {
   // @ts-ignore

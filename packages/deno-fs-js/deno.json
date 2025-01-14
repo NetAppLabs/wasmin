@@ -1,9 +1,4 @@
 {
-  "imports": {
-    "js-yaml": "npm:js-yaml@^4.1.0",
-    "@netapplabs/fs-js": "npm:@netapplabs/fs-js@^0.0.11",
-    "@netapplabs/node-fs-js": "npm:@netapplabs/node-fs-js@^0.1.2"
-  },
   "tasks": {
     "test": "deno test --allow-read --allow-write",
     "format": "deno fmt **/*.ts"

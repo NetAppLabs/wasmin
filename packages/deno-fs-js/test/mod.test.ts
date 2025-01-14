@@ -27,22 +27,22 @@ globalThis.test = test;
 import {
   FileSystemDirectoryHandle,
   getOriginPrivateDirectory,
-} from "@netapplabs/fs-js";
-import { deno } from "../src/mod.ts";
+} from "npm:@netapplabs/fs-js@^0.0.11";
+import { denofh } from "../src/mod.ts";
 
-import { TestsFileSystemHandleImportTestDefinitions } from "@netapplabs/fs-js";
+import { TestsFileSystemHandleImportTestDefinitions } from "npm:@netapplabs/fs-js@^0.0.11";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";
 const testFolderPath2 = "./testfolder2";
 
 const getDenoRoot = async () => {
-  root = await getOriginPrivateDirectory(deno, testFolderPath1, false);
+  root = await getOriginPrivateDirectory(denofh, testFolderPath1, false);
   return root;
 };
 
 const getDenoRootWrapped = async () => {
-  root = await getOriginPrivateDirectory(deno, testFolderPath2, true);
+  root = await getOriginPrivateDirectory(denofh, testFolderPath2, true);
   return root;
 };
 

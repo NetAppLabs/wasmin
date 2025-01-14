@@ -302,13 +302,7 @@
     "https://deno.land/x/expect@v0.4.2/expect.ts": "1d1856758a750f440d0b65d74f19e5d4829bb76d8e576d05546abd8e7b1dfb9e",
     "https://deno.land/x/expect@v0.4.2/matchers.ts": "55acf74a3c4a308d079798930f05ab11da2080ec7acd53517193ca90d1296bf7",
     "https://deno.land/x/expect@v0.4.2/mock.ts": "562d4b1d735d15b0b8e935f342679096b64fe452f86e96714fe8616c0c884914",
-    "https://deno.land/x/expect@v0.4.2/mod.ts": "0304d2430e1e96ba669a8495e24ba606dcc3d152e1f81aaa8da898cea24e36c2"
-  },
-  "workspace": {
-    "dependencies": [
-      "npm:@netapplabs/fs-js@^0.0.11",
-      "npm:@netapplabs/node-fs-js@~0.1.2",
-      "npm:js-yaml@^4.1.0"
-    ]
+    "https://deno.land/x/expect@v0.4.2/mod.ts": "0304d2430e1e96ba669a8495e24ba606dcc3d152e1f81aaa8da898cea24e36c2",
+    "https://raw.githubusercontent.com/NetAppLabs/wasmin/refs/tags/packages/deno-fs-js/0.2.1/packages/node-fs-js/src/index.ts": "b65e50baa43bbc31c0558a8c639f1e1e6a0f06fd0f89bd6f4e8f06ad0ec1f333"
   }
 }
