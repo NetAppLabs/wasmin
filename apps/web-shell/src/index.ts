@@ -4,15 +4,15 @@ import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "@xterm/
 import { ImageAddon, IImageAddonOptions } from '@xterm/addon-image';
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
-import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize, WASIWorker, BufferedPipe } from "@wasmin/wasi-js";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize, WASIWorker, BufferedPipe } from "@netapplabs/wasi-js";
 import { s3 } from "@wasmin/s3-fs-js";
 import { github } from "@wasmin/github-fs-js";
-import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 
 // @ts-ignore
 import LocalEchoController from "local-echo";
 
-import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@wasmin/fs-js";
+import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@netapplabs/fs-js";
 
 declare global {
     var WEB_SHELL_DEBUG_MODE: boolean;
@@ -65,7 +65,7 @@ if (WEB_SHELL_REGISTER_GITHUB) {
     RegisterProvider("github", github);
 }
 if (WEB_SHELL_REGISTER_NFS) {
-    let nfs_mod = await import('@wasmin/nfs-js');
+    let nfs_mod = await import('@netapplabs/nfs-js');
     let nfs = nfs_mod.nfs;
     // @ts-ignore
     RegisterProvider("nfs", nfs);

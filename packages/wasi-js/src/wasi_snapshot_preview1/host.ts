@@ -58,7 +58,7 @@ import {
 } from "../wasiPreview1Utils.js";
 import { wasiCallDebug, wasiPreview1Debug, wasiPreview1FdDebug, wasiWarn } from "../wasiDebug.js";
 import { WasiEnv } from "../wasi.js";
-import { Statable } from "@wasmin/fs-js";
+import { Statable } from "@netapplabs/fs-js";
 import { WasiSocket } from "../wasi_experimental_sockets/common.js";
 import { isNode } from "../utils.js";
 

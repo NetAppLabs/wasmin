@@ -1,6 +1,6 @@
-import { ProcessNamespace as procns } from "@wasmin/wasi-snapshot-preview2/async";
-import { IoStreamsNamespace as ions } from "@wasmin/wasi-snapshot-preview2/async";
-import { FilesystemFilesystemNamespace as fsn } from "@wasmin/wasi-snapshot-preview2/async";
+import { ProcessNamespace as procns } from "@netapplabs/wasi-snapshot-preview2/async";
+import { IoStreamsNamespace as ions } from "@netapplabs/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fsn } from "@netapplabs/wasi-snapshot-preview2/async";
 
 type WasiExtProcessProcess = procns.WasiExtProcessProcess;
 type Process = procns.Process;

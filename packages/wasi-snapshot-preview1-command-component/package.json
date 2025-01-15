@@ -1,9 +1,15 @@
 {
-    "version": "0.1.0",
-    "name": "@wasmin/wasi-snapshot-preview1-command-component",
+    "version": "0.1.3",
+    "name": "@netapplabs/wasi-snapshot-preview1-command-component",
     "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/NetAppLabs/wasmin.git"
+    },
     "main": "./index.js",
     "files": [
+        "index.js",
+        "index.d.ts",
         "component-jspi/index.d.ts",
         "component-jspi/index.js",
         "component-jspi/component.js",
@@ -25,9 +31,10 @@
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^1.2.4",
-        "@wasmin/tsconfig": "*"
+        "@netapplabs/tsconfig": "^0.0.2",
+        "@types/node": "^22.10.2"
     },
     "dependencies": {
-		"@wasmin/wasm-promisify": "*"
-	}
+        "@netapplabs/wasm-promisify": "^0.10.1"
+    }
 }

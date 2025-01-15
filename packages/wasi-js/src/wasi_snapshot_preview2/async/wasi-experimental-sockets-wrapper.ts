@@ -1,18 +1,18 @@
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fs } from "@netapplabs/wasi-snapshot-preview2/async";
 type FilesystemFilesystem = fs.WasiFilesystemTypes;
-import { SocketsInstanceNetworkNamespace as ins } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsInstanceNetworkNamespace as ins } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsInstanceNetwork = ins.WasiSocketsInstanceNetwork;
-import { SocketsIpNameLookupNamespace as lookupns } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsIpNameLookupNamespace as lookupns } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsIpNameLookup = lookupns.WasiSocketsIpNameLookup;
-import { SocketsNetworkNamespace as sockns } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsNetworkNamespace as sockns } from "@netapplabs/wasi-snapshot-preview2/async";
 type IpAddress = sockns.IpAddress;
 type IpSocketAddress = sockns.IpSocketAddress;
 type Ipv4SocketAddress = sockns.Ipv4SocketAddress;
 type Ipv6SocketAddress = sockns.Ipv6SocketAddress;
 type SocketsNetwork = sockns.WasiSocketsNetwork;
-import { SocketsTcpNamespace as socktcpns } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsTcpNamespace as socktcpns } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsTcp = socktcpns.WasiSocketsTcp;
-import { SocketsTcpCreateSocketNamespace as sockcreatetcpns } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsTcpCreateSocketNamespace as sockcreatetcpns } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsTcpCreateSocket = sockcreatetcpns.WasiSocketsTcpCreateSocket;
 
 const ERRNO_AGAIN = 6;

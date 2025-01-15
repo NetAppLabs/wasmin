@@ -2,6 +2,7 @@ import { NFileSystemHandle } from "./NFileSystemHandle.js";
 import { NFileSystemWritableFileStream } from "./NFileSystemWritableFileStream.js";
 import { NFileSystemWritableSyncStream } from "./NFileSystemWritableSyncStream.js";
 import { FileSystemFileHandle, FileSystemSyncAccessHandle } from "./index.js";
+import { FileSystemWritableFileStream } from "./FileSystemAccess.js";
 
 export function isBun() {
     // only bun has global Bun

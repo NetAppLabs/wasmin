@@ -4,7 +4,7 @@ import { instantiate as componentInstantiateWorker } from './component-worker/in
 import { instantiate as componentInstantiateJspi } from './component-jspi/index.js';
 import { compileCore as compileCoreWorker } from './component-worker/index.js';
 import { compileCore as compileCoreJspi } from './component-jspi/index.js';
-import { instantiatePromisified, isStackSwitchingEnabled, isJspiEnabled, instantiateJSPIwrapped } from '@wasmin/wasm-promisify';
+import { instantiatePromisified, isStackSwitchingEnabled, isJspiEnabled, instantiateJSPIwrapped } from '@netapplabs/wasm-promisify';
 
 export type { ImportObject } from './component-worker/index.js';
 

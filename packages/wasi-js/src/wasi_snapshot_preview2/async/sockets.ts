@@ -1,18 +1,18 @@
-import { SocketsInstanceNetworkNamespace as socki } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsInstanceNetworkNamespace as socki } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsInstanceNetworkAsync = socki.WasiSocketsInstanceNetwork;
 type Network = socki.Network;
-import { SocketsNetworkNamespace as sockn } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsNetworkNamespace as sockn } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsNetworkAsync = sockn.WasiSocketsNetwork;
-import { SocketsTcpCreateSocketNamespace as socktc } from "@wasmin/wasi-snapshot-preview2/async";
-import { SocketsUdpCreateSocketNamespace as sockuc } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsTcpCreateSocketNamespace as socktc } from "@netapplabs/wasi-snapshot-preview2/async";
+import { SocketsUdpCreateSocketNamespace as sockuc } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsTcpCreateSocketAsync = socktc.WasiSocketsTcpCreateSocket;
-import { SocketsIpNameLookupNamespace as socklookup } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsIpNameLookupNamespace as socklookup } from "@netapplabs/wasi-snapshot-preview2/async";
 type SocketsIpNameLookupAsync = socklookup.WasiSocketsIpNameLookup;
-import { IoStreamsNamespace as io } from "@wasmin/wasi-snapshot-preview2/async";
+import { IoStreamsNamespace as io } from "@netapplabs/wasi-snapshot-preview2/async";
 type InputStream = io.InputStream;
 type OutputStream = io.OutputStream;
-import { SocketsTcpNamespace as sockt } from "@wasmin/wasi-snapshot-preview2/async";
-import { SocketsUdpNamespace as socku } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsTcpNamespace as sockt } from "@netapplabs/wasi-snapshot-preview2/async";
+import { SocketsUdpNamespace as socku } from "@netapplabs/wasi-snapshot-preview2/async";
 
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { createTcpSocket, createUdpSocket, getAddressResolver } from "../../wasi_experimental_sockets/net.js";

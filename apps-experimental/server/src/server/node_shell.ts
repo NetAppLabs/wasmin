@@ -2,9 +2,9 @@ import { getHostsFsHandle, getProcFsHandle } from "./procfs.js";
 import { HostManagerInstance } from "./host.js";
 
 import { startShell, getSecretStore } from "@wasmin/shell";
-import { getOriginPrivateDirectory, memory, NFileSystemDirectoryHandle } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
-import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { getOriginPrivateDirectory, memory, NFileSystemDirectoryHandle } from "@netapplabs/fs-js";
+import { node } from "@netapplabs/node-fs-js";
+import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import { isBun } from "./util.js";
 
 const USE_MEMORY = true;

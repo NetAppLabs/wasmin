@@ -1,9 +1,13 @@
 {
-  "name": "@wasmin/tsconfig",
-  "version": "0.0.0",
+  "name": "@netapplabs/tsconfig",
+  "version": "0.0.3",
   "description": "tsconfig.json",
   "tsconfig": "tsconfig.json",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "exports": {
     ".": {
       "import": "./tsconfig.json",
@@ -25,5 +29,9 @@
   ],
   "dependencies": {
     "typescript": "^5.4.2"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "standard-version": "^9.5.0"
   }
 }

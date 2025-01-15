@@ -1,4 +1,4 @@
-import { isNode, jspiDebug } from "./util.js";
+import { jspiDebug } from "./util.js";
 import { PromisifiedWasmGenerator } from "./wasmgen.js";
 
 

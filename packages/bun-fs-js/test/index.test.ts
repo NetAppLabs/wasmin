@@ -2,17 +2,23 @@ import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 import { test, describe, beforeAll, beforeEach, expect, afterAll } from "vitest";
 
+// @ts-ignore
 globalThis.beforeAll = beforeAll;
 globalThis.beforeEach = beforeEach;
+// @ts-ignore
 globalThis.afterAll = afterAll;
+// noinspection JSConstantReassignment
 globalThis.describe = describe;
+// @ts-ignore
 globalThis.expect = expect;
+// @ts-ignore
+// noinspection JSConstantReassignment
 globalThis.test = test;
 
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@wasmin/fs-js";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, memory } from "@netapplabs/fs-js";
 import { bun } from "../src/index.js";
 
-import { TestsFileSystemHandle } from "@wasmin/fs-js";
+import { TestsFileSystemHandle } from "@netapplabs/fs-js";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";

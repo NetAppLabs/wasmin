@@ -1,5 +1,5 @@
-import { NfsMount, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs.js";
-import { Stat } from "@wasmin/fs-js";
+import { NfsMount, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
+import { Stat } from "@netapplabs/fs-js";
 declare global {
     var NFS_JS_DEBUG: boolean;
 }

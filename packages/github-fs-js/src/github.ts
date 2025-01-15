@@ -1,22 +1,20 @@
 import {
-    InvalidModificationError,
-    InvalidStateError,
-    NotAllowedError,
-    NotFoundError,
-    SyntaxError,
-    TypeMismatchError,
-    FileSystemHandlePermissionDescriptor,
-    NFileSystemWritableFileStream,
-} from "@wasmin/fs-js";
-import { join, substituteSecretValue } from "@wasmin/fs-js";
-import {
-    FileSystemWritableFileStream,
-    FileSystemHandle,
-    FileSystemDirectoryHandle,
-    FileSystemFileHandle,
-} from "@wasmin/fs-js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
-import { parseUrl } from "@wasmin/fs-js";
+  DefaultSink,
+  FileSystemDirectoryHandle,
+  FileSystemFileHandle,
+  FileSystemHandlePermissionDescriptor,
+  FileSystemWritableFileStream,
+  ImpleFileHandle,
+  ImplFolderHandle,
+  InvalidModificationError,
+  join,
+  NFileSystemWritableFileStream,
+  NotAllowedError,
+  NotFoundError,
+  parseUrl,
+  substituteSecretValue,
+  TypeMismatchError,
+} from "@netapplabs/fs-js";
 
 const GITHUB_DEBUG = false;
 
@@ -125,8 +123,7 @@ export class GithubFile {
             }
             const start = this.start || 0;
             const end = this.end || this.size;
-            const ret = buffer.slice(start, end);
-            return ret;
+            return buffer.slice(start, end).buffer;
         } catch (error) {
             githubDebug("arrayBuffer cached error: ", error);
         }

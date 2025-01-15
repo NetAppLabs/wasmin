@@ -4,7 +4,7 @@ import { isFunction } from "./workerUtils.js";
 import * as comlink from "comlink";
 import { WasmWorker } from "./wasmWorker.js";
 import { WasmCoreWorkerThreadRunner } from "./wasmCoreWorkerThreadRunner.js";
-import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify, isJspiEnabled, instantiateJSPIwrapped } from "@wasmin/wasm-promisify"; 
+import { instantiatePromisified, isStackSwitchingEnabled as isStackSwitchingEnabledPromisify, isJspiEnabled, instantiateJSPIwrapped } from "@netapplabs/wasm-promisify";
 import { wasmWorkerClientDebug } from "./wasiDebug.js";
 
 //
@@ -30,7 +30,7 @@ import { wasmWorkerClientDebug } from "./wasiDebug.js";
  *   or Javascript Promise Integration.
  *   Used if jspi is availalable in runtime.
  *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
- *   in runtime using @wasmin/wasm-promisify library.
+ *   in runtime using @netapplabs/wasm-promisify library.
  * 
  * worker-core-memory-shared:
  *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner
@@ -64,7 +64,7 @@ export type WasmCoreRunMode = "asyncify" | "jspi" | "stack-switching" | "worker-
  *   or Javascript Promise Integration.
  *   Used if jspi is availalable in runtime.
  *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
- *   in runtime using @wasmin/wasm-promisify library.
+ *   in runtime using @netapplabs/wasm-promisify library.
  */
 export type WasmComponentRunMode = "worker-component" | "jspi-component" | "stack-switching-component";
 
@@ -138,7 +138,7 @@ export function isStackSwitchingEnabled() {
  *   or Javascript Promise Integration.
  *   Used if jspi is availalable in runtime.
  *   Implemented by creating a Proxy WebAssembly.Instance and creating wrapper Wasm binaries
- *   in runtime using @wasmin/wasm-promisify library.
+ *   in runtime using @netapplabs/wasm-promisify library.
  * 
  * worker-core-memory-shared:
  *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner

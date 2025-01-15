@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, FileSystemFileHandle } from '@wasmin/fs-js';
+import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, FileSystemFileHandle } from '@netapplabs/fs-js';
 import { s3 } from "../src/index.js";
 
 const s3Url = process.env.S3_URL || 's3://127.0.0.1/invalid/';

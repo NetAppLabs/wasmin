@@ -1,5 +1,5 @@
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
-import { FilesystemPreopensNamespace } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fs } from "@netapplabs/wasi-snapshot-preview2/async";
+import { FilesystemPreopensNamespace } from "@netapplabs/wasi-snapshot-preview2/async";
 type PreopensAsync = FilesystemPreopensNamespace.WasiFilesystemPreopens;
 import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { FileOrDir, OpenDirectory, OpenDirectoryIterator, OpenFile, Socket } from "../../wasiFileSystem.js";
@@ -12,7 +12,7 @@ import {
     toNanosFromTimestamp,
     translateToFsError,
 } from "./preview2Utils.js";
-import { FileSystemHandle, FileSystemFileHandle, Statable } from "@wasmin/fs-js";
+import { FileSystemHandle, FileSystemFileHandle, Statable } from "@netapplabs/fs-js";
 
 type Descriptor = fs.Descriptor;
 type DescriptorType = fs.DescriptorType;

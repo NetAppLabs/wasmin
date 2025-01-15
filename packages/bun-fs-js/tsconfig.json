@@ -1,14 +1,11 @@
 {
-  "extends": "@wasmin/tsconfig",
+  "extends": "@netapplabs/tsconfig",
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "webworker",
-      "esnext"
-    ],
+    "lib": ["ESNext", "DOM"],
     "outDir": "./dist"
   },
   "include": [
     "./src"
-  ]
+  ],
+  "exclude": ["node_modules"]
 }

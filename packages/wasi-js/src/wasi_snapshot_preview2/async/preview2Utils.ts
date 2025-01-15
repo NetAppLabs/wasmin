@@ -1,10 +1,10 @@
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fs } from "@netapplabs/wasi-snapshot-preview2/async";
 type NewTimestamp = fs.NewTimestamp;
 import { SystemError } from "../../errors.js";
 import { translateErrorToErrorno } from "../../wasiPreview1Utils.js";
 import { AdviceN, ErrnoN } from "../../wasi_snapshot_preview1/bindings.js";
-import { SocketsNetworkNamespace as sock } from "@wasmin/wasi-snapshot-preview2/async";
-import { ClocksWallClockNamespace as clockw } from "@wasmin/wasi-snapshot-preview2/async";
+import { SocketsNetworkNamespace as sock } from "@netapplabs/wasi-snapshot-preview2/async";
+import { ClocksWallClockNamespace as clockw } from "@netapplabs/wasi-snapshot-preview2/async";
 import { OpenFiles } from "../../wasiFileSystem.js";
 import { InStream, OutStream } from "./io.js";
 import { WasiOptions } from "../../wasi.js";

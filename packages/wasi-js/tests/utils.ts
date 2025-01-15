@@ -1,10 +1,10 @@
-import path from "node:path";
-import fs from "node:fs/promises";
-import os from "node:os";
-import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@wasmin/fs-js";
-import { node } from "@wasmin/node-fs-js";
-import { memory } from "@wasmin/fs-js";
-import { constructWasiForTest, Test } from "@wasmin/wasi-js/testutil";
+import * as path from "node:path";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import { getOriginPrivateDirectory, FileSystemDirectoryHandle, isBun } from "@netapplabs/fs-js";
+import { node } from "@netapplabs/node-fs-js";
+import { memory } from "@netapplabs/fs-js";
+import { constructWasiForTest, Test } from "../src/testutil";
 
 type backendType = "fs-js" | "nfs-js" | "memory";
 export let backend: backendType = "memory";
@@ -37,7 +37,7 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
                 fixturesTestDir = dstTemp;
             }
             if (isBun()) {
-                const bunmod = await import("@wasmin/bun-fs-js");
+                const bunmod = await import("@netapplabs/bun-fs-js");
                 const bun = bunmod.bun;
                 return getOriginPrivateDirectory(bun, fixturesTestDir);
             } else {
@@ -49,7 +49,7 @@ export async function getRootHandle(backend: string): Promise<FileSystemDirector
 
 export async function constructWasiForTestRuntimeDetection(testCase: Test) {
     if (isBun()) {
-        const bunmod = await import("@wasmin/bun-fs-js");
+        const bunmod = await import("@netapplabs/bun-fs-js");
         const bun = bunmod.bun;
         return constructWasiForTest(testCase, bun);
     } else {

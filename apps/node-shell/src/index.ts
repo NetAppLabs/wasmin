@@ -1,5 +1,5 @@
 import { startShell } from "@wasmin/shell";
-//import { RegisterProvider } from "@wasmin/fs-js";
+//import { RegisterProvider } from "@netapplabs/fs-js";
 //import { s3 } from "@wasmin/s3-fs-js";
 
 // File class was added as experimental in node v19.2

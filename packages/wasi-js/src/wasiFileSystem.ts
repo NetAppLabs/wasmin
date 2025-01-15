@@ -15,20 +15,20 @@
 import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
-import { FilesystemFilesystemNamespace as fs } from "@wasmin/wasi-snapshot-preview2/async";
+import { FilesystemFilesystemNamespace as fs } from "@netapplabs/wasi-snapshot-preview2/async";
 type DirectoryEntry = fs.DirectoryEntry;
 type DescriptorType = fs.DescriptorType;
 type FileSystemDescriptorNumber = number;
-import { Statable, openDirectoryHandle } from "@wasmin/fs-js";
+import { Statable, openDirectoryHandle } from "@netapplabs/fs-js";
 import {
     FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemWritableFileStream,
-} from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
 import { DisposeAsyncResourceFunc, Resource } from "./wasiResources.js";
 import { wasiError, wasiFileSystemDebug } from "./wasiDebug.js";
-import { Mountable, MountedEntry } from "@wasmin/fs-js";
+import { Mountable, MountedEntry } from "@netapplabs/fs-js";
 import { isBun } from "./utils.js";
 
 

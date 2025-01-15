@@ -1,7 +1,7 @@
-import { getOriginPrivateDirectory, join, memory } from "@wasmin/fs-js";
+import { getOriginPrivateDirectory, join, memory } from "@netapplabs/fs-js";
 import { FileOrDir, OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
 import { WASI, WasiEnv } from "./wasi.js";
-import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import { BufferedPipe } from "./wasiPipes.js";
 import { TTYInstance } from "./tty.js";
 import { wasiProcessDebug } from "./wasiDebug.js";

@@ -2,7 +2,7 @@ import { startShell } from "@wasmin/shell";
 import { getAsset, isSea} from 'node:sea';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { setWorkerOverrideUrl } from '@wasmin/wasi-js';
+import { setWorkerOverrideUrl } from '@netapplabs/wasi-js';
 
 // File class was added as experimental in node v19.2
 import { File } from "node:buffer";

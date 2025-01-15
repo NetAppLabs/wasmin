@@ -16,7 +16,7 @@ import { embeddedFiles } from "bun";
 import { main } from "./entry.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { setWorkerOverrideUrl } from '@wasmin/wasi-js';
+import { setWorkerOverrideUrl } from '@netapplabs/wasi-js';
 
 // @ts-ignore
 import worker1 from "./wasmComponentWorkerThread.js" with { type: "file" };

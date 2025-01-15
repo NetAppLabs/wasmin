@@ -4,8 +4,8 @@ import "jest-extended";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { Test, constructTestsForTestSuites } from "@wasmin/wasi-js/testutil";
-import { WASI, isBun } from "@wasmin/wasi-js";
+import { Test, constructTestsForTestSuites } from "@netapplabs/wasi-js/testutil";
+import { WASI, isBun } from "@netapplabs/wasi-js";
 import { constructWasiForTestRuntimeDetection } from "./utils.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));

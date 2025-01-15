@@ -9,18 +9,19 @@ import { getDirectoryHandleByURL } from "../getDirectoryHandleByURL.js";
 import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "../implements.js";
 import { NFileSystemDirectoryHandle } from "../NFileSystemDirectoryHandle.js";
 import { openFileHandle } from "./util.js";
+import { PreNameCheck } from "../util.js";
 import { default as yaml } from "js-yaml";
 import {
+    FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
     FileSystemHandlePermissionDescriptor,
-    Mountable,
-    NFileSystemWritableFileStream,
-    PreNameCheck,
     FileSystemSyncAccessHandle,
-} from "../index.js";
-import { FileSystemHandle } from "../index.js";
-import { MountedEntry } from "../ExtHandles.js";
+    FileSystemWriteChunkType,
+    FileSystemWritableFileStream
+} from "../FileSystemAccess.js";
+import { NFileSystemWritableFileStream } from "../NFileSystemWritableFileStream.js";
+import { Mountable, MountedEntry } from "../ExtHandles.js";
 
 const INDEXEDDB_DEBUG = false;
 
@@ -187,7 +188,7 @@ export class IndexeddbFolderHandle
     _rootFolderHandle?: IndexeddbFolderHandle;
     _securityStore?: any;
 
-    [Symbol.asyncIterator]() {
+    [Symbol.asyncIterator](): AsyncIterableIterator<[string, FileSystemFileHandle | FileSystemDirectoryHandle]> {
         return this.entries();
     }
 

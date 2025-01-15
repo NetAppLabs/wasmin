@@ -1,0 +1,64 @@
+name: Publish wasi-snapshot-preview2 Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - gh_actions
+    paths:
+      - 'packages/wasi-snapshot-preview2/**'
+
+concurrency:
+  group: wsp2-publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up GH Package Registry Auth
+        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@netapplabs'
+
+      - name: Install dependencies
+        run: npm install --prefix .
+        working-directory: packages/wasi-snapshot-preview2
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Bump version
+        run: npx standard-version
+        working-directory: packages/wasi-snapshot-preview2
+
+      - name: Build package
+        run: npm run build --prefix .
+        working-directory: packages/wasi-snapshot-preview2
+
+      - name: Publish package
+        run: npm publish --prefix .
+        working-directory: packages/wasi-snapshot-preview2
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git push

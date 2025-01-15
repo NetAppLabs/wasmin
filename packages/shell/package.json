@@ -1,6 +1,6 @@
 {
-  "name": "@wasmin/shell",
-  "version": "0.0.1",
+  "name": "@netapplabs/shell",
+  "version": "0.0.4",
   "description": "WASI Shell",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,10 @@
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start"
   },
-  "repository": "ssh://git@github.com/tryggvil/shell.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "author": "tryggvil",
   "license": "MIT",
   "homepage": "https://github.com/tryggvil/shell#readme",
@@ -31,16 +34,17 @@
     }
   ],
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
-    "eslint-config-custom": "*"
+    "@netapplabs/tsconfig": "^0.0.3",
+    "eslint-config-custom": "*",
+    "npm-run-all": "^4.1.5"
   },
   "dependencies": {
-    "@wasmin/fs-js": "*",
-    "@wasmin/github-fs-js": "*",
-    "@wasmin/nfs-js": "*",
-    "@wasmin/node-fs-js": "*",
-    "@wasmin/s3-fs-js": "*",
-    "@wasmin/wasi-js": "*",
+    "@netapplabs/fs-js": "^0.0.8",
+    "@netapplabs/github-fs-js": "^0.1.1",
+    "@netapplabs/nfs-js": "^0.1.5",
+    "@netapplabs/node-fs-js": "^0.1.2",
+    "@netapplabs/s3-fs-js": "^0.1.1",
+    "@netapplabs/wasi-js": "^0.1.2",
     "chalk": "^5.3.0"
   }
 }

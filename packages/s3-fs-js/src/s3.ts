@@ -6,18 +6,18 @@ import {
     Stat,
     Statable,
     TypeMismatchError,
-} from "@wasmin/fs-js";
-import { join, substituteSecretValue } from "@wasmin/fs-js";
-import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
+import { join, substituteSecretValue } from "@netapplabs/fs-js";
+import { DefaultSink, ImpleFileHandle, ImplFolderHandle } from "@netapplabs/fs-js";
 import {
     FileSystemWritableFileStream,
-    FileSystemHandle,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
-} from "@wasmin/fs-js";
+    FileSystemSyncAccessHandle
+} from "@netapplabs/fs-js";
 
 
-import { parseUrl, urlToString } from "@wasmin/fs-js";
+import { parseUrl, urlToString } from "@netapplabs/fs-js";
 
 
 import * as AWS from "@aws-sdk/client-s3";
@@ -33,6 +33,7 @@ import {
     DeleteBucketCommand,
     GetObjectRequest,
 } from "@aws-sdk/client-s3";
+import * as console from "node:console";
 
 const DefaultMaxKeys = 1000;
 const DefaultCacheTTL = 1000;
@@ -172,6 +173,11 @@ export class S3FileImpl implements S3File {
     start: number | undefined;
     end: number | undefined;
 
+    async bytes(): Promise<Uint8Array> {
+        const ab = await this.arrayBuffer();
+        return new Uint8Array(ab);
+    }
+
     async arrayBuffer(): Promise<ArrayBuffer>;
     async arrayBuffer(): Promise<ArrayBuffer> {
         const bucketName = this.config.bucketName;
@@ -217,7 +223,7 @@ export class S3FileImpl implements S3File {
                 if (!supportsRangeRequests) {
                     arrBuffer = arrBuffer.slice(start, end);
                 }
-                return arrBuffer;
+                return arrBuffer as ArrayBuffer;
             } else {
                 return new ArrayBuffer(0);
             }
@@ -257,7 +263,7 @@ export class S3FileImpl implements S3File {
                     if (end < 0 ) {
                         end = 0;
                     }
-                }    
+                }
                 newSize = end - start;
             } else {
                 newSize = newSize - start;

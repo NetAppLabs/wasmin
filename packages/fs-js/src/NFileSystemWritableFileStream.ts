@@ -2,6 +2,7 @@
 //import { WritableStream } from "web-streams-polyfill";
 
 import { FileSystemWritableFileStream } from "./index.js";
+import { FileSystemWriteChunkType } from "./FileSystemAccess.js";
 
 declare global {
     var FILESYSTEM_WRITABLE_DEBUG: boolean;

@@ -1,7 +1,11 @@
 {
-  "imports": {
-    "@wasmin/fs-js": "../../packages/fs-js/src/index.ts",
-    "@wasmin/node-fs-js": "../../packages/node-fs-js/src/index.ts",
-    "js-yaml": "npm:js-yaml@^4.1.0"
-  }
+  "tasks": {
+    "test": "deno test --allow-read --allow-write",
+    "format": "deno fmt **/*.ts"
+  },
+  "exports": {
+    "./src/mod.ts" : "./src/mod.ts"
+  },
+  "version": "0.2.3",
+  "name": "@netapplabs/deno-fs-js"
 }

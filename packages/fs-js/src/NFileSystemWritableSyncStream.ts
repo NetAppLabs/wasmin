@@ -1,5 +1,6 @@
 import { DefaultSink } from "./implements.js";
 import { FileSystemSyncAccessHandle, FileSystemWritableFileStream } from "./index.js"
+import { FileSystemWriteChunkType } from "./FileSystemAccess"
 
 
 declare global {

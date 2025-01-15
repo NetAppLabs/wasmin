@@ -1,6 +1,6 @@
-import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs.js";
-import { instantiate } from "./nfs_rs.js";
-import { WASIWorker } from "@wasmin/wasi-js";
+import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
+import { instantiate } from "./nfs_rs";
+import { WASIWorker } from "@netapplabs/wasi-js";
 import {
     NFileSystemWritableFileStream,
     PreNameCheck,
@@ -9,7 +9,7 @@ import {
     SyntaxError,
     TypeMismatchError,
     Stat,
-} from "@wasmin/fs-js";
+} from "@netapplabs/fs-js";
 import process from "node:process";
 
 const ACCESS3_READ = 0x0001;
@@ -835,7 +835,7 @@ export class NfsFile implements File {
     arrayBuffer(): Promise<ArrayBuffer> {
         return new Promise(async (resolve, reject) => {
             try {
-                return resolve(this.uint8Array().buffer);
+                return resolve(this.uint8Array().buffer as ArrayBuffer);
             } catch (e: any) {
                 return reject(e);
             }
@@ -892,7 +892,7 @@ export class NfsBlob implements Blob {
         this.type = contentType || "unknown";
     }
     arrayBuffer(): Promise<ArrayBuffer> {
-        return new Promise(async (resolve) => resolve(this._data));
+        return new Promise(async (resolve) => resolve(this._data.buffer as ArrayBuffer));
     }
     slice(start?: number | undefined, end?: number | undefined, contentType?: string | undefined): Blob {
         const blob = new NfsBlob(this._mount, this._fh, this._data.slice(start, end), contentType) as unknown;
@@ -1004,7 +1004,7 @@ export class NfsSink implements FileSystemWritableFileStream {
                 data = anyData.data;
             }
 
-            let buffer: ArrayBuffer;
+            let buffer: ArrayBufferLike;
             if (data instanceof ArrayBuffer) {
                 buffer = data;
             } else if (ArrayBuffer.isView(data)) {
@@ -1015,10 +1015,10 @@ export class NfsSink implements FileSystemWritableFileStream {
                 buffer = await data.arrayBuffer();
             } else if (data instanceof String) {
                 const encoder = new TextEncoder();
-                buffer = encoder.encode(data.toString());
+                buffer = encoder.encode(data.toString()).buffer;
             } else {
                 const encoder = new TextEncoder();
-                buffer = encoder.encode(data as string);
+                buffer = encoder.encode(data as string).buffer;
             }
 
             try {

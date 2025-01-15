@@ -1,4 +1,4 @@
-import { FileSystemFileHandle, Statable } from "@wasmin/fs-js";
+import { FileSystemFileHandle, Statable } from "@netapplabs/fs-js";
 import { SystemError } from "./errors.js";
 import { TextDecoderWrapper } from "./utils.js";
 import { Handle, ReadableAsyncOrSync, WritableAsyncOrSync } from "./wasiFileSystem.js";

@@ -1,8 +1,12 @@
 {
-  "name": "@wasmin/github-fs-js",
-  "version": "0.1.0",
+  "name": "@netapplabs/github-fs-js",
+  "version": "0.1.1",
   "description": "",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
   "source": "src/index.ts",
   "exports": "./dist/index.js",
   "main": "./dist/index.js",
@@ -24,10 +28,11 @@
   "author": "tryggvil",
   "license": "MIT",
   "dependencies": {
-    "@wasmin/fs-js": "*"
+    "@netapplabs/fs-js": "*"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
-    "eslint-config-custom": "*"
+    "@netapplabs/tsconfig": "*",
+    "eslint-config-custom": "*",
+    "typescript": "^5.7.2"
   }
 }

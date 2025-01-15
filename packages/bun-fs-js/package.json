@@ -1,34 +1,45 @@
 {
-  "name": "@wasmin/bun-fs-js",
-  "version": "0.1.0",
+  "name": "@netapplabs/bun-fs-js",
+  "version": "0.1.6",
   "description": "",
   "type": "module",
-  "source": "src/index.ts",
-  "exports": "./dist/index.js",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetAppLabs/wasmin.git"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "src"
+    "dist/*.js",
+    "dist/*.d.ts"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "bun build.ts",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsc -p . --watch",
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
     "test": "bun test",
-    "bun-test": "bun test"
+    "bun-test": "bun test",
+    "push": "npm publish --prefix ."
   },
   "author": "tryggvil",
   "dependencies": {
-    "@wasmin/fs-js": "*"
+    "@netapplabs/fs-js": "^0.0.10"
   },
   "devDependencies": {
-    "@wasmin/tsconfig": "*",
-    "bun-types": "^1.1.22",
-    "eslint-config-custom": "*"
+    "@netapplabs/tsconfig": "^0.0.3",
+    "@types/bun": "^1.1.15",
+    "bun-plugin-dts": "^0.3.0",
+    "eslint-config-custom": "*",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }

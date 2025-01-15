@@ -1,34 +1,19 @@
 import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
-import { join } from "node:path";
+import {join} from "node:path";
 
 import {
-    FileSystemDirectoryHandle,
-    FileSystemFileHandle,
-    FileSystemHandlePermissionDescriptor,
-    FileSystemSyncAccessHandle,
-    InvalidModificationError,
-    InvalidStateError,
-    NFileSystemWritableFileStream,
-    NotFoundError,
+    type FileSystemHandlePermissionDescriptor, type FileSystemSyncAccessHandle, type ImpleFileHandle, type ImpleSink,
+    type ImplFolderHandle, InvalidModificationError, InvalidStateError, NFileSystemWritableFileStream, NotFoundError,
     PreNameCheck,
-    Stat,
-    Statable,
-    SyntaxError,
-    TypeMismatchError,
-} from "@wasmin/fs-js";
-import { ImpleFileHandle, ImplFolderHandle, DefaultSink, FileSystemCreateWritableOptions } from "@wasmin/fs-js";
+    type Stat, type Statable, TypeMismatchError,
+} from "@netapplabs/fs-js";
 
-// @ts-ignore because of issues with including @types/bun
-import { FileBlob, file as bunFile, version } from "bun";
-
-// @ts-ignore
-import { WritableStreamDefaultWriter, FileSystemWritableFileStream } from "bun";
-
+import {file as bunFile} from "bun";
 
 const BUN_FS_DEBUG = false;
 
-export function bunFsDebug(msg?: any, ...optionalParams: any[]): void {
+export function bunFsDebug(msg?: any): void {
     if (BUN_FS_DEBUG) {
         console.log(...msg);
     }
@@ -47,42 +32,15 @@ type PromiseType<T extends Promise<any>> = T extends Promise<infer P> ? P : neve
 
 type SinkFileHandle = PromiseType<ReturnType<typeof fs.open>>;
 
-const bunVersion: string = version;
-const bunVersionMajorMinorPatch = bunVersion.split('.');
-const bunVersionMajor = Number(bunVersionMajorMinorPatch[0]);
-const bunVersionMinor = Number(bunVersionMajorMinorPatch[1]);
-const bunVersionPatch = Number(bunVersionMajorMinorPatch[2]);
-const isSinkFileHandleNumber = (bunVersionMajor < 1) || (bunVersionMajor == 1 && bunVersionMinor == 0 && bunVersionPatch <= 15);
+class BunSink extends WritableStream implements FileSystemWritableFileStream, ImpleSink<SinkFileHandle> {
+    public position = 0;
+    public size: number;
+    // public fileHandle: SinkFileHandle;
 
-function fileHandleToFileDescriptorNumber(fh: SinkFileHandle) {
-    if (isSinkFileHandleNumber) {
-        // older bun seems to use number as fsSync.promises.FileHandle
-        return fh as unknown as number;
-    } else {
-        return fh.fd;
-    }
-}
-
-export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWritableFileStream {
-    constructor(fileHandle: SinkFileHandle, size: number) {
-        super(fileHandle);
+    constructor(public fileHandle: SinkFileHandle, size: number) {
+        super();
         this.size = size;
-    }
-
-    getWriter(): WritableStreamDefaultWriter<any> {
-        const w = new WritableStreamDefaultWriter<any>(this);
-        return w;
-    }
-
-    get fileHandleNumber() {
-        const fh = this.fileHandle;
-        const fhNumber = fileHandleToFileDescriptorNumber(fh);
-        return fhNumber;
-    }
-
-    async abort() {
-        fsSync.closeSync(this.fileHandleNumber);
-        //await this.fileHandle.close();
+        this.fileHandle = fileHandle;
     }
 
     async write(chunk: any) {
@@ -93,7 +51,7 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
                 }
                 if (!("data" in chunk)) {
                     //await this.fileHandle.close();
-                    fsSync.closeSync(this.fileHandleNumber);
+                    fsSync.closeSync(this.fileHandle.fd);
                     throw new SyntaxError("write requires a data argument");
                 }
                 chunk = chunk.data;
@@ -105,13 +63,13 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
                     this.position = chunk.position;
                     return;
                 } else {
-                    fsSync.closeSync(this.fileHandleNumber);
+                    fsSync.closeSync(this.fileHandle.fd);
                     //await this.fileHandle.close();
                     throw new SyntaxError("seek requires a position argument");
                 }
             } else if (chunk.type === "truncate") {
                 if (Number.isInteger(chunk.size) && chunk.size >= 0) {
-                    fsSync.ftruncateSync(this.fileHandleNumber, chunk.size);
+                    fsSync.ftruncateSync(this.fileHandle.fd, chunk.size);
                     //await this.fileHandle.truncate(chunk.size);
                     this.size = chunk.size;
                     if (this.position > this.size) {
@@ -120,7 +78,7 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
                     return;
                 } else {
                     //await this.fileHandle.close();
-                    fsSync.closeSync(this.fileHandleNumber);
+                    fsSync.closeSync(this.fileHandle.fd);
                     throw new SyntaxError("truncate requires a size argument");
                 }
             }
@@ -132,38 +90,62 @@ export class BunSink extends DefaultSink<SinkFileHandle> implements FileSystemWr
             chunk = Buffer.from(chunk);
         } else if (chunk instanceof Blob) {
             bunFsDebug("write is Blob");
-            // @ts-ignore
-            for await (const data of chunk.stream()) {
-                //const res = await this.fileHandle.writev(
-                const written = fsSync.writevSync(this.fileHandleNumber, [data as Buffer], this.position);
+            for await (const data of this.readableStreamToAsyncIterable(chunk.stream())) {
+                const written = fsSync.writevSync(this.fileHandle.fd, [data], this.position);
                 this.position += written;
                 this.size += written;
             }
             return;
         }
         bunFsDebug("write else");
-        bunFsDebug("write else chunk: ", chunk);
+        bunFsDebug(`write else chunk: ${chunk}`);
 
         try {
             const chunkLength = chunk.byteLength;
-            bunFsDebug("write else chunkLength: ", chunkLength);
-            const written = fsSync.writeSync(this.fileHandleNumber, chunk, 0, chunkLength, this.position);
+            bunFsDebug(`write else chunkLength: ${chunkLength}`);
+            const written = fsSync.writeSync(this.fileHandle.fd, chunk, 0, chunkLength, this.position);
             this.position += written;
             this.size += written;
-            bunFsDebug("write else written: ", written);
+            bunFsDebug(`write else written: ${written}`);
         } catch (err: any) {
-            bunFsDebug("Error: ", err);
+            bunFsDebug(`Error: ${err}`);
+        }
+    }
+
+    async *readableStreamToAsyncIterable(stream: ReadableStream<Uint8Array>): AsyncIterable<Uint8Array> {
+        const reader = stream.getReader();
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                yield value;
+            }
+        } finally {
+            reader.releaseLock();
         }
     }
 
     async close() {
-        fsSync.closeSync(this.fileHandleNumber);
-        //await this.fileHandle.close();
+        fsSync.closeSync(this.fileHandle.fd);
+    }
+
+    async seek(position: number): Promise<void> {
+        if (position < 0 || position > this.size) {
+            throw new Error("Invalid position");
+        }
+        this.position = position;
+    }
+
+    async truncate(size: number): Promise<void> {
+        fsSync.ftruncateSync(this.fileHandle.fd, size);
+        this.size = size;
+        if (this.position > size) {
+            this.position = size;
+        }
     }
 }
 
-// @ts-ignore because of typescript .prototype bug regarding File/Blob
-export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSystemFileHandle, Statable {
+export class BunFileHandle implements ImpleFileHandle<File, BunSink>, FileSystemFileHandle, Statable {
     constructor(public path: string, public name: string) {}
 
     public kind = "file" as const;
@@ -198,39 +180,32 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
         });
-        const fhNumber = fileHandleToFileDescriptorNumber(fileHandle);
+        const fhNumber = fileHandle.fd;
         const { size } = fsSync.fstatSync(fhNumber);
         fSize = size;
-        const sink = new BunSink(fileHandle, fSize);
-        return sink;
+        return new BunSink(fileHandle, fSize);
     }
 
     async createWritable(options?: FileSystemCreateWritableOptions) {
         const sink = await this.createWritableSink(options);
-        const fstream = new NFileSystemWritableFileStream(sink);
-        return fstream;
-    }
-
-    private getPath() {
-        return this.path;
+        return new NFileSystemWritableFileStream(sink);
     }
 
     async createSyncAccessHandle(): Promise<FileSystemSyncAccessHandle> {
         throw new Error("createSyncAccessHandle not implemented");
     }
 
-    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+    async queryPermission(_descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
 
-    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+    async requestPermission(_descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
 
     async stat(): Promise<Stat> {
         const nodeStat = await fs.stat(this.path, { bigint: true });
-        const stat = bunStatToStat(nodeStat);
-        return stat;
+        return bunStatToStat(nodeStat);
     }
 
     async updateTimes(accessTime: bigint | null, modifiedTime: bigint | null): Promise<void> {
@@ -249,6 +224,10 @@ export class BunFileHandle implements ImpleFileHandle<BunSink, FileBlob>, FileSy
         const tSetModifiedTime = toUnixTimestampNumber(setModifiedTime);
         //utimesSync(this.path, tSetAccessTime, tSetModifiedTime);
         await fs.utimes(this.path, tSetAccessTime, tSetModifiedTime);
+    }
+
+    private getPath() {
+        return this.path;
     }
 }
 
@@ -306,7 +285,7 @@ export class BunFolderHandle
         for (const name of items) {
             const path = join(dir, name);
             const stat = await fs.lstat(path);
-            bunFsDebug("bunfs: values name: ", name);
+            bunFsDebug("bunfs: values name: ");
             if (stat.isFile()) {
                 yield new BunFileHandle(path, name);
             } else if (stat.isDirectory()) {
@@ -364,16 +343,16 @@ export class BunFolderHandle
         }
         if (!opts.create) throw new NotFoundError();
         const fHandle = await fs.open(path, "w");
-        const fHandleNumber = fileHandleToFileDescriptorNumber(fHandle);
+        const fHandleNumber = fHandle.fd;
         fsSync.closeSync(fHandleNumber);
         return new BunFileHandle(path, name);
     }
 
-    async queryPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+    async queryPermission(_descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
 
-    async requestPermission(descriptor?: FileSystemHandlePermissionDescriptor) {
+    async requestPermission(_descriptor?: FileSystemHandlePermissionDescriptor) {
         return "granted" as const;
     }
 
@@ -403,8 +382,7 @@ export class BunFolderHandle
 
     async stat(): Promise<Stat> {
         const bunStat = await fs.stat(this.path, { bigint: true });
-        const stat = bunStatToStat(bunStat);
-        return stat;
+        return bunStatToStat(bunStat);
     }
 
     async updateTimes(accessTime: bigint | null, modifiedTime: bigint | null): Promise<void> {
@@ -434,20 +412,18 @@ function bunStatToStat(stat: BunStats): Stat {
     const atimeNs = stat.atimeNs;
     const ino = stat.ino;
     const size = stat.size;
-    const s: Stat = {
+    return {
         creationTime: ctimeNs,
         accessedTime: atimeNs,
         modifiedTime: mtimeNs,
         inode: ino,
         size
     };
-    return s;
 }
 
 function toUnixTimestampNumber(timeNs: bigint) {
     const timeMs = Number(timeNs / 1_000_000n);
     const timeMsFloored = Math.round(timeMs);
     // convert to fractional UNIX timestamp like 123.456
-    const timeMsUnixSecondsFractional = timeMsFloored / 1000;
-    return timeMsUnixSecondsFractional;
+    return timeMsFloored / 1000;
 }

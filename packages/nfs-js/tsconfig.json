@@ -1,5 +1,5 @@
 {
-    "extends": "@wasmin/tsconfig",
+    "extends": "@netapplabs/tsconfig",
     "compilerOptions": {
         "lib": [
             "dom",
@@ -9,6 +9,7 @@
         "outDir": "./component"
     },
     "include": [
-        "./component/index.ts"
+        "./component/index.ts",
+        "./component/**/*.ts",
     ]
 }

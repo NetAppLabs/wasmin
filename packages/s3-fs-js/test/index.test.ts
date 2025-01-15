@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 
-import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, memory } from "@wasmin/fs-js";
+import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, memory } from "@netapplabs/fs-js";
 import { s3 } from "../src/index.js";
 
-import { TestsFileSystemHandle } from "@wasmin/fs-js";
+import { TestsFileSystemHandle } from "@netapplabs/fs-js";
 
 const s3Url = process.env.S3_URL || 's3://127.0.0.1/invalid/';
 RegisterProvider("s3", s3);

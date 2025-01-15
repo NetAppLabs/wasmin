@@ -13,12 +13,12 @@ import {
     writeMessage,
 } from "./vendored/sync-message/index.js";
 import { OpenFiles, ReadableAsyncOrSync, WritableAsyncOrSync } from "./wasiFileSystem.js";
-import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@wasmin/fs-js";
+import { RegisterProvider, getDirectoryHandleByURL, isBun } from "@netapplabs/fs-js";
 import { TTY, TTYInstance } from "./tty.js";
-import { FileSystemDirectoryHandle } from "@wasmin/fs-js";
+import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import { createComponentImportOrResourceProxy } from "./wasmWorker.js";
 import { wasiWorkerDebug } from "./wasiDebug.js";
-//import { nfs } from "@wasmin/nfs-js";
+//import { nfs } from "@netapplabs/nfs-js";
 
 export type ProviderUrl = string;
 export type OpenFilesMap = Record<string, ProviderUrl>;
@@ -210,11 +210,11 @@ export class WasiWorkerThreadRunner {
 
     public async initializeComponentImports(): Promise<string[]> {
         /*if (isNode()) {
-            let node = await import("@wasmin/node-fs-js");
+            let node = await import("@netapplabs/node-fs-js");
             // @ts-ignore
             RegisterProvider("node", node);
         } else if (isBun()) {
-            const bunimport = await import("@wasmin/bun-fs-js");
+            const bunimport = await import("@netapplabs/bun-fs-js");
             const bunfs = bunimport.bun;
             RegisterProvider("bun", bunfs);
         }*/

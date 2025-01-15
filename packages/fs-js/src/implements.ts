@@ -1,5 +1,11 @@
-import { FileSystemHandlePermissionDescriptor, InvalidStateError } from "./index.js";
-import { FileSystemFileHandle, FileSystemDirectoryHandle } from "./FileSystemAccess.js";
+import { FileSystemHandlePermissionDescriptor, FileSystemWriteChunkType, InvalidStateError } from "./index.js";
+import {
+  FileSystemWritableFileStream,
+  FileSystemCreateWritableOptions,
+  WriteParams,
+  FileSystemFileHandle,
+  FileSystemDirectoryHandle,
+} from "./FileSystemAccess.js";
 
 const TypedArrayType = Object.getPrototypeOf(Uint8Array);
 export interface ImpleSink<T> extends UnderlyingSink<any> {
