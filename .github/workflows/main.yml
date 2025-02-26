@@ -55,9 +55,13 @@ jobs:
     - name: deno
       uses: denoland/setup-deno@v1
       with:
-        deno-version: v2.x    
-    - name: install
+        deno-version: v2.x
+    - name: Set up GH Package Registry Auth
+      run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+    - name: yarn-install
       run: yarn install
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build
       run: yarn build
     - name: Test
