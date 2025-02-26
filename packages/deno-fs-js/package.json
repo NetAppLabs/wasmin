@@ -1,12 +1,8 @@
 {
-  "name": "@netapplabs/node-fs-js",
-  "version": "0.1.1",
+  "name": "@netapplabs/deno-fs-js",
+  "version": "0.1.0",
   "description": "",
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/NetAppLabs/wasmin.git"
-  },
   "source": "src/index.ts",
   "exports": "./dist/index.js",
   "main": "./dist/index.js",
@@ -23,16 +19,16 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "vitest run --globals"
+    "test": "deno test --unstable-sloppy-imports --allow-all --no-check"
   },
   "author": "tryggvil",
   "dependencies": {
-    "@netapplabs/fs-js": "*"
+    "@netapplabs/fs-js": "*",
+    "@netapplabs/node-fs-js": "*"
   },
   "devDependencies": {
-    "@types/node": "^22.7.5",
-    "@netapplabs/tsconfig": "^0.0.2",
+    "@netapplabs/tsconfig": "*",
     "eslint-config-custom": "*",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.2"
   }
 }

@@ -1,4 +1,4 @@
-import { startShell } from "@wasmin/shell";
+import { startShell } from "@netapplabs/shell";
 import { getAsset, isSea} from 'node:sea';
 import * as fs from 'node:fs';
 import * as path from 'node:path';

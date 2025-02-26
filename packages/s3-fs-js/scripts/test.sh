@@ -25,10 +25,10 @@ cd ..
 
 function kill_go_s3() {
     EXITCODE=$?
-	echo "Stopping go-nfs"
+	echo "Stopping go-s3"
 	kill $GO_S3_PID
     if [ $EXITCODE -ne 0 ]; then
-        cat /tmp/go-s3.log
+        cat $S3_TEST_SERVER_LOG
     fi
 }
 

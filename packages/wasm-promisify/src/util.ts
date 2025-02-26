@@ -1,4 +1,4 @@
-import {initializeWebAssemblyFunction, isJspiEnabled, isStackSwitchingEnabled, PromisifiedExports} from "./index";
+import {initializeWebAssemblyFunction, isJspiEnabled, isStackSwitchingEnabled, PromisifiedExports} from "./index.js";
 
 // TODO: look into inconsistency in funcref <-> anyfunc
 //type WasmRefType = "funcref" | "externref";

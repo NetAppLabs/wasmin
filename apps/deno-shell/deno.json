@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@wasmin/shell": "../../packages/shell/src/index.ts",
+    "@netapplabs/shell": "../../packages/shell/src/index.ts",
 	"crypto": "node:crypto"
   },
   "tasks": {

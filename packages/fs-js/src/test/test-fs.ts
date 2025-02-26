@@ -291,10 +291,13 @@ export const TestsFileSystemHandleImportTestDefinitions = (
             let errMsg = "A requested file or directory could not be found at the time an operation was processed.";
             let errName = "NotFoundError";
             if (name == "bun") {
-                errMsg = "No such file or directory";
-                errName = (os.platform() === 'linux') ? "Error" : "ENOENT";
+                errMsg = "ENOENT: no such file or directory";
+                errName = "Error";
+                const errMessageStart = err.message.substring(0,errMsg.length)
+                expect(errMessageStart).toBe(errMsg);
+            } else {
+                expect(err.message).toBe(errMsg);
             }
-            expect(err.message).toBe(errMsg);
             expect(err.name).toBe(errName);
         });
 
@@ -440,7 +443,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
             },
         });
 
-        await rs.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await rs.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("foo_string");
         expect(await getFileSize(handle)).toBe(10);
     });
@@ -454,7 +457,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 controller.close();
             },
         });
-        await rs.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await rs.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("foo");
         expect(await getFileSize(handle)).toBe(3);
     });
@@ -468,7 +471,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 controller.close();
             },
         });
-        await rs.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await rs.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("foo");
         expect(await getFileSize(handle)).toBe(3);
     });
@@ -482,7 +485,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 controller.close();
             },
         });
-        await rs.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await rs.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("foobar");
         expect(await getFileSize(handle)).toBe(6);
     });
@@ -498,7 +501,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 controller.close();
             },
         });
-        await rs.pipeTo(wfs as WritableStream);
+        await rs.pipeTo(wfs as unknown as WritableStream);
         expect(await getFileContents(handle)).toBe("bazbar\0\0\0\0");
         expect(await getFileSize(handle)).toBe(10);
     });
@@ -514,7 +517,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
                 controller.close();
             },
         });
-        await rs.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await rs.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("foobarbaz");
         expect(await getFileSize(handle)).toBe(9);
     });
@@ -523,7 +526,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
         const handle = await createEmptyFile("fetched.txt", root);
         const wfs = await handle.createWritable();
         const body = streamFromFetch("fetched from far");
-        await body.pipeTo(wfs as WritableStream, { preventCancel: true });
+        await body.pipeTo(wfs as unknown as WritableStream, { preventCancel: true });
         expect(await getFileContents(handle)).toBe("fetched from far");
         expect(await getFileSize(handle)).toBe(16);
     });
@@ -535,7 +538,7 @@ export const TestsFileSystemHandleImportTestDefinitions = (
         const abortController = new AbortController();
         const signal = abortController.signal;
         abortController.abort();
-        const promise = new ReadableStream().pipeTo(wfs as WritableStream, {
+        const promise = new ReadableStream().pipeTo(wfs as unknown as WritableStream, {
             signal,
         });
         let err = await capture(promise);

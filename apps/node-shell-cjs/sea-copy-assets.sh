@@ -5,7 +5,7 @@ LOCAL_REPO="$(pwd)/assets"
 rm -rf ${LOCAL_REPO}
 mkdir -p ${LOCAL_REPO}
 
-LOCAL_PKG="${LOCAL_REPO}/@wasmin/node-shell"
+LOCAL_PKG="${LOCAL_REPO}/@netapplabs/node-shell"
 
 mkdir -p ${LOCAL_PKG}
 
@@ -17,7 +17,7 @@ cp -r ./dist/* ${LOCAL_PKG}/
 
 cat <<EOF > ${LOCAL_PKG}/package.json
 {
-  "name": "@wasmin/node-shell",
+  "name": "@netapplabs/node-shell",
   "type": "module",
   "main": "./index.js"
 }

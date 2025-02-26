@@ -28,7 +28,7 @@
     "bin/install.js"
   ],
   "dependencies": {
-    "typescript": "^5.4.2"
+    "typescript": "^5.7.3"
   },
   "license": "UNLICENSED",
   "devDependencies": {

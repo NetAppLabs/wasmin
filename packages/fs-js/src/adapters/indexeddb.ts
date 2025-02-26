@@ -19,7 +19,7 @@ import {
     FileSystemSyncAccessHandle,
     FileSystemWriteChunkType,
     FileSystemWritableFileStream
-} from "../FileSystemAccess.js";
+} from "../index.js";
 import { NFileSystemWritableFileStream } from "../NFileSystemWritableFileStream.js";
 import { Mountable, MountedEntry } from "../ExtHandles.js";
 

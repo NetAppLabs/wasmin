@@ -30,11 +30,10 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@netapplabs/fs-js": "^0.0.10"
+    "@netapplabs/fs-js": "*"
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.0.3",
-    "@types/bun": "^1.1.15",
     "bun-plugin-dts": "^0.3.0",
     "eslint-config-custom": "*",
     "vitest": "^2.1.8"

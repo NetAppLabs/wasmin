@@ -20,7 +20,7 @@
     "@azure/storage-queue": "^12.24.0",
     "@netapplabs/fs-js": "*",
     "@netapplabs/nfs-js": "*",
-    "@wasmin/s3-fs-js": "*",
+    "@netapplabs/s3-fs-js": "*",
     "@netapplabs/wasi-js": "*",
     "sharp": "^0.33.5",
     "wat-compiler": "^1.1.1"

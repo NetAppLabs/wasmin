@@ -4,7 +4,7 @@ import sharp from 'sharp';
 let af = await import('@azure/functions');
 
 import { nfs } from "@netapplabs/nfs-js";
-import { s3 } from "@wasmin/s3-fs-js";
+import { s3 } from "@netapplabs/s3-fs-js";
 
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 // import * as fs from 'node:fs';

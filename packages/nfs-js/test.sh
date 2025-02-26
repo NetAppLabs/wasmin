@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 if ! which vitest &> /dev/null; then
     yarn test

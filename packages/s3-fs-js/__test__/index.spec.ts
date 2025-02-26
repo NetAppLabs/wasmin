@@ -1,7 +1,7 @@
 import test from 'ava'
 
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle, FileSystemFileHandle } from '@netapplabs/fs-js';
-import { s3 } from "../src/index.js";
+import { s3 } from '@netapplabs/s3-fs-js';
 
 const s3Url = process.env.S3_URL || 's3://127.0.0.1/invalid/';
 
@@ -200,6 +200,7 @@ test.serial('should iterate through subdirectory', async (t) => {
   t.is(i, expectedEntries.length);
 })
 
+
 test.serial('should iterate through subsubdirectory', async (t) => {
   const rootHandle = await getRootHandle();
   const dirHandle = await rootHandle.getDirectoryHandle('first') as FileSystemDirectoryHandle;
@@ -216,6 +217,7 @@ test.serial('should iterate through subsubdirectory', async (t) => {
   t.is(i, expectedEntries.length);
   await dirHandle.removeEntry('place');
 })
+
 
 test.serial('should iterate through entries', async (t) => {
   const rootHandle = await getRootHandle();

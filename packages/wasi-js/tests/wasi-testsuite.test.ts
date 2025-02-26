@@ -4,9 +4,19 @@ import "jest-extended";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "fs/promises";
-import { Test, constructTestsForTestSuites } from "@netapplabs/wasi-js/testutil";
+import { Test, constructTestsForTestSuites, constructWasiForTest } from "@netapplabs/wasi-js/testutil";
 import { WASI, isBun } from "@netapplabs/wasi-js";
-import { constructWasiForTestRuntimeDetection } from "./utils.js";
+import { node } from "@netapplabs/node-fs-js";
+
+export async function constructWasiForTestRuntimeDetection(testCase) {
+    if (isBun()) {
+        const bunmod = await import("@netapplabs/bun-fs-js");
+        const bun = bunmod.bun;
+        return constructWasiForTest(testCase, bun);
+    } else {
+        return constructWasiForTest(testCase, node);
+    }
+}
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 

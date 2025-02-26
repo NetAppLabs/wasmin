@@ -17,12 +17,12 @@
         "bun-test": "./test-bun.sh"
     },
     "devDependencies": {
-        "@bytecodealliance/jco": "^1.7.0",
+        "@bytecodealliance/jco": "1.7.0",
         "typescript": "^5.7.2",
         "vitest": "^2.1.2"
     },
     "dependencies": {
-        "@netapplabs/fs-js": "^0.0.7",
-        "@netapplabs/wasi-js": "^0.1.1"
+        "@netapplabs/fs-js": "*",
+        "@netapplabs/wasi-js": "*"
     }
 }

@@ -1,5 +1,5 @@
-import { startShell } from "@wasmin/shell";
-import { bun } from "@wasmin/bun-fs-js";
+import { startShell } from "@netapplabs/shell";
+import { bun } from "@netapplabs/bun-fs-js";
 import { setWorkerOverrideUrl } from '@netapplabs/wasi-js';
 
 export async function main() {

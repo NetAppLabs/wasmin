@@ -210,7 +210,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.subscribe();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       if (!(ret instanceof Pollable)) {
@@ -241,7 +241,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.subscribe();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       if (!(ret instanceof Pollable)) {
@@ -347,7 +347,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant8 = ret;
@@ -521,7 +521,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -706,7 +706,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant8 = ret;
@@ -840,7 +840,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant7 = ret;
@@ -995,7 +995,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant9 = ret;
@@ -1183,7 +1183,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1316,7 +1316,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.toDebugString();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var ptr3 = utf8Encode(ret, realloc0, memory0);
@@ -1342,7 +1342,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -1412,7 +1412,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1479,7 +1479,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -1725,7 +1725,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1933,7 +1933,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2141,7 +2141,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2349,7 +2349,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2591,7 +2591,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant12 = ret;
@@ -2861,7 +2861,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = filesystemErrorCode(rsc0);
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant4 = ret;
@@ -3053,7 +3053,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -3116,7 +3116,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -3181,7 +3181,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       const ret = poll(result3);
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = undefined;
+        rsc[symbolRscHandle] = null;
       }
       curResourceBorrows = [];
       var val4 = ret;
@@ -3232,6 +3232,125 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
     let postReturn4;
     let postReturn5;
     let postReturn6;
+    const handleTable8 = [T_FLAG, 0];
+    const finalizationRegistry8 = finalizationRegistryCreate((handle) => {
+      const { rep } = rscTableRemove(handleTable8, handle);
+      exports0['33'](rep);
+    });
+    
+    handleTables[8] = handleTable8;
+    const trampoline0 = rscTableCreateOwn.bind(null, handleTable8);
+    function trampoline1(handle) {
+      const handleEntry = rscTableRemove(handleTable8, handle);
+      if (handleEntry.own) {
+        
+        exports0['33'](handleEntry.rep);
+      }
+    }
+    function trampoline2(handle) {
+      const handleEntry = rscTableRemove(handleTable5, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable5.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable5.delete(handleEntry.rep);
+        } else if (ResolveAddressStream[symbolCabiDispose]) {
+          ResolveAddressStream[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline3(handle) {
+      const handleEntry = rscTableRemove(handleTable1, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable1.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable1.delete(handleEntry.rep);
+        } else if (Error$1[symbolCabiDispose]) {
+          Error$1[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline4(handle) {
+      const handleEntry = rscTableRemove(handleTable4, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable4.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable4.delete(handleEntry.rep);
+        } else if (Network[symbolCabiDispose]) {
+          Network[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline5(handle) {
+      const handleEntry = rscTableRemove(handleTable3, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable3.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable3.delete(handleEntry.rep);
+        } else if (OutputStream[symbolCabiDispose]) {
+          OutputStream[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline6(handle) {
+      const handleEntry = rscTableRemove(handleTable2, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable2.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable2.delete(handleEntry.rep);
+        } else if (InputStream[symbolCabiDispose]) {
+          InputStream[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline7(handle) {
+      const handleEntry = rscTableRemove(handleTable6, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable6.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable6.delete(handleEntry.rep);
+        } else if (TcpSocket[symbolCabiDispose]) {
+          TcpSocket[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline10(handle) {
+      const handleEntry = rscTableRemove(handleTable7, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable7.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable7.delete(handleEntry.rep);
+        } else if (Descriptor[symbolCabiDispose]) {
+          Descriptor[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline15(handle) {
+      const handleEntry = rscTableRemove(handleTable0, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable0.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable0.delete(handleEntry.rep);
+        } else if (Pollable[symbolCabiDispose]) {
+          Pollable[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
     Promise.all([module0, module1, module2, module3]).catch(() => {});
     ({ exports: exports0 } = yield instantiateCore(yield module2));
     ({ exports: exports1 } = yield instantiateCore(yield module0, {
@@ -3393,13 +3512,6 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
     postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdir'];
     postReturn5 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdirplus'];
     postReturn6 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdirplus-path'];
-    const handleTable8 = [T_FLAG, 0];
-    const finalizationRegistry8 = finalizationRegistryCreate((handle) => {
-      const { rep } = rscTableRemove(handleTable8, handle);
-      exports0['33'](rep);
-    });
-    
-    handleTables[8] = handleTable8;
     
     class NfsMount{
       constructor () {
@@ -6782,7 +6894,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
             finalizationRegistry8.unregister(rsc1);
             rscTableRemove(handleTable8, handle2);
             rsc1[symbolDispose] = emptyFunc;
-            rsc1[symbolRscHandle] = undefined;
+            rsc1[symbolRscHandle] = null;
             exports0['33'](handleTable8[(handle2 << 1) + 1] & ~T_FLAG);
           }});
           variant5= {
@@ -6829,118 +6941,6 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     }
-    const trampoline0 = rscTableCreateOwn.bind(null, handleTable8);
-    function trampoline1(handle) {
-      const handleEntry = rscTableRemove(handleTable8, handle);
-      if (handleEntry.own) {
-        
-        exports0['33'](handleEntry.rep);
-      }
-    }
-    function trampoline2(handle) {
-      const handleEntry = rscTableRemove(handleTable5, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable5.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable5.delete(handleEntry.rep);
-        } else if (ResolveAddressStream[symbolCabiDispose]) {
-          ResolveAddressStream[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline3(handle) {
-      const handleEntry = rscTableRemove(handleTable1, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable1.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable1.delete(handleEntry.rep);
-        } else if (Error$1[symbolCabiDispose]) {
-          Error$1[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline4(handle) {
-      const handleEntry = rscTableRemove(handleTable4, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable4.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable4.delete(handleEntry.rep);
-        } else if (Network[symbolCabiDispose]) {
-          Network[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline5(handle) {
-      const handleEntry = rscTableRemove(handleTable3, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable3.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable3.delete(handleEntry.rep);
-        } else if (OutputStream[symbolCabiDispose]) {
-          OutputStream[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline6(handle) {
-      const handleEntry = rscTableRemove(handleTable2, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable2.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable2.delete(handleEntry.rep);
-        } else if (InputStream[symbolCabiDispose]) {
-          InputStream[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline7(handle) {
-      const handleEntry = rscTableRemove(handleTable6, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable6.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable6.delete(handleEntry.rep);
-        } else if (TcpSocket[symbolCabiDispose]) {
-          TcpSocket[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline10(handle) {
-      const handleEntry = rscTableRemove(handleTable7, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable7.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable7.delete(handleEntry.rep);
-        } else if (Descriptor[symbolCabiDispose]) {
-          Descriptor[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
-    function trampoline15(handle) {
-      const handleEntry = rscTableRemove(handleTable0, handle);
-      if (handleEntry.own) {
-        
-        const rsc = captureTable0.get(handleEntry.rep);
-        if (rsc) {
-          if (rsc[symbolDispose]) rsc[symbolDispose]();
-          captureTable0.delete(handleEntry.rep);
-        } else if (Pollable[symbolCabiDispose]) {
-          Pollable[symbolCabiDispose](handleEntry.rep);
-        }
-      }
-    }
     const nfs = {
       NfsMount: NfsMount,
       parseUrlAndMount: parseUrlAndMount,
@@ -6957,7 +6957,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ({ value, done } = gen.next(value));
       } while (!(value instanceof Promise) && !done);
       if (done) {
-        if (resolve) return resolve(value);
+        if (resolve) resolve(value);
         else return value;
       }
       if (!promise) promise = new Promise((_resolve, _reject) => (resolve = _resolve, reject = _reject));

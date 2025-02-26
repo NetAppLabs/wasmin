@@ -1,6 +1,8 @@
 import { TestsFileSystemHandle, getOriginPrivateDirectory } from "@netapplabs/fs-js";
 import { nfs } from "../component";
 
+
+//globalThis.WASI_DEBUG = true;
 // Needed specifically for bun:
 import { test, describe, beforeAll, beforeEach, expect, afterAll } from "vitest";
 

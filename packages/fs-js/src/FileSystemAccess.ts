@@ -96,6 +96,7 @@ export interface FileSystemFileHandle extends FileSystemHandle {
  *
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/FileSystemWritableFileStream)
  */
+// @ts-ignore
 export interface FileSystemWritableFileStream extends WritableStream {
     /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FileSystemWritableFileStream/seek) */
     seek(position: number): Promise<void>;

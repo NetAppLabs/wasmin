@@ -9,11 +9,11 @@ import compile from 'wat-compiler'
 
 import { WASI, OpenFiles, setWorkerOverrideUrl } from "@netapplabs/wasi-js";
 import { nfs } from "@netapplabs/nfs-js";
-import { s3 } from "@wasmin/s3-fs-js";
+import { s3 } from "@netapplabs/s3-fs-js";
 
 import { getDirectoryHandleByURL, RegisterProvider, FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import * as fs from 'node:fs';
-import { InvocationContext, LogHookContext, PreInvocationContext } from '@azure/functions';
+import { HttpRequest, InvocationContext, LogHookContext, PreInvocationContext } from '@azure/functions';
 
 // @ts-ignore
 RegisterProvider("nfs", nfs);
@@ -65,13 +65,13 @@ export async function fetchCompile(url: URL) {
     return fetch(url).then(WebAssembly.compileStreaming);
 }
 
+
 app.storageQueue('storageQueueTrigger', {
     queueName: 'queue1',
     connection: 'AzureWebJobsStorage',
     handler: async (queueItem, context) => {
 
-
-        function registerWorkers() {
+    function registerWorkers() {
             //globalThis.WASM_WORKER_CLIENT_DEBUG = true;
             //globalThis.WASM_WORKER_THREAD_DEBUG = true;
             //globalThis.WASI_DEBUG = true;

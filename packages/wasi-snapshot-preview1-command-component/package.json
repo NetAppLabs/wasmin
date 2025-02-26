@@ -17,13 +17,15 @@
         "component-jspi/component.core2.wasm",
         "component-jspi/component.core3.wasm",
         "component-jspi/component.core4.wasm",
+        "component-jspi/interfaces/*",
         "component-worker/index.d.ts",
         "component-worker/index.js",
         "component-worker/component.js",
         "component-worker/component.core.wasm",
         "component-worker/component.core2.wasm",
         "component-worker/component.core3.wasm",
-        "component-worker/component.core4.wasm"
+        "component-worker/component.core4.wasm",
+        "component-worker/interfaces/*"
     ],
     "scripts": {
         "build": "tsc -p .",

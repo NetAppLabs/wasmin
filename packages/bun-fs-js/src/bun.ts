@@ -9,6 +9,7 @@ import {
     type Stat, type Statable, TypeMismatchError,
 } from "@netapplabs/fs-js";
 
+// @ts-ignore
 import {file as bunFile} from "bun";
 
 const BUN_FS_DEBUG = false;

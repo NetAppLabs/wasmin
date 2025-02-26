@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/deno-shell",
+  "name": "@netapplabs/deno-shell",
   "version": "0.1.0",
   "scripts": {
     "start": "deno run dist/index.js",
@@ -14,11 +14,11 @@
     "esbuild-plugin-transform": "^0.5.0"
   },
   "dependencies": {
-    "@wasmin/deno-fs-js": "*",
+    "@netapplabs/deno-fs-js": "*",
     "@netapplabs/fs-js": "*",
     "@netapplabs/nfs-js": "*",
-    "@wasmin/s3-fs-js": "*",
-    "@wasmin/shell": "*",
+    "@netapplabs/s3-fs-js": "*",
+    "@netapplabs/shell": "*",
     "@netapplabs/wasi-js": "*"
   }
 }

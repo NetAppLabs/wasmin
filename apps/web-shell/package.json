@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/web-shell",
+  "name": "@netapplabs/web-shell",
   "type": "module",
   "version": "0.0.0",
   "scripts": {
@@ -18,8 +18,8 @@
     "@netapplabs/fs-js": "*",
     "@netapplabs/nfs-js": "*",
     "@netapplabs/wasi-js": "*",
-    "@wasmin/github-fs-js": "*",
-    "@wasmin/s3-fs-js": "*",
+    "@netapplabs/github-fs-js": "*",
+    "@netapplabs/s3-fs-js": "*",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-image": "^0.8.0",
     "@xterm/addon-webgl": "^0.18.0",

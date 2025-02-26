@@ -33,7 +33,7 @@ import {
   WebAssemblyImports,
   WebAssemblyTableType,
   writeFile,
-} from "./util";
+} from "./util.js";
 
 
 // Defined here because it is not exported from "wasmati"
@@ -389,8 +389,8 @@ export class PromisifiedWasmGenerator {
         }
 
         const importsForImportsProxy = {};
-        const instanceImportsProxy = await WebAssembly.instantiate(bytesImportsProxy, importsForImportsProxy);
-
+        const instanceImportsProxySource = await WebAssembly.instantiate(bytesImportsProxy, importsForImportsProxy);
+        const instanceImportsProxy = instanceImportsProxySource;
         const funcInfos = this.getImportFunctionInfos();
         let wrappedImportsToImportsProxy: Record<string,Record<string,any>> = {};
 

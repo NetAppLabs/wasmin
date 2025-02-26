@@ -30,12 +30,12 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.665.0",
-    "@netapplabs/fs-js": "^0.0.7"
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@netapplabs/fs-js": "*"
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "*",
-    "ava": "^6.2.0",
+    "ava": "5.3.1",
     "eslint-config-custom": "*",
     "typescript": "^5.7.2",
     "vitest": "^2.1.4"

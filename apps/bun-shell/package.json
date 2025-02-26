@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/bun-shell",
+  "name": "@netapplabs/bun-shell",
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
@@ -21,11 +21,11 @@
     "esbuild": "^0.24.0"
   },
   "dependencies": {
-    "@wasmin/bun-fs-js": "*",
+    "@netapplabs/bun-fs-js": "*",
     "@netapplabs/fs-js": "*",
     "@netapplabs/nfs-js": "*",
-    "@wasmin/s3-fs-js": "*",
-    "@wasmin/shell": "*",
+    "@netapplabs/s3-fs-js": "*",
+    "@netapplabs/shell": "*",
     "@netapplabs/wasi-js": "*",
     "get-random-values": "^1.2.2",
     "node-fetch": "^3.2.10",

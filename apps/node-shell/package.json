@@ -1,5 +1,5 @@
 {
-  "name": "@wasmin/node-shell",
+  "name": "@netapplabs/node-shell",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -22,7 +22,7 @@
   "dependencies": {
     "@netapplabs/fs-js": "*",
     "@netapplabs/node-fs-js": "*",
-    "@wasmin/shell": "*",
+    "@netapplabs/shell": "*",
     "@netapplabs/wasi-js": "*"
   }
 }

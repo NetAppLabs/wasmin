@@ -378,6 +378,7 @@ export class S3Config {
         this.cacheTTL = DefaultCacheTTL;
         this.isAws = isAws;
         this.supportsRangeRequests = true;
+        this.hiddenFileDirMode = false;
     }
     bucketName: string;
     config: AWS.S3ClientConfig;
@@ -385,6 +386,7 @@ export class S3Config {
     cacheTTL: number;
     isAws: boolean;
     supportsRangeRequests: boolean;
+    hiddenFileDirMode: boolean;
 
     getS3Client(): AWS.S3Client {
         const cl = new AWS.S3Client(this.config);
@@ -448,6 +450,14 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
             cacheTTL = parsedCacheTTL;
         }
     }
+    let hiddenFileDirMode = false;
+    const paramDirMode  = sUrl.searchParams.get("dirmode");
+    if (paramDirMode != undefined) {
+        if (paramDirMode == "hiddenfile") {
+            hiddenFileDirMode = true;
+        }
+    }
+
     const paramSupportsRangeRequests  = sUrl.searchParams.get("byterange");
     let supportsRangeRequests = DefaultSupportsRangeRequests;
     if (paramSupportsRangeRequests != undefined) {
@@ -550,6 +560,7 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
     sConfig.maxKeys = maxKeys;
     sConfig.cacheTTL = cacheTTL;
     sConfig.supportsRangeRequests = supportsRangeRequests;
+    sConfig.hiddenFileDirMode = hiddenFileDirMode;
     return { s3config: sConfig, newUrl: newUrl };
 
 }
@@ -631,7 +642,8 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                             const writeable = true;
                             s3Debug(`populateEntries lastModifiedMillis: ${lastModifiedMillis}`);
                             const path = join(this.path, entryName);
-                            const file = new S3FileImpl(this.config, path, entryName, [], size, lastModifiedMillis);
+                            const s3file = new S3FileImpl(this.config, path, entryName, [], size, lastModifiedMillis);
+                            const file = s3file as File;
                             this._entries[entryName] = new S3FileHandle(this.config, path, entryName, file, writeable);
                         }
                     }
@@ -712,12 +724,15 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const dirPath = join(this.path, name, true);
-        //const hiddenFile = join(dirPath, ".dir");
-        const hiddenFile = join(dirPath, "");
+        let hiddenFileDirMode = this.config.hiddenFileDirMode;
+        let dirFileName = join(dirPath, "");
+        if (hiddenFileDirMode) {
+            dirFileName = join(dirPath, ".dir");
+        }
         const f = new S3FolderHandle(this.config, dirPath, name);
         const params = {
             Bucket: bucketName,
-            Key: hiddenFile,
+            Key: dirFileName,
             Body: new Uint8Array(),
         };
         const command = new PutObjectCommand(params);
