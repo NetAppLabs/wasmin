@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/tsconfig",
-  "version": "0.0.4",
+  "version": "0.6.0",
   "description": "tsconfig.json",
   "tsconfig": "tsconfig.json",
   "type": "module",

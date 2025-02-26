@@ -1,5 +1,5 @@
 {
-    "version": "0.1.3",
+    "version": "0.6.0",
     "name": "@netapplabs/wasi-snapshot-preview1-command-component",
     "type": "module",
     "repository": {

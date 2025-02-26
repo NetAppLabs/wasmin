@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/s3-fs-js",
-  "version": "0.1.1",
+  "version": "0.6.0",
   "description": "S3 implementation of FileSystem Standard",
   "type": "module",
   "source": "src/index.ts",

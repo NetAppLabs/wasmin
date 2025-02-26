@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/wasm-promisify",
-  "version": "0.10.1",
+  "version": "0.6.0",
   "description": "Promisify Wasm for JSPI",
   "type": "module",
   "repository": {

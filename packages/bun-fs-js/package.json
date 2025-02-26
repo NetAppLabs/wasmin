@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/bun-fs-js",
-  "version": "0.1.6",
+  "version": "0.6.0",
   "description": "",
   "type": "module",
   "module": "src/index.ts",
