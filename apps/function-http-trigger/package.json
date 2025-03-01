@@ -28,7 +28,6 @@
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.18.2",
     "@types/node": "^20",
-    "azure-functions-core-tools": "^4.x",
     "copyfiles": "^2.4.1",
     "esbuild": "^0.24.0",
     "rimraf": "^6.0.0",

@@ -13,7 +13,9 @@ import {
     FileSystemWritableFileStream,
     FileSystemDirectoryHandle,
     FileSystemFileHandle,
-    FileSystemSyncAccessHandle
+    FileSystemSyncAccessHandle,
+    FileSystemWriteChunkType,
+    FileSystemCreateWritableOptions
 } from "@netapplabs/fs-js";
 
 

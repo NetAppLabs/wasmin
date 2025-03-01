@@ -33,7 +33,7 @@ export function join(parentPath: string, childName: string, includeTrailingSlash
 }
 
 // Code Borrowed and adapted from https://transang.me/modern-fetch-and-how-to-get-buffer-output-from-aws-sdk-v3-getobjectcommand/
-export const concatBuffers = (buffers: Uint8Array[]) => {
+export const concatBuffers = (buffers: Uint8Array[]): Uint8Array => {
     const totalLength = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
     const result = new Uint8Array(totalLength);
     let offset = 0;
@@ -43,7 +43,7 @@ export const concatBuffers = (buffers: Uint8Array[]) => {
     }
     return result;
 };
-export const streamToBuffer = (stream: ReadableStream) =>
+export const streamToBuffer = (stream: ReadableStream): Promise<Uint8Array> =>
     new Promise<Uint8Array>((resolve, reject) => {
         const reader = stream.getReader();
         const chunks: Uint8Array[] = [];
@@ -95,7 +95,7 @@ export const streamToBuffer = (stream: ReadableStream) =>
         }
     });
 
-export const streamToBufferNode = (stream: any) =>
+export const streamToBufferNode = (stream: any): Promise<Uint8Array> =>
     new Promise<Uint8Array>((resolve, reject) => {
         const chunks: Uint8Array[] = [];
         stream.on("data", (chunk: Uint8Array) => chunks.push(chunk));

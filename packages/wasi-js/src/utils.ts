@@ -91,7 +91,7 @@ export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function copyUint8Array(src: Uint8Array)  {
+export function copyUint8Array(src: Uint8Array): Uint8Array  {
     var dst = new ArrayBuffer(src.byteLength);
     let uint8Arr = new Uint8Array(dst);
     uint8Arr.set(new Uint8Array(src));

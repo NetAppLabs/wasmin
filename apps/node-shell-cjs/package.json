@@ -1,6 +1,6 @@
 {
-  "name": "@wasmin/node-shell-cjs",
-  "version": "0.0.0",
+  "name": "@netapplabs/node-shell-cjs",
+  "version": "0.7.0",
   "source": "src/index.ts",
   "main": "dist/app.js",
   "scripts": {

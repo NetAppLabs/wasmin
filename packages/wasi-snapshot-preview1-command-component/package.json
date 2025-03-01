@@ -1,5 +1,5 @@
 {
-    "version": "0.6.0",
+    "version": "0.7.0",
     "name": "@netapplabs/wasi-snapshot-preview1-command-component",
     "type": "module",
     "repository": {
@@ -33,10 +33,10 @@
     },
     "devDependencies": {
         "@bytecodealliance/jco": "^1.2.4",
-        "@netapplabs/tsconfig": "^0.0.2",
+        "@netapplabs/tsconfig": "^0.7.0",
         "@types/node": "^22.10.2"
     },
     "dependencies": {
-        "@netapplabs/wasm-promisify": "^0.10.1"
+        "@netapplabs/wasm-promisify": "^0.7.0"
     }
 }

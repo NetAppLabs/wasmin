@@ -1,5 +1,5 @@
 import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
-import { instantiate } from "./nfs_rs";
+import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@netapplabs/wasi-js";
 import {
     NFileSystemWritableFileStream,
@@ -9,6 +9,10 @@ import {
     SyntaxError,
     TypeMismatchError,
     Stat,
+    FileSystemWritableFileStream,
+    FileSystemCreateWritableOptions,
+    FileSystemSyncAccessHandle,
+    FileSystemWriteChunkType,
 } from "@netapplabs/fs-js";
 import process from "node:process";
 
@@ -196,14 +200,6 @@ export class NfsHandle implements FileSystemHandle {
     protected _fullName: string;
     readonly kind: FileSystemHandleKind;
     readonly name: string;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: boolean;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: boolean;
     constructor(parent: NfsDirectoryHandleParent, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string) {
         if (parent.parentDir) {
             const parentDir = parent.parentDir
@@ -221,8 +217,6 @@ export class NfsHandle implements FileSystemHandle {
         this._fullName = fullName;
         this.kind = kind;
         this.name = name;
-        this.isFile = kind == "file";
-        this.isDirectory = kind == "directory";
     }
     isSameEntry(other: FileSystemHandle): Promise<boolean> {
         return new Promise(async (resolve) => {
@@ -314,16 +308,8 @@ class ReaddirplusEntryCache {
 }
 
 export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
+    declare readonly kind: "directory";
     [Symbol.asyncIterator]: NfsDirectoryHandle["entries"] = this.entries;
-    readonly kind: "directory";
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: false;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: true;
     protected _readdirplusEntryCache: ReaddirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
@@ -367,9 +353,6 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
         }
         super(parent, fh, fileid, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
-        this.kind = "directory";
-        this.isFile = false;
-        this.isDirectory = true;
         this.getEntries = this.values;
         this._readdirplusEntryCache = new ReaddirplusEntryCache();
     }
@@ -746,21 +729,10 @@ export class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectory
 }
 
 export class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
-    readonly kind: "file";
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: true;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: false;
+    declare readonly kind: "file";
     constructor(param: NfsHandle) {
         const toWrap = param as NfsFileHandle;
         super({parentDir: toWrap._parent}, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
-        this.kind = "file";
-        this.isFile = true;
-        this.isDirectory = false;
     }
     async getFile(): Promise<File> {
         return new Promise((resolve, reject) => {

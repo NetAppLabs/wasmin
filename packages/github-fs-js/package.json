@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/github-fs-js",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "type": "module",
   "repository": {
@@ -28,11 +28,11 @@
   "author": "tryggvil",
   "license": "MIT",
   "dependencies": {
-    "@netapplabs/fs-js": "*"
+    "@netapplabs/fs-js": "^0.7.0"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "*",
-    "eslint-config-custom": "*",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "@netapplabs/eslint-config-custom": "^0.7.0",
     "typescript": "^5.7.2"
   }
 }

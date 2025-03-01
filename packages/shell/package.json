@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/shell",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "WASI Shell",
   "type": "module",
   "main": "dist/index.js",
@@ -34,17 +34,17 @@
     }
   ],
   "devDependencies": {
-    "@netapplabs/tsconfig": "^0.0.3",
-    "eslint-config-custom": "*",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "@netapplabs/eslint-config-custom": "*",
     "npm-run-all": "^4.1.5"
   },
   "dependencies": {
-    "@netapplabs/fs-js": "^0.0.8",
-    "@netapplabs/github-fs-js": "^0.1.1",
-    "@netapplabs/nfs-js": "^0.1.5",
-    "@netapplabs/node-fs-js": "^0.1.2",
-    "@netapplabs/s3-fs-js": "^0.1.1",
-    "@netapplabs/wasi-js": "^0.1.2",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/github-fs-js": "^0.7.0",
+    "@netapplabs/nfs-js": "^0.7.0",
+    "@netapplabs/node-fs-js": "^0.7.0",
+    "@netapplabs/s3-fs-js": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0",
     "chalk": "^5.3.0"
   }
 }

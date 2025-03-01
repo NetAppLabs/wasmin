@@ -1,2 +1,2 @@
-export * as sync from "./sync";
-export * as async from "./async";
+export * as sync from "./sync/index.js";
+export * as async from "./async/index.js";

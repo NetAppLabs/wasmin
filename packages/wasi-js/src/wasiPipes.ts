@@ -24,7 +24,7 @@ export class BufferedPipe implements Readable, Writable, Peekable {
         wasiPipesDebug(`write: dataLen: ${dataLen} data: `, copiedData);
         this._chunksQueue.push(copiedData);
     }
-    get firstbuf() {
+    get firstbuf(): Uint8Array | undefined {
         let chunk = this._chunksQueue.shift();
         if (chunk !== undefined) {
             wasiPipesDebug(`firstbuf: returning chunk: `, chunk);

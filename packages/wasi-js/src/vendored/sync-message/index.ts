@@ -5,6 +5,22 @@ import { jsonStringify, jsonParse, toUint8Array, fromUint8Array } from "./deser.
 // Borrowed from repository https://github.com/alexmojaki/sync-message
 // included here because of webpack build issues
 
+/** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent) */
+export interface FetchEvent {
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/clientId) */
+    readonly clientId: string;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/handled) */
+    readonly handled: Promise<undefined>;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/preloadResponse) */
+    readonly preloadResponse: Promise<any>;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/request) */
+    readonly request: Request;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/resultingClientId) */
+    readonly resultingClientId: string;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/FetchEvent/respondWith) */
+    respondWith(r: Response | PromiseLike<Response>): void;
+}
+
 const BASE_URL_SUFFIX = "__SyncMessageServiceWorkerInput__";
 const VERSION = "__sync-message-v2__";
 // Default 128 KiB

@@ -1,5 +1,5 @@
 import { NfsMount, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
-import { Stat } from "@netapplabs/fs-js";
+import { Stat, FileSystemWritableFileStream, FileSystemCreateWritableOptions, FileSystemSyncAccessHandle, FileSystemWriteChunkType } from "@netapplabs/fs-js";
 declare global {
     var NFS_JS_DEBUG: boolean;
 }
@@ -24,14 +24,6 @@ export declare class NfsHandle implements FileSystemHandle {
     protected _fullName: string;
     readonly kind: FileSystemHandleKind;
     readonly name: string;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: boolean;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: boolean;
     constructor(parent: NfsDirectoryHandleParent, fh: Uint8Array, fileid: bigint, kind: FileSystemHandleKind, fullName: string, name: string);
     isSameEntry(other: FileSystemHandle): Promise<boolean>;
     queryPermission(perm?: NfsHandlePermissionDescriptor): Promise<PermissionState>;
@@ -44,16 +36,8 @@ declare class ReaddirplusEntryCache {
     constructor(timestamp?: number);
 }
 export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemDirectoryHandle {
-    [Symbol.asyncIterator]: NfsDirectoryHandle["entries"];
     readonly kind: "directory";
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: false;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: true;
+    [Symbol.asyncIterator]: NfsDirectoryHandle["entries"];
     protected _readdirplusEntryCache: ReaddirplusEntryCache;
     constructor(url: string);
     constructor(toWrap: NfsHandle);
@@ -87,14 +71,6 @@ export declare class NfsDirectoryHandle extends NfsHandle implements FileSystemD
 }
 export declare class NfsFileHandle extends NfsHandle implements FileSystemFileHandle {
     readonly kind: "file";
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isFile: true;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    readonly isDirectory: false;
     constructor(param: NfsHandle);
     getFile(): Promise<File>;
     createWritable(options?: FileSystemCreateWritableOptions): Promise<FileSystemWritableFileStream>;

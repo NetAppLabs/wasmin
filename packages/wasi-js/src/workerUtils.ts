@@ -40,7 +40,7 @@ export function setWorkerOverrideUrl(workerUrlString: string, workerOverrideUrlS
     workerOverrideUrls[workerUrlString] = workerOverrideUrlString;
 }
 
-export async function getWasmModuleSource(urlOrPath: string) {
+export async function getWasmModuleSource(urlOrPath: string): Promise<ArrayBuffer> {
     let url;
     try {
         url = urlOrPath;
@@ -62,7 +62,8 @@ export async function getWasmModuleSource(urlOrPath: string) {
             urlOrPath = splits[0];
         }
         const wasmBuf = await promises.readFile(urlOrPath);
-        return wasmBuf;
+        const wasmArrayBuffer = wasmBuf.buffer;
+        return wasmArrayBuffer as ArrayBuffer;
     }
 }
 
@@ -72,13 +73,13 @@ export async function getWasmModule(moduleUrl: string) {
     return mod;
 }
 
-export async function getWasmModuleAndBuffer(moduleUrl: string) {
+export async function getWasmModuleAndBuffer(moduleUrl: string): Promise<{wasmMod: WebAssembly.Module, wasmBuf: ArrayBuffer}> {
     const wasmBuf = await getWasmModuleSource(moduleUrl);
     const wasmMod = await WebAssembly.compile(wasmBuf);
     return { wasmMod, wasmBuf };
 }
 
-export async function getWasmBuffer(moduleUrl: string) {
+export async function getWasmBuffer(moduleUrl: string): Promise<{wasmBuf: ArrayBuffer}> {
     const wasmBuf = await getWasmModuleSource(moduleUrl);
     return { wasmBuf };
 }

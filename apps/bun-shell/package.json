@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/bun-shell",
-  "version": "0.0.0",
+  "version": "0.7.0",
   "scripts": {
     "start": "bun src/index.ts",
     "build": "node esbuild.mjs",

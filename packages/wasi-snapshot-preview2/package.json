@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/wasi-snapshot-preview2",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "WASI Snapshot Preview2 Interface Definitions",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -30,8 +30,6 @@
       "default": "./dist/async/*.js"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "scripts": {
     "build": "tsc -p .",
     "generate-types": "./generate-types.sh"
@@ -41,8 +39,7 @@
     "src"
   ],
   "devDependencies": {
-    "@netapplabs/tsconfig": "^0.0.2",
-    "typescript": "^5.7.2"
+    "@netapplabs/tsconfig": "^0.7.0"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/wasm-promisify",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Promisify Wasm for JSPI",
   "type": "module",
   "repository": {
@@ -33,7 +33,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@netapplabs/tsconfig": "^0.0.2",
+    "@netapplabs/tsconfig": "^0.7.0",
     "wasmati": "^0.2.0"
   }
 }

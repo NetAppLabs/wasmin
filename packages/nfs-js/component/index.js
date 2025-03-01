@@ -1,4 +1,4 @@
-import { instantiate } from "./nfs_rs";
+import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@netapplabs/wasi-js";
 import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@netapplabs/fs-js";
 import process from "node:process";
@@ -158,14 +158,6 @@ export class NfsHandle {
     _fullName;
     kind;
     name;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isFile;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isDirectory;
     constructor(parent, fh, fileid, kind, fullName, name) {
         if (parent.parentDir) {
             const parentDir = parent.parentDir;
@@ -185,8 +177,6 @@ export class NfsHandle {
         this._fullName = fullName;
         this.kind = kind;
         this.name = name;
-        this.isFile = kind == "file";
-        this.isDirectory = kind == "directory";
     }
     isSameEntry(other) {
         return new Promise(async (resolve) => {
@@ -278,15 +268,6 @@ class ReaddirplusEntryCache {
 }
 export class NfsDirectoryHandle extends NfsHandle {
     [Symbol.asyncIterator] = this.entries;
-    kind;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isFile;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isDirectory;
     _readdirplusEntryCache;
     constructor(param) {
         let parent;
@@ -329,9 +310,6 @@ export class NfsDirectoryHandle extends NfsHandle {
         }
         super(parent, fh, fileid, kind, fullName, name);
         this[Symbol.asyncIterator] = this.entries;
-        this.kind = "directory";
-        this.isFile = false;
-        this.isDirectory = true;
         this.getEntries = this.values;
         this._readdirplusEntryCache = new ReaddirplusEntryCache();
     }
@@ -678,21 +656,9 @@ export class NfsDirectoryHandle extends NfsHandle {
     getEntries;
 }
 export class NfsFileHandle extends NfsHandle {
-    kind;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isFile;
-    /**
-     * @deprecated Old property just for Chromium <=85. Use `kind` property in the new API.
-     */
-    isDirectory;
     constructor(param) {
         const toWrap = param;
         super({ parentDir: toWrap._parent }, toWrap._fh, toWrap._fileid, toWrap.kind, toWrap._fullName, toWrap.name);
-        this.kind = "file";
-        this.isFile = true;
-        this.isDirectory = false;
     }
     async getFile() {
         return new Promise((resolve, reject) => {

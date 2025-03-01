@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/bun-fs-js",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "type": "module",
   "module": "src/index.ts",
@@ -30,12 +30,12 @@
   },
   "author": "tryggvil",
   "dependencies": {
-    "@netapplabs/fs-js": "*"
+    "@netapplabs/fs-js": "^0.7.0"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "^0.0.3",
+    "@netapplabs/tsconfig": "^0.7.0",
     "bun-plugin-dts": "^0.3.0",
-    "eslint-config-custom": "*",
+    "@netapplabs/eslint-config-custom": "^0.7.0",
     "vitest": "^2.1.8"
   },
   "peerDependencies": {

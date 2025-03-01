@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/deno-shell",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "scripts": {
     "start": "deno run dist/index.js",
     "build": "node esbuild.mjs",
