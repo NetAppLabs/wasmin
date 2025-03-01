@@ -29,15 +29,15 @@
     "vitest": "./scripts/test.sh test-vitest"
   },
   "author": "tryggvil",
+  "license": "Apache-2.0",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/client-s3": "^3.758.0",
     "@netapplabs/fs-js": "^0.7.0"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "*",
+    "@netapplabs/tsconfig": "^0.7.0",
     "ava": "5.3.1",
     "@netapplabs/eslint-config-custom": "^0.7.0",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.4"
+    "vitest": "^3.0.7"
   }
 }

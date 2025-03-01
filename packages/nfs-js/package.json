@@ -18,8 +18,8 @@
     },
     "devDependencies": {
         "@bytecodealliance/jco": "1.7.0",
-        "typescript": "^5.7.2",
-        "vitest": "^2.1.2"
+        "@netapplabs/tsconfig": "^0.7.0",
+        "vitest": "^3.0.7"
     },
     "dependencies": {
         "@netapplabs/fs-js": "^0.7.0",

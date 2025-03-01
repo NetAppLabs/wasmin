@@ -134,6 +134,7 @@ export class IncomingBodyInstance implements IncomingBody, Readable, Peekable {
     reader?: ReadableStreamBYOBReader;
     resource: number;
     _wasiEnv: WasiEnv;
+    _isClosed: boolean;
     get wasiEnv() {
         return this._wasiEnv;
     }
@@ -145,16 +146,25 @@ export class IncomingBodyInstance implements IncomingBody, Readable, Peekable {
         this._wasiEnv = wasiEnv;
         this.response = res;
         this.resource = this.openFiles.addResource(this);
+        this._isClosed = false;
     }
     async read(len: number): Promise<Uint8Array> {
         let body = this.response.body;
         if (body !== undefined && this.reader == undefined) {
             this.reader = body?.getReader({ mode: "byob" });
+            this.reader?.closed
+            .then(() => {
+                // handing when we have close
+                this._isClosed = true;
+            })
+            .catch(() => {
+                // Rejected - TODO handle error
+            });
         }
         if (this.reader == undefined ) {
             throw 'internal-error';
         }
-        if (await this.reader?.closed ){
+        if (this._isClosed){
             return new Uint8Array(0);
         }
         let arr = new Uint8Array(len);
@@ -163,8 +173,7 @@ export class IncomingBodyInstance implements IncomingBody, Readable, Peekable {
     }
 
     async peek(): Promise<number> {
-        const isClosed = await this.reader?.closed;
-        if ( !isClosed ){
+        if ( !this._isClosed ){
             // if not closed we assume we have at least 1 more bytes
             return 1;
         }

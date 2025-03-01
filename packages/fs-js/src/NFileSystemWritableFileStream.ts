@@ -99,9 +99,9 @@ export class NFileSystemWritableFileStream extends WritableStream implements Fil
 class CustomWritableStreamDefaultWriter implements WritableStreamDefaultWriter {
     constructor(w: WritableStreamDefaultWriter) {
         this.w = w;
-        this._closed = w.closed;
+        this._closed = w.closed as Promise<undefined>;
         this._desiredSize = w.desiredSize;
-        this._ready = w.ready;
+        this._ready = w.ready as Promise<undefined>;;
     }
     w: WritableStreamDefaultWriter<any>;
     private _closed: Promise<undefined>;

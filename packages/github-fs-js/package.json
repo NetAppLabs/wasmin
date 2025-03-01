@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.7.0",
-    "@netapplabs/eslint-config-custom": "^0.7.0",
-    "typescript": "^5.7.2"
+    "@netapplabs/eslint-config-custom": "^0.7.0"
   }
 }

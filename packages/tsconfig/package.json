@@ -28,9 +28,9 @@
     "bin/install.js"
   ],
   "dependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   },
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "devDependencies": {
     "standard-version": "^9.5.0"
   }

@@ -29,6 +29,6 @@
   "devDependencies": {
     "@netapplabs/tsconfig": "^0.7.0",
     "@netapplabs/eslint-config-custom": "^0.7.0",
-    "vitest": "^2.1.2"
+    "vitest": "^3.0.7"
   }
 }
