@@ -24,6 +24,7 @@
     "npm:@bytecodealliance/jco@^1.2.4": "1.7.0",
     "npm:@changesets/cli@^2.28.1": "2.28.1",
     "npm:@chialab/esbuild-plugin-meta-url@~0.18.2": "0.18.2",
+    "npm:@gytx/xterm-local-echo@~0.1.8": "0.1.8",
     "npm:@netapplabs/fs-js@^0.0.11": "0.0.11",
     "npm:@pipobscure/sea@1.0.5": "1.0.5",
     "npm:@types/filesystem@^0.0.36": "0.0.36",
@@ -64,7 +65,6 @@
     "npm:get-random-values@3": "3.0.0",
     "npm:jest-extended@4": "4.0.2",
     "npm:js-yaml@^4.1.0": "4.1.0",
-    "npm:local-echo@0.2": "0.2.0",
     "npm:node-fetch@^3.3.2": "3.3.2",
     "npm:npm-run-all@^4.1.5": "4.1.5",
     "npm:path-browserify@^1.0.1": "1.0.1",
@@ -87,7 +87,6 @@
     "npm:typeson-registry@^9.1.1": "9.2.1",
     "npm:typeson@^9.0.3": "9.0.3",
     "npm:vite@^6.2.0": "6.2.0_@types+node@22.13.5",
-    "npm:vitest@^2.1.8": "2.1.9_@types+node@22.13.5_vite@5.4.14__@types+node@22.13.5",
     "npm:vitest@^3.0.7": "3.0.7_@types+node@22.13.5_@vitest+ui@3.0.7__vitest@3.0.7__@types+node@22.13.5_vite@6.2.0__@types+node@22.13.5",
     "npm:vm-browserify@^1.1.2": "1.1.2",
     "npm:wasmati@0.2": "0.2.4",
@@ -1320,6 +1319,9 @@
     },
     "@fastify/busboy@2.1.1": {
       "integrity": "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA=="
+    },
+    "@gytx/xterm-local-echo@0.1.8": {
+      "integrity": "sha512-JKq/J9fLfcP4af+FNv5zW2hzokio/0KO+iOVtuKpCXBCWsShV74n5bZhU8/KiuHquAq7emVHxFCapSZftqrZVg=="
     },
     "@humanfs/core@0.19.1": {
       "integrity": "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="
@@ -4929,12 +4931,6 @@
     "load-json-file@7.0.1": {
       "integrity": "sha512-Gnxj3ev3mB5TkVBGad0JM6dmLiQL+o0t23JPBZ9sd+yvSLk05mFoqKBw5N8gbbkU4TNXyqCgIrl/VM17OgUIgQ=="
     },
-    "local-echo@0.2.0": {
-      "integrity": "sha512-cvBO9pHLeRP029G72ulREK/gDFX0X/CqHHo8Glh1B2jmLfVaigjw1UV45OejZreZ3ALdgcAh8wrk4MjVegnT6w==",
-      "dependencies": [
-        "shell-quote"
-      ]
-    },
     "locate-path@2.0.0": {
       "integrity": "sha512-NCI2kiDkyR7VeEKm27Kda/iQHyKJe1Bu0FlTbYp3CqJu+9IFe9bLyAjMxf5ZDDbEg+iMPzB5zYyUTSm8wVTKmA==",
       "dependencies": [
@@ -7061,6 +7057,7 @@
       "apps/web-shell": {
         "packageJson": {
           "dependencies": [
+            "npm:@gytx/xterm-local-echo@~0.1.8",
             "npm:@netapplabs/fs-js@0.7",
             "npm:@netapplabs/github-fs-js@0.7",
             "npm:@netapplabs/nfs-js@0.7",
@@ -7073,7 +7070,6 @@
             "npm:@xterm/addon-image@0.8",
             "npm:@xterm/addon-webgl@0.18",
             "npm:@xterm/xterm@^5.5.0",
-            "npm:local-echo@0.2",
             "npm:vite@^6.2.0"
           ]
         }
@@ -7214,7 +7210,7 @@
             "npm:npm-run-all@^4.1.5",
             "npm:typeson-registry@^9.1.1",
             "npm:typeson@^9.0.3",
-            "npm:vitest@^2.1.8",
+            "npm:vitest@^3.0.7",
             "npm:web-file-polyfill@^1.0.4"
           ]
         }
