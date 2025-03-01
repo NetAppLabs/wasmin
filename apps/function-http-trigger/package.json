@@ -1,6 +1,6 @@
 {
   "name": "function-http-trigger",
-  "version": "1.0.0",
+  "version": "0.7.0",
   "description": "",
   "type": "module",
   "main": "dist/functions/trigger.js",
@@ -18,19 +18,19 @@
   "dependencies": {
     "@azure/functions": "^4.6.0",
     "@azure/storage-queue": "^12.24.0",
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/nfs-js": "*",
-    "@netapplabs/s3-fs-js": "*",
-    "@netapplabs/wasi-js": "*",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/nfs-js": "^0.7.0",
+    "@netapplabs/s3-fs-js": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0",
     "sharp": "^0.33.5",
     "wat-compiler": "^1.1.1"
   },
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.18.2",
-    "@types/node": "^20",
+    "@types/node": "^22.13.8",
     "copyfiles": "^2.4.1",
-    "esbuild": "^0.24.0",
-    "rimraf": "^6.0.0",
-    "typescript": "^5.5.0"
+    "esbuild": "^0.25.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.2"
   }
 }

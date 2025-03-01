@@ -21,9 +21,9 @@
   "devDependencies": {
     "@chialab/esbuild-plugin-meta-url": "^0.18.2",
     "@pipobscure/sea": "1.0.5",
-    "@types/node": "^22.7.5",
-    "@netapplabs/tsconfig": "*",
-    "esbuild": "^0.24.0",
+    "@types/node": "^22.13.8",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "esbuild": "^0.25.0",
     "npm-run-all": "^4.1.5",
     "postject": "^1.0.0-alpha.6"
   },
@@ -35,10 +35,10 @@
     ]
   },
   "dependencies": {
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/node-fs-js": "*",
-    "@netapplabs/shell": "*",
-    "@netapplabs/wasi-js": "*",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/node-fs-js": "^0.7.0",
+    "@netapplabs/shell": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0",
     "esbuild-plugin-text-replace": "^1.3.0",
     "esbuild-plugin-transform": "^0.5.0"
   }

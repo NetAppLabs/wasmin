@@ -1,7 +1,7 @@
 {
   "name": "@netapplabs/web-shell",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.7.0",
   "scripts": {
     "dev": "vite",
     "devssl": "vite -c vite.config.ssl.js",
@@ -9,21 +9,21 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "*",
-    "@vitejs/plugin-basic-ssl": "^1.1.0",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "@vitejs/plugin-basic-ssl": "^1.2.0",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
-    "vite": "^5.4.10"
+    "vite": "^6.2.0"
   },
   "dependencies": {
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/nfs-js": "*",
-    "@netapplabs/wasi-js": "*",
-    "@netapplabs/github-fs-js": "*",
-    "@netapplabs/s3-fs-js": "*",
+    "@gytx/xterm-local-echo": "^0.1.8",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/github-fs-js": "^0.7.0",
+    "@netapplabs/nfs-js": "^0.7.0",
+    "@netapplabs/s3-fs-js": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-image": "^0.8.0",
     "@xterm/addon-webgl": "^0.18.0",
-    "@xterm/xterm": "^5.5.0",
-    "local-echo": "^0.2.0"
+    "@xterm/xterm": "^5.5.0"
   }
 }

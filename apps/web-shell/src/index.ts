@@ -10,7 +10,7 @@ import { github } from "@netapplabs/github-fs-js";
 import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 
 // @ts-ignore
-import LocalEchoController from "local-echo";
+import { LocalEchoAddon } from "@gytx/xterm-local-echo";
 
 import { getOriginPrivateDirectory, indexeddb, NFileSystemDirectoryHandle, RegisterProvider } from "@netapplabs/fs-js";
 
@@ -94,8 +94,11 @@ if (WEB_SHELL_REGISTER_NFS) {
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
 
-    const localEcho = new LocalEchoController();
+    //const localEcho = new LocalEchoController();
+    //term.loadAddon(localEcho);
+    const localEcho = new LocalEchoAddon();
     term.loadAddon(localEcho);
+
 
     class SimpleLocalEcho {
         read(str: string) {

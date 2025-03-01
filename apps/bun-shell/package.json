@@ -15,20 +15,20 @@
     "dev": "echo dev"
   },
   "devDependencies": {
-    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
-    "@netapplabs/tsconfig": "*",
-    "bun-types": "^1.1.22",
-    "esbuild": "^0.24.0"
+    "@chialab/esbuild-plugin-meta-url": "^0.18.2",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "bun-types": "^1.2.4",
+    "esbuild": "^0.25.0"
   },
   "dependencies": {
-    "@netapplabs/bun-fs-js": "*",
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/nfs-js": "*",
-    "@netapplabs/s3-fs-js": "*",
-    "@netapplabs/shell": "*",
-    "@netapplabs/wasi-js": "*",
-    "get-random-values": "^1.2.2",
-    "node-fetch": "^3.2.10",
+    "@netapplabs/bun-fs-js": "^0.7.0",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/nfs-js": "^0.7.0",
+    "@netapplabs/s3-fs-js": "^0.7.0",
+    "@netapplabs/shell": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0",
+    "get-random-values": "^3.0.0",
+    "node-fetch": "^3.3.2",
     "web-file-polyfill": "^1.0.4"
   }
 }

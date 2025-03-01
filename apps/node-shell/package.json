@@ -13,16 +13,16 @@
     "run": "node dist/out.js"
   },
   "devDependencies": {
-    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
-    "@types/node": "^22.7.5",
-    "@netapplabs/tsconfig": "*",
-    "esbuild": "^0.24.0",
-    "vite": "^5.1.6"
+    "@chialab/esbuild-plugin-meta-url": "^0.18.2",
+    "@types/node": "^22.13.8",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "esbuild": "^0.25.0",
+    "vite": "^6.2.0"
   },
   "dependencies": {
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/node-fs-js": "*",
-    "@netapplabs/shell": "*",
-    "@netapplabs/wasi-js": "*"
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/node-fs-js": "^0.7.0",
+    "@netapplabs/shell": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0"
   }
 }

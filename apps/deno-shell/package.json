@@ -7,18 +7,18 @@
     "build-tsc": "tsc -p ."
   },
   "devDependencies": {
-    "@chialab/esbuild-plugin-meta-url": "^0.17.7",
-    "@netapplabs/tsconfig": "*",
-    "esbuild": "^0.24.0",
+    "@chialab/esbuild-plugin-meta-url": "^0.18.2",
+    "@netapplabs/tsconfig": "^0.7.0",
+    "esbuild": "^0.25.0",
     "esbuild-plugin-text-replace": "^1.3.0",
     "esbuild-plugin-transform": "^0.5.0"
   },
   "dependencies": {
-    "@netapplabs/deno-fs-js": "*",
-    "@netapplabs/fs-js": "*",
-    "@netapplabs/nfs-js": "*",
-    "@netapplabs/s3-fs-js": "*",
-    "@netapplabs/shell": "*",
-    "@netapplabs/wasi-js": "*"
+    "@netapplabs/deno-fs-js": "^0.7.0",
+    "@netapplabs/fs-js": "^0.7.0",
+    "@netapplabs/nfs-js": "^0.7.0",
+    "@netapplabs/s3-fs-js": "^0.7.0",
+    "@netapplabs/shell": "^0.7.0",
+    "@netapplabs/wasi-js": "^0.7.0"
   }
 }
