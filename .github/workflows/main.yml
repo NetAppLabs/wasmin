@@ -50,11 +50,9 @@ jobs:
         go-version: '1.22'
         check-latest: true
     - name: bun
-      uses: oven-sh/setup-bun@v1
+      uses: oven-sh/setup-bun@v2
     - name: deno
-      uses: denoland/setup-deno@v1
-      with:
-        deno-version: v2.x
+      uses: denoland/setup-deno@v2
     - name: Set up GH Package Registry Auth
       run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
     - name: yarn-install
