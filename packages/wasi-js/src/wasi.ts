@@ -40,6 +40,17 @@ import { wasiCallDebug, wasiDebug, wasiError, wasiPreview1FdDebug, wasiWorkerDeb
 import { sleep } from "./utils.js";
 
 
+export enum WasiCapabilities {
+    None = 0,
+    FileSystem = 1 << 0, // 00001
+    Network = 1 << 1,    // 00010
+    Tty = 1 << 2,        // 00100
+    Mount = 1 << 3,      // 01000
+    Exec = 1 << 4,       // 10000
+    All = ~(~0 << 5)     // 11111
+}
+
+
 /**
  * Interface for constructing Environment for
  * a WASI instance
@@ -54,7 +65,8 @@ export interface WasiOptions {
     abortSignal?: AbortSignal;
     tty?: TTY;
     name?: string;
-    componentMode?: boolean,
+    componentMode?: boolean;
+    capabilities?: WasiCapabilities;
 }
 
 /**
@@ -98,7 +110,9 @@ export class WasiEnv implements WasiOptions {
         abortSignal?: AbortSignal,
         tty?: TTY,
         name?: string,
-        componentMode?: boolean
+        componentMode?: boolean,
+        capabilities?: WasiCapabilities,
+
     ) {
         if (!openFiles) {
             this._openFiles = new OpenFiles({});

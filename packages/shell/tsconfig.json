@@ -6,6 +6,7 @@
       "webworker",
       "esnext"
     ],
+    "skipLibCheck": true,
 	"outDir": "./dist"
   },
   "include": ["./src"]

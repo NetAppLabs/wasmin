@@ -65,21 +65,20 @@ export async function fetchCompile(url: URL) {
     return fetch(url).then(WebAssembly.compileStreaming);
 }
 
+function registerWorkers() {
+    //globalThis.WASM_WORKER_CLIENT_DEBUG = true;
+    //globalThis.WASM_WORKER_THREAD_DEBUG = true;
+    //globalThis.WASI_DEBUG = true;
+    setWorkerOverrideUrl('./wasmComponentWorkerThreadNode.js', new URL("./wasmComponentWorkerThreadNode.js", import.meta.url));
+    setWorkerOverrideUrl('./wasmCoreWorkerThreadNode.js', new URL("./wasmCoreWorkerThreadNode.js", import.meta.url));
+    setWorkerOverrideUrl('./wasiWorkerThreadNode.js', new URL("./wasiWorkerThreadNode.js", import.meta.url));
+}
 
 app.storageQueue('storageQueueTrigger', {
     queueName: 'queue1',
     connection: 'AzureWebJobsStorage',
     handler: async (queueItem, context) => {
 
-    function registerWorkers() {
-            //globalThis.WASM_WORKER_CLIENT_DEBUG = true;
-            //globalThis.WASM_WORKER_THREAD_DEBUG = true;
-            //globalThis.WASI_DEBUG = true;
-            setWorkerOverrideUrl('./wasmComponentWorkerThreadNode.js', new URL("./wasmComponentWorkerThreadNode.js", import.meta.url));
-            setWorkerOverrideUrl('./wasmCoreWorkerThreadNode.js', new URL("./wasmCoreWorkerThreadNode.js", import.meta.url));
-            setWorkerOverrideUrl('./wasiWorkerThreadNode.js', new URL("./wasiWorkerThreadNode.js", import.meta.url));
-        }
-        
         registerWorkers();
 
         const foper = queueItem as FileOperationMessage;

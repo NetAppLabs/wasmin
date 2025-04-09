@@ -22,16 +22,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up GH Package Registry Auth
-        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+        uses: actions/checkout@v4
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.x'
           registry-url: 'https://npm.pkg.github.com'
+          cache: 'npm'
           scope: '@netapplabs'
 
       - name: Install dependencies

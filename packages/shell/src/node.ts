@@ -14,6 +14,9 @@ import process from "node:process";
 
 import { s3 } from "@netapplabs/s3-fs-js";
 import { nfs } from "@netapplabs/nfs-js";
+// @ts-ignore
+//import { SmbDirectoryHandle } from "@netapplabs/smb-js";
+
 import { github } from "@netapplabs/github-fs-js";
 import { parseArgs } from "node:util";
 
@@ -30,6 +33,14 @@ const textDecoder = new TextDecoder();
 
 const cols = process.stdout.columns;
 const rows = process.stdout.rows;
+
+/*
+export function smb(path: string): FileSystemDirectoryHandle {
+    const handle = new SmbDirectoryHandle(path);
+    // @ts-ignore
+    return handle;
+}
+*/
 
 const rawModeListener = async function (rawMode: boolean): Promise<void> {
     shellDebug("node rawModeListener, setRawMode ", rawMode);
@@ -489,6 +500,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         RegisterProvider("github", github);
         // @ts-ignore
         RegisterProvider("nfs", nfs);
+        // @ts-ignore
+        //RegisterProvider("smb", smb);
 
         if (!isBun()) {
             RegisterProvider("node", node);
