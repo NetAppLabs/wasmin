@@ -4,11 +4,10 @@
 name: wasmin-ci
 
 on:
-  workflow_dispatch:
-#  push:
-#    branches: [ "*" ]
-#  pull_request:
-#    branches: [ "*" ]
+ push:
+   branches: [ "*" ]
+ pull_request:
+   branches: [ "*" ]
 
 env:
   CARGO_TERM_COLOR: always
