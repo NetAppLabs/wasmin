@@ -27,10 +27,10 @@ globalThis.test = test;
 import {
   FileSystemDirectoryHandle,
   getOriginPrivateDirectory,
-} from "npm:@netapplabs/fs-js@^0.0.11";
+} from "npm:@netapplabs/fs-js";
 import { denofh } from "../src/mod.ts";
 
-import { TestsFileSystemHandleImportTestDefinitions } from "npm:@netapplabs/fs-js@^0.0.11";
+import { TestsFileSystemHandleImportTestDefinitions } from "npm:@netapplabs/fs-js";
 
 let root: FileSystemDirectoryHandle;
 const testFolderPath1 = "./testfolder1";
