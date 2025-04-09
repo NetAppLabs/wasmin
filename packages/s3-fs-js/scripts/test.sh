@@ -22,6 +22,7 @@ go build
 ./s3fakeserver ${S3_TEST_DIR} &> $S3_TEST_SERVER_LOG &
 GO_S3_PID=$!
 cd ..
+sleep 1
 
 function kill_go_s3() {
     EXITCODE=$?

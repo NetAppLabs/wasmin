@@ -636,6 +636,39 @@ test.serial('should return blob when slicing blob', async (t) => {
   t.is(texty, 'In order to make');
 })
 
+test.serial('should return subslices when slicing file twice', async (t) => {
+  const rootHandle = await getRootHandle();
+  const fileHandle = await rootHandle.getFileHandle('annar');
+  const file = await fileHandle.getFile();
+  const blob = file.slice(0, 8, "text/plain");
+  const blob2 = file.slice(8, 16, "text/plain");
+  t.is(blob.size, 8);
+  t.is(blob2.size, 8);
+  t.is(blob.type, 'text/plain');
+  t.is(blob2.type, 'text/plain');
+  const text = await blob.text();
+  const text2 = await blob2.text();
+  t.is(text, 'In order');
+  t.is(text2, ' to make');
+})
+
+test.serial('should return subarrays when slicing arraybuffer twice', async (t) => {
+  const rootHandle = await getRootHandle();
+  const fileHandle = await rootHandle.getFileHandle('annar');
+  const file = await fileHandle.getFile();
+  const ab = await file.arrayBuffer();
+  const ab1 = ab.slice(0, 8);
+  const ab2 = ab.slice(8, 16);
+  t.is(ab1.byteLength, 8);
+  t.is(ab2.byteLength, 8);
+  const td = new TextDecoder();
+  const text = td.decode(ab1);
+  const text2 = td.decode(ab2);
+  t.is(text, 'In order');
+  t.is(text2, ' to make');
+})
+
+
 test.serial('should return non-locked writable when creating writable and not keeping existing data', async (t) => {
   const rootHandle = await getRootHandle();
   const fileHandle = await rootHandle.getFileHandle('writable-overwrite', {create: true}) as FileSystemFileHandle;

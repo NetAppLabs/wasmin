@@ -3,7 +3,7 @@ module github.com/netapplabs/wasmin/packages/s3-fs-js/s3fakeserver
 go 1.23.2
 
 require (
-	github.com/johannesboyne/gofakes3 v0.0.0-20241026070602-0da3aa9c32ca
+	github.com/johannesboyne/gofakes3 v0.0.0-20250402064820-d479899d8cbe
 	github.com/sirupsen/logrus v1.9.3
 )
 

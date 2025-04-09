@@ -153,7 +153,8 @@ export class S3FileImpl implements S3File {
         fileBits: BlobPart[],
         size: number,
         lastModified: number,
-        options?: FilePropertyBag
+        options?: FilePropertyBag,
+        actualS3ObjectSize?: number,
     ) {
         //super(fileBits, fileName, options)
         this.config = config;
@@ -163,6 +164,7 @@ export class S3FileImpl implements S3File {
         this.name = fileName;
         this.path = path;
         this.lastModified = lastModified;
+        this.actualS3ObjectSize = actualS3ObjectSize;
     }
     config: S3Config;
     lastModified: number;
@@ -171,6 +173,7 @@ export class S3FileImpl implements S3File {
     webkitRelativePath: string;
     type: string;
     size: number;
+    actualS3ObjectSize: number | undefined;
 
     start: number | undefined;
     end: number | undefined;
@@ -180,16 +183,17 @@ export class S3FileImpl implements S3File {
         return new Uint8Array(ab);
     }
 
-    async arrayBuffer(): Promise<ArrayBuffer>;
     async arrayBuffer(): Promise<ArrayBuffer> {
         const bucketName = this.config.bucketName;
         const s3client = this.config.getS3Client();
         const start = this.start || 0;
         let end = this.end || this.size;
         const contentType = this.type;
-        if (start >= this.size) {
-            // handle EOF
-            return new ArrayBuffer(0);
+        if (this.actualS3ObjectSize) {
+            if (start >= this.actualS3ObjectSize) {
+                // handle EOF
+                return new ArrayBuffer(0);
+            }
         }
 
         s3Debug(`S3File: arrayBuffer: start: ${start}" end: ${end} contentType: ${contentType}`);
@@ -207,13 +211,20 @@ export class S3FileImpl implements S3File {
             }
             range = `bytes=${start}-${rangeEnd}`;
         }
-        s3Debug(`s3client.getObject Range: ${range}`);
+        s3Debug(`S3File: arrayBuffer s3client.getObject Range: ${range}`);
+        let checkSumMode = undefined;
+        const checkSumSetting = await s3client.config.responseChecksumValidation();
+        if (checkSumSetting == "WHEN_SUPPORTED") {
+            checkSumMode = AWS.ChecksumMode.ENABLED;
+        }
+        s3Debug("S3File: arrayBuffer checkSumSetting: ", checkSumSetting);
+        s3Debug("S3File: arrayBuffer checkSumMode: ", checkSumMode);
         try {
             const params: GetObjectRequest = {
                 Bucket: bucketName,
                 Key: path,
                 Range: range,
-                ChecksumMode: AWS.ChecksumMode.ENABLED,
+                ChecksumMode: checkSumMode,
             };
             const command = new GetObjectCommand(params);
             const s3obj = await s3client.send(command);
@@ -234,7 +245,7 @@ export class S3FileImpl implements S3File {
                 const s3err = err as AWS.S3ServiceException;
                 const statusCode = s3err.$response?.statusCode || 0;
                 if (statusCode == 416) {
-                    console.log("arrayBuffer() catch error 416");
+                    console.log("S3File: arrayBuffer catch error 416");
                     // StatusCode: 416 Range Not Satisfiable (RFC 7233)
                     // Special case because in this case we have reached end of file
                     return new ArrayBuffer(0);
@@ -244,34 +255,39 @@ export class S3FileImpl implements S3File {
                     throw err;
                 }
             }
-            console.log("catched error on s3client.getObject: ", err);
+            console.log("S3File: arrayBuffer catched error on s3client.getObject: ", err);
             // Assuming it is out of range and returning an empty array
             return new ArrayBuffer(0);
         }
     }
     slice(start?: number, end?: number, contentType?: string): Blob;
     slice(start?: number, end?: number, contentType?: string): Blob {
-        let newSize = this.size;
-        if (start) {
+        let actualS3ObjectSize = this.actualS3ObjectSize;
+        if (actualS3ObjectSize == undefined) {
+            actualS3ObjectSize = this.size;
+        }
+        let sliceSize = this.size;
+        if (start !== undefined) {
             if (start < 0) {
                 start = this.size + start;
                 if (start < 0 ) {
                     start = 0;
                 }
             }
-            if (end) {
+            if (end !== undefined) {
                 if (end < 0) {
                     end = this.size + end;
                     if (end < 0 ) {
                         end = 0;
                     }
                 }
-                newSize = end - start;
+                sliceSize = end - start;
             } else {
-                newSize = newSize - start;
+                sliceSize = sliceSize - start;
             }
         }
-        const file = new S3FileImpl(this.config, this.path, this.name, [], newSize, this.lastModified);
+        s3Debug("S3File slice: start: ", start, ", end: ", end, ", sliceSize: ", sliceSize);
+        const file = new S3FileImpl(this.config, this.path, this.name, [], sliceSize, this.lastModified, undefined, actualS3ObjectSize);
         file.start = start;
         file.end = end;
         if (contentType) {
@@ -291,7 +307,7 @@ export class S3FileImpl implements S3File {
         });
         return stream;
         */
-       throw new Error("stream not supported");
+       throw new Error("S3File stream not supported");
     }
     async text(): Promise<string>;
     async text(): Promise<string> {
@@ -555,6 +571,8 @@ function parseS3Url(s3Url: string, secretStore?: any, defaultRegion = "us-east-1
                 accessKeyId: awsAccessKeyId,
                 secretAccessKey: awsSecretAccessKey,
             },
+            requestChecksumCalculation: "WHEN_REQUIRED",
+            responseChecksumValidation: "WHEN_REQUIRED",
             //requestHandler: requestHandler,
         };
     }
@@ -644,7 +662,7 @@ export class S3FolderHandle implements ImplFolderHandle<S3FileHandle, S3FolderHa
                             const writeable = true;
                             s3Debug(`populateEntries lastModifiedMillis: ${lastModifiedMillis}`);
                             const path = join(this.path, entryName);
-                            const s3file = new S3FileImpl(this.config, path, entryName, [], size, lastModifiedMillis);
+                            const s3file = new S3FileImpl(this.config, path, entryName, [], size, lastModifiedMillis, undefined, size);
                             const file = s3file as File;
                             this._entries[entryName] = new S3FileHandle(this.config, path, entryName, file, writeable);
                         }
