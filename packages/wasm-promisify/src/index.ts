@@ -119,8 +119,17 @@ export class WebAssemblyJspiInstance extends WebAssembly.Instance {
 
 
 export function isFunction(value: any) {
-    // @ts-ignore
-    return typeof value === "function" || value instanceof Function || value instanceof WebAssembly.Function;
+    const WebAssemblyFunction = (WebAssembly as any).Function;
+    if (typeof value === "function") {
+        return true;
+    } else if (value instanceof Function) {
+        return true;
+    } else if (WebAssemblyFunction !== undefined) {
+        if (value instanceof WebAssemblyFunction) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
