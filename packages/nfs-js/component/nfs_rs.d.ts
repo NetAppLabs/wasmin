@@ -1,22 +1,23 @@
-import { WasiCliEnvironment } from './interfaces/wasi-cli-environment.js';
-import { WasiCliExit } from './interfaces/wasi-cli-exit.js';
-import { WasiCliStderr } from './interfaces/wasi-cli-stderr.js';
-import { WasiCliStdin } from './interfaces/wasi-cli-stdin.js';
-import { WasiCliStdout } from './interfaces/wasi-cli-stdout.js';
-import { WasiClocksMonotonicClock } from './interfaces/wasi-clocks-monotonic-clock.js';
-import { WasiClocksWallClock } from './interfaces/wasi-clocks-wall-clock.js';
-import { WasiFilesystemPreopens } from './interfaces/wasi-filesystem-preopens.js';
-import { WasiFilesystemTypes } from './interfaces/wasi-filesystem-types.js';
-import { WasiIoError } from './interfaces/wasi-io-error.js';
-import { WasiIoPoll } from './interfaces/wasi-io-poll.js';
-import { WasiIoStreams } from './interfaces/wasi-io-streams.js';
-import { WasiRandomRandom } from './interfaces/wasi-random-random.js';
-import { WasiSocketsInstanceNetwork } from './interfaces/wasi-sockets-instance-network.js';
-import { WasiSocketsIpNameLookup } from './interfaces/wasi-sockets-ip-name-lookup.js';
-import { WasiSocketsNetwork } from './interfaces/wasi-sockets-network.js';
-import { WasiSocketsTcpCreateSocket } from './interfaces/wasi-sockets-tcp-create-socket.js';
-import { WasiSocketsTcp } from './interfaces/wasi-sockets-tcp.js';
-import { ComponentNfsRsNfs } from './interfaces/component-nfs-rs-nfs.js';
+// world root:component/root
+import type * as WasiCliEnvironment from './interfaces/wasi-cli-environment.js'; // wasi:cli/environment@0.2.0
+import type * as WasiCliExit from './interfaces/wasi-cli-exit.js'; // wasi:cli/exit@0.2.0
+import type * as WasiCliStderr from './interfaces/wasi-cli-stderr.js'; // wasi:cli/stderr@0.2.0
+import type * as WasiCliStdin from './interfaces/wasi-cli-stdin.js'; // wasi:cli/stdin@0.2.0
+import type * as WasiCliStdout from './interfaces/wasi-cli-stdout.js'; // wasi:cli/stdout@0.2.0
+import type * as WasiClocksMonotonicClock from './interfaces/wasi-clocks-monotonic-clock.js'; // wasi:clocks/monotonic-clock@0.2.0
+import type * as WasiClocksWallClock from './interfaces/wasi-clocks-wall-clock.js'; // wasi:clocks/wall-clock@0.2.0
+import type * as WasiFilesystemPreopens from './interfaces/wasi-filesystem-preopens.js'; // wasi:filesystem/preopens@0.2.0
+import type * as WasiFilesystemTypes from './interfaces/wasi-filesystem-types.js'; // wasi:filesystem/types@0.2.0
+import type * as WasiIoError from './interfaces/wasi-io-error.js'; // wasi:io/error@0.2.0
+import type * as WasiIoPoll from './interfaces/wasi-io-poll.js'; // wasi:io/poll@0.2.0
+import type * as WasiIoStreams from './interfaces/wasi-io-streams.js'; // wasi:io/streams@0.2.0
+import type * as WasiRandomRandom from './interfaces/wasi-random-random.js'; // wasi:random/random@0.2.0
+import type * as WasiSocketsInstanceNetwork from './interfaces/wasi-sockets-instance-network.js'; // wasi:sockets/instance-network@0.2.0
+import type * as WasiSocketsIpNameLookup from './interfaces/wasi-sockets-ip-name-lookup.js'; // wasi:sockets/ip-name-lookup@0.2.0
+import type * as WasiSocketsNetwork from './interfaces/wasi-sockets-network.js'; // wasi:sockets/network@0.2.0
+import type * as WasiSocketsTcpCreateSocket from './interfaces/wasi-sockets-tcp-create-socket.js'; // wasi:sockets/tcp-create-socket@0.2.0
+import type * as WasiSocketsTcp from './interfaces/wasi-sockets-tcp.js'; // wasi:sockets/tcp@0.2.0
+import type * as ComponentNfsRsNfs from './interfaces/component-nfs-rs-nfs.js'; // component:nfs-rs/nfs
 export interface ImportObject {
   'wasi:cli/environment@0.2.0': typeof WasiCliEnvironment,
   'wasi:cli/exit@0.2.0': typeof WasiCliExit,

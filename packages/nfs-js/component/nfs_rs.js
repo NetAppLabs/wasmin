@@ -20,6 +20,16 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
   
   const emptyFunc = () => {};
   
+  const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+  let _fs;
+  async function fetchCompile (url) {
+    if (isNode) {
+      _fs = _fs || await import('node:fs/promises');
+      return WebAssembly.compile(await _fs.readFile(url));
+    }
+    return fetch(url).then(WebAssembly.compileStreaming);
+  }
+  
   function finalizationRegistryCreate (unregister) {
     if (typeof FinalizationRegistry === 'undefined') {
       return { unregister () {} };
@@ -112,6 +122,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
   }
   
   
+  if (!getCoreModule) getCoreModule = (name) => fetchCompile(new URL(`./${name}`, import.meta.url));
   const module0 = getCoreModule('nfs_rs.core.wasm');
   const module1 = getCoreModule('nfs_rs.core2.wasm');
   const module2 = getCoreModule('nfs_rs.core3.wasm');
@@ -155,18 +166,20 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return handle0;
     }
+    
     let exports1;
     
     function trampoline9() {
       const ret = now();
       return toUint64(ret);
     }
+    
     const handleTable0 = [T_FLAG, 0];
     const captureTable0= new Map();
     let captureCnt0 = 0;
     handleTables[0] = handleTable0;
     
-    function trampoline11(arg0) {
+    function trampoline14(arg0) {
       const ret = subscribeDuration(BigInt.asUintN(64, arg0));
       if (!(ret instanceof Pollable)) {
         throw new TypeError('Resource error: Not a valid "Pollable" resource.');
@@ -180,7 +193,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       return handle0;
     }
     
-    function trampoline12(arg0) {
+    
+    function trampoline15(arg0) {
       const ret = subscribeInstant(BigInt.asUintN(64, arg0));
       if (!(ret instanceof Pollable)) {
         throw new TypeError('Resource error: Not a valid "Pollable" resource.');
@@ -193,12 +207,13 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return handle0;
     }
+    
     const handleTable3 = [T_FLAG, 0];
     const captureTable3= new Map();
     let captureCnt3 = 0;
     handleTables[3] = handleTable3;
     
-    function trampoline13(arg0) {
+    function trampoline16(arg0) {
       var handle1 = arg0;
       var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable3.get(rep2);
@@ -210,7 +225,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.subscribe();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       if (!(ret instanceof Pollable)) {
@@ -224,12 +239,13 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return handle3;
     }
+    
     const handleTable2 = [T_FLAG, 0];
     const captureTable2= new Map();
     let captureCnt2 = 0;
     handleTables[2] = handleTable2;
     
-    function trampoline14(arg0) {
+    function trampoline17(arg0) {
       var handle1 = arg0;
       var rep2 = handleTable2[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable2.get(rep2);
@@ -241,7 +257,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.subscribe();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       if (!(ret instanceof Pollable)) {
@@ -256,7 +272,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       return handle3;
     }
     
-    function trampoline16() {
+    
+    function trampoline19() {
       const ret = getStderr();
       if (!(ret instanceof OutputStream)) {
         throw new TypeError('Resource error: Not a valid "OutputStream" resource.');
@@ -270,7 +287,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       return handle0;
     }
     
-    function trampoline17(arg0) {
+    
+    function trampoline20(arg0) {
       let variant0;
       switch (arg0) {
         case 0: {
@@ -294,7 +312,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       exit(variant0);
     }
     
-    function trampoline18() {
+    
+    function trampoline21() {
       const ret = getStdin();
       if (!(ret instanceof InputStream)) {
         throw new TypeError('Resource error: Not a valid "InputStream" resource.');
@@ -308,7 +327,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       return handle0;
     }
     
-    function trampoline19() {
+    
+    function trampoline22() {
       const ret = getStdout();
       if (!(ret instanceof OutputStream)) {
         throw new TypeError('Resource error: Not a valid "OutputStream" resource.');
@@ -321,6 +341,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return handle0;
     }
+    
     let exports2;
     let memory0;
     let realloc0;
@@ -330,7 +351,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
     let captureCnt5 = 0;
     handleTables[5] = handleTable5;
     
-    function trampoline20(arg0, arg1) {
+    function trampoline23(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable5[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable5.get(rep2);
@@ -347,7 +368,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant8 = ret;
@@ -501,7 +522,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline21(arg0, arg1, arg2, arg3) {
+    
+    function trampoline24(arg0, arg1, arg2, arg3) {
       var handle1 = arg0;
       var rep2 = handleTable4[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable4.get(rep2);
@@ -521,7 +543,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -647,12 +669,13 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         }
       }
     }
+    
     const handleTable6 = [T_FLAG, 0];
     const captureTable6= new Map();
     let captureCnt6 = 0;
     handleTables[6] = handleTable6;
     
-    function trampoline22(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
+    function trampoline25(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14) {
       var handle1 = arg0;
       var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable6.get(rep2);
@@ -706,7 +729,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant8 = ret;
@@ -823,7 +846,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline23(arg0, arg1) {
+    
+    function trampoline26(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable6.get(rep2);
@@ -840,7 +864,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant7 = ret;
@@ -978,7 +1002,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline24(arg0, arg1) {
+    
+    function trampoline27(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable6.get(rep2);
@@ -995,7 +1020,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant9 = ret;
@@ -1148,7 +1173,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline25(arg0, arg1, arg2) {
+    
+    function trampoline28(arg0, arg1, arg2) {
       var handle1 = arg0;
       var rep2 = handleTable6[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable6.get(rep2);
@@ -1183,7 +1209,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1299,12 +1325,13 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         }
       }
     }
+    
     const handleTable1 = [T_FLAG, 0];
     const captureTable1= new Map();
     let captureCnt1 = 0;
     handleTables[1] = handleTable1;
     
-    function trampoline26(arg0, arg1) {
+    function trampoline29(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable1[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable1.get(rep2);
@@ -1316,7 +1343,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = rsc0.toDebugString();
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var ptr3 = utf8Encode(ret, realloc0, memory0);
@@ -1325,7 +1352,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       dataView(memory0).setInt32(arg1 + 0, ptr3, true);
     }
     
-    function trampoline27(arg0, arg1, arg2) {
+    
+    function trampoline30(arg0, arg1, arg2) {
       var handle1 = arg0;
       var rep2 = handleTable2[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable2.get(rep2);
@@ -1342,7 +1370,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -1395,7 +1423,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline28(arg0, arg1) {
+    
+    function trampoline31(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable3.get(rep2);
@@ -1412,7 +1441,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1459,7 +1488,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline29(arg0, arg1, arg2, arg3) {
+    
+    function trampoline32(arg0, arg1, arg2, arg3) {
       var handle1 = arg0;
       var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable3.get(rep2);
@@ -1479,7 +1509,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -1525,7 +1555,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline30(arg0, arg1) {
+    
+    function trampoline33(arg0, arg1) {
       let enum0;
       switch (arg0) {
         case 0: {
@@ -1669,12 +1700,13 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         }
       }
     }
+    
     const handleTable7 = [T_FLAG, 0];
     const captureTable7= new Map();
     let captureCnt7 = 0;
     handleTables[7] = handleTable7;
     
-    function trampoline31(arg0) {
+    function trampoline34(arg0) {
       const ret = getDirectories();
       var vec3 = ret;
       var len3 = vec3.length;
@@ -1701,14 +1733,16 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       dataView(memory0).setInt32(arg0 + 0, result3, true);
     }
     
-    function trampoline32(arg0) {
+    
+    function trampoline35(arg0) {
       const ret = now$1();
       var {seconds: v0_0, nanoseconds: v0_1 } = ret;
       dataView(memory0).setBigInt64(arg0 + 0, toUint64(v0_0), true);
       dataView(memory0).setInt32(arg0 + 8, toUint32(v0_1), true);
     }
     
-    function trampoline33(arg0, arg1, arg2) {
+    
+    function trampoline36(arg0, arg1, arg2) {
       var handle1 = arg0;
       var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable7.get(rep2);
@@ -1725,7 +1759,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -1916,7 +1950,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline34(arg0, arg1, arg2) {
+    
+    function trampoline37(arg0, arg1, arg2) {
       var handle1 = arg0;
       var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable7.get(rep2);
@@ -1933,7 +1968,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2124,7 +2159,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline35(arg0, arg1) {
+    
+    function trampoline38(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable7.get(rep2);
@@ -2141,7 +2177,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2332,7 +2368,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline36(arg0, arg1) {
+    
+    function trampoline39(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable7.get(rep2);
@@ -2349,7 +2386,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -2574,7 +2611,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline37(arg0, arg1) {
+    
+    function trampoline40(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable7[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable7.get(rep2);
@@ -2591,7 +2629,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant12 = ret;
@@ -2849,7 +2887,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline38(arg0, arg1) {
+    
+    function trampoline41(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable1[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable1.get(rep2);
@@ -2861,7 +2900,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       curResourceBorrows.push(rsc0);
       const ret = filesystemErrorCode(rsc0);
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant4 = ret;
@@ -3033,7 +3072,73 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline39(arg0, arg1, arg2, arg3) {
+    
+    function trampoline42(arg0, arg1) {
+      var handle1 = arg0;
+      var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
+      var rsc0 = captureTable3.get(rep2);
+      if (!rsc0) {
+        rsc0 = Object.create(OutputStream.prototype);
+        Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+        Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+      }
+      curResourceBorrows.push(rsc0);
+      let ret;
+      try {
+        ret = { tag: 'ok', val: rsc0.checkWrite()};
+      } catch (e) {
+        ret = { tag: 'err', val: getErrorPayload(e) };
+      }
+      for (const rsc of curResourceBorrows) {
+        rsc[symbolRscHandle] = undefined;
+      }
+      curResourceBorrows = [];
+      var variant5 = ret;
+      switch (variant5.tag) {
+        case 'ok': {
+          const e = variant5.val;
+          dataView(memory0).setInt8(arg1 + 0, 0, true);
+          dataView(memory0).setBigInt64(arg1 + 8, toUint64(e), true);
+          break;
+        }
+        case 'err': {
+          const e = variant5.val;
+          dataView(memory0).setInt8(arg1 + 0, 1, true);
+          var variant4 = e;
+          switch (variant4.tag) {
+            case 'last-operation-failed': {
+              const e = variant4.val;
+              dataView(memory0).setInt8(arg1 + 8, 0, true);
+              if (!(e instanceof Error$1)) {
+                throw new TypeError('Resource error: Not a valid "Error" resource.');
+              }
+              var handle3 = e[symbolRscHandle];
+              if (!handle3) {
+                const rep = e[symbolRscRep] || ++captureCnt1;
+                captureTable1.set(rep, e);
+                handle3 = rscTableCreateOwn(handleTable1, rep);
+              }
+              dataView(memory0).setInt32(arg1 + 12, handle3, true);
+              break;
+            }
+            case 'closed': {
+              dataView(memory0).setInt8(arg1 + 8, 1, true);
+              break;
+            }
+            default: {
+              throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant4.tag)}\` (received \`${variant4}\`) specified for \`StreamError\``);
+            }
+          }
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant specified for result');
+        }
+      }
+    }
+    
+    
+    function trampoline43(arg0, arg1, arg2, arg3) {
       var handle1 = arg0;
       var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable3.get(rep2);
@@ -3053,7 +3158,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant6 = ret;
@@ -3099,7 +3204,75 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline40(arg0, arg1) {
+    
+    function trampoline44(arg0, arg1, arg2, arg3) {
+      var handle1 = arg0;
+      var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
+      var rsc0 = captureTable3.get(rep2);
+      if (!rsc0) {
+        rsc0 = Object.create(OutputStream.prototype);
+        Object.defineProperty(rsc0, symbolRscHandle, { writable: true, value: handle1});
+        Object.defineProperty(rsc0, symbolRscRep, { writable: true, value: rep2});
+      }
+      curResourceBorrows.push(rsc0);
+      var ptr3 = arg1;
+      var len3 = arg2;
+      var result3 = new Uint8Array(memory0.buffer.slice(ptr3, ptr3 + len3 * 1));
+      let ret;
+      try {
+        ret = { tag: 'ok', val: rsc0.blockingWriteAndFlush(result3)};
+      } catch (e) {
+        ret = { tag: 'err', val: getErrorPayload(e) };
+      }
+      for (const rsc of curResourceBorrows) {
+        rsc[symbolRscHandle] = undefined;
+      }
+      curResourceBorrows = [];
+      var variant6 = ret;
+      switch (variant6.tag) {
+        case 'ok': {
+          const e = variant6.val;
+          dataView(memory0).setInt8(arg3 + 0, 0, true);
+          break;
+        }
+        case 'err': {
+          const e = variant6.val;
+          dataView(memory0).setInt8(arg3 + 0, 1, true);
+          var variant5 = e;
+          switch (variant5.tag) {
+            case 'last-operation-failed': {
+              const e = variant5.val;
+              dataView(memory0).setInt8(arg3 + 4, 0, true);
+              if (!(e instanceof Error$1)) {
+                throw new TypeError('Resource error: Not a valid "Error" resource.');
+              }
+              var handle4 = e[symbolRscHandle];
+              if (!handle4) {
+                const rep = e[symbolRscRep] || ++captureCnt1;
+                captureTable1.set(rep, e);
+                handle4 = rscTableCreateOwn(handleTable1, rep);
+              }
+              dataView(memory0).setInt32(arg3 + 8, handle4, true);
+              break;
+            }
+            case 'closed': {
+              dataView(memory0).setInt8(arg3 + 4, 1, true);
+              break;
+            }
+            default: {
+              throw new TypeError(`invalid variant tag value \`${JSON.stringify(variant5.tag)}\` (received \`${variant5}\`) specified for \`StreamError\``);
+            }
+          }
+          break;
+        }
+        default: {
+          throw new TypeError('invalid variant specified for result');
+        }
+      }
+    }
+    
+    
+    function trampoline45(arg0, arg1) {
       var handle1 = arg0;
       var rep2 = handleTable3[(handle1 << 1) + 1] & ~T_FLAG;
       var rsc0 = captureTable3.get(rep2);
@@ -3116,7 +3289,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ret = { tag: 'err', val: getErrorPayload(e) };
       }
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var variant5 = ret;
@@ -3162,7 +3335,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     
-    function trampoline41(arg0, arg1, arg2) {
+    
+    function trampoline46(arg0, arg1, arg2) {
       var len3 = arg1;
       var base3 = arg0;
       var result3 = [];
@@ -3181,7 +3355,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       const ret = poll(result3);
       for (const rsc of curResourceBorrows) {
-        rsc[symbolRscHandle] = null;
+        rsc[symbolRscHandle] = undefined;
       }
       curResourceBorrows = [];
       var val4 = ret;
@@ -3193,7 +3367,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       dataView(memory0).setInt32(arg2 + 0, ptr4, true);
     }
     
-    function trampoline42(arg0, arg1) {
+    
+    function trampoline47(arg0, arg1) {
       const ret = getRandomBytes(BigInt.asUintN(64, arg0));
       var val0 = ret;
       var len0 = val0.byteLength;
@@ -3204,7 +3379,8 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       dataView(memory0).setInt32(arg1 + 0, ptr0, true);
     }
     
-    function trampoline43(arg0) {
+    
+    function trampoline48(arg0) {
       const ret = getEnvironment();
       var vec3 = ret;
       var len3 = vec3.length;
@@ -3224,6 +3400,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       dataView(memory0).setInt32(arg0 + 4, len3, true);
       dataView(memory0).setInt32(arg0 + 0, result3, true);
     }
+    
     let exports3;
     let postReturn0;
     let postReturn1;
@@ -3326,6 +3503,45 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
     }
     function trampoline10(handle) {
+      const handleEntry = rscTableRemove(handleTable1, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable1.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable1.delete(handleEntry.rep);
+        } else if (Error$1[symbolCabiDispose]) {
+          Error$1[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline11(handle) {
+      const handleEntry = rscTableRemove(handleTable2, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable2.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable2.delete(handleEntry.rep);
+        } else if (InputStream[symbolCabiDispose]) {
+          InputStream[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline12(handle) {
+      const handleEntry = rscTableRemove(handleTable3, handle);
+      if (handleEntry.own) {
+        
+        const rsc = captureTable3.get(handleEntry.rep);
+        if (rsc) {
+          if (rsc[symbolDispose]) rsc[symbolDispose]();
+          captureTable3.delete(handleEntry.rep);
+        } else if (OutputStream[symbolCabiDispose]) {
+          OutputStream[symbolCabiDispose](handleEntry.rep);
+        }
+      }
+    }
+    function trampoline13(handle) {
       const handleEntry = rscTableRemove(handleTable7, handle);
       if (handleEntry.own) {
         
@@ -3338,7 +3554,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         }
       }
     }
-    function trampoline15(handle) {
+    function trampoline18(handle) {
       const handleEntry = rscTableRemove(handleTable0, handle);
       if (handleEntry.own) {
         
@@ -3411,21 +3627,21 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         'get-environment': exports0['25'],
       },
       'wasi:cli/exit@0.2.0': {
-        exit: trampoline17,
+        exit: trampoline20,
       },
       'wasi:cli/stderr@0.2.0': {
-        'get-stderr': trampoline16,
+        'get-stderr': trampoline19,
       },
       'wasi:cli/stdin@0.2.0': {
-        'get-stdin': trampoline18,
+        'get-stdin': trampoline21,
       },
       'wasi:cli/stdout@0.2.0': {
-        'get-stdout': trampoline19,
+        'get-stdout': trampoline22,
       },
       'wasi:clocks/monotonic-clock@0.2.0': {
         now: trampoline9,
-        'subscribe-duration': trampoline11,
-        'subscribe-instant': trampoline12,
+        'subscribe-duration': trampoline14,
+        'subscribe-instant': trampoline15,
       },
       'wasi:clocks/wall-clock@0.2.0': {
         now: exports0['12'],
@@ -3439,25 +3655,25 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         '[method]descriptor.read-via-stream': exports0['13'],
         '[method]descriptor.stat': exports0['17'],
         '[method]descriptor.write-via-stream': exports0['14'],
-        '[resource-drop]descriptor': trampoline10,
+        '[resource-drop]descriptor': trampoline13,
         'filesystem-error-code': exports0['18'],
       },
       'wasi:io/error@0.2.0': {
-        '[resource-drop]error': trampoline3,
+        '[resource-drop]error': trampoline10,
       },
       'wasi:io/poll@0.2.0': {
-        '[resource-drop]pollable': trampoline15,
+        '[resource-drop]pollable': trampoline18,
         poll: exports0['23'],
       },
       'wasi:io/streams@0.2.0': {
-        '[method]input-stream.subscribe': trampoline14,
+        '[method]input-stream.subscribe': trampoline17,
         '[method]output-stream.blocking-flush': exports0['22'],
         '[method]output-stream.blocking-write-and-flush': exports0['21'],
         '[method]output-stream.check-write': exports0['19'],
-        '[method]output-stream.subscribe': trampoline13,
+        '[method]output-stream.subscribe': trampoline16,
         '[method]output-stream.write': exports0['20'],
-        '[resource-drop]input-stream': trampoline6,
-        '[resource-drop]output-stream': trampoline5,
+        '[resource-drop]input-stream': trampoline11,
+        '[resource-drop]output-stream': trampoline12,
       },
       'wasi:random/random@0.2.0': {
         'get-random-bytes': exports0['24'],
@@ -3469,40 +3685,40 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
     ({ exports: exports3 } = yield instantiateCore(yield module3, {
       '': {
         $imports: exports0.$imports,
-        '0': trampoline20,
-        '1': trampoline21,
-        '10': trampoline30,
-        '11': trampoline31,
-        '12': trampoline32,
-        '13': trampoline33,
-        '14': trampoline34,
-        '15': trampoline35,
-        '16': trampoline36,
-        '17': trampoline37,
-        '18': trampoline38,
-        '19': trampoline28,
-        '2': trampoline22,
-        '20': trampoline39,
-        '21': trampoline29,
-        '22': trampoline40,
-        '23': trampoline41,
-        '24': trampoline42,
-        '25': trampoline43,
+        '0': trampoline23,
+        '1': trampoline24,
+        '10': trampoline33,
+        '11': trampoline34,
+        '12': trampoline35,
+        '13': trampoline36,
+        '14': trampoline37,
+        '15': trampoline38,
+        '16': trampoline39,
+        '17': trampoline40,
+        '18': trampoline41,
+        '19': trampoline42,
+        '2': trampoline25,
+        '20': trampoline43,
+        '21': trampoline44,
+        '22': trampoline45,
+        '23': trampoline46,
+        '24': trampoline47,
+        '25': trampoline48,
         '26': exports2.random_get,
         '27': exports2.clock_time_get,
         '28': exports2.fd_write,
         '29': exports2.poll_oneoff,
-        '3': trampoline23,
+        '3': trampoline26,
         '30': exports2.environ_get,
         '31': exports2.environ_sizes_get,
         '32': exports2.proc_exit,
         '33': exports1['component:nfs-rs/nfs#[dtor]nfs-mount'],
-        '4': trampoline24,
-        '5': trampoline25,
-        '6': trampoline26,
-        '7': trampoline27,
-        '8': trampoline28,
-        '9': trampoline29,
+        '4': trampoline27,
+        '5': trampoline28,
+        '6': trampoline29,
+        '7': trampoline30,
+        '8': trampoline31,
+        '9': trampoline32,
       },
     }));
     postReturn0 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.access'];
@@ -3512,6 +3728,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
     postReturn4 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdir'];
     postReturn5 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdirplus'];
     postReturn6 = exports1['cabi_post_component:nfs-rs/nfs#[method]nfs-mount.readdirplus-path'];
+    let nfsMethodNfsMountNullOp;
     
     class NfsMount{
       constructor () {
@@ -3525,7 +3742,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.null-op'](handle0);
+      const ret = nfsMethodNfsMountNullOp(handle0);
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3573,6 +3790,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountAccess;
     
     NfsMount.prototype.access = function access(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -3585,7 +3803,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.access'](handle0, ptr2, len2, toUint32(arg2));
+      const ret = nfsMethodNfsMountAccess(handle0, ptr2, len2, toUint32(arg2));
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3633,6 +3851,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountAccessPath;
     
     NfsMount.prototype.accessPath = function accessPath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -3642,7 +3861,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.access-path'](handle0, ptr2, len2, toUint32(arg2));
+      const ret = nfsMethodNfsMountAccessPath(handle0, ptr2, len2, toUint32(arg2));
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3690,6 +3909,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountClose;
     
     NfsMount.prototype.close = function close(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -3697,7 +3917,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.close'](handle0, toUint32(arg1), toUint64(arg2));
+      const ret = nfsMethodNfsMountClose(handle0, toUint32(arg1), toUint64(arg2));
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3745,6 +3965,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountCommit;
     
     NfsMount.prototype.commit = function commit(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -3757,7 +3978,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.commit'](handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
+      const ret = nfsMethodNfsMountCommit(handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3805,6 +4026,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountCommitPath;
     
     NfsMount.prototype.commitPath = function commitPath(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -3814,7 +4036,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.commit-path'](handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
+      const ret = nfsMethodNfsMountCommitPath(handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3862,6 +4084,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountCreate;
     
     NfsMount.prototype.create = function create(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -3876,7 +4099,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.create'](handle0, ptr2, len2, ptr3, len3, toUint32(arg3));
+      const ret = nfsMethodNfsMountCreate(handle0, ptr2, len2, ptr3, len3, toUint32(arg3));
       let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -3967,6 +4190,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountCreatePath;
     
     NfsMount.prototype.createPath = function createPath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -3976,7 +4200,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.create-path'](handle0, ptr2, len2, toUint32(arg2));
+      const ret = nfsMethodNfsMountCreatePath(handle0, ptr2, len2, toUint32(arg2));
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4067,6 +4291,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountDelegpurge;
     
     NfsMount.prototype.delegpurge = function delegpurge(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -4074,7 +4299,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.delegpurge'](handle0, toUint64(arg1));
+      const ret = nfsMethodNfsMountDelegpurge(handle0, toUint64(arg1));
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4122,6 +4347,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountDelegreturn;
     
     NfsMount.prototype.delegreturn = function delegreturn(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -4129,7 +4355,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.delegreturn'](handle0, toUint64(arg1));
+      const ret = nfsMethodNfsMountDelegreturn(handle0, toUint64(arg1));
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4177,6 +4403,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountGetattr;
     
     NfsMount.prototype.getattr = function getattr(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -4189,7 +4416,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.getattr'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountGetattr(handle0, ptr2, len2);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4260,6 +4487,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountGetattrPath;
     
     NfsMount.prototype.getattrPath = function getattrPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -4269,7 +4497,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.getattr-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountGetattrPath(handle0, ptr2, len2);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4340,6 +4568,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountSetattr;
     
     NfsMount.prototype.setattr = function setattr(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       var ptr0 = realloc0(0, 0, 8, 88);
@@ -4418,7 +4647,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         dataView(memory0).setInt32(ptr0 + 80, toUint32(v12_0), true);
         dataView(memory0).setInt32(ptr0 + 84, toUint32(v12_1), true);
       }
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.setattr'](ptr0);
+      const ret = nfsMethodNfsMountSetattr(ptr0);
       let variant16;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4466,6 +4695,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountSetattrPath;
     
     NfsMount.prototype.setattrPath = function setattrPath(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
       var ptr0 = realloc0(0, 0, 8, 80);
@@ -4532,7 +4762,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         dataView(memory0).setInt32(ptr0 + 72, toUint32(v10_0), true);
         dataView(memory0).setInt32(ptr0 + 76, toUint32(v10_1), true);
       }
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.setattr-path'](ptr0);
+      const ret = nfsMethodNfsMountSetattrPath(ptr0);
       let variant14;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4580,6 +4810,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountGetfh;
     
     NfsMount.prototype.getfh = function getfh() {
       var handle1 = this[symbolRscHandle];
@@ -4587,7 +4818,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.getfh'](handle0);
+      const ret = nfsMethodNfsMountGetfh(handle0);
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4635,6 +4866,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountLink;
     
     NfsMount.prototype.link = function link(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -4654,7 +4886,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
       var ptr4 = utf8Encode(arg3, realloc0, memory0);
       var len4 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.link'](handle0, ptr2, len2, ptr3, len3, ptr4, len4);
+      const ret = nfsMethodNfsMountLink(handle0, ptr2, len2, ptr3, len3, ptr4, len4);
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4725,6 +4957,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountLinkPath;
     
     NfsMount.prototype.linkPath = function linkPath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -4736,7 +4969,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var len2 = utf8EncodedLen;
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.link-path'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountLinkPath(handle0, ptr2, len2, ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4807,6 +5040,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountSymlink;
     
     NfsMount.prototype.symlink = function symlink(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -4823,7 +5057,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
       var ptr4 = utf8Encode(arg3, realloc0, memory0);
       var len4 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.symlink'](handle0, ptr2, len2, ptr3, len3, ptr4, len4);
+      const ret = nfsMethodNfsMountSymlink(handle0, ptr2, len2, ptr3, len3, ptr4, len4);
       let variant9;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -4914,6 +5148,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountSymlinkPath;
     
     NfsMount.prototype.symlinkPath = function symlinkPath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -4925,7 +5160,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var len2 = utf8EncodedLen;
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.symlink-path'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountSymlinkPath(handle0, ptr2, len2, ptr3, len3);
       let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5016,6 +5251,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReadlink;
     
     NfsMount.prototype.readlink = function readlink(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5028,7 +5264,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readlink'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReadlink(handle0, ptr2, len2);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5079,6 +5315,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReadlinkPath;
     
     NfsMount.prototype.readlinkPath = function readlinkPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5088,7 +5325,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readlink-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReadlinkPath(handle0, ptr2, len2);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5139,6 +5376,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountLookup;
     
     NfsMount.prototype.lookup = function lookup(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -5153,7 +5391,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.lookup'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountLookup(handle0, ptr2, len2, ptr3, len3);
       let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5244,6 +5482,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountLookupPath;
     
     NfsMount.prototype.lookupPath = function lookupPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5253,7 +5492,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.lookup-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountLookupPath(handle0, ptr2, len2);
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5344,6 +5583,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountPathconf;
     
     NfsMount.prototype.pathconf = function pathconf(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5356,7 +5596,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.pathconf'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountPathconf(handle0, ptr2, len2);
       let variant10;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5453,6 +5693,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountPathconfPath;
     
     NfsMount.prototype.pathconfPath = function pathconfPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5462,7 +5703,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.pathconf-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountPathconfPath(handle0, ptr2, len2);
       let variant10;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5559,6 +5800,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRead;
     
     NfsMount.prototype.read = function read(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -5571,7 +5813,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.read'](handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
+      const ret = nfsMethodNfsMountRead(handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5622,6 +5864,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReadPath;
     
     NfsMount.prototype.readPath = function readPath(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -5631,7 +5874,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.read-path'](handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
+      const ret = nfsMethodNfsMountReadPath(handle0, ptr2, len2, toUint64(arg2), toUint32(arg3));
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5682,6 +5925,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountWrite;
     
     NfsMount.prototype.write = function write(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -5699,7 +5943,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr3 = realloc0(0, 0, 1, len3 * 1);
       var src3 = new Uint8Array(val3.buffer || val3, val3.byteOffset, len3 * 1);
       (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.write'](handle0, ptr2, len2, toUint64(arg2), ptr3, len3);
+      const ret = nfsMethodNfsMountWrite(handle0, ptr2, len2, toUint64(arg2), ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5747,6 +5991,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountWritePath;
     
     NfsMount.prototype.writePath = function writePath(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -5761,7 +6006,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr3 = realloc0(0, 0, 1, len3 * 1);
       var src3 = new Uint8Array(val3.buffer || val3, val3.byteOffset, len3 * 1);
       (new Uint8Array(memory0.buffer, ptr3, len3 * 1)).set(src3);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.write-path'](handle0, ptr2, len2, toUint64(arg2), ptr3, len3);
+      const ret = nfsMethodNfsMountWritePath(handle0, ptr2, len2, toUint64(arg2), ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5809,6 +6054,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReaddir;
     
     NfsMount.prototype.readdir = function readdir(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5821,7 +6067,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdir'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReaddir(handle0, ptr2, len2);
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5882,6 +6128,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReaddirPath;
     
     NfsMount.prototype.readdirPath = function readdirPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5891,7 +6138,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdir-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReaddirPath(handle0, ptr2, len2);
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -5952,6 +6199,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReaddirplus;
     
     NfsMount.prototype.readdirplus = function readdirplus(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -5964,7 +6212,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var ptr2 = realloc0(0, 0, 1, len2 * 1);
       var src2 = new Uint8Array(val2.buffer || val2, val2.byteOffset, len2 * 1);
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdirplus'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReaddirplus(handle0, ptr2, len2);
       let variant9;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6067,6 +6315,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountReaddirplusPath;
     
     NfsMount.prototype.readdirplusPath = function readdirplusPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -6076,7 +6325,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdirplus-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountReaddirplusPath(handle0, ptr2, len2);
       let variant9;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6179,6 +6428,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountMkdir;
     
     NfsMount.prototype.mkdir = function mkdir(arg1, arg2, arg3) {
       var handle1 = this[symbolRscHandle];
@@ -6193,7 +6443,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.mkdir'](handle0, ptr2, len2, ptr3, len3, toUint32(arg3));
+      const ret = nfsMethodNfsMountMkdir(handle0, ptr2, len2, ptr3, len3, toUint32(arg3));
       let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6284,6 +6534,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountMkdirPath;
     
     NfsMount.prototype.mkdirPath = function mkdirPath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -6293,7 +6544,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.mkdir-path'](handle0, ptr2, len2, toUint32(arg2));
+      const ret = nfsMethodNfsMountMkdirPath(handle0, ptr2, len2, toUint32(arg2));
       let variant7;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6384,6 +6635,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRemove;
     
     NfsMount.prototype.remove = function remove(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -6398,7 +6650,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.remove'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountRemove(handle0, ptr2, len2, ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6446,6 +6698,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRemovePath;
     
     NfsMount.prototype.removePath = function removePath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -6455,7 +6708,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.remove-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountRemovePath(handle0, ptr2, len2);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6503,6 +6756,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRmdir;
     
     NfsMount.prototype.rmdir = function rmdir(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -6517,7 +6771,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr2, len2 * 1)).set(src2);
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.rmdir'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountRmdir(handle0, ptr2, len2, ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6565,6 +6819,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRmdirPath;
     
     NfsMount.prototype.rmdirPath = function rmdirPath(arg1) {
       var handle1 = this[symbolRscHandle];
@@ -6574,7 +6829,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
       var ptr2 = utf8Encode(arg1, realloc0, memory0);
       var len2 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.rmdir-path'](handle0, ptr2, len2);
+      const ret = nfsMethodNfsMountRmdirPath(handle0, ptr2, len2);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6622,6 +6877,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRename;
     
     NfsMount.prototype.rename = function rename(arg1, arg2, arg3, arg4) {
       var handle1 = this[symbolRscHandle];
@@ -6643,7 +6899,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       (new Uint8Array(memory0.buffer, ptr4, len4 * 1)).set(src4);
       var ptr5 = utf8Encode(arg4, realloc0, memory0);
       var len5 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.rename'](handle0, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5);
+      const ret = nfsMethodNfsMountRename(handle0, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5);
       let variant8;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6691,6 +6947,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountRenamePath;
     
     NfsMount.prototype.renamePath = function renamePath(arg1, arg2) {
       var handle1 = this[symbolRscHandle];
@@ -6702,7 +6959,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       var len2 = utf8EncodedLen;
       var ptr3 = utf8Encode(arg2, realloc0, memory0);
       var len3 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.rename-path'](handle0, ptr2, len2, ptr3, len3);
+      const ret = nfsMethodNfsMountRenamePath(handle0, ptr2, len2, ptr3, len3);
       let variant6;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6750,6 +7007,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountUmount;
     
     NfsMount.prototype.umount = function umount() {
       var handle1 = this[symbolRscHandle];
@@ -6757,7 +7015,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.umount'](handle0);
+      const ret = nfsMethodNfsMountUmount(handle0);
       let variant4;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6805,6 +7063,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsMethodNfsMountVersion;
     
     NfsMount.prototype.version = function version() {
       var handle1 = this[symbolRscHandle];
@@ -6812,7 +7071,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         throw new TypeError('Resource error: Not a valid "NfsMount" resource.');
       }
       var handle0 = handleTable8[(handle1 << 1) + 1] & ~T_FLAG;
-      const ret = exports1['component:nfs-rs/nfs#[method]nfs-mount.version'](handle0);
+      const ret = nfsMethodNfsMountVersion(handle0);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6878,11 +7137,12 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     };
+    let nfsParseUrlAndMount;
     
     function parseUrlAndMount(arg0) {
       var ptr0 = utf8Encode(arg0, realloc0, memory0);
       var len0 = utf8EncodedLen;
-      const ret = exports1['component:nfs-rs/nfs#parse-url-and-mount'](ptr0, len0);
+      const ret = nfsParseUrlAndMount(ptr0, len0);
       let variant5;
       switch (dataView(memory0).getUint8(ret + 0, true)) {
         case 0: {
@@ -6894,7 +7154,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
             finalizationRegistry8.unregister(rsc1);
             rscTableRemove(handleTable8, handle2);
             rsc1[symbolDispose] = emptyFunc;
-            rsc1[symbolRscHandle] = null;
+            rsc1[symbolRscHandle] = undefined;
             exports0['33'](handleTable8[(handle2 << 1) + 1] & ~T_FLAG);
           }});
           variant5= {
@@ -6941,6 +7201,50 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
       }
       return retVal.val;
     }
+    nfsMethodNfsMountNullOp = exports1['component:nfs-rs/nfs#[method]nfs-mount.null-op'];
+    nfsMethodNfsMountAccess = exports1['component:nfs-rs/nfs#[method]nfs-mount.access'];
+    nfsMethodNfsMountAccessPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.access-path'];
+    nfsMethodNfsMountClose = exports1['component:nfs-rs/nfs#[method]nfs-mount.close'];
+    nfsMethodNfsMountCommit = exports1['component:nfs-rs/nfs#[method]nfs-mount.commit'];
+    nfsMethodNfsMountCommitPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.commit-path'];
+    nfsMethodNfsMountCreate = exports1['component:nfs-rs/nfs#[method]nfs-mount.create'];
+    nfsMethodNfsMountCreatePath = exports1['component:nfs-rs/nfs#[method]nfs-mount.create-path'];
+    nfsMethodNfsMountDelegpurge = exports1['component:nfs-rs/nfs#[method]nfs-mount.delegpurge'];
+    nfsMethodNfsMountDelegreturn = exports1['component:nfs-rs/nfs#[method]nfs-mount.delegreturn'];
+    nfsMethodNfsMountGetattr = exports1['component:nfs-rs/nfs#[method]nfs-mount.getattr'];
+    nfsMethodNfsMountGetattrPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.getattr-path'];
+    nfsMethodNfsMountSetattr = exports1['component:nfs-rs/nfs#[method]nfs-mount.setattr'];
+    nfsMethodNfsMountSetattrPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.setattr-path'];
+    nfsMethodNfsMountGetfh = exports1['component:nfs-rs/nfs#[method]nfs-mount.getfh'];
+    nfsMethodNfsMountLink = exports1['component:nfs-rs/nfs#[method]nfs-mount.link'];
+    nfsMethodNfsMountLinkPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.link-path'];
+    nfsMethodNfsMountSymlink = exports1['component:nfs-rs/nfs#[method]nfs-mount.symlink'];
+    nfsMethodNfsMountSymlinkPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.symlink-path'];
+    nfsMethodNfsMountReadlink = exports1['component:nfs-rs/nfs#[method]nfs-mount.readlink'];
+    nfsMethodNfsMountReadlinkPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.readlink-path'];
+    nfsMethodNfsMountLookup = exports1['component:nfs-rs/nfs#[method]nfs-mount.lookup'];
+    nfsMethodNfsMountLookupPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.lookup-path'];
+    nfsMethodNfsMountPathconf = exports1['component:nfs-rs/nfs#[method]nfs-mount.pathconf'];
+    nfsMethodNfsMountPathconfPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.pathconf-path'];
+    nfsMethodNfsMountRead = exports1['component:nfs-rs/nfs#[method]nfs-mount.read'];
+    nfsMethodNfsMountReadPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.read-path'];
+    nfsMethodNfsMountWrite = exports1['component:nfs-rs/nfs#[method]nfs-mount.write'];
+    nfsMethodNfsMountWritePath = exports1['component:nfs-rs/nfs#[method]nfs-mount.write-path'];
+    nfsMethodNfsMountReaddir = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdir'];
+    nfsMethodNfsMountReaddirPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdir-path'];
+    nfsMethodNfsMountReaddirplus = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdirplus'];
+    nfsMethodNfsMountReaddirplusPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.readdirplus-path'];
+    nfsMethodNfsMountMkdir = exports1['component:nfs-rs/nfs#[method]nfs-mount.mkdir'];
+    nfsMethodNfsMountMkdirPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.mkdir-path'];
+    nfsMethodNfsMountRemove = exports1['component:nfs-rs/nfs#[method]nfs-mount.remove'];
+    nfsMethodNfsMountRemovePath = exports1['component:nfs-rs/nfs#[method]nfs-mount.remove-path'];
+    nfsMethodNfsMountRmdir = exports1['component:nfs-rs/nfs#[method]nfs-mount.rmdir'];
+    nfsMethodNfsMountRmdirPath = exports1['component:nfs-rs/nfs#[method]nfs-mount.rmdir-path'];
+    nfsMethodNfsMountRename = exports1['component:nfs-rs/nfs#[method]nfs-mount.rename'];
+    nfsMethodNfsMountRenamePath = exports1['component:nfs-rs/nfs#[method]nfs-mount.rename-path'];
+    nfsMethodNfsMountUmount = exports1['component:nfs-rs/nfs#[method]nfs-mount.umount'];
+    nfsMethodNfsMountVersion = exports1['component:nfs-rs/nfs#[method]nfs-mount.version'];
+    nfsParseUrlAndMount = exports1['component:nfs-rs/nfs#parse-url-and-mount'];
     const nfs = {
       NfsMount: NfsMount,
       parseUrlAndMount: parseUrlAndMount,
@@ -6957,7 +7261,7 @@ export function instantiate(getCoreModule, imports, instantiateCore = WebAssembl
         ({ value, done } = gen.next(value));
       } while (!(value instanceof Promise) && !done);
       if (done) {
-        if (resolve) resolve(value);
+        if (resolve) return resolve(value);
         else return value;
       }
       if (!promise) promise = new Promise((_resolve, _reject) => (resolve = _resolve, reject = _reject));

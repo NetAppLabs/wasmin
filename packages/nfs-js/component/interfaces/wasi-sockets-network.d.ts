@@ -1,6 +1,4 @@
-export namespace WasiSocketsNetwork {
-  export { Network };
-}
+/** @module Interface wasi:sockets/network@0.2.0 **/
 export type Ipv4Address = [number, number, number, number];
 export type Ipv6Address = [number, number, number, number, number, number, number, number];
 export type IpAddress = IpAddressIpv4 | IpAddressIpv6;
@@ -87,4 +85,8 @@ export interface IpSocketAddressIpv6 {
 export type IpAddressFamily = 'ipv4' | 'ipv6';
 
 export class Network {
+  /**
+   * This type does not have a public constructor.
+   */
+  private constructor();
 }

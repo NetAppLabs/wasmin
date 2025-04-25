@@ -1,7 +1,5 @@
-export namespace ComponentNfsRsNfs {
-  export { NfsMount };
-  export function parseUrlAndMount(url: string): NfsMount;
-}
+/** @module Interface component:nfs-rs/nfs **/
+export function parseUrlAndMount(url: string): NfsMount;
 export type Fh = Uint8Array;
 export type Bytes = Uint8Array;
 export interface Time {
@@ -62,6 +60,10 @@ export interface Error {
 }
 
 export class NfsMount {
+  /**
+   * This type does not have a public constructor.
+   */
+  private constructor();
   nullOp(): void;
   access(fh: Fh, mode: number): number;
   accessPath(path: string, mode: number): number;

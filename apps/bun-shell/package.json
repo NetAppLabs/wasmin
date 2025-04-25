@@ -23,7 +23,6 @@
   "dependencies": {
     "@netapplabs/bun-fs-js": "^0.7.0",
     "@netapplabs/fs-js": "^0.7.0",
-    "@netapplabs/nfs-js": "^0.7.0",
     "@netapplabs/s3-fs-js": "^0.7.0",
     "@netapplabs/shell": "^0.7.0",
     "@netapplabs/wasi-js": "^0.7.0",

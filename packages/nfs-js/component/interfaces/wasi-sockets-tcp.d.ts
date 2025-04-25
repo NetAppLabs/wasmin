@@ -1,16 +1,9 @@
-export namespace WasiSocketsTcp {
-  export { TcpSocket };
-}
-import type { Network } from './wasi-sockets-network.js';
-export { Network };
-import type { IpSocketAddress } from './wasi-sockets-network.js';
-export { IpSocketAddress };
-import type { ErrorCode } from './wasi-sockets-network.js';
-export { ErrorCode };
-import type { InputStream } from './wasi-io-streams.js';
-export { InputStream };
-import type { OutputStream } from './wasi-io-streams.js';
-export { OutputStream };
+/** @module Interface wasi:sockets/tcp@0.2.0 **/
+export type Network = import('./wasi-sockets-network.js').Network;
+export type IpSocketAddress = import('./wasi-sockets-network.js').IpSocketAddress;
+export type ErrorCode = import('./wasi-sockets-network.js').ErrorCode;
+export type InputStream = import('./wasi-io-streams.js').InputStream;
+export type OutputStream = import('./wasi-io-streams.js').OutputStream;
 /**
  * # Variants
  * 
@@ -23,6 +16,10 @@ export { OutputStream };
 export type ShutdownType = 'receive' | 'send' | 'both';
 
 export class TcpSocket {
+  /**
+   * This type does not have a public constructor.
+   */
+  private constructor();
   startConnect(network: Network, remoteAddress: IpSocketAddress): void;
   finishConnect(): [InputStream, OutputStream];
   remoteAddress(): IpSocketAddress;

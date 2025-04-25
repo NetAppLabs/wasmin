@@ -17,7 +17,7 @@
         "bun-test": "./test-bun.sh"
     },
     "devDependencies": {
-        "@bytecodealliance/jco": "1.7.0",
+        "@bytecodealliance/jco": "^1.10.2",
         "@netapplabs/tsconfig": "^0.7.0",
         "vitest": "^3.0.7"
     },

@@ -32,7 +32,6 @@
         "build-jco": "./build.sh"
     },
     "devDependencies": {
-        "@bytecodealliance/jco": "^1.2.4",
         "@netapplabs/tsconfig": "^0.7.0",
         "@types/node": "^22.10.2"
     },

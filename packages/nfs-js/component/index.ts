@@ -1,4 +1,4 @@
-import { NfsMount, ComponentNfsRsNfs, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
+import { NfsMount, ReaddirplusEntry, ObjRes } from "./interfaces/component-nfs-rs-nfs";
 import { instantiate } from "./nfs_rs.js";
 import { WASIWorker } from "@netapplabs/wasi-js";
 import {
@@ -163,7 +163,7 @@ async function compileCore(url: string) {
 }
 
 let wasi: WASIWorker | undefined;
-let nfsComponent: typeof ComponentNfsRsNfs;
+let nfsComponent: any;
 let instantiation: Promise<WASIWorker> | undefined;
 
 async function ensureInstantiation() {

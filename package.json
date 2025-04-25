@@ -16,7 +16,7 @@
     "format": "prettier --tab-width 4 --print-width 120 --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@changesets/cli": "^2.28.1",
+    "@changesets/cli": "^2.29.2",
     "crypto-browserify": "^3.12.1",
     "path-browserify": "^1.0.1",
     "prettier": "^3.5.2",

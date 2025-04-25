@@ -1,5 +1,3 @@
-export namespace WasiSocketsInstanceNetwork {
-  export function instanceNetwork(): Network;
-}
-import type { Network } from './wasi-sockets-network.js';
-export { Network };
+/** @module Interface wasi:sockets/instance-network@0.2.0 **/
+export function instanceNetwork(): Network;
+export type Network = import('./wasi-sockets-network.js').Network;
