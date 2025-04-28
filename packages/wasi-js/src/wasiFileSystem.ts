@@ -1,4 +1,5 @@
 // Copyright 2020 Google Inc. All Rights Reserved.
+// Copyright 2025 NetApp Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +17,6 @@ import { SystemError } from "./errors.js";
 import { Oflags, OflagsN, Fdflags, FdflagsN, ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 import { AdviceN, Fd } from "./wasi_snapshot_preview1/bindings.js";
 import { async as wasip2async} from "@netapplabs/wasi-snapshot-preview2";
-//import { FilesystemFilesystemNamespace as fs } from "@netapplabs/wasi-snapshot-preview2/async";
 type DirectoryEntry = wasip2async.FilesystemFilesystemNamespace.DirectoryEntry;
 type DescriptorType = wasip2async.FilesystemFilesystemNamespace.DescriptorType;
 type FileSystemDescriptorNumber = number;
