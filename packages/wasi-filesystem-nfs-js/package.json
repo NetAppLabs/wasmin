@@ -1,0 +1,22 @@
+{
+    "version": "0.1.0",
+    "name": "@wasmin/wasi-filesystem-nfs-js",
+    "type": "module",
+    "main": "component/index.js",
+    "files": [
+        "component/index.ts"
+    ],
+    "scripts": {
+        "build": "./build.sh",
+        "test": "./test.sh",
+        "bun-test": "./test-bun.sh"
+    },
+    "devDependencies": {
+        "@bytecodealliance/jco": "^1.2.4",
+        "vitest": "^1.5.0"
+    },
+    "dependencies": {
+        "@wasmin/fs-js": "*",
+        "@wasmin/wasi-js": "*"
+    }
+}
