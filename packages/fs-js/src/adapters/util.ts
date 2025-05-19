@@ -108,15 +108,19 @@ export const streamToBufferNode = (stream: any): Promise<Uint8Array> =>
  * Replaces the expression in for ${secret.value} with value found as path in secretStore
  * */
 export function substituteSecretValue(secretKey: string, secretStore: any): string {
-    utilDebug(`substituteSecretValue: secretKey: ${secretKey}`);
-    utilDebug("substituteSecretValue: secretStore: ", secretStore);
-    const secretKeyReplaced = secretKey.replace(/\${([^}]+)}/g, (secretKeyValue: string, secretKeyPath: string) => {
-        utilDebug(`substituteSecretValue match: secretKeyValue: ${secretKeyValue} , secretKeyPath: ${secretKeyPath}`);
-        const secretKeyReplaced = resolveObjectPath(secretKeyPath, secretStore);
-        utilDebug("substituteSecretValue: match: secretKeyReplaced: ", secretKeyReplaced);
+    if (secretKey && secretKey.length <= 2048 ) {
+        utilDebug(`substituteSecretValue: secretKey: ${secretKey}`);
+        utilDebug("substituteSecretValue: secretStore: ", secretStore);
+        const secretKeyReplaced = secretKey.replace(/\${([^}]+)}/g, (secretKeyValue: string, secretKeyPath: string) => {
+            utilDebug(`substituteSecretValue match: secretKeyValue: ${secretKeyValue} , secretKeyPath: ${secretKeyPath}`);
+            const secretKeyReplaced = resolveObjectPath(secretKeyPath, secretStore);
+            utilDebug("substituteSecretValue: match: secretKeyReplaced: ", secretKeyReplaced);
+            return secretKeyReplaced;
+        });
         return secretKeyReplaced;
-    });
-    return secretKeyReplaced;
+    } else {
+        throw new Error("substituteSecretValue: Input string is too long");
+    }
 }
 
 function resolveObjectPath(path: string | string[], obj: any, separator = "."): string {
