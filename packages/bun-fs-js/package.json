@@ -33,9 +33,9 @@
     "@netapplabs/fs-js": "^0.7.0"
   },
   "devDependencies": {
+    "@netapplabs/eslint-config-custom": "^0.7.0",
     "@netapplabs/tsconfig": "^0.7.0",
     "bun-plugin-dts": "^0.3.0",
-    "@netapplabs/eslint-config-custom": "^0.7.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.1.3"
   }
 }

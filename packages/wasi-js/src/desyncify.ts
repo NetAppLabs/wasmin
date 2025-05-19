@@ -51,7 +51,7 @@ import { wasmWorkerClientDebug } from "./wasiDebug.js";
  *   in runtime using @netapplabs/wasm-promisify library.
  * 
  * worker-core-memory-shared:
- *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner
+ *    Running the WebAssembly.Instance itelf as a Worker running within WasmCoreWorkerThreadRunner
  *    Module is modified by changing memory export to be Shared.
  *    Used if module has an exported shared memory.
  *    Returned WebAssembly.Instance is a proxy of the actual WebAssembly.Instance that is
@@ -61,7 +61,7 @@ import { wasmWorkerClientDebug } from "./wasiDebug.js";
  *    Memory is passed between threads as SharedArrayBuffer.
  * 
  * worker-core-memory-copy:
- *    Running the WebAssembly.Instance itelf as a Worker running within WasmThreadRunner
+ *    Running the WebAssembly.Instance itelf as a Worker running within WasmCoreWorkerThreadRunner
  *    Module is unmodified and memory is copied between threads.
  *    Returned WebAssembly.Instance is a proxy of the actual WebAssembly.Instance that is
  *    running within the Worker.

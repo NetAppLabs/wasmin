@@ -27,8 +27,8 @@
     "@netapplabs/node-fs-js": "^0.7.0"
   },
   "devDependencies": {
-    "@netapplabs/tsconfig": "^0.7.0",
     "@netapplabs/eslint-config-custom": "^0.7.0",
-    "vitest": "^3.0.7"
+    "@netapplabs/tsconfig": "^0.7.0",
+    "vitest": "^3.1.3"
   }
 }

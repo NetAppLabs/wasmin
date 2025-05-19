@@ -28,6 +28,9 @@
     "turbo": "^2.4.4",
     "vm-browserify": "^1.1.2"
   },
+  "overrides": {
+    "vite": "^6.3.5"
+  },
   "engines": {
     "npm": ">=7.0.0",
     "node": ">=18.0.0"
