@@ -103,20 +103,20 @@ export const streamToBufferNode = (stream: any): Promise<Uint8Array> =>
         stream.on("end", () => resolve(concatBuffers(chunks)));
     });
 
+
 /**
  * Replaces the expression in for ${secret.value} with value found as path in secretStore
  * */
 export function substituteSecretValue(secretKey: string, secretStore: any): string {
     utilDebug(`substituteSecretValue: secretKey: ${secretKey}`);
     utilDebug("substituteSecretValue: secretStore: ", secretStore);
-    if (secretKey.startsWith("${")) {
-        const secretKeyPath = secretKey.replace("${", "").replace("}", "");
-        utilDebug(`substituteSecretValue: secretKeyPath: ${secretKeyPath}`);
+    const secretKeyReplaced = secretKey.replace(/\${([^}]+)}/g, (secretKeyValue: string, secretKeyPath: string) => {
+        utilDebug(`substituteSecretValue match: secretKeyValue: ${secretKeyValue} , secretKeyPath: ${secretKeyPath}`);
         const secretKeyReplaced = resolveObjectPath(secretKeyPath, secretStore);
-        utilDebug("substituteSecretValue: secretKeyReplaced: ", secretKeyReplaced);
+        utilDebug("substituteSecretValue: match: secretKeyReplaced: ", secretKeyReplaced);
         return secretKeyReplaced;
-    }
-    return secretKey;
+    });
+    return secretKeyReplaced;
 }
 
 function resolveObjectPath(path: string | string[], obj: any, separator = "."): string {
