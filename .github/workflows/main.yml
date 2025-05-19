@@ -16,6 +16,10 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
 
+    permissions:
+      contents: write
+      packages: write
+
     strategy:
       matrix:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
@@ -47,7 +51,7 @@ jobs:
     - name: Setup go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: '1.24'
         check-latest: true
     - name: bun
       uses: oven-sh/setup-bun@v2
@@ -85,7 +89,7 @@ jobs:
         file: ./${{ matrix.wasmin_deno_artifact }}
         asset_name: ${{ matrix.wasmin_deno_asset }}
         tag: ${{ github.ref }}
-        overwrite: true  
+        overwrite: true
     - name: Upload wasmin-node binary to release
       uses: svenstaro/upload-release-action@v2
       with:
@@ -93,7 +97,7 @@ jobs:
         file: ./${{ matrix.wasmin_node_artifact }}
         asset_name: ${{ matrix.wasmin_node_asset }}
         tag: ${{ github.ref }}
-        overwrite: true    
+        overwrite: true
     - name: Log in to the Container registry
       if: ${{matrix.os == 'ubuntu-latest'}}
       uses: docker/login-action@v3
