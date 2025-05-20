@@ -14,7 +14,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM node:22-alpine
+FROM node:23-alpine
 
 ADD bin/wasmin /bin/wasmin
 ADD apps/node-shell/dist /apps/node-shell/dist
