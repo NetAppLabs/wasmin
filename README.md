@@ -134,3 +134,12 @@ To test all packages, run the following command:
 cd wasmin
 yarn test
 ```
+## License
+
+[Apache-2.0](LICENSE)
+
+Disclaimer: _This is not an officially supported NetApp product._
+
+## Contributing
+
+See [Contributing.md](./CONTRIBUTING.md)
