@@ -6,6 +6,8 @@ name: wasmin-ci
 on:
  push:
    branches: [ "*" ]
+   tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
  pull_request:
    branches: [ "*" ]
 
