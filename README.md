@@ -32,7 +32,34 @@ Following applications are provided as examples for self contained executables b
 -   `@netapplabs/web-shell`: a Web shell for wasm/wasi runnable in a Browser.
 
 
-## Running
+## Using Packages
+
+Make sure you have in your ~/.npmrc 
+
+```
+@netapplabs:registry=https://npm.pkg.github.com/
+```
+
+or if you have a GITHUB_TOKEN
+
+```
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+@netapplabs:registry=https://npm.pkg.github.com/
+```
+
+Then add a package e.g. with
+
+```sh
+yarn add @netapplabs/wasi-js
+```
+
+or
+
+```sh
+bun add @netapplabs/wasi-js
+```
+
+## Running Apps
 
 `wasmin` contains pre-built executables as an example built from the apps above in different formats:
 
