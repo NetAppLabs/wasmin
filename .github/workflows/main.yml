@@ -76,7 +76,17 @@ jobs:
     - name: build-exe-node
       run: ./build-exe-node.sh
     # Upload binary
-    - name: Upload wasmin-bun binary to release
+    - name: Upload wasmin-bun binary to release on main
+      if: ${{github.ref == 'main'}}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_bun_artifact }}
+        asset_name: ${{ matrix.wasmin_bun_asset }}
+        tag: latest
+        overwrite: true
+    - name: Upload wasmin-bun binary to release not on main
+      if: ${{github.ref != 'main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -84,7 +94,17 @@ jobs:
         asset_name: ${{ matrix.wasmin_bun_asset }}
         tag: ${{ github.ref }}
         overwrite: true
-    - name: Upload wasmin-bun binary to release
+    - name: Upload wasmin-deno binary to release on main
+      if: ${{github.ref == 'main'}}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_deno_artifact }}
+        asset_name: ${{ matrix.wasmin_deno_asset }}
+        tag: latest
+        overwrite: true
+    - name: Upload wasmin-deno binary to release not on main
+      if: ${{github.ref == 'main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +112,17 @@ jobs:
         asset_name: ${{ matrix.wasmin_deno_asset }}
         tag: ${{ github.ref }}
         overwrite: true
-    - name: Upload wasmin-node binary to release
+    - name: Upload wasmin-node binary to release on main
+      if: ${{github.ref == 'main'}}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./${{ matrix.wasmin_node_artifact }}
+        asset_name: ${{ matrix.wasmin_node_asset }}
+        tag: latest
+        overwrite: true
+    - name: Upload wasmin-node binary to release not on main
+      if: ${{github.ref != 'main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
