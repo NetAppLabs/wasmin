@@ -69,7 +69,7 @@ bun add @netapplabs/wasi-js
 #### Start up a default shell:
 
 ```sh
-docker run -it ghcr.io/netapplabs/wasmin:main
+docker run -it ghcr.io/netapplabs/wasmin:latest
 ```
 
 Type in something like
@@ -81,7 +81,7 @@ to see available commands
 #### For running with /Users/shared from local machine mounted into it:
 
 ```sh
-docker run -it --mount type=bind,source=/Users/shared,target=/mount ghcr.io/netapplabs/wasmin:main
+docker run -it --mount type=bind,source=/Users/shared,target=/mount ghcr.io/netapplabs/wasmin:latest
 ```
 
 ### Executable
@@ -89,7 +89,7 @@ docker run -it --mount type=bind,source=/Users/shared,target=/mount ghcr.io/neta
 For prebuilt with bun on macOS Apple Silicon:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-bun-macos-arm64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-bun-macos-arm64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```
@@ -97,7 +97,7 @@ chmod +x wasmin
 For prebuilt with bun on Linux Intel:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-bun-linux-amd64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-bun-linux-amd64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```
@@ -105,7 +105,7 @@ chmod +x wasmin
 For prebuilt with Node on macOS Apple Silicon:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-node-macos-arm64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-node-macos-arm64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```
@@ -113,7 +113,7 @@ chmod +x wasmin
 For prebuilt with Node on Linux Intel:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-node-linux-amd64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-node-linux-amd64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```
@@ -121,7 +121,7 @@ chmod +x wasmin
 For prebuilt with Deno on macOS Apple Silicon:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-deno-macos-arm64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-deno-macos-arm64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```
@@ -129,7 +129,7 @@ chmod +x wasmin
 For prebuilt with Deno on Linux Intel:
 
 ```sh
-wget https://github.com/NetAppLabs/wasmin/releases/download/main/wasmin-deno-linux-amd64 -O wasmin
+wget https://github.com/NetAppLabs/wasmin/releases/download/latest/wasmin-deno-linux-amd64 -O wasmin
 chmod +x wasmin
 ./wasmin -h
 ```

@@ -77,7 +77,7 @@ jobs:
       run: ./build-exe-node.sh
     # Upload binary
     - name: Upload wasmin-bun binary to release on main
-      if: ${{github.ref == 'main'}}
+      if: ${{github.ref == 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -86,7 +86,7 @@ jobs:
         tag: latest
         overwrite: true
     - name: Upload wasmin-bun binary to release not on main
-      if: ${{github.ref != 'main'}}
+      if: ${{github.ref != 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
     - name: Upload wasmin-deno binary to release on main
-      if: ${{github.ref == 'main'}}
+      if: ${{github.ref == 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
         tag: latest
         overwrite: true
     - name: Upload wasmin-deno binary to release not on main
-      if: ${{github.ref == 'main'}}
+      if: ${{github.ref == 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -113,7 +113,7 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
     - name: Upload wasmin-node binary to release on main
-      if: ${{github.ref == 'main'}}
+      if: ${{github.ref == 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -122,7 +122,7 @@ jobs:
         tag: latest
         overwrite: true
     - name: Upload wasmin-node binary to release not on main
-      if: ${{github.ref != 'main'}}
+      if: ${{github.ref != 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
