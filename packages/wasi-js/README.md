@@ -8,28 +8,36 @@ This package was originally based on [kobakazu0429/wasi](https://github.com/koba
 
 ## What
 
-Provides a WASI implenmentation that can be used like:
+Provides a WASI implenmentation that can be used like in a simple form:
 
 ```
     const module = WebAssembly.compileStreaming(fetch("https://example.com/module.wasm"));
-    const statusCode = await new WASI({
-      abortSignal: abortController.signal,
-      openFiles: openFiles,
-      stdin: stdin,
-      stdout: stdout,
-      stderr: stderr,
-      args: args,
-      env: {
-        MYENV: "1",
-      },
-    }).run(await module);
+    const exitCode = await new WASI({}).run(await module);
+```
+
+And more advanced form:
+
+```
+    const module = await WebAssembly.compileStreaming(fetch("https://example.com/module.wasm"));
+    const statusCode = await new WASI(
+      {
+        abortSignal: abortController.signal,
+        openFiles: openFilesMap,
+        stdin: stdin,
+        stdout: stdout,
+        stderr: stderr,
+        args: args,
+        env: {
+            MY_ENV_VAR: "1",
+        },
+        tty: tty,
+      }
+      ).run(module);
     if (statusCode !== 0) {
       console.log(`Ran with exit code: ${statusCode}`);
     }
   } catch (err: any) {
     console.error(err.message);
-  } finally {
-    console.debug("finally");
   }
 ```
 
