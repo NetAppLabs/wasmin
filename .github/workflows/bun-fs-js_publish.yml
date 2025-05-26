@@ -50,7 +50,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Bump version
-        run: bunx standard-version
+        run: bunx standard-version -t packages/bun-fs-js@
         working-directory: packages/bun-fs-js
 
       - name: Build package

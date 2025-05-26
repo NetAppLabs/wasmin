@@ -45,7 +45,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Bump version
-        run: npx standard-version
+        run: npx standard-version -t packages/tsconfig@
         working-directory: packages/tsconfig
 
       - name: Build package

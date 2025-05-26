@@ -46,7 +46,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Bump version
-        run: npx standard-version
+        run: npx standard-version -t packages/fs-js@
         working-directory: packages/fs-js
 
       - name: Build package

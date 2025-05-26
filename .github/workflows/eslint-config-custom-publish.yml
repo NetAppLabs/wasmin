@@ -44,7 +44,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Bump version
-        run: npx standard-version
+        run: npx standard-version -t packages/eslint-config-custom@
         working-directory: packages/eslint-config-custom
 
       - name: Build package
