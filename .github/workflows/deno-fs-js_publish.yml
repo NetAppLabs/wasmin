@@ -29,6 +29,8 @@ jobs:
           node-version: 22.x
           registry-url: 'https://npm.pkg.github.com'
           scope: '@netapplabs'
+      - name: setup-bun
+        uses: oven-sh/setup-bun@v2
       - name: yarn
         run: npm install --global yarn
       - name: Set up GH Package Registry Auth
