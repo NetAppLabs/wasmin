@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: packages-publish
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   publish:
