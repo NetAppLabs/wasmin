@@ -9,7 +9,7 @@ on:
       - "packages/node-fs-js/**"
 
 concurrency:
-  group: nodefsjs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

@@ -9,7 +9,7 @@ on:
       - 'packages/github-fs-js/**'
 
 concurrency:
-  group: s3fsjs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

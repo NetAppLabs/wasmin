@@ -9,7 +9,7 @@ on:
       - "packages/wasi-snapshot-preview1-command-component/**"
 
 concurrency:
-  group: wasispcc-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

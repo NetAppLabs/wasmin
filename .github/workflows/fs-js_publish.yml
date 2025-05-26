@@ -9,7 +9,7 @@ on:
       - 'packages/fs-js/**'
 
 concurrency:
-  group: fsjs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

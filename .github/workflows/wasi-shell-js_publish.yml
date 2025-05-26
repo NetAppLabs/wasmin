@@ -1,4 +1,4 @@
-name: Publish wasi-shell Package
+name: Publish shell Package
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
       - 'packages/shell/**'
 
 concurrency:
-  group: wasishell-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

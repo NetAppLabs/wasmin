@@ -9,7 +9,7 @@ on:
       - 'packages/wasi-js/**'
 
 concurrency:
-  group: wasijs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

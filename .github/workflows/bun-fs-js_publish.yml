@@ -9,7 +9,7 @@ on:
       - 'packages/bun-fs-js/**'
 
 concurrency:
-  group: bunfsjs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

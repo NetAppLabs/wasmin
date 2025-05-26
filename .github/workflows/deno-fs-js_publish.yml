@@ -9,7 +9,7 @@ on:
       - 'packages/deno-fs-js/**'
 
 concurrency:
-  group: denofsjs-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

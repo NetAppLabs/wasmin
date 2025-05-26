@@ -9,7 +9,7 @@ on:
       - 'packages/tsconfig/**'
 
 concurrency:
-  group: tsconfig-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

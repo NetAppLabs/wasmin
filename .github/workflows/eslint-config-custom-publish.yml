@@ -9,7 +9,7 @@ on:
       - 'packages/eslint-config-custom/**'
 
 concurrency:
-  group: eslint-config-custom-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:

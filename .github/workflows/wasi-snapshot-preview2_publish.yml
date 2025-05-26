@@ -9,7 +9,7 @@ on:
       - 'packages/wasi-snapshot-preview2/**'
 
 concurrency:
-  group: wsp2-publish
+  group: packages-publish
   cancel-in-progress: true
 
 jobs:
