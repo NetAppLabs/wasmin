@@ -2,16 +2,6 @@ name: Publish deno-fs-js Package
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Kind of version bump'
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-        required: true
   push:
     branches:
       - gh_actions
@@ -32,18 +22,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - name: yarn
+        run: npm install --global yarn
+      - name: Set up GH Package Registry Auth
+        run: echo "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+      - name: yarn-install
+        run: yarn install --frozen-lock-file
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        run: yarn build
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: vx.x.x
-
-      - name: Set up GH Package Registry Auth
-        run: |
-          echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-          echo -e "@netapplabs:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ./npmrc
-        working-directory: packages/deno-fs-js
 
       - name: Run Deno Tests
         run: deno task test
@@ -54,26 +52,20 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Set default semver bump to patch for push events
-        if: github.event_name == 'push'
-        run: echo "VERSION_TYPE=patch" >> $GITHUB_ENV
-
-      - name: Bump deno.json version
-        run: |
-          if [ -z "${{ env.VERSION_TYPE }}" ]; then
-            BUMP_TYPE=${{github.event.inputs.version}}
-          else
-            BUMP_TYPE=${{env.VERSION_TYPE}}
-          fi
-          echo "NEXT_VERSION=$(deno run --allow-read=deno.json --allow-write=deno.json jsr:@cotyhamilton/deno-tools/bump --out newVersion --type $BUMP_TYPE)" >> $GITHUB_ENV
+      - name: Bump version
+        run: npx standard-version -t packages/deno-fs-js@
         working-directory: packages/deno-fs-js
 
-      - name: Commit and push version bump tag
-        run: |
-          git add deno.json deno.lock
-          git commit -m "Bump package: ${{env.NEXT_VERSION}}"
-          git push origin
-          NEW_TAG="packages/deno-fs-js${{env.NEXT_VERSION}}"
-          git tag $NEW_TAG
-          git push origin --tags
+      - name: Build package
+        run: npm run build --prefix .
         working-directory: packages/deno-fs-js
+
+      - name: Publish package
+        run: npm publish --prefix .
+        working-directory: packages/deno-fs-js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git push
