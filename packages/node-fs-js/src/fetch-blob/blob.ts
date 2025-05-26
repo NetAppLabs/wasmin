@@ -92,6 +92,12 @@ export class MyBlob {
         return data.buffer;
     }
 
+    async bytes(): Promise<Uint8Array> {
+        const ab = await this.arrayBuffer();
+        const uarr = new Uint8Array(ab);
+        return uarr;
+    }
+
     stream() {
         const it = toIterator(this.parts, true);
         const type = "bytes";

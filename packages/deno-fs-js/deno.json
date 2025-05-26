@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "test": "deno test --allow-read --allow-write",
+    "test": "deno test --unstable-sloppy-imports --allow-read --allow-write",
     "format": "deno fmt **/*.ts"
   },
   "exports": {

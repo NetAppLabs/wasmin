@@ -19,7 +19,7 @@
     "lint": "eslint \"./{src,tests}/**/*.{ts,mjs}\" --fix",
     "format": "prettier --tab-width 4 --print-width 120 \"./{src,tests}/**/*.{ts,mjs}\" --write",
     "start": "echo start",
-    "test": "deno test --unstable-sloppy-imports --allow-all --no-check"
+    "test": "deno task test"
   },
   "author": "tryggvil",
   "dependencies": {

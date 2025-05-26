@@ -120,7 +120,7 @@ export class NodeFileHandle
     kind = "file" as const;
 
     // @ts-ignore because of typescript .prototype bug regarding File/Blob
-    async getFile(): Promise<File> {
+    async getFile(): Promise<MyFile> {
         const _stat = await fs.stat(this.path, { bigint: true }).catch((err) => {
             if (err.code === "ENOENT") throw new NotFoundError();
             throw err;
