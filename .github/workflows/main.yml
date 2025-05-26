@@ -104,7 +104,7 @@ jobs:
         tag: latest
         overwrite: true
     - name: Upload wasmin-deno binary to release not on main
-      if: ${{github.ref == 'refs/heads/main'}}
+      if: ${{github.ref != 'refs/heads/main'}}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,14 +141,23 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Extract metadata (tags, labels) for Docker
-      if: ${{matrix.os == 'ubuntu-latest'}}
+      if: ${{matrix.os == 'ubuntu-latest' && github.ref != 'refs/heads/main'}}
       id: meta
       uses: docker/metadata-action@v5
       with:
         images:
           ghcr.io/${{ github.repository }}
-    - name: Build and push Docker images
-      if: ${{matrix.os == 'ubuntu-latest'}}
+    - name: Build and push Docker images on main
+      if: ${{matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'}}
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: latest
+        labels: ${{ steps.meta.outputs.labels }}
+    - name: Build and push Docker images on on main
+      if: ${{matrix.os == 'ubuntu-latest' && github.ref != 'refs/heads/main'}}
       uses: docker/build-push-action@v6
       with:
         context: .
