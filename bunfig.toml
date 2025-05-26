@@ -1,2 +1,0 @@
-[install.scopes]
-"@netapplabs" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com/" }
