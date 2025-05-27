@@ -56,6 +56,7 @@ import { Resource, containsResourceObjects, createProxyForResources, getResource
 import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { wasiCallDebug, wasiDebug, wasiError, wasiPreview1FdDebug, wasiWorkerDebug } from "./wasiDebug.js";
 import { sleep } from "./utils.js";
+import { initializeWasiSnapshotPreview1SocketsAsyncToImports } from "./wasmedge_sockets/host.js";
 
 
 export enum WasiCapabilities {
@@ -888,6 +889,7 @@ export class WASI {
             return this.get_export(name);
         };
         initializeWasiSnapshotPreview1AsyncToImports(wasmImports, get_export_func, this.wasiEnv);
+        initializeWasiSnapshotPreview1SocketsAsyncToImports(wasmImports, get_export_func, this.wasiEnv);
         initializeWasiExperimentalFilesystemsToImports(wasmImports, get_export_func, this.wasiEnv);
         initializeWasiExperimentalProcessToImports(wasmImports, get_export_func, this.wasiEnv);
         if (this.wasiEnv.tty) {
