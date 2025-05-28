@@ -185,9 +185,6 @@ export class WasiEnv implements WasiOptions {
         this._env = env;
         this._cenv = new CStringArray(Object.entries(this._env).map(([key, value]) => `${key}=${value}`));
         this._abortSignal = abortSignal;
-        if (tty) {
-            this._tty = tty;
-        }
         if (componentMode !== undefined) {
             this._componentMode = componentMode;
         } else {
@@ -197,6 +194,10 @@ export class WasiEnv implements WasiOptions {
             this._capabilities = capabilities;
         } else {
             this._capabilities = WasiCapabilities.None;
+        }
+        if (tty) {
+            this._tty = tty;
+            this._capabilities = this._capabilities || WasiCapabilities.Tty;
         }
     }
 
@@ -251,17 +252,23 @@ export class WasiEnv implements WasiOptions {
         return this._abortSignal;
     }
     get tty() {
-        if (this.allowsTty) {
+        //if (this.allowsTty) {
             return this._tty;
-        } else {
-            throw new SystemError(ErrnoN.NOTCAPABLE);
-        }
+        //} else {
+        //    throw new SystemError(ErrnoN.NOTCAPABLE);
+        //}
     }
     get componentMode() {
         return this._componentMode;
     }
     set componentMode(componentMode: boolean) {
         this._componentMode = componentMode;
+    }
+    get capabilities() {
+        return this._capabilities;
+    }
+    set capabilities(capabilities: WasiCapabilities) {
+        this._capabilities = capabilities;
     }
 
     get allowsFileSystem() {
@@ -926,7 +933,7 @@ export class WASI {
         initializeWasiSnapshotPreview1SocketsAsyncToImports(wasmImports, get_export_func, this.wasiEnv);
         initializeWasiExperimentalFilesystemsToImports(wasmImports, get_export_func, this.wasiEnv);
         initializeWasiExperimentalProcessToImports(wasmImports, get_export_func, this.wasiEnv);
-        if (this.wasiEnv.tty) {
+        if (this.wasiEnv.allowsTty && this.wasiEnv.tty) {
             initializeWasiExperimentalConsoleToImports(wasmImports, this.wasiEnv.tty);
         }
         initializeWasiExperimentalSocketsToImports(wasmImports, get_export_func, this.wasiEnv);

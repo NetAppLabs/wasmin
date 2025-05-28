@@ -4,7 +4,7 @@ import "jest-extended";
 import { backend, getRootHandle } from "./utils.js";
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "@netapplabs/wasi-js";
+import { WASI, stringOut, OpenFiles, bufferIn, WasiCapabilities } from "@netapplabs/wasi-js";
 import { FileSystemFileHandle } from "@netapplabs/fs-js";
 
 const EOL = "\n";
@@ -107,6 +107,7 @@ describe("component", () => {
                     env: {
                         NODE_PLATFORM: "win32",
                     },
+                    capabilities: WasiCapabilities.FileSystem,
                 });
                 w.component = true;
                 actualExitCode = await w.run(await module);

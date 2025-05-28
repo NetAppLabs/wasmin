@@ -2,7 +2,7 @@
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles } from "@netapplabs/wasi-js";
+import { WASI, stringOut, OpenFiles, WasiCapabilities } from "@netapplabs/wasi-js";
 
 import { getOriginPrivateDirectory } from "@netapplabs/fs-js";
 import { node } from "@netapplabs/node-fs-js";
@@ -29,6 +29,7 @@ describe("export", () => {
                 "/tmp": tmp,
             }),
             stdout: stringOut((s) => (stdout += s)),
+            capabilities: WasiCapabilities.FileSystem,
         }).run(await module);
 
         expect(stdout).toBe("10 + 3 = 13\n10 / 3 = 3.33\n");

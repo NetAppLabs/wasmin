@@ -16,7 +16,7 @@ type OutputStream = ions.OutputStream;
 type Descriptor = fsn.Descriptor;
 
 
-import { WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
+import { WasiCapabilities, WasiEnv, WasiOptions, wasiEnvFromWasiOptions } from "../../wasi.js";
 import { Resource } from "../../wasiResources.js";
 import { wasiPreview2Debug, wasiProcessDebug } from "../../wasiDebug.js";
 import { ProcessControl, WasiProcess } from "../../wasiProcess.js";
@@ -192,6 +192,27 @@ export class ProcessResource implements Process, Resource {
         this.stdErr = new FileSystemFileDescriptor(this._wasiEnv, newStdErrFd);
         this.processControl = new FileSystemFileDescriptor(this._wasiEnv, newProcFd);
 
+        let capabilities = WasiCapabilities.None;
+
+        if (this.capabilities) {
+            if (this.capabilities.inherit) {
+                capabilities = this._wasiEnv.capabilities;
+            } else  if (this.capabilities.none) {
+                capabilities = WasiCapabilities.None;         
+            } else {
+                if (this.capabilities.filesystem) {
+                    capabilities = capabilities || WasiCapabilities.FileSystem;
+                }
+                if (this.capabilities.network) {
+                    capabilities = capabilities || WasiCapabilities.Network;
+                }
+                if (this.capabilities.all) {
+                    capabilities = capabilities || WasiCapabilities.All;
+                }
+            }
+        }
+        this._wasiEnv.capabilities
+        
         let proc = new WasiProcess(
             this._wasiEnv,
             name,
@@ -201,7 +222,8 @@ export class ProcessResource implements Process, Resource {
             newStdin,
             newStdOut,
             newStdErr,
-            procControl
+            procControl,
+            capabilities,
         );
         this.innerProcess = proc;
     }

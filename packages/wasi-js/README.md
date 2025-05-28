@@ -31,6 +31,7 @@ And more advanced form:
             MY_ENV_VAR: "1",
         },
         tty: tty,
+        capabilities: WasiCapabilities.All,
       }
       ).run(module);
     if (statusCode !== 0) {
@@ -44,7 +45,10 @@ And more advanced form:
 ## How
 
 It provides [WASI](https://wasi.dev) Implementation that proxies any filesystem requests to a Virtual filesystem.
-This allows apps built in languages like C, C++, Rust and others to be compiled to WebAssembly and work as usual within a browser sandbox, accessing and manipulating files in a "real world".
+This allows apps built in languages like C, C++, Rust and others to be compiled to WebAssembly and work as usual within a javascript node/bun/deno/browser sandbox, accessing and manipulating files in a "real world".
+
+The implementation is asyncronous by default whi
+
 
 Since WASI APIs are synchronous by nature, but Web APIs are traditionally asynchronous to avoid blocking the main thread, Asyncify is used to bridge the two types of APIs together. Asyncify is a feature created as part of [Emscripten](https://emscripten.org/) and later extended to work with arbitrary WebAssembly files with the help of a [custom JavaScript wrapper](https://github.com/GoogleChromeLabs/asyncify).
 

@@ -18,7 +18,7 @@
 
 import { getOriginPrivateDirectory, join, memory } from "@netapplabs/fs-js";
 import { FileOrDir, OpenFiles, Readable, Writable } from "./wasiFileSystem.js";
-import { WASI, WasiEnv } from "./wasi.js";
+import { WASI, WasiCapabilities, WasiEnv } from "./wasi.js";
 import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
 import { BufferedPipe } from "./wasiPipes.js";
 import { TTYInstance } from "./tty.js";
@@ -58,6 +58,7 @@ export class WasiProcess {
         stdout: Writable,
         stderr: Writable,
         procControl: ProcessControl,
+        capabilities: WasiCapabilities,
     ) {
         this._wasiEnv = wasiEnv;
         this.name = name;
@@ -68,6 +69,11 @@ export class WasiProcess {
         this.stdout = stdout;
         this.stderr = stderr;
         this.procControl = procControl;
+        if (capabilities) {
+            this.capabilities = capabilities;
+        } else {
+            this.capabilities = WasiCapabilities.None;
+        }
     }
     
     get wasiEnv () {
@@ -83,6 +89,7 @@ export class WasiProcess {
     stdout: Writable;
     stderr: Writable;
     procControl: ProcessControl;
+    capabilities: WasiCapabilities;
 
     async start() {
 
@@ -252,6 +259,8 @@ export class WasiProcess {
                 tty: processTty,
                 name: processName,
                 componentMode: this.wasiEnv.componentMode,
+                // TODO: Look into how to control capabilities passed down
+                capabilities: this.wasiEnv.capabilities,
             });
 
 

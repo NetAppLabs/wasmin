@@ -178,6 +178,7 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
         wasiProcessDebug("setting newStdOutFd: ", newStdOutFd);
         wasiProcessDebug("setting newStdErrFd: ", newStdErrFd);
 
+        const capabilities = this._wasiEnv.capabilities;
         let proc = new WasiProcess(
             this._wasiEnv,
             name,
@@ -187,7 +188,8 @@ class WasiExperimentalProcessHost implements WasiExperimentalProcess {
             newStdin,
             newStdOut,
             newStdErr,
-            procControl
+            procControl,
+            capabilities,
         );
 
         let pid = await proc.start();
