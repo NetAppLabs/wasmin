@@ -19,50 +19,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { SystemError } from "../errors.js";
-import { FIRST_PREOPEN_FD, OpenFile, FileOrDir, OpenDirectory, Peekable } from "../wasiFileSystem.js";
-import { unimplemented } from "../wasiPreview1Utils.js";
 import {
-    u64,
     string,
-    ClockidN,
-    Errno,
     ErrnoN,
-    EventtypeN,
     Fd,
-    FdflagsN,
-    FiletypeN,
     mutptr,
-    PreopentypeN,
     ptr,
     Size,
-    SubclockflagsN,
-    Timestamp,
-    u8,
     WasiSnapshotPreview1SocketsAsync,
-    WhenceN,
-    Rights,
-    Prestat,
-    Ciovec,
-    Dircookie,
-    Dirent,
-    Filedelta,
-    Whence,
-    OflagsN,
-    Lookupflags,
-    Oflags,
-    Subscription,
-    Riflags,
-    Siflags,
-    Roflags,
-    Sdflags,
-    Signal,
-    Advice,
-    Exitcode,
     addWasiSnapshotPreview1SocketsToImports,
-    RightsN,
-    FstflagsN,
     AddressFamilyN,
-    ProtocolN,
     SockOptLevelN,
     SockOptSoN,
     SockTypeN,
@@ -72,36 +38,27 @@ import {
     Addrinfo,
     u32,
 } from "./bindings.js";
-import { Event, Fdstat, Fdflags, Filestat, Filesize, Iovec, usize, Fstflags } from "./bindings.js";
+import { Iovec, usize } from "./bindings.js";
 import {
-    populateFileStat,
     forEachIoVec,
-    ExitStatus,
-    RIGHTS_STDIN_BASE,
-    RIGHTS_STDOUT_BASE,
-    RIGHTS_FILE_BASE,
-    RIGHTS_DIRECTORY_BASE,
-    RIGHTS_DIRECTORY_INHERITING,
     translateErrorToErrorno,
 } from "../wasiPreview1Utils.js";
-import { wasiCallDebug, wasiPreview1Debug, wasiPreview1FdDebug, wasiSocketsDebug, wasiWarn } from "../wasiDebug.js";
+import { wasiCallDebug, wasiSocketsDebug } from "../wasiDebug.js";
 import { WasiEnv } from "../wasi.js";
 import { WasiSocket } from "../wasi_experimental_sockets/common.js";
 import { isNode, isNodeorBunorDeno } from "../utils.js";
 import { createTcpSocket, createUdpSocket, getAddressResolver } from "../wasi_experimental_sockets/net.js";
-import { AddressInfoToWasiSocketAddr, WasiSocketsAddrtoAddressInfo, WriteAddressInfoToAddrinfo, WriteAddressInfoToSockAddrV2, addrFamilyNoToAddrFamily } from "./utils.js";
+import { WasiSocketsAddrtoAddressInfo, WriteAddressInfoToAddrinfo, WriteAddressInfoToSockAddrV2, addrFamilyNoToAddrFamily } from "./utils.js";
 
 export function initializeWasiSnapshotPreview1SocketsAsyncToImports(
     imports: any,
     get_export: (name: string) => WebAssembly.ExportValue,
     wasiEnv: WasiEnv
 ) {
-    //const memory = get_export("memory") as WebAssembly.Memory;
     const wHost = new WasiSnapshotPreview1SocketsAsyncHost(wasiEnv);
     const errorHandler: (err: any) => number = function (err: any) {
         return translateErrorToErrorno(err);
     };
-    //const errorHandler = new ErrorHandlerTranslator();
     wHost._get_exports_func = get_export;
     const checkAbort: () => void = function () {
         if (wasiEnv.abortSignal) {
@@ -203,7 +160,7 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         } else if (socktype == SockTypeN.SOCK_DGRAM) {
             wasiSocketsDebug("[sock_open] udp 1 :");
             if (isNodeorBunorDeno()) {
-                let sock: WasiSocket|undefined = undefined;
+                let sock: WasiSocket | undefined = undefined;
                 switch (af) {
                     case AddressFamilyN.INET_4:
                         wasiSocketsDebug("[sock_open] udp INET_4:");
@@ -218,7 +175,6 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
                     const resultFd = this.openFiles.add(sock);
                     Fd.set(this.buffer, fd, resultFd);
                     wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
-                    wasiCallDebug("[sock_open] SOCKET_DGRAM returning fd:", resultFd);
                     return ErrnoN.SUCCESS;
                 } else {
                     return ErrnoN.BADF;
@@ -237,7 +193,7 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         const addr_array = new Uint8Array(this.buffer, wasiAddr.buf, wasiAddr.buf_len);
         const addrInfo = WasiSocketsAddrtoAddressInfo(addr_array);
         addrInfo.port = port;
-        wasiCallDebug("[sock_bind] addrInfo:", addrInfo);
+        wasiSocketsDebug("[sock_bind] addrInfo:", addrInfo);
         const sock = this.getSocket(fd);
         await sock.bind(addrInfo);
         return ErrnoN.SUCCESS;
@@ -250,49 +206,70 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         const addrInfo = WasiSocketsAddrtoAddressInfo(addr_array);
         addrInfo.port = port;
         wasiSocketsDebug("sockConnect: addrInfo: ", addrInfo);
-        wasiCallDebug("sockConnect: addrInfo: ", addrInfo);
         await sock.connect(addrInfo.address, addrInfo.port);
         return ErrnoN.SUCCESS;
     }
     async sockRecvFrom(fd: number, buf: mutptr<number>, buf_len: number, addr_ptr: mutptr<Address>, flags: number, port: mutptr<number>, nread: mutptr<number>, oflags: mutptr<number>): Promise<ErrnoN> {
         wasiCallDebug("[sock_recv_from] fd:", fd);
         const sock = this.getSocket(fd);
-        let read_len = buf_len;
-        const read_chunk = await sock.readFrom(read_len);
-        const read_buf = read_chunk.buf;
-        const read_buf_len = read_buf.length;
-        const read_addr = read_chunk.rinfo;
-        const read_port = read_addr.port;
-        //const addr_ptr = addr as any as mutptr<Address>;
-        const wasi_addr = AddressInfoToWasiSocketAddr(read_addr);
-        wasiCallDebug("[sock_recv_from] wasi_addr:", wasi_addr, "port: ", read_port, "read_buf_len: ", read_buf_len);
-        
-        const addr = Address.get(this.buffer, addr_ptr);
-        const dstAddress = new Uint8Array(this.buffer, addr.buf, wasi_addr.length);
-        addr.buf_len = wasi_addr.length;
-        dstAddress.set(wasi_addr);
-        Size.set(this.buffer, port, read_port);
-
-        const read_buf_return = new Uint8Array(this.buffer, buf, read_buf_len);
-        read_buf_return.set(read_buf);
-        Size.set(this.buffer, nread, read_buf_len);
+        const iovs_ptr = buf as unknown as ptr<Iovec>;
+        const iovs_len = buf_len as usize;
+        const result_ptr = nread;
+        await forEachIoVec(
+            this.buffer,
+            iovs_ptr,
+            iovs_len,
+            result_ptr,
+            async (buf) => {
+                const bufLen = buf.length;
+                const read_chunk = await sock.readFrom(bufLen);
+                const read_buf = read_chunk.buf;
+                const read_buf_len = read_buf.length;
+                wasiSocketsDebug("[sock_recv_from] fd:", fd, " received buf with length: ", read_buf_len);
+                const read_addr = read_chunk.rinfo;
+                const read_port = read_addr.port;
+                Size.set(this.buffer, port, read_port);
+                const addr = Address.get(this.buffer, addr_ptr);
+                const chunk = read_buf;
+                WriteAddressInfoToSockAddrV2(this.buffer, read_addr, addr);
+                buf.set(chunk);
+                return chunk.length;
+            },
+            () => {
+                this.checkAbort();
+            }
+        );
         return ErrnoN.SUCCESS;
     }
     async sockSendTo(fd: number, buf: mutptr<number>, buf_len: number, addr: mutptr<Address>, port: number, flags: number, nwritten: mutptr<number>): Promise<ErrnoN> {
         wasiCallDebug("[sock_send_to] fd:", fd, " address:", addr);
         const wasiAddr = Address.get(this.buffer, addr);
-        wasiCallDebug("[sock_send_to] wasiAddr:", wasiAddr);
+        wasiSocketsDebug("[sock_send_to] wasiAddr:", wasiAddr);
+        const iovs_ptr = buf as unknown as ptr<Iovec>;
+        const iovs_len = buf_len;
+        const result_ptr = nwritten;
+        await forEachIoVec(
+            this.buffer,
+            iovs_ptr,
+            iovs_len,
+            result_ptr,
+            async (buf) => {
+                const bufLen = buf.length;
+                const addr_array = new Uint8Array(this.buffer, wasiAddr.buf, wasiAddr.buf_len);
+                const addrInfo = WasiSocketsAddrtoAddressInfo(addr_array);
+                addrInfo.port = port;
+                wasiSocketsDebug("[sock_send_to] addrInfo:", addrInfo);
+                const sock = this.getSocket(fd);
+                const read_len = buf_len;
+                await sock.writeTo(buf, addrInfo);
+                Size.set(this.buffer, nwritten, read_len);
 
-        const addr_array = new Uint8Array(this.buffer, wasiAddr.buf, wasiAddr.buf_len);
-        const addrInfo = WasiSocketsAddrtoAddressInfo(addr_array);
-        addrInfo.port = port;
-        wasiCallDebug("[sock_send_to] addrInfo:", addrInfo);
-
-        const sock = this.getSocket(fd);
-        const read_len = buf_len;
-        const writebuf = new Uint8Array(this.buffer, buf, buf_len);
-        await sock.writeTo(writebuf, addrInfo);
-        Size.set(this.buffer, nwritten, read_len);
+                const chunk = buf;
+                return chunk.length;
+            },
+            () => {
+                this.checkAbort();
+            });
         return ErrnoN.SUCCESS;
     }
     async sockGetlocaladdr(fd: number, addr_ptr: mutptr<Address>, port: mutptr<number>): Promise<ErrnoN> {
@@ -300,30 +277,23 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         const sock = this.getSocket(fd);
         const gotaddr = await sock.address();
         const gotport = gotaddr.port;
-        wasiCallDebug("[sock_addr_local] addr:", gotaddr);
-        //const wasi_addr = AddressInfoToWasiSocketAddr(gotaddr);
+        wasiSocketsDebug("[sock_addr_local] addr:", gotaddr);
         const addr = Address.get(this.buffer, addr_ptr);
         const addr_buf_len = addr.buf_len;
-        wasiCallDebug("[sock_addr_local] addr_buf_len: ", addr_buf_len);
+        wasiSocketsDebug("[sock_addr_local] addr_buf_len: ", addr_buf_len);
         WriteAddressInfoToSockAddrV2(this.buffer, gotaddr, addr);
         Size.set(this.buffer, port, gotport);
-
-        //const dstAddress = new Uint8Array(this.buffer, addr.buf, wasi_addr.length);
-        //addr.buf_len = wasi_addr.length;
-        //dstAddress.set(wasi_addr);
-
         return ErrnoN.SUCCESS;
     }
     async sockGetpeeraddr(fd: number, addr_ptr: mutptr<Address>, port: mutptr<number>): Promise<ErrnoN> {
         wasiCallDebug("[sock_addr_remote] fd:", fd);
         const sock = this.getSocket(fd);
-        //wasiSocketsDebug("sockAddrRemote: sock: ", sock);
         const gotaddr = await sock.remoteAddress();
         const gotport = gotaddr.port;
-        wasiCallDebug("[sock_addr_remote] addr: ", gotaddr);
+        wasiSocketsDebug("[sock_addr_remote] addr: ", gotaddr);
         const addr = Address.get(this.buffer, addr_ptr);
         const addr_buf_len = addr.buf_len;
-        wasiCallDebug("[sock_addr_remote] addr_buf_len: ", addr_buf_len);
+        wasiSocketsDebug("[sock_addr_remote] addr_buf_len: ", addr_buf_len);
         WriteAddressInfoToSockAddrV2(this.buffer, gotaddr, addr);
         Size.set(this.buffer, port, gotport);
 
@@ -332,16 +302,19 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
     }
     async sockSetsockopt(fd: number, level: SockOptLevelN, name: SockOptSoN, value: number, value_len: number): Promise<ErrnoN> {
         wasiCallDebug("[sock_setsockopt] fd:", fd);
+        wasiSocketsDebug("[sock_setsockopt] fd:", fd);
         // TODO implement
         return ErrnoN.SUCCESS;
     }
     async sockGetsockopt(fd: number, level: SockOptLevelN, name: SockOptSoN, value: number, value_len: number): Promise<ErrnoN> {
         wasiCallDebug("[sock_getsockopt] fd:", fd);
+        wasiSocketsDebug("[sock_getsockopt] fd:", fd);
         // TODO implement
         return ErrnoN.SUCCESS;
     }
     async sockListen(fd: number, backlog: number): Promise<ErrnoN> {
         wasiCallDebug("[sock_listen] fd:", fd);
+        wasiSocketsDebug("[sock_listen] fd:", fd);
         const sock = this.getSocket(fd);
         await sock.listen(backlog);
         return ErrnoN.SUCCESS;
@@ -350,19 +323,24 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         wasiCallDebug("[sock_get_addr_info]");
         const hostname = string.get(this.buffer, node_ptr, node_len);
         const server = string.get(this.buffer, server_ptr, server_len);
-        wasiCallDebug(`[sock_get_addr_info] node: '${hostname}' server: '${server}'`);
-        const port = Number(server);
+        wasiSocketsDebug(`[sock_get_addr_info] node: '${hostname}' server: '${server}'`);
+        const port = parseInt(server, 10);
         const addrResolve = await getAddressResolver();
         if (addrResolve) {
             let numResponses = 0;
-            let current_ai = Addrinfo.get(this.buffer, res);
+            // find the first in the array
+            let current_res_ptr = res;
+            let current_ai_ptr_view = new DataView(this.buffer)
+            // read the pointer value little endian
+            let current_ai_ptr = current_ai_ptr_view.getUint32(current_res_ptr, true) as mutptr<Addrinfo>;
+            let current_ai = Addrinfo.get(this.buffer, current_ai_ptr);
+
             const dnsResponses = await addrResolve(hostname, port);
             for (const addrInfo of dnsResponses) {
                 if (numResponses < max_len) {
                     wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
                     WriteAddressInfoToAddrinfo(this.buffer, addrInfo, current_ai);
                     const next_ai_ptr = current_ai.ai_next;
-                    current_ai = Addrinfo.get(this.buffer, next_ai_ptr as mutptr<Addrinfo>);
                     numResponses++;
                 }
             }

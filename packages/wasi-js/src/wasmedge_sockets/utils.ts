@@ -17,9 +17,9 @@
  */
 
 import { SystemError } from "../errors.js";
-import { wasiCallDebug } from "../wasiDebug.js";
-import { AddressFamily, AddressInfo, IPv4AddressToArray, IPv6AddressToArray } from "../wasi_experimental_sockets/common.js";
-import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN, Address, Addrinfo, ProtocolN, SockTypeN, AiflagsN, Sockaddr, mutptr, string } from "./bindings.js";
+import { wasiSocketsDebug } from "../wasiDebug.js";
+import { AddressFamily, AddressInfo } from "../wasi_experimental_sockets/common.js";
+import { ErrnoN, AddressFamily as AddressFamilyNo, AddressFamilyN, Address, Addrinfo, Sockaddr, mutptr } from "./bindings.js";
 import * as ipaddr from 'ipaddr.js';
 
 export function addrFamilyNoToAddrFamily(afno: AddressFamilyNo): AddressFamily {
@@ -37,7 +37,7 @@ export function WasiSocketsAddrtoAddressInfo(addr: AddressAsUint8Array): Address
     let family: AddressFamily;
     const port = 0;
     let hostAddr: string;
-    wasiCallDebug("WasiSocketsAddrtoAddressInfo: addr.length: ", addr.length);
+    wasiSocketsDebug("WasiSocketsAddrtoAddressInfo: addr.length: ", addr.length);
     if (addr.length == 4) {
         family = "IPv4";
         const addrs = Uint8ArrayAddrToTypedArray(addr);
@@ -52,20 +52,20 @@ export function WasiSocketsAddrtoAddressInfo(addr: AddressAsUint8Array): Address
         const sin_family = addr[0] as AddressFamilyN;
         if (sin_family == AddressFamilyN.INET_4) {
             family = "IPv4";
-            wasiCallDebug("WasiSocketsAddrtoAddressInfo: family ipv4");
-            const sockAddrSlice = addr.slice(2,6);
+            wasiSocketsDebug("WasiSocketsAddrtoAddressInfo: family ipv4");
+            const sockAddrSlice = addr.slice(2, 6);
             const addrs = Uint8ArrayAddrToTypedArray(sockAddrSlice);
             const ipa = ipaddr.fromByteArray(addrs);
             hostAddr = ipa.toString();
-            wasiCallDebug("WasiSocketsAddrtoAddressInfo: ipv4 hostAddr: ", hostAddr);
+            wasiSocketsDebug("WasiSocketsAddrtoAddressInfo: ipv4 hostAddr: ", hostAddr);
         } else if (sin_family == AddressFamilyN.INET_6) {
             family = "IPv6";
-            wasiCallDebug("WasiSocketsAddrtoAddressInfo: family ipv6");
-            const sockAddrSlice = addr.slice(2,18);
+            wasiSocketsDebug("WasiSocketsAddrtoAddressInfo: family ipv6");
+            const sockAddrSlice = addr.slice(2, 18);
             const addrs = Uint8ArrayAddrToTypedArray(sockAddrSlice);
             const ipa = ipaddr.fromByteArray(addrs);
             hostAddr = ipa.toString();
-            wasiCallDebug("WasiSocketsAddrtoAddressInfo: ipv6 hostAddr: ", hostAddr);
+            wasiSocketsDebug("WasiSocketsAddrtoAddressInfo: ipv6 hostAddr: ", hostAddr);
         } else {
             throw new SystemError(ErrnoN.AFNOSUPPORT);
         }
@@ -91,7 +91,6 @@ export function AddressInfoToWasiSocketAddr(addr: AddressInfo): AddressAsUint8Ar
         const uArr = TypedArrayAddrToUint8Array(addrArray);
         return uArr;
     } else if (family == "IPv6") {
-        //const addrArray = IPv6AddressToArray(address);
         const addrArray = ipaddr.parse(address).toByteArray();
         const uArr = TypedArrayAddrToUint8Array(addrArray);
         return uArr;
@@ -129,10 +128,8 @@ export function WriteAddressInfoToSockAddrV2(buffer: ArrayBuffer, addr: AddressI
     } else if (family == "IPv6") {
         sa_family = AddressFamilyN.INET_6
     }
-    dstAddress
     const offset_base = addrToWrite.buf;
     const dv = new DataView(dstAddress.buffer, offset_base);
-    //dv.setUint16(0, sa_family);
     dv.setUint8(0, sa_family);
     dstAddress.set(wasi_addr, 2)
 }
@@ -150,39 +147,22 @@ export function WriteAddressInfoToAddrinfo(buffer: ArrayBuffer, addr: AddressInf
         sa_family = AddressFamilyN.INET_6
     }
 
-    ai.ai_flags = AiflagsN.AI_ALL;
-    ai.ai_family = sa_family;
-    ai.ai_socktype = SockTypeN.SOCK_ANY;
-    ai.ai_protocol = ProtocolN.IPPROTO_IP;
-    ai.ai_addrlen = addr_len;
-
     const saddr = Sockaddr.get(buffer, ai.ai_addr as mutptr<Sockaddr>);
     saddr.sa_family = sa_family
-    saddr.sa_data_len = addr_len;
+    const sa_data = saddr.sa_data;
+    const wasi_addr_length = wasi_addr.length;
 
-    const dstAddress = new Uint8Array(buffer, saddr.sa_data, wasi_addr.length);
-    saddr.sa_data_len = addr_len + 2;
+    const sa_data_len = wasi_addr_length + 2;
+    const dstAddress = new Uint8Array(buffer, sa_data, sa_data_len);
+    saddr.sa_data_len = sa_data_len;
     dstAddress.set(wasi_addr, 2);
 
-    function numToUint8Array(num: number) {
-        let arr = new Uint8Array(2);
-        for (let i = 0; i < arr.length; i++) {
-          arr[i] = num % 256;
-          num = Math.floor(num / 256);
-        }
-        return arr;
-    }
-    const port_array = numToUint8Array(port);
-    dstAddress.set(port_array, 0);
-
-    //const charToHex = c => c.charCodeAt().toString(16)
-    //const n = BigInt(port.map(charToHex).join(''))
-    //Buffer.readUIntBE()
-    //dstAddress.set(port, 2);
+    let sock_addr_view = new DataView(dstAddress.buffer);
+    // write port as u16 in big endian
+    sock_addr_view.setUint16(sa_data, port, false);
 
     // TODO: handle canonical name
     //const canon = string.get(buffer, ai.ai_canonname, ai.ai_canonname_len)
     //const dstCanonName = new Uint8Array(buffer, ai.ai_canonname, ai.ai_canonname_len);
     //dstCanonName.set(real_canon_name);
 }
-
