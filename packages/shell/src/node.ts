@@ -369,7 +369,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             nomount: {
                 type: 'boolean'
             },
-            "sockets-promise": {
+            "sockets-promise-disable": {
                 type: 'boolean'
             },
             "sockets-promise-timeout": {
@@ -449,12 +449,9 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         if (values.nomount) {
             mount = false;
         }
-        if (values["sockets-promise"] !== undefined) {
-            const sPromise = values["sockets-promise"] as string;
-            const bPromise = new Boolean(sPromise);
-            sockets_promise = bPromise.valueOf();
+        if (values["sockets-promise-disable"] !== undefined) {
             // @ts-ignore
-            globalThis.USE_ACCEPTED_SOCKET_PROMISE = sockets_promise;
+            globalThis.USE_ACCEPTED_SOCKET_PROMISE = false;
         }
         if (values["sockets-promise-timeout"] !== undefined) {
             const sPromiseTimeout = values["sockets-promise-timeout"] as string;
@@ -501,7 +498,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
     ${fl('-w')}                            Run in worker
     ${fl('--nomount')}                     No default mount
     ${fl('--count')}                       Number of identical runs
-    ${fl('--sockets-promise')}             Enable sockets promise implementation
+    ${fl('--sockets-promise-disable')}     Disable sockets promise implementation
     ${fl('--sockets-promise-timeout')}     Timeout in ms for sockets promise implementation`);
 
             process.exit(0);

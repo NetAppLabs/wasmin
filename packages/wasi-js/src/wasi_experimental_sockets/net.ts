@@ -38,7 +38,7 @@ declare global {
     var USE_ACCEPTED_SOCKET_PROMISE: boolean;
     var USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT: number;
 }
-globalThis.USE_ACCEPTED_SOCKET_PROMISE = false;
+globalThis.USE_ACCEPTED_SOCKET_PROMISE = true;
 globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = 1;
 
 export type AcceptedSocketPromiseType = ReturnType<typeof deferredPromise<NetTcpSocket|undefined>>;
