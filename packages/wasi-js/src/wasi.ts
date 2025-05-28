@@ -57,6 +57,8 @@ import { CommandRunner } from "./wasi_snapshot_preview2/command/index.js";
 import { wasiCallDebug, wasiDebug, wasiError, wasiPreview1FdDebug, wasiWorkerDebug } from "./wasiDebug.js";
 import { sleep } from "./utils.js";
 import { initializeWasiSnapshotPreview1SocketsAsyncToImports } from "./wasmedge_sockets/host.js";
+import { SystemError } from "./errors.js";
+import { ErrnoN } from "./wasi_snapshot_preview1/bindings.js";
 
 
 export enum WasiCapabilities {
@@ -108,7 +110,8 @@ export function wasiEnvFromWasiOptions(wasiOptions: WasiOptions): WasiEnv {
             wasiOptions.abortSignal,
             wasiOptions.tty,
             wasiOptions.name,
-            wasiOptions.componentMode
+            wasiOptions.componentMode,
+            wasiOptions.capabilities
         );
         return wasiEnv;
     }
@@ -190,6 +193,11 @@ export class WasiEnv implements WasiOptions {
         } else {
             this._componentMode = false;
         }
+        if (capabilities !== undefined) {
+            this._capabilities = capabilities;
+        } else {
+            this._capabilities = WasiCapabilities.None;
+        }
     }
 
     private _name: string;
@@ -204,6 +212,7 @@ export class WasiEnv implements WasiOptions {
     private _abortSignal?: AbortSignal;
     private _tty?: TTY;
     private _componentMode: boolean;
+    private _capabilities: WasiCapabilities;
 
     get cargs() {
         return this._cargs;
@@ -242,13 +251,37 @@ export class WasiEnv implements WasiOptions {
         return this._abortSignal;
     }
     get tty() {
-        return this._tty;
+        if (this.allowsTty) {
+            return this._tty;
+        } else {
+            throw new SystemError(ErrnoN.NOTCAPABLE);
+        }
     }
     get componentMode() {
         return this._componentMode;
     }
     set componentMode(componentMode: boolean) {
         this._componentMode = componentMode;
+    }
+
+    get allowsFileSystem() {
+        return this._capabilities & WasiCapabilities.FileSystem;
+    }
+
+    get allowsNetwork() {
+        return this._capabilities & WasiCapabilities.Network;
+    }
+
+    get allowsTty() {
+        return this._capabilities & WasiCapabilities.Tty;
+    }
+
+    get allowsMount() {
+        return this._capabilities & WasiCapabilities.Mount;
+    }
+
+    get allowsExec() {
+        return this._capabilities & WasiCapabilities.Exec;
     }
 
 }
@@ -270,7 +303,8 @@ export class WASI {
             wasiOptions.abortSignal,
             wasiOptions.tty,
             wasiOptions.name,
-            wasiOptions.componentMode
+            wasiOptions.componentMode,
+            wasiOptions.capabilities,
         );
         this._wasiEnv = wasiEnv;
     }

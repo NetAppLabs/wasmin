@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray } from "@netapplabs/wasi-js";
+import { WASI, OpenFiles, TTY, isNode, isDeno, OpenFilesMap, WASIWorker, TTYInstance, TTYSize, Writable, Readable, sleep, isArray, WasiCapabilities } from "@netapplabs/wasi-js";
 import { promises } from "node:fs";
 import { Socket } from "node:net";
 
@@ -209,16 +209,18 @@ export function getSecretStore(): Record<string, Record<string, string | undefin
 export async function getRootFS(driver: any, mountUrl: string, unionOverlay: boolean): Promise<FileSystemDirectoryHandle> {
     const secretStore = getSecretStore();
     let rootfs: FileSystemDirectoryHandle;
-    if (mountUrl != "") {
+    if (mountUrl != "" && !mountUrl.startsWith("/") && !mountUrl.startsWith(".") ) {
         rootfs = await getDirectoryHandleByURL(mountUrl, secretStore, unionOverlay);
     } else {
-        // if environment variable NODE_ROOT_DIR is set it will use it as root path
-        // else current directory
-        let nodePath = process.env.NODE_ROOT_DIR;
-        if (!nodePath || nodePath == "") {
-            nodePath = process.cwd();
+        if (!mountUrl || mountUrl == "") {
+            // if environment variable WASMIN_ROOT_DIR is set it will use it as root path
+            // else current directory
+            let rootNodePath = process.env.WASMIN_ROOT_DIR;
+            if (!rootNodePath || rootNodePath == "") {
+                mountUrl = process.cwd();
+            }
         }
-        rootfs = await getOriginPrivateDirectory(driver, nodePath, unionOverlay);
+        rootfs = await getOriginPrivateDirectory(driver, mountUrl, unionOverlay);
     }
     if (rootfs instanceof NFileSystemDirectoryHandle) {
         rootfs.secretStore = secretStore;
@@ -327,6 +329,14 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
     
         const options: ParseArgsOptionsConfig = {
+            "allow-all": {
+                type: 'boolean',
+                short: 'a',
+            },
+            "allow-network": {
+                type: 'boolean',
+                short: 'n',
+            },
             help: {
               type: 'boolean',
               short: 'h'
@@ -366,8 +376,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             count: {
                 type: 'string'
             },
-            nomount: {
-                type: 'boolean'
+            network: {
+                type: 'boolean',
+                short: 'u',
+            },
+            "mount-working-dir": {
+                type: 'boolean',
+                short: 'p',
             },
             "sockets-promise-disable": {
                 type: 'boolean'
@@ -377,6 +392,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             }
         };
 
+        let capabilites = WasiCapabilities.Tty;
         let isHelp = false;
         let componentMode = false;
         let runDebug = false;
@@ -384,8 +400,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         let useUnionOverlayFs = false;
         let mountUrl = "";
         let wasmBinaryFromArgs = "";
-        let mount = true;
-        let sockets_promise = false;
+        let mountDirectoryOrUrl = false;
         let sockets_promise_timeout = 1;
 
         //let args: string[] = [];
@@ -432,6 +447,8 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             env = processMultipleArgValuesToMap(values.env);
         }
         if (values.mount) {
+            mountDirectoryOrUrl = true;
+            capabilites = capabilites || WasiCapabilities.FileSystem;
             mountUrl = values.mount as string;
             shellDebug("mountUrl: ", mountUrl);
         }
@@ -446,8 +463,13 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             const nRunCount = new Number(sRunCount);
             runCount = nRunCount.valueOf();
         }
-        if (values.nomount) {
-            mount = false;
+        if (values["mount-working-dir"] !== undefined) {
+            capabilites = capabilites || WasiCapabilities.FileSystem;
+            mountDirectoryOrUrl = true;
+        }
+        if (process.env.WASMIN_CAP_DIR !== undefined) {
+            capabilites = capabilites || WasiCapabilities.FileSystem;
+            mountDirectoryOrUrl = true;
         }
         if (values["sockets-promise-disable"] !== undefined) {
             // @ts-ignore
@@ -460,6 +482,19 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             // @ts-ignore
             globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = sockets_promise_timeout;
         }
+        if (values["allow-all"] !== undefined) {
+            capabilites = capabilites || WasiCapabilities.All;
+        }
+        if (process.env.WASMIN_CAP_ALL !== undefined) {
+            capabilites = capabilites || WasiCapabilities.All;
+        }
+        if (values["allow-network"] !== undefined) {
+            capabilites = capabilites || WasiCapabilities.Network;
+        }
+        if (process.env.WASMIN_CAP_NETWORK !== undefined) {
+            capabilites = capabilites || WasiCapabilities.Network;
+        }
+
         // @ts-ignore
         shellDebug(`globalThis.USE_ACCEPTED_SOCKET_PROMISE: ${globalThis.USE_ACCEPTED_SOCKET_PROMISE}`);
         // @ts-ignore
@@ -488,15 +523,17 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
    > wasmin [flags] [wasm] [arguments]
 
   ${h2('Flags')}:
-    ${fl('-c')}                            Run in component mode
+    ${fl('-a, --allow-all')}               Allow all capabilities (also env variable WASMIN_CAP_ALL)
+    ${fl('-n, --allow-network')}           Allow network sockets (also env variable WASMIN_CAP_NETWORK)
+    ${fl('-p, --mount-working-dir')}       Mount Current Working Directory as root (also env variable WASMIN_CAP_DIR)
+    ${fl('-m, --mount')}   ${flv('[path|url]')}      Mount Path or URL and use as root, e.g. ./subdir or nfs://host/export or s3://bucket
+    ${fl('-c')}                            Run in component mode (enables preview1 on top of preview2)
     ${fl('-e')}                            Evironment variables
     ${fl('-d')}                            Debug Mode
     ${fl('--trace [comp1,comp2]')}         Enable trace debug for copmonent name (e.g. preview1/preview2)
     ${fl('--log [filename]')}              Enabling writing log/debug output to file
     ${fl('-u')}                            Enable Uniion overlayed FileSystem
-    ${fl('-m, --mount')}   ${flv('[path|url]')}      Mount Path or URL and use as root
-    ${fl('-w')}                            Run in worker
-    ${fl('--nomount')}                     No default mount
+    ${fl('-w')}                            Run in Worker (threads) mode
     ${fl('--count')}                       Number of identical runs
     ${fl('--sockets-promise-disable')}     Disable sockets promise implementation
     ${fl('--sockets-promise-timeout')}     Timeout in ms for sockets promise implementation`);
@@ -584,6 +621,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         tty: tty,
                         name: wasmBinaryFromArgs,
                         componentMode: componentMode,
+                        capabilities: capabilites,
                     });
                     const statusCode = await wasi.run(wasmBinary);
                     if (statusCode !== 0) {
@@ -602,7 +640,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                     process.exit(0);
                 }
             } else {
-                if (mount) {
+                if (mountDirectoryOrUrl) {
                     const driver = USE_MEMORY ? memory : rootfsDriver || node;
                     shellDebug("mountUrl: ", mountUrl);
                     const rootfs = await getRootFS(driver, USE_MEMORY ? "" : mountUrl, useUnionOverlayFs);
@@ -622,6 +660,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
                         tty: tty,
                         name: wasmBinaryFromArgs,
                         componentMode: componentMode,
+                        capabilities: capabilites,
                     });
                     const statusCode = await wasi.run(wasmBuf);
                     if (statusCode !== 0) {

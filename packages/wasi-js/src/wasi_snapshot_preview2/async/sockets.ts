@@ -120,16 +120,20 @@ export class SocketsTcpAsyncHost implements SocketsTcpCreateSocketAsync, Sockets
     }
 
     async createTcpSocket(addressFamily: sockn.IpAddressFamily): Promise<TcpSocket> {
-        try {
-            const af = IPAddressFamilyToAddressFamily(addressFamily);
-            const sock = await createTcpSocket(af);
-            const sockFd = this.openFiles.add(sock);
-            const sockInstance = new TcpSocketInstance(this._wasiEnv, sockFd);
-            return sockInstance;
-        } catch (err: any) {
-            //throw translateError(err);
-            wasiPreview2Debug("createTcpSocket: err:", err);
-            throw 'not-supported';
+        if (this._wasiEnv.allowsNetwork) {
+            try {
+                const af = IPAddressFamilyToAddressFamily(addressFamily);
+                const sock = await createTcpSocket(af);
+                const sockFd = this.openFiles.add(sock);
+                const sockInstance = new TcpSocketInstance(this._wasiEnv, sockFd);
+                return sockInstance;
+            } catch (err: any) {
+                //throw translateError(err);
+                wasiPreview2Debug("createTcpSocket: err:", err);
+                throw 'not-supported';
+            }
+        } else {
+            throw 'access-denied';
         }
     }
 
@@ -490,16 +494,20 @@ export class WasiSocketsUdpAsyncHost implements WasiSocketsUdpCreateSocketAsync,
         return res as WasiSocket;
     }
     async createUdpSocket(addressFamily: sockn.IpAddressFamily): Promise<UdpSocket> {
-        try {
-            const addrFamily = IPAddressFamilyToAddressFamily(addressFamily);
-            const sock = await createUdpSocket(addrFamily);
-            const sockFd = this.openFiles.add(sock);
-            const sockInstance = new UdpSocketInstance(this._wasiEnv, sockFd);
-            return sockInstance;
-        } catch (err: any) {
-            //throw translateError(err);
-            wasiPreview2Debug("udp createUdpSocket err:", err);
-            throw 'not-supported';
+        if (this._wasiEnv.allowsNetwork) {
+            try {
+                const addrFamily = IPAddressFamilyToAddressFamily(addressFamily);
+                const sock = await createUdpSocket(addrFamily);
+                const sockFd = this.openFiles.add(sock);
+                const sockInstance = new UdpSocketInstance(this._wasiEnv, sockFd);
+                return sockInstance;
+            } catch (err: any) {
+                //throw translateError(err);
+                wasiPreview2Debug("udp createUdpSocket err:", err);
+                throw 'not-supported';
+        }
+        } else {
+            throw 'access-denied';
         }
     }
 
@@ -934,18 +942,22 @@ export class SocketsIpNameLookupAsyncHost implements SocketsIpNameLookupAsync {
         network: Network,
         name: string,
     ): Promise<ResolveAddressStream> {
-        try {
-            const host = name;
-            const port = 0;
-            const resolve = await getAddressResolver();
-            const addresses = await resolve(host, port);
-            const iter = new ResolveAddressIterator(this.openFiles, addresses);
-            return iter;
-        } catch (err: any) {
-            // swallow error
-            //throw translateError(err);
-            wasiPreview2Debug("resolveAddresses err: ", err);
-            throw 'invalid-name';
+        if (this._wasiEnv.allowsNetwork) {
+            try {
+                const host = name;
+                const port = 0;
+                const resolve = await getAddressResolver();
+                const addresses = await resolve(host, port);
+                const iter = new ResolveAddressIterator(this.openFiles, addresses);
+                return iter;
+            } catch (err: any) {
+                // swallow error
+                //throw translateError(err);
+                wasiPreview2Debug("resolveAddresses err: ", err);
+                throw 'invalid-name';
+            }
+        } else {
+            throw 'access-denied';
         }
     }
 }

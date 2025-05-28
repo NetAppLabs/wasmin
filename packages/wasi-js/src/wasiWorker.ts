@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { WASI, WasiOptions } from "./wasi.js";
+import { WASI, WasiCapabilities, WasiOptions } from "./wasi.js";
 import * as comlink from "comlink";
 import { getWasmBuffer, getWorkerUrl, initializeComlinkHandlers } from "./workerUtils.js";
 import { HandleCallType, HandleWasmComponentImportFunc, HandleWasmImportFunc, StoreReceivedMemoryFunc } from "./desyncify.js";
@@ -51,6 +51,7 @@ export interface WasiWorkerOptions {
     tty?: TTY;
     name?: string,
     componentMode?: boolean,
+    capabilities?: WasiCapabilities,
 }
 
 /**
@@ -198,6 +199,7 @@ export class WasiWorkerThreadRunner {
             tty: tty,
             name: wasiWorkerOptions?.name,
             componentMode: wasiWorkerOptions?.componentMode,
+            capabilities: wasiWorkerOptions?.capabilities,
         };
 
         if (wasiWorkerOptions?.openFiles) {
@@ -336,6 +338,7 @@ export function getWasiOptionsProxied(options: WasiWorkerOptions): WasiWorkerOpt
         wasiOptionsProxied.tty = ttyProxied;
     }
     wasiOptionsProxied.componentMode = options.componentMode;
+    wasiOptionsProxied.capabilities = options.capabilities;
 
     return wasiOptionsProxied;
 }
