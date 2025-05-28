@@ -1,5 +1,5 @@
 import { instantiate } from "./nfs_rs.js";
-import { WASIWorker } from "@netapplabs/wasi-js";
+import { WasiCapabilities, WASIWorker } from "@netapplabs/wasi-js";
 import { NFileSystemWritableFileStream, PreNameCheck, InvalidModificationError, NotFoundError, SyntaxError, TypeMismatchError, } from "@netapplabs/fs-js";
 import process from "node:process";
 const ACCESS3_READ = 0x0001;
@@ -138,7 +138,9 @@ let instantiation;
 async function ensureInstantiation() {
     if (!instantiation) {
         instantiation = new Promise(async (resolve, reject) => {
-            wasi = new WASIWorker({});
+            // TODO implement inheriting capabilities from root WASI
+            // workaround for now
+            wasi = new WASIWorker({ capabilities: WasiCapabilities.Network });
             await wasi
                 .createWorker()
                 .then((componentImports) => instantiate(compileCore, componentImports))
