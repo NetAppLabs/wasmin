@@ -20,7 +20,7 @@
 //import fs from "node:fs/promises";
 //import os from "node:os";
 //import { readdir, readFile } from "node:fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn, isBun, isNode } from "../index.js";
+import { WASI, stringOut, OpenFiles, bufferIn, isBun, isNode, WasiCapabilities } from "../index.js";
 import { getOriginPrivateDirectory, FileSystemDirectoryHandle, FileSystemFileHandle } from "@netapplabs/fs-js";
 //import { node } from "@netapplabs/node-fs-js";
 import { memory } from "@netapplabs/fs-js";
@@ -308,6 +308,7 @@ export async function constructWasiForTest(testCase: Test, rootFsHandle?: any) {
         stderr: stringOut((text) => (ret.stderr += text)),
         args: args,
         env: env,
+        capabilities: WasiCapabilities.FileSystem
     };
     const w = new WASI(wasiOpts);
     ret.wasi = w;

@@ -5,7 +5,7 @@ import { backend, getRootHandle } from "./utils.js";
 
 import path from "path";
 import { readFile } from "fs/promises";
-import { WASI, stringOut, OpenFiles, bufferIn } from "@netapplabs/wasi-js";
+import { WASI, stringOut, OpenFiles, bufferIn, WasiCapabilities } from "@netapplabs/wasi-js";
 import { FileSystemFileHandle } from "@netapplabs/fs-js";
 
 const EOL = "\n";
@@ -108,6 +108,7 @@ describe("shared", () => {
                     env: {
                         NODE_PLATFORM: "win32",
                     },
+                    capabilities: WasiCapabilities.FileSystem,
                 });
                 actualExitCode = await w.run(await module);
             } catch (err: any) {

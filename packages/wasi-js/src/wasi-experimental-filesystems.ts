@@ -130,50 +130,62 @@ class WasiExperimentalFilesystemsHost implements WasiExperimentalFilesystems {
     }
     private _wasiEnv: WasiEnv;
     async mount(sourceMountURL: string, destMountPath: string, subDest: string): Promise<number> {
-        try {
-            wasiPreview1Debug(
-                `[WasiExperimentalFilesystems:mount] sourceMountURL: ${sourceMountURL} , destMountPath: ${destMountPath}`
-            );
+        if (this._wasiEnv.allowsMount) {
+            try {
+                wasiPreview1Debug(
+                    `[WasiExperimentalFilesystems:mount] sourceMountURL: ${sourceMountURL} , destMountPath: ${destMountPath}`
+                );
 
-            // @ts-ignore
-            let fileSystemHandle: Handle = {};
-            if (sourceMountURL.startsWith("local")) {
-                if ((globalThis as any).showDirectoryPicker) {
-                    fileSystemHandle = await (globalThis as any).showDirectoryPicker();
+                // @ts-ignore
+                let fileSystemHandle: Handle = {};
+                if (sourceMountURL.startsWith("local")) {
+                    if ((globalThis as any).showDirectoryPicker) {
+                        fileSystemHandle = await (globalThis as any).showDirectoryPicker();
+                    } else {
+                        return new Promise((_resolve, reject) => {
+                            reject(ErrnoN.NOSYS);
+                        });
+                    }
                 } else {
-                    return new Promise((_resolve, reject) => {
-                        reject(ErrnoN.NOSYS);
-                    });
+                    fileSystemHandle = await getDirectoryHandleByURL(sourceMountURL);
                 }
-            } else {
-                fileSystemHandle = await getDirectoryHandleByURL(sourceMountURL);
+                let destSubDir = subDest;
+                if (destSubDir == "") {
+                    destSubDir = fileSystemHandle.name;
+                }
+                await this._wasiEnv.openFiles.mountHandleOnUnderRootOnPath(fileSystemHandle, destMountPath, destSubDir);
+                return new Promise((resolve) => {
+                    resolve(ErrnoN.SUCCESS);
+                });
+            } catch (err: any) {
+                wasiPreview1Debug("WasiExperimentalFilesystemsHost: error: ", err);
+                return translateErrorToErrorno(err);
             }
-            let destSubDir = subDest;
-            if (destSubDir == "") {
-                destSubDir = fileSystemHandle.name;
-            }
-            await this._wasiEnv.openFiles.mountHandleOnUnderRootOnPath(fileSystemHandle, destMountPath, destSubDir);
-            return new Promise((resolve) => {
-                resolve(ErrnoN.SUCCESS);
-            });
-        } catch (err: any) {
-            wasiPreview1Debug("WasiExperimentalFilesystemsHost: error: ", err);
-            return translateErrorToErrorno(err);
+        } else {
+            throw new SystemError(ErrnoN.NOTCAPABLE);
         }
     }
     async umount(dest: string): Promise<number> {
-        wasiPreview1Debug(`[WasiExperimentalFilesystems:umount] dest: ${dest}`);
-        try{
-            await this._wasiEnv.openFiles.unMountFomAbsolutePath(dest);
-            return ErrnoN.SUCCESS;
-        } catch (err: any) {
-            wasiPreview1Debug("WasiExperimentalFilesystemsHost: error: ", err);
-            return ErrnoN.INVAL;
+        if (this._wasiEnv.allowsMount) {
+            wasiPreview1Debug(`[WasiExperimentalFilesystems:umount] dest: ${dest}`);
+            try{
+                await this._wasiEnv.openFiles.unMountFomAbsolutePath(dest);
+                return ErrnoN.SUCCESS;
+            } catch (err: any) {
+                wasiPreview1Debug("WasiExperimentalFilesystemsHost: error: ", err);
+                return ErrnoN.INVAL;
+            }
+        } else {
+            throw new SystemError(ErrnoN.NOTCAPABLE);
         }
     }
     async mounts(): Promise<MountInfo[]> {
-        wasiPreview1Debug(`[WasiExperimentalFilesystems:mounts]`);
-        return await this._wasiEnv.openFiles.listMountsUnderAbsolutePath("/");
+        if (this._wasiEnv.allowsMount) {
+            wasiPreview1Debug(`[WasiExperimentalFilesystems:mounts]`);
+            return await this._wasiEnv.openFiles.listMountsUnderAbsolutePath("/");
+        } else {
+            throw new SystemError(ErrnoN.NOTCAPABLE);
+        }
     }
 }
 

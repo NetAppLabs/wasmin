@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import { resolve, join, dirname } from "node:path";
 import fs from "node:fs/promises";
 import { readFile } from "fs/promises";
-import { WASI, OpenFiles, stringOut, bufferIn } from "../src";
+import { WASI, OpenFiles, stringOut, bufferIn, WasiCapabilities } from "../src";
 import { getOriginPrivateDirectory } from "@netapplabs/fs-js";
 import { node } from "@netapplabs/node-fs-js";
 import { fileURLToPath } from "node:url";
@@ -87,6 +87,7 @@ const w = new WASI({
     env: {
         NODE_PLATFORM: "win32",
     },
+    capabilities: WasiCapabilities.FileSystem,
 });
 let actualExitCode = 0;
 try {

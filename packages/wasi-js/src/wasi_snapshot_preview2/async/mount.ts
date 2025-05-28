@@ -13,14 +13,18 @@ export class WasiExtFilesystemsMountAsyncHost implements WasiExtFilesystemsMount
         this._wasiEnv = wasiEnv;
     }
     async mounts(desc: fsm.Descriptor): Promise<fsm.MountEntry[]> {
-        if (desc instanceof FileSystemFileDescriptor) {
-            let fDesc = desc as FileSystemFileDescriptor;
-            let fd = fDesc._fd;
-            let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
-            let parentHandle = parentDir._handle;
-            return await this._wasiEnv.openFiles.listMountsUnderDirectoryHandle(parentHandle);
+        if (this._wasiEnv.allowsMount) {
+            if (desc instanceof FileSystemFileDescriptor) {
+                let fDesc = desc as FileSystemFileDescriptor;
+                let fd = fDesc._fd;
+                let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
+                let parentHandle = parentDir._handle;
+                return await this._wasiEnv.openFiles.listMountsUnderDirectoryHandle(parentHandle);
+            } else {
+                return await this._wasiEnv.openFiles.listMountsUnderAbsolutePath("/");
+            }
         } else {
-            return await this._wasiEnv.openFiles.listMountsUnderAbsolutePath("/");
+            throw 'access-denied';
         }
     }
     async getUnionDescriptor(sourceDescriptor: fsm.Descriptor): Promise<fsm.Descriptor> {
@@ -34,14 +38,18 @@ export class WasiExtFilesystemsMountAsyncHost implements WasiExtFilesystemsMount
     }
 
     async unmount(desc: fsm.Descriptor, destMountPath: string): Promise<void> {
-        if (desc instanceof FileSystemFileDescriptor) {
-            let fDesc = desc as FileSystemFileDescriptor;
-            let fd = fDesc._fd;
-            let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
-            let parentHandle = parentDir._handle;
-            return await this._wasiEnv.openFiles.unMountFomRelativePath(parentHandle, destMountPath);
+        if (this._wasiEnv.allowsMount) {
+            if (desc instanceof FileSystemFileDescriptor) {
+                let fDesc = desc as FileSystemFileDescriptor;
+                let fd = fDesc._fd;
+                let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
+                let parentHandle = parentDir._handle;
+                return await this._wasiEnv.openFiles.unMountFomRelativePath(parentHandle, destMountPath);
+            } else {
+                return await this._wasiEnv.openFiles.unMountFomAbsolutePath(destMountPath);
+            }
         } else {
-            return await this._wasiEnv.openFiles.unMountFomAbsolutePath(destMountPath);
+            throw 'access-denied';
         }
     }
 
@@ -54,39 +62,43 @@ export class WasiExtFilesystemsMountAsyncHost implements WasiExtFilesystemsMount
     }
 
     async mount(desc: fsm.Descriptor, sourceMountURL: string, destMountPath: string): Promise<void> {
-        let errorToThrow: FsMountErrCode | undefined = undefined;
-        try {
-            // @ts-ignore
-            let fileSystemHandle: Handle = {};
-            if (sourceMountURL.startsWith("local")) {
-                if ((globalThis as any).showDirectoryPicker) {
-                    fileSystemHandle = await (globalThis as any).showDirectoryPicker();
+        if (this._wasiEnv.allowsMount) {
+            let errorToThrow: FsMountErrCode | undefined = undefined;
+            try {
+                // @ts-ignore
+                let fileSystemHandle: Handle = {};
+                if (sourceMountURL.startsWith("local")) {
+                    if ((globalThis as any).showDirectoryPicker) {
+                        fileSystemHandle = await (globalThis as any).showDirectoryPicker();
+                    } else {
+                        errorToThrow = "invalid";
+                    }
                 } else {
-                    errorToThrow = "invalid";
+                    fileSystemHandle = await getDirectoryHandleByURL(sourceMountURL);
                 }
-            } else {
-                fileSystemHandle = await getDirectoryHandleByURL(sourceMountURL);
+                let destSubDir = destMountPath;
+                if (destSubDir == "") {
+                    destSubDir = fileSystemHandle.name;
+                }
+                if (desc instanceof FileSystemFileDescriptor) {
+                    let fDesc = desc as FileSystemFileDescriptor;
+                    let fd = fDesc._fd;
+                    let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
+                    let parentHandle = parentDir._handle;
+                    await this._wasiEnv.openFiles.mountHandleUnderParentOnPath(parentHandle, fileSystemHandle, destSubDir);
+                } else {
+                    await this._wasiEnv.openFiles.mountHandleOnUnderRootOnPath(fileSystemHandle, destMountPath, destSubDir);
+                }
+            } catch(err: any) {
+                wasiPreview2Debug("WasiExtFilesystemsMountAsyncHost mount err: ", err);
+                errorToThrow = "invalid";
+                throw errorToThrow;
             }
-            let destSubDir = destMountPath;
-            if (destSubDir == "") {
-                destSubDir = fileSystemHandle.name;
+            if (errorToThrow !== undefined) {
+                throw errorToThrow;
             }
-            if (desc instanceof FileSystemFileDescriptor) {
-                let fDesc = desc as FileSystemFileDescriptor;
-                let fd = fDesc._fd;
-                let parentDir = this._wasiEnv.openFiles.getAsDir(fd);
-                let parentHandle = parentDir._handle;
-                await this._wasiEnv.openFiles.mountHandleUnderParentOnPath(parentHandle, fileSystemHandle, destSubDir);
-            } else {
-                await this._wasiEnv.openFiles.mountHandleOnUnderRootOnPath(fileSystemHandle, destMountPath, destSubDir);
-            }
-        } catch(err: any) {
-            wasiPreview2Debug("WasiExtFilesystemsMountAsyncHost mount err: ", err);
-            errorToThrow = "invalid";
-            throw errorToThrow;
-        }
-        if (errorToThrow !== undefined) {
-            throw errorToThrow;
+        } else {
+            throw 'access-denied';
         }
     }
 

@@ -149,39 +149,47 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
         wasiSocketsDebug("[sock_open]:  af: ", af);
         wasiSocketsDebug("[sock_open]:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCK_STREAM) {
-            const addrFamily = addrFamilyNoToAddrFamily(af);
-            const sock = await createTcpSocket(addrFamily);
-            const resultFd = this.openFiles.add(sock);
-            wasiSocketsDebug("[sock_open] tcp 3 :");
-            Fd.set(this.buffer, fd, resultFd);
-            wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
-            wasiCallDebug("[sock_open] SOCKET_STREAM returning fd:", resultFd);
-            return ErrnoN.SUCCESS;
+            if (this._wasiEnv.allowsNetwork) {
+                const addrFamily = addrFamilyNoToAddrFamily(af);
+                const sock = await createTcpSocket(addrFamily);
+                const resultFd = this.openFiles.add(sock);
+                wasiSocketsDebug("[sock_open] tcp 3 :");
+                Fd.set(this.buffer, fd, resultFd);
+                wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
+                wasiCallDebug("[sock_open] SOCKET_STREAM returning fd:", resultFd);
+                return ErrnoN.SUCCESS;
+            } else {
+                return ErrnoN.NOTCAPABLE;
+            }
         } else if (socktype == SockTypeN.SOCK_DGRAM) {
             wasiSocketsDebug("[sock_open] udp 1 :");
-            if (isNodeorBunorDeno()) {
-                let sock: WasiSocket | undefined = undefined;
-                switch (af) {
-                    case AddressFamilyN.INET_4:
-                        wasiSocketsDebug("[sock_open] udp INET_4:");
-                        sock = await createUdpSocket("IPv4");
-                        break;
-                    case AddressFamilyN.INET_6:
-                        wasiSocketsDebug("[sock_open] udp INET_6:");
-                        sock = await createUdpSocket("IPv6");
-                        break;
-                }
-                if (sock) {
-                    const resultFd = this.openFiles.add(sock);
-                    Fd.set(this.buffer, fd, resultFd);
-                    wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
-                    return ErrnoN.SUCCESS;
+            if (this._wasiEnv.allowsNetwork) {
+                if (isNodeorBunorDeno()) {
+                    let sock: WasiSocket | undefined = undefined;
+                    switch (af) {
+                        case AddressFamilyN.INET_4:
+                            wasiSocketsDebug("[sock_open] udp INET_4:");
+                            sock = await createUdpSocket("IPv4");
+                            break;
+                        case AddressFamilyN.INET_6:
+                            wasiSocketsDebug("[sock_open] udp INET_6:");
+                            sock = await createUdpSocket("IPv6");
+                            break;
+                    }
+                    if (sock) {
+                        const resultFd = this.openFiles.add(sock);
+                        Fd.set(this.buffer, fd, resultFd);
+                        wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
+                        return ErrnoN.SUCCESS;
+                    } else {
+                        return ErrnoN.BADF;
+                    }
                 } else {
-                    return ErrnoN.BADF;
+                    // Not supported on other platforms than node
+                    return ErrnoN.NOSYS;
                 }
             } else {
-                // Not supported on other platforms than node
-                return ErrnoN.NOSYS;
+                return ErrnoN.NOTCAPABLE;
             }
         } else {
             return ErrnoN.INVAL;
@@ -321,31 +329,35 @@ export class WasiSnapshotPreview1SocketsAsyncHost implements WasiSnapshotPreview
     }
     async sockGetaddrinfo(node_ptr: ptr<string>, node_len: number, server_ptr: ptr<string>, server_len: number, hint: mutptr<Addrinfo>, res: mutptr<Addrinfo>, max_len: number, res_len: mutptr<number>): Promise<ErrnoN> {
         wasiCallDebug("[sock_get_addr_info]");
-        const hostname = string.get(this.buffer, node_ptr, node_len);
-        const server = string.get(this.buffer, server_ptr, server_len);
-        wasiSocketsDebug(`[sock_get_addr_info] node: '${hostname}' server: '${server}'`);
-        const port = parseInt(server, 10);
-        const addrResolve = await getAddressResolver();
-        if (addrResolve) {
-            let numResponses = 0;
-            // find the first in the array
-            let current_res_ptr = res;
-            let current_ai_ptr_view = new DataView(this.buffer)
-            // read the pointer value little endian
-            let current_ai_ptr = current_ai_ptr_view.getUint32(current_res_ptr, true) as mutptr<Addrinfo>;
-            let current_ai = Addrinfo.get(this.buffer, current_ai_ptr);
+        if (this._wasiEnv.allowsNetwork) {
+            const hostname = string.get(this.buffer, node_ptr, node_len);
+            const server = string.get(this.buffer, server_ptr, server_len);
+            wasiSocketsDebug(`[sock_get_addr_info] node: '${hostname}' server: '${server}'`);
+            const port = parseInt(server, 10);
+            const addrResolve = await getAddressResolver();
+            if (addrResolve) {
+                let numResponses = 0;
+                // find the first in the array
+                let current_res_ptr = res;
+                let current_ai_ptr_view = new DataView(this.buffer)
+                // read the pointer value little endian
+                let current_ai_ptr = current_ai_ptr_view.getUint32(current_res_ptr, true) as mutptr<Addrinfo>;
+                let current_ai = Addrinfo.get(this.buffer, current_ai_ptr);
 
-            const dnsResponses = await addrResolve(hostname, port);
-            for (const addrInfo of dnsResponses) {
-                if (numResponses < max_len) {
-                    wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
-                    WriteAddressInfoToAddrinfo(this.buffer, addrInfo, current_ai);
-                    const next_ai_ptr = current_ai.ai_next;
-                    numResponses++;
+                const dnsResponses = await addrResolve(hostname, port);
+                for (const addrInfo of dnsResponses) {
+                    if (numResponses < max_len) {
+                        wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
+                        WriteAddressInfoToAddrinfo(this.buffer, addrInfo, current_ai);
+                        const next_ai_ptr = current_ai.ai_next;
+                        numResponses++;
+                    }
                 }
+                u32.set(this.buffer, res_len, numResponses);
+                return ErrnoN.SUCCESS;
             }
-            u32.set(this.buffer, res_len, numResponses);
-            return ErrnoN.SUCCESS;
+        } else {
+            return ErrnoN.NOTCAPABLE;
         }
         return ErrnoN.NOSYS;
     }

@@ -81,7 +81,7 @@ to see available commands
 #### For running with /Users/shared from local machine mounted into it:
 
 ```sh
-docker run -it --mount type=bind,source=/Users/shared,target=/mount ghcr.io/netapplabs/wasmin:latest
+docker run -it --mount type=bind,source=/Users/shared,target=/mount ghcr.io/netapplabs/wasmin:latest -p
 ```
 
 ### Executable

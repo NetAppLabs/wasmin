@@ -91,26 +91,30 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         buf_len: number,
         result_ptr: mutptr<number>
     ): Promise<ErrnoN> {
-        const hostname = string.get(this.buffer, host_ptr, host_len);
-        wasiCallDebug("[addr_resolve] hostname:", hostname, " port:", port);
-        const addrResolve = await getAddressResolver();
-        if (addrResolve) {
-            let offset = 0;
-            const dnsResponses = await addrResolve(hostname, port);
-            for (const addrInfo of dnsResponses) {
-                wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
-                const wasiAddr = AddressInfoToWasiAddr(addrInfo);
-                wasiSocketsDebug("[addr_resolve] wasiAddr: ", wasiAddr);
-                const mptr = (buf + offset) as any as mutptr<Addr>;
-                Addr.set(this.buffer, mptr, wasiAddr);
-                if (addrInfo.family == "IPv4") {
-                    offset = offset + 8;
-                } else if (addrInfo.family == "IPv6") {
-                    offset = offset + 20;
+        if (this._wasiEnv.allowsNetwork) {
+            const hostname = string.get(this.buffer, host_ptr, host_len);
+            wasiCallDebug("[addr_resolve] hostname:", hostname, " port:", port);
+            const addrResolve = await getAddressResolver();
+            if (addrResolve) {
+                let offset = 0;
+                const dnsResponses = await addrResolve(hostname, port);
+                for (const addrInfo of dnsResponses) {
+                    wasiSocketsDebug("[addr_resolve] addrInfo: ", addrInfo);
+                    const wasiAddr = AddressInfoToWasiAddr(addrInfo);
+                    wasiSocketsDebug("[addr_resolve] wasiAddr: ", wasiAddr);
+                    const mptr = (buf + offset) as any as mutptr<Addr>;
+                    Addr.set(this.buffer, mptr, wasiAddr);
+                    if (addrInfo.family == "IPv4") {
+                        offset = offset + 8;
+                    } else if (addrInfo.family == "IPv6") {
+                        offset = offset + 20;
+                    }
                 }
+                u32.set(this.buffer, result_ptr, offset);
+                return ErrnoN.SUCCESS;
             }
-            u32.set(this.buffer, result_ptr, offset);
-            return ErrnoN.SUCCESS;
+        } else {
+            return ErrnoN.NOTCAPABLE;
         }
         return ErrnoN.NOSYS;
     }
@@ -143,35 +147,43 @@ export class WasiExperimentalSocketsAsyncHost implements WasiExperimentalSockets
         wasiSocketsDebug("[sock_open]:  sockType: ", socktype);
         if (socktype == SockTypeN.SOCKET_STREAM) {
             const addrFamily = addrFamilyNoToAddrFamily(af);
-            const sock = await createTcpSocket(addrFamily);
-            const resultFd = this.openFiles.add(sock);
-            wasiSocketsDebug("[sock_open] tcp 3 :");
-            Fd.set(this.buffer, result_ptr, resultFd);
-            wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
-            wasiCallDebug("[sock_open] SOCKET_STREAM returning fd:", resultFd);
-            return ErrnoN.SUCCESS;
-        } else if (socktype == SockTypeN.SOCKET_DGRAM) {
-            wasiSocketsDebug("[sock_open] udp 1 :");
-            if (isNodeorBunorDeno()) {
-                let sock: WasiSocket;
-                switch (af) {
-                    case AddressFamilyN.INET_4:
-                        wasiSocketsDebug("[sock_open] udp INET_4:");
-                        sock = await createUdpSocket("IPv4");
-                        break;
-                    case AddressFamilyN.INET_6:
-                        wasiSocketsDebug("[sock_open] udp INET_6:");
-                        sock = await createUdpSocket("IPv6");
-                        break;
-                }
+            if (this._wasiEnv.allowsNetwork) {
+                const sock = await createTcpSocket(addrFamily);
                 const resultFd = this.openFiles.add(sock);
+                wasiSocketsDebug("[sock_open] tcp 3 :");
                 Fd.set(this.buffer, result_ptr, resultFd);
-                wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
-                wasiCallDebug("[sock_open] SOCKET_DGRAM returning fd:", resultFd);
+                wasiSocketsDebug("SOCKET_STREAM: resultFd: ", resultFd);
+                wasiCallDebug("[sock_open] SOCKET_STREAM returning fd:", resultFd);
                 return ErrnoN.SUCCESS;
             } else {
-                // Not supported on other platforms than node
-                return ErrnoN.NOSYS;
+                return ErrnoN.NOTCAPABLE;
+            }
+        } else if (socktype == SockTypeN.SOCKET_DGRAM) {
+            wasiSocketsDebug("[sock_open] udp 1 :");
+            if (this._wasiEnv.allowsNetwork) {
+                if (isNodeorBunorDeno()) {
+                    let sock: WasiSocket;
+                    switch (af) {
+                        case AddressFamilyN.INET_4:
+                            wasiSocketsDebug("[sock_open] udp INET_4:");
+                            sock = await createUdpSocket("IPv4");
+                            break;
+                        case AddressFamilyN.INET_6:
+                            wasiSocketsDebug("[sock_open] udp INET_6:");
+                            sock = await createUdpSocket("IPv6");
+                            break;
+                    }
+                    const resultFd = this.openFiles.add(sock);
+                    Fd.set(this.buffer, result_ptr, resultFd);
+                    wasiSocketsDebug("[sock_open] SOCKET_DGRAM: resultFd: ", resultFd);
+                    wasiCallDebug("[sock_open] SOCKET_DGRAM returning fd:", resultFd);
+                    return ErrnoN.SUCCESS;
+                } else {
+                    // Not supported on other platforms than node
+                    return ErrnoN.NOSYS;
+                }
+            } else {
+                return ErrnoN.NOTCAPABLE;
             }
         } else {
             return ErrnoN.INVAL;

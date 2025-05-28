@@ -19,7 +19,7 @@ import { Terminal, IDisposable, ITerminalOptions, IWindowOptions } from "@xterm/
 import { ImageAddon, IImageAddonOptions } from '@xterm/addon-image';
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
-import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize, WASIWorker, BufferedPipe } from "@netapplabs/wasi-js";
+import { WASI, OpenFiles, TTY, TextDecoderWrapper, TTYInstance, TTYSize, WASIWorker, BufferedPipe, WasiCapabilities } from "@netapplabs/wasi-js";
 import { s3 } from "@netapplabs/s3-fs-js";
 import { github } from "@netapplabs/github-fs-js";
 import { FileSystemDirectoryHandle } from "@netapplabs/fs-js";
@@ -499,6 +499,7 @@ if (WEB_SHELL_REGISTER_NFS) {
                     PROMPT_INDICATOR: " > ",
                 },
                 tty: tty,
+                capabilities: WasiCapabilities.All,
             }).run(moduleUrl);
             if (statusCode !== 0) {
                 term.writeln(`Exit code: ${statusCode}`);
@@ -524,6 +525,7 @@ if (WEB_SHELL_REGISTER_NFS) {
                     PROMPT_INDICATOR: " > ",
                 },
                 tty: tty,
+                capabilities: WasiCapabilities.All,
             }).run(await module);
             if (statusCode !== 0) {
                 term.writeln(`Exit code: ${statusCode}`);
