@@ -392,7 +392,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             }
         };
 
-        let capabilites = WasiCapabilities.Tty;
+        let capabilites = WasiCapabilities.None;
         let isHelp = false;
         let componentMode = false;
         let runDebug = false;
