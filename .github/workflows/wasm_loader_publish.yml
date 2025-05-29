@@ -1,0 +1,62 @@
+name: Publish wasm-loader Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/wasm-loader/**'
+
+concurrency:
+  group: packages-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          registry-url: 'https://npm.pkg.github.com'
+          cache: 'npm'
+          scope: '@netapplabs'
+
+      - name: Install dependencies
+        run: npm install --prefix .
+        working-directory: packages/wasm-loader
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Bump version
+        run: npx standard-version -t packages/wasm-loader@
+        working-directory: packages/wasm-loader
+
+      - name: Build package
+        run: npm run build --prefix .
+        working-directory: packages/wasm-loader
+
+      - name: Publish package
+        run: npm publish --prefix .
+        working-directory: packages/wasm-loader
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git push
