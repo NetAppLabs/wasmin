@@ -252,10 +252,14 @@ export class WasiEnv implements WasiOptions {
         return this._abortSignal;
     }
     get tty() {
-        if (this.allowsTty) {
-            return this._tty;
+        if (this._tty) {
+            if (this.allowsTty) {
+                return this._tty;
+            } else {
+                throw new SystemError(ErrnoN.NOTCAPABLE);
+            }
         } else {
-            throw new SystemError(ErrnoN.NOTCAPABLE);
+            return undefined;
         }
     }
     get componentMode() {
