@@ -1,6 +1,6 @@
 {
   "name": "@netapplabs/shell",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "WASI Shell",
   "type": "module",
   "main": "dist/index.js",
