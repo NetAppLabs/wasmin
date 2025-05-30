@@ -448,7 +448,7 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
         }
         if (values.mount) {
             mountDirectoryOrUrl = true;
-            capabilites = capabilites || WasiCapabilities.FileSystem;
+            capabilites = capabilites | WasiCapabilities.FileSystem;
             mountUrl = values.mount as string;
             shellDebug("mountUrl: ", mountUrl);
         }
@@ -464,11 +464,11 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             runCount = nRunCount.valueOf();
         }
         if (values["mount-working-dir"] !== undefined) {
-            capabilites = capabilites || WasiCapabilities.FileSystem;
+            capabilites = capabilites | WasiCapabilities.FileSystem;
             mountDirectoryOrUrl = true;
         }
         if (process.env.WASMIN_CAP_DIR !== undefined) {
-            capabilites = capabilites || WasiCapabilities.FileSystem;
+            capabilites = capabilites | WasiCapabilities.FileSystem;
             mountDirectoryOrUrl = true;
         }
         if (values["sockets-promise-disable"] !== undefined) {
@@ -483,16 +483,16 @@ export async function startNodeShell(rootfsDriver?: any, env?: Record<string, st
             globalThis.USE_ACCEPTED_SOCKET_PROMISE_TIMEOUT = sockets_promise_timeout;
         }
         if (values["allow-all"] !== undefined) {
-            capabilites = capabilites || WasiCapabilities.All;
+            capabilites = capabilites | WasiCapabilities.All;
         }
         if (process.env.WASMIN_CAP_ALL !== undefined) {
-            capabilites = capabilites || WasiCapabilities.All;
+            capabilites = capabilites | WasiCapabilities.All;
         }
         if (values["allow-network"] !== undefined) {
-            capabilites = capabilites || WasiCapabilities.Network;
+            capabilites = capabilites | WasiCapabilities.Network;
         }
         if (process.env.WASMIN_CAP_NETWORK !== undefined) {
-            capabilites = capabilites || WasiCapabilities.Network;
+            capabilites = capabilites | WasiCapabilities.Network;
         }
 
         // @ts-ignore

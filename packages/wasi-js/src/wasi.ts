@@ -197,7 +197,7 @@ export class WasiEnv implements WasiOptions {
         }
         if (tty) {
             this._tty = tty;
-            this._capabilities = this._capabilities || WasiCapabilities.Tty;
+            this._capabilities = this._capabilities | WasiCapabilities.Tty;
         }
     }
 
@@ -252,11 +252,11 @@ export class WasiEnv implements WasiOptions {
         return this._abortSignal;
     }
     get tty() {
-        //if (this.allowsTty) {
+        if (this.allowsTty) {
             return this._tty;
-        //} else {
-        //    throw new SystemError(ErrnoN.NOTCAPABLE);
-        //}
+        } else {
+            throw new SystemError(ErrnoN.NOTCAPABLE);
+        }
     }
     get componentMode() {
         return this._componentMode;
@@ -272,23 +272,23 @@ export class WasiEnv implements WasiOptions {
     }
 
     get allowsFileSystem() {
-        return this._capabilities & WasiCapabilities.FileSystem;
+        return (this._capabilities & WasiCapabilities.FileSystem) == WasiCapabilities.FileSystem;
     }
 
     get allowsNetwork() {
-        return this._capabilities & WasiCapabilities.Network;
+        return (this._capabilities & WasiCapabilities.Network) == WasiCapabilities.Network;
     }
 
     get allowsTty() {
-        return this._capabilities & WasiCapabilities.Tty;
+        return (this._capabilities & WasiCapabilities.Tty) == WasiCapabilities.Tty;
     }
 
     get allowsMount() {
-        return this._capabilities & WasiCapabilities.Mount;
+        return (this._capabilities & WasiCapabilities.Mount) == WasiCapabilities.Mount;
     }
 
     get allowsExec() {
-        return this._capabilities & WasiCapabilities.Exec;
+        return (this._capabilities & WasiCapabilities.Exec) == WasiCapabilities.Exec;
     }
 
 }

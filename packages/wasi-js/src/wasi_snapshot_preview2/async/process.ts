@@ -201,13 +201,13 @@ export class ProcessResource implements Process, Resource {
                 capabilities = WasiCapabilities.None;         
             } else {
                 if (this.capabilities.filesystem) {
-                    capabilities = capabilities || WasiCapabilities.FileSystem;
+                    capabilities = capabilities | WasiCapabilities.FileSystem;
                 }
                 if (this.capabilities.network) {
-                    capabilities = capabilities || WasiCapabilities.Network;
+                    capabilities = capabilities | WasiCapabilities.Network;
                 }
                 if (this.capabilities.all) {
-                    capabilities = capabilities || WasiCapabilities.All;
+                    capabilities = capabilities | WasiCapabilities.All;
                 }
             }
         }
